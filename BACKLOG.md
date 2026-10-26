@@ -4,7 +4,7 @@
 
 M0–M14, world-generation Phases 1–9, and the defined attack-driven
 tree-harvesting increment remain complete under their recorded acceptance
-scope. The following user-requested post-roadmap goal is now queued.
+scope. The user-requested post-roadmap goals below are queued in order.
 
 ### Sea-level rivers and priority terrain carving — user request, 2026-10-18
 
@@ -482,6 +482,7 @@ N/A reasons for unused data types. A missing icon or catalogue entry blocks comp
     saved-condition, and other-melee no-wear assertions passed in the final
     current-source automation queue. No other weapon's wear behavior changed.
     All approved item audits and N/A dispositions are recorded.
+
   - [x] Run required full verification at each milestone's final increment.
   - [x] Verify fresh-start progression through Bronze and Iron without debug grants.
   - [x] Verify approved farming, shelter, cargo, accessories, peers and restart.
@@ -545,8 +546,7 @@ for BH26. Update `BACKLOG.md` and `PROGRESS.md`, commit only run-owned changes,
 and stop after the increment. BH26 is the final integrated verification/repair
 run for this goal and may exceed one turn.
 
-- [x] **Implement biome height rework and Meadows terrain dressing.** BH01–BH26
-  completed 2026-10-26; final acceptance is recorded in `PROGRESS.md`.
+- [x] **Implement biome height rework and Meadows terrain dressing.**
   - [x] **BH01 — Capture fixed-seed baselines.** Keep this parent open until
     BH01a–BH01c are complete.
     - [x] **BH01a — Export seed overviews and choose sites.** Render full-world
@@ -591,29 +591,34 @@ run for this goal and may exceed one turn.
           final seven views and verify all 28 image/numeric rows, range summary,
           camera poses and vertical bounds; distinguish live captures from
           null-RHI overviews.
-  - [x] **BH02 — Map integration points.** Recheck the current height, lake,
+
+
     river, map/wetness, forest-layout, harvest, preview, material, and test
     consumers; record the exact source/test touchpoints in the plan docs.
-  - [x] **BH03 — Disable analytic basin generation.** Add one compiled shared
+
+
     policy, default disabled, and bypass basin bowl/rim shaping, water-level
     assignment, and positive basin weights without changing biome identity.
   - [x] **BH04 — Prevent basin resurrection.** Apply the policy to lake samplers,
     shoreline/water meshes, maps, and gameplay wetness; invalidate derived basin
     caches when policy changes. Retain reusable disabled-feature tests.
-  - [x] **BH05 — Protect ocean and rivers.** Add focused controls proving ocean,
+
+
     source-coast sign, sea-level rivers, swimming/wetness, and water/map
     classification still agree while basin-only water stays absent.
   - [x] **BH06 — Extract biome height functions.** Add named candidate functions
     for Meadows, Elderwood, Shimmering Lakes, Mire, Tundra, and Mountains with
     output-preserving defaults and focused sampler coverage.
-  - [x] **BH07 — Add validated preview controls.** Name and bound shared relief
+
+
     and biome controls in the regional tuning/preview path; keep production
     output unchanged until the corresponding shaping increment is integrated.
   - [x] **BH08 — Add the shared relief stack.** Sample broad, middle, and local
     noise in absolute world coordinates with stable independent salts; keep
     climate/ecological Elevation separate and preserve deterministic cache and
     patch-edge behavior.
-  - [x] **BH09 — Blend candidate heights continuously.** Use normalized existing
+
+
     land-biome weights and continuous coast attenuation; avoid hard label
     switches, double-applied detail, and changes to classifier inputs/bands.
   - [x] **BH10 — Shape Meadows hills.** Hill source behavior, sweep harness,
@@ -660,8 +665,8 @@ run for this goal and may exceed one turn.
       Add source-level parity, bounds, negative-coordinate and transition tests.
     - [x] **BH13b — Add Elderwood/Tundra profile sweep harness.** Provide fixed
       Elderwood and Tundra profile samples plus validated commandlet-only
-      broad/middle/local amplitude overrides. Reject stale binaries; BH25b2
-      selected measured defaults and rendered profile acceptance remains BH26.
+      broad/middle/local amplitude overrides. Reject stale binaries; leave
+      BH25b2 selected measured defaults and rendered profile acceptance remains BH26.
   - [x] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
     Elderwood relief, and compressed low pockets continuously, with no basin
     bowl or new perched water surface.
@@ -690,8 +695,8 @@ run for this goal and may exceed one turn.
   - [x] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
     inside the existing outer eligibility band; confirm profile parity and
     keep snow as presentation rather than a height offset. Source-level
-    parity coverage is in BH13a; numeric profile confirmation was measured in BH25b2,
-    snow presentation remains BH24, and rendered acceptance remains BH26.
+    parity coverage is in BH13a; numeric profile confirmation was measured in
+    BH25b2, snow presentation remains BH24, and rendered acceptance remains BH26.
   - [x] **BH17 — Shape Thunder Mountains.** `ShapeMountains` now amplifies only
     source height above a 1,000 cm threshold, ramps gain smoothly over 1,000 cm,
     and scales the added gain by the continuous Mountain region field. Fine
@@ -705,9 +710,8 @@ run for this goal and may exceed one turn.
     high-ground and two-bank regressions compare the final sample with its
     post-relief no-course baseline; profile assertions preserve Z=0 water, the
     80 cm bed and 1,800 cm bank extent. Coast controls and seam coverage protect
-    shared consumers. BH25b2 later found and repaired a relief-caused bank
-    water regression at a fixed source-land control; rendered acceptance
-    remains BH26.
+    shared consumers. BH25b2 later found and repaired a relief-caused bank water
+    regression at a fixed source-land control; rendered acceptance remains BH26.
   - [x] **BH19 — Add independent forest factor.** Shared forest descriptors now
     carry a normalized absolute-world noise sample from a separate seed domain
     at a provisional 48,000 cm scale. It is independent of terrain detail and
@@ -798,9 +802,8 @@ run for this goal and may exceed one turn.
       fog visual from replicated storm intensity multiplied by the continuous
       Mountain weight at the local player; do not add exposure, damage, shelter
       mechanics, RPCs or replicated fields.
-  - [x] **BH25 — Finalize tuning and contracts.** Fresh-source numeric
-    selections and cost contracts BH25a–BH25e are complete; rendered
-    acceptance remains in BH26.
+  - [ ] **BH25 — Finalize tuning and contracts.** Keep open until BH25a–BH25d
+    are complete.
     - [x] **BH25a — Run BH10b1 Meadows hill sweep.** Fresh-source 4/6/8 m
       trials were compared with all 28 BH01 fixed sites and eight 100–250 m
       transects; 4 m was selected and measured ranges/slopes were recorded.
@@ -841,22 +844,15 @@ run for this goal and may exceed one turn.
       water/course state, biome labels and weights, with zero basin weight; the
       nominal output's 44-sample nearest-rank slope p50/p90/p95/max was
       0.907/13.286/18.073/23.543 degrees. Raw profile ranges, monotonic checks,
-      and BH01 center comparisons are recorded in
-      `docs/biome-height-rework.md`. Rendered
-      shoreline/traversal acceptance remains BH26.
-    - [x] **BH25e — Run Mossy Mire profile trials.** The source-matched BH15b
-      mirror ran all nine one-control trials over 252 samples. Retained the
-      measured nominal settings: 300 cm target, 700 cm compression scale and
-      25 cm residual detail. All variants preserved the nominal 50 wet samples,
-      water coverage and active river/basin fields; none added wet terrain. The
-      minimum positive source-land clearance was 19.538 cm, and the lowland
-      curve passed 180,000 monotonic comparisons across every target/scale
-      pairing. Raw ranges and BH01 comparisons are in
-      `docs/biome-height-rework.md`; rendered acceptance remains BH26.
-  - [x] **BH26 — Run final integrated verification and repair.** The Editor
-    build, world and water automation, RegionalGeneration/Minimap peers, forest
-    lifecycle/restart, material generation, and rendered traversal acceptance
-    passed 2026-10-26. Results and remaining limits are in `PROGRESS.md`.
+      and BH01 center comparisons are recorded in `docs/biome-height-rework.md`.
+      Rendered shoreline/traversal acceptance remains BH26.
+  - [x] **BH26 — Run final integrated verification and repair.** Inspect the full
+    combined change; run the applicable Editor build, regional/master-map/
+    finite-world/integrated/water checks, RegionalGeneration and Minimap peers,
+    forest/harvest lifecycle, and rendered traversal/start/build checks from
+    `docs/07-development-setup.md`. Repair regressions and rerun affected plus
+    required full checks; mark this goal complete only after required results
+    pass and all remaining limitations are recorded.
 
 ### Monster population and camp spawn suppression — user request, 2026-10-22
 
@@ -869,8 +865,7 @@ are specified in advance; implement them without requesting tuning values.
 exactly one per run, in order. Each normal checkbox targets roughly 10–20 minutes
 of integrated work plus a lightweight check. If it will exceed one turn, split
 that checkbox into smaller ordered children before implementing its first part.
-Keep intermediate code safe: S26 is the first increment that enables natural
-spawning. Record
+Keep intermediate code safe: do not enable natural spawning until S26. Record
 files, checks, remaining scope and next task in `PROGRESS.md`; commit only the
 run's changes, then stop. Add focused tests with the helper they exercise where
 practical; execute full verification only at the final gate. S35 is the required
@@ -980,6 +975,421 @@ milestone-final verification/repair run and can exceed a normal turn.
     Verify no duplicate actors/rewards and bounded scheduling. Repair related
     failures and rerun required checks in this run. Record actual commands/results;
     check the parent only when verification passes, otherwise record the blocker.
+
+### Valheim-inspired Kalmala lighting and materials — user request, 2026-10-25
+
+**Goal:** Build an original Kalmala lighting/material stack with readable
+day/night scenes, atmospheric distance, weather-aware surfaces, and optional
+hardware ray-tracing quality levels. The detailed, researched implementation
+contract and acceptance scenes are in the [lighting plan](docs/valheim-like-lighting-plan.md).
+
+**Planning status:** This adds no runtime behavior and makes no release-hardware
+promise. Keep the accepted Kalmala art direction, client-only cosmetic behavior,
+and existing weather/gameplay authority. Hardware ray tracing and DLSS remain
+optional presentation features; the RT-off tier must retain the complete visual
+baseline. Default Lit remains the production shading path unless a later visual
+review accepts a different look.
+
+**Worktree sequence:** L01–L06 are ordered worktree-sized goals. Assign one goal
+to one agent in a dedicated worktree, starting from local `master` after the
+previous goal's commit has been integrated. The repository allows one active
+Kalmala write run at a time, so use separate worktrees for isolation but run the
+goals sequentially, not concurrently.
+
+**Run rule:** In the first unchecked goal, complete exactly its first unchecked
+child in order; split it before coding if it exceeds one turn. Run applicable
+lightweight checks, update backlog and progress, commit only run-owned changes,
+and stop. L06 is the integrated milestone-final verification and repair goal;
+do not mark the lighting milestone complete before it passes.
+
+- [ ] **L01 — Establish the lighting baseline and core post-process look.**
+  Record repeatable scene captures, stabilize the existing light/sky/fog/exposure
+  stack, and use built-in post-process volume controls before custom passes.
+  - [ ] **L01a — Inspect the active prototype map and renderer.** Record the
+    active RHI, GI/reflection method, directional/sky lights, fog, exposure,
+    post-process volumes, generated material assignments, and capture settings
+    in the existing lighting plan. Select and record fixed camera positions for
+    all five baseline scenes. Do not change project behavior in this audit.
+  - [ ] **L01b — Capture seed-418 daylight, forest, and water.** Use the fixed
+    camera poses for Meadows daylight, forest shade, and coast/water. Preserve
+    captures and manifest under `TestResults/LightingBaseline/`; record
+    resolution, exposure, hardware, and renderer settings. Do not write under
+    `Saved/`, `Intermediate/`, or `DerivedDataCache/`.
+  - [ ] **L01c — Capture seed-418 weather and fire scenes.** Capture
+    overcast/rain and fire-lit dusk/night using L01a's matching camera and
+    exposure records; verify all five seed-418 scenes are present.
+  - [ ] **L01d — Capture seed-419 daylight, forest, and water.** Reuse L01a's
+    fixed views and the seed-418 manifest for Meadows daylight, forest shade,
+    and coast/water.
+  - [ ] **L01e — Capture seed-419 weather and fire scenes.** Capture the
+    matching overcast/rain and fire-lit dusk/night views; verify the full
+    two-seed baseline set before changing the rig.
+  - [ ] **L01f — Tune the scene-wide rig and grade.** Keep solid surfaces on
+    Default Lit. Stabilize exposure, balance the existing directional key and
+    sky fill, tune existing fog, then apply a restrained global grade and bloom
+    using built-in settings. Save the selected values with before/after captures.
+  - [ ] **L01g — Add only justified local post-process volumes.** Use bounded
+    volumes only for an existing authored location needing a distinct look;
+    set explicit priority/blend radius and confirm no visible boundary or UI/text
+    treatment. If no such location exists, record this child N/A in the plan.
+  - [ ] **L01h — Pass the core-lighting gate.** Compare all ten fixed views and
+    ordinary third-person movement; confirm readable silhouettes, stable
+    exposure, legible firelight, and no crushed shadows or clipped highlights.
+
+- [ ] **L02 — Build and integrate the shared surface-material family.** Replace
+  flat generated surface materials through project-owned parents and instances,
+  retaining direct light, shadow, indirect fill, water clipping, and runtime
+  material assignment behavior.
+  - [ ] **L02a — Define the shared material interface.** Use the existing
+    `Content/Kalmala/World/Materials/` path and the lighting plan's bounded
+    controls: base tint, roughness, normal strength, broad color variation, and
+    mapping scale. Keep common surface functions in Material Functions.
+  - [ ] **L02b — Integrate terrain and shore.** Replace flat generated terrain
+    and shore expressions with instances of the shared lit parent; verify
+    procedural assignment and biome-debug material override still work.
+  - [ ] **L02c — Integrate rock.** Assign the opaque lit parent to generated
+    rocks and verify visible shape, roughness, and baseline material separation.
+  - [ ] **L02d — Integrate wood and bark.** Assign appropriate instances to
+    generated trunks and authored wood without creating material graphs at runtime.
+  - [ ] **L02e — Add the foliage family.** Use a separate masked/two-sided canopy
+    parent where required; inspect edge aliasing and temporal shimmer in forest
+    shade and daylight.
+  - [ ] **L02f — Integrate water separately.** Use a dedicated water parent or
+    instance; preserve sea/lake clipping and shoreline geometry, and inspect
+    reflections/highlights in the fixed coast and water views.
+  - [ ] **L02g — Pass the material-family gate.** Verify terrain, shore, rock,
+    bark, canopy, and water retain distinct values across all baseline scenes;
+    record material assignments and remaining limitations in the lighting plan.
+
+- [ ] **L03 — Prototype the stylized direct-light response.** Keep Default Lit
+  as the shipped default while measuring a restrained banded alternative; this
+  goal produces evidence and a recommendation, not an unreviewed global style
+  change.
+  - [ ] **L03a — Create an isolated comparison fixture.** Compare Default Lit
+    with a soft two- or three-band direct-light treatment on representative
+    ground, rock, wood, canopy, creature, and construction surfaces using L01's
+    fixed views.
+  - [ ] **L03b — Evaluate UE 5.8 Substrate NPR support.** Prototype its
+    experimental ramp-based shading only if the project's configured renderer,
+    build targets, and materials support it; do not add an engine fork or make
+    the experimental feature a production dependency.
+  - [ ] **L03c — Check lighting integration.** Confirm each candidate preserves
+    cast shadows, indirect fill, camp-light response, silhouette readability,
+    and temporal stability; record per-view GPU cost.
+  - [ ] **L03d — Record the review recommendation.** Keep Default Lit as the
+    production path and report the captures, tradeoffs, and recommended next
+    choice. Any change to the game's overall visual identity requires explicit
+    user review before broad adoption.
+
+- [ ] **L04 — Add supported weather and environment effects.** Use only existing
+  client presentation signals and effects; keep this cosmetic, gradual, and
+  outside gameplay, save, RPC, and replicated-state contracts.
+  - [ ] **L04a — Map existing weather inputs.** Trace currently available
+    client-side precipitation, wetness, snow/biome, sky, fog, and world-space
+    effect inputs. Record which plan effects have valid inputs; do not add a new
+    weather type or network/save field to supply a missing one.
+  - [ ] **L04b — Add subtle wet-surface response.** Apply rain/wet darkening and
+    roughness changes to the plan-selected wood/rock materials using only an
+    existing presentation signal; smooth state changes to avoid popping.
+  - [ ] **L04c — Add eligible snow coverage.** Apply it only to suitable
+    surfaces with an existing client snow/biome signal. Mark unsupported
+    combinations N/A rather than inventing a signal.
+  - [ ] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable
+    surfaces with an existing client biome/surface signal; record unsupported
+    combinations as N/A in the lighting plan.
+  - [ ] **L04e — Tune existing sky and atmospheric effects.** Adjust available
+    cloud, local fog, and weather color treatments through the existing pipeline;
+    add no new sky model or weather type.
+  - [ ] **L04f — Tune existing world-space weather effects.** Adjust available
+    rain, snow, mist, or ember particles and keep them out of key sight lines.
+    Add no full-screen droplets or overlays.
+  - [ ] **L04g — Pass the environment-effects gate.** Review daylight, rain,
+    overcast, and fire-lit captures and transitions; confirm no popping,
+    excessive visual noise, or gameplay/simulation change.
+
+- [ ] **L05 — Add scalable hardware ray-tracing quality levels.** Use the RT-off
+  baseline, Lumen hardware ray tracing for supported Windows DX12/SM6 devices,
+  and the measured levels in the lighting plan. Do not claim a minimum GPU until
+  representative hardware has passed.
+  - [ ] **L05a — Verify the actual renderer support path.** Check project RHI,
+    SM6, Lumen and hardware-ray-tracing settings; record the exact supported
+    device/OS conditions and keep the current `RTX 5090` performance record
+    labelled as the reference system, not a minimum-spec test.
+  - [ ] **L05b — Preserve the RT-off compatibility path.** Confirm the baseline
+    lighting works without hardware RT, using supported Lumen software tracing
+    or the project's selected non-hardware fallback. Make the fallback explicit
+    and test that unsupported adapters do not enter the hardware path.
+  - [ ] **L05c — Implement the Balanced tier.** On supported adapters, enable
+    Lumen hardware tracing for GI/reflections using Surface Cache lighting;
+    compare against RT-off and keep Hit Lighting disabled for this tier.
+  - [ ] **L05d — Implement the High tier selectively.** Scale GI/reflection
+    quality and test ray-traced shadows only on key lights with visible benefit.
+    Set ray-tracing culling/visibility for generated forest, grass, sky, and
+    repeated meshes; do not enable expensive features indiscriminately.
+  - [ ] **L05e — Measure supported hardware.** Compare RT-off, Balanced, and
+    High on the reference PC and the actual lower-tier devices selected for
+    release; include AMD hardware if it is within the support target. Record
+    frame time, resolution, memory, image quality, and artifacts. Do not infer
+    minimum/recommended hardware from UE's compatibility list alone.
+  - [ ] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
+    separate from ray tracing. Add no vendor plugin/dependency or Frame
+    Generation path in this goal; seek a separate user-approved plan if they
+    become a release requirement.
+
+- [ ] **L06 — Integrate and perform lighting milestone-final verification.**
+  This is the only full verification gate for the lighting milestone; complete
+  it after L01–L05 are integrated.
+  - [ ] **L06a — Inspect the combined implementation.** Review the merged
+    material, lighting, environment, and RT changes; confirm there are no
+    duplicate material assignments, unintended asset changes, or new gameplay,
+    authority, save, or network behavior.
+  - [ ] **L06b — Run the project-prescribed build and focused checks.** Use the
+    applicable Editor build, rendered-world checks, and performance procedures
+    in `docs/07-development-setup.md`. Record actual commands and results.
+  - [ ] **L06c — Capture integrated visual acceptance.** Repeat the ten L01
+    fixed views with the final material/effect stack for RT-off, Balanced, and
+    High where supported; inspect regular third-person camera movement and UI.
+  - [ ] **L06d — Repair lighting regressions.** Fix milestone-related build,
+    rendering, temporal stability, fallback, or performance-check failures, then
+    rerun affected checks and the required full verification.
+  - [ ] **L06e — Finalize the handoff.** Record tested hardware, per-tier GPU
+    costs, accepted captures, remaining limitations, and the actual release
+    support statement in the lighting plan and `PROGRESS.md`. Mark L06 and the
+    lighting milestone complete only after required verification passes.
+
+### Developer console and secret-key debug mode — user request, 2026-10-26
+
+- [ ] **DC — Add an in-game developer console with authenticated debug commands.**
+  Provide the practical exploration/testing convenience requested by the user,
+  inspired by survival-game consoles, using original Kalmala UI and commands.
+  Append this goal after existing active goals; do not change their priority.
+  Planning only: all implementation children remain unchecked.
+
+  **Implementation defaults chosen for this plan:**
+  - Reuse any existing console/input/settings route; integrate the existing
+    Enable Console option candidate instead of creating a second setting.
+    Default off, persisted locally; F5 toggles when enabled, Escape closes,
+    Enter submits, Up/Down browse 50 session-only history entries, and Tab
+    completes permitted command names/catalogue IDs. Retain 200 output lines.
+    Capture gameplay input while open, restore prior focus on close, and
+    support keyboard/controller focus with a rebindable console action.
+  - Public commands: `help [command]`, `clear`, `status`, `pos`, `login`,
+    `logout`. `status` shows own debug state/build/world seed; `pos` shows own
+    position in metres, biome and heading. Help lists only permitted commands.
+    `login` opens a masked secret field, never a secret-bearing command line;
+    exclude secrets from history, output, logs, autocomplete and replication.
+  - Explicit server opt-in defaults off in solo/listen/dedicated sessions.
+    Configure a minimum 32-character random secret through a server-only
+    environment/configuration source outside tracked/shipped content; no
+    hardcoded/default key and no key/verifier distributed to clients. Missing
+    configuration denies login. Rotate via server restart, revoking sessions.
+    Choose the existing engine-supported encrypted connection/authentication
+    path; reject remote key submission if confidentiality cannot be assured.
+    No new online service or dependency is authorized by this goal.
+  - Authenticate on the server and bind privilege to the owning connection,
+    never a client flag or supplied player ID. Allow at most five attempts per
+    connection in a rolling 60 seconds and 30 attempts server-wide per rolling
+    60 seconds; excess attempts receive a generic denial. Secret length is
+    32–128 characters, comparisons avoid timing-dependent early exit, and
+    privilege expires after 30 minutes absolute time, logout, disconnect,
+    world/session change or server shutdown. Respawn removes pawn overrides
+    but retains an otherwise valid connection authorization.
+  - All privileged commands recheck server authorization at execution, with
+    at most ten requests/second/connection and a maximum 256-character command
+    line. Reject unknown commands/IDs, extra arguments, nonfinite/out-of-range
+    numbers and invalid targets without side effects. Use an explicit allowlist,
+    never arbitrary Unreal console execution, scripts, file paths or asset loads.
+    Audit actor identity, command, sanitized arguments and outcome server-side.
+  - Cheats target the caller only unless a command below explicitly addresses
+    debug-created entities. Debug privilege/flags, flight/noclip and time/weather/AI
+    overrides are transient, never saved. Restore captured values on revocation;
+    server restart uses ordinary settings. Reject a global override while held
+    by another authorized connection; restore it when its owner loses privilege.
+    Item grants/repair use existing persistence transactions and rollback on
+    failure; successful changes persist normally. Label this in command help.
+    No save-schema changes, item additions, paid services or release changes.
+
+  **Initial privileged command set and exact boundaries:**
+  - `tp <x> <y> <z>`: absolute world metres, finite values inside the current
+    playable world; require loaded destination, valid capsule clearance and
+    server-safe terrain/water placement. Reject unsafe/unloaded sites rather
+    than changing streaming budgets. `mark <name>` / `goto <name>`: at most
+    ten session-only own-position bookmarks, names 1–24 ASCII letters/digits/
+    underscores; replacement allowed. `goto` uses the same teleport validator.
+  - `god <on|off>`: bypass incoming health damage/death for the living caller
+    only; do not revive, alter attack damage or silently refill stats.
+    `heal`: restore own health/stamina to current maxima and clear negative
+    status effects using existing server APIs, without changing progression.
+    `fly <on|off>`: own server-controlled flight with collision enabled.
+    `noclip <on|off>`: enable flight and bypass world/body collision for the
+    caller only; keep world bounds and loaded-region limits enforced. Turning
+    noclip off retains flight and restores collision only at a clear capsule
+    position. Turning flight off also disables noclip and requires safe ground.
+    `speed <multiplier>`: own movement multiplier in [0.25,5], default 1.
+    Expose separate Fly and Noclip toggles in the authenticated console panel,
+    default off and session-only, reflecting server-confirmed state; changes
+    use the same command authorization path. No interaction-range bypass.
+    Record the last collision-clear, grounded position before either mode.
+    On voluntary disable, reject unsafe restoration and retain the current
+    mode with feedback. On expiry/logout/disconnect/respawn/world change,
+    clear both flags and restore ordinary movement/collision at that safe
+    position, or the normal server spawn if it is no longer valid; never
+    leave a pawn embedded, falling outside the world or retaining a cheat.
+  - `give <itemId> [quantity]`: default 1, integer [1,100], registered ordinary
+    inventory/equipment IDs only; respect capacity, instance identity and
+    persistence rules, reject the entire grant on failure. Never grant
+    buildables or legacy Kit IDs. `repair`: restore own carried equipment to
+    its current authored condition maximum, without upgrades or new items.
+  - `spawn <creatureId> [count]`: default 1, integer [1,10], registered existing
+    creature profiles only, safe server-selected sites within 10 metres of the
+    caller and at most 20 live debug creatures per session. Replicate through
+    normal creature paths, tag transiently, suppress drops/progression rewards
+    and exclude from saves. `despawn [radius]`: default 10 metres, range
+    (0,50], removes only debug-created creatures in range, never natural
+    creatures, buildings, player inventories or persistent world records.
+  - `time <hour|reset>`: hour in [0,24), sets a transient server-owned
+    replicated sun-hour override until reset/revocation. Mapping found no
+    ordinary runtime day clock; preserve baseline static lighting otherwise. `weather <calm|rain|storm|reset>`:
+    select an existing deterministic outcome from the server weather cycle;
+    mapping found numeric generated families, not an authored preset registry.
+    Reject unsupported names and restore ordinary simulation on reset.
+    `ai <pause|resume>`: pause/resume only debug-created creatures; natural
+    populations remain unaffected. No new weather, creature or gameplay content.
+  - `inspect`: read-only server trace within the ordinary interaction range,
+    returning target catalogue/type ID, position and public health/state only;
+    no other player's private inventory, save/account identity or entitlement.
+    `debug <coords|biome|collision|net|off>`: local diagnostic overlays using
+    existing data/debug drawing, no hidden inventory disclosure. `perf`:
+    toggle local FPS/frame-time display using existing counters. Require debug
+    authorization for these diagnostics too; clear overlays on revocation.
+  - `gps <query>` enables one tracked search; `gps off` clears it, and
+    `gps` shows the current query/result. Accept quoted multiword names or
+    catalogue/type IDs (1-64 characters), case-insensitive; prefer exact IDs,
+    otherwise match display-name substrings across existing objects, creatures,
+    resources, placed structures and named world features. Show the resolved
+    target name and distance in metres. No private inventory/account searches.
+    Unknown/no-match queries remain enabled and display a question mark.
+  - GPS searches the entire current playable world, not just visible/loaded
+    actors. Use authoritative live/persisted entity indexes and deterministic
+    world-feature descriptors without spawning actors or loading every region.
+    Count only extant entities/features: exclude dead/despawned creatures,
+    collected/depleted resources and removed structures; potential creature
+    spawn sites do not count as living creatures. Include occluded targets.
+    Select the smallest 3D straight-line distance from the caller, with stable
+    entity ID as the tie-breaker; no maximum distance inside the world bounds.
+    Live transforms override descriptor locations for moving entities.
+  - Render an original shaded 3D arrow at the top middle of the gameplay HUD,
+    centred horizontally, 64 logical pixels below the safe-area top, within a
+    96 x 96 logical-pixel area; reserve space so it does not obscure existing
+    HUD controls. Rotate its 3D direction relative to camera yaw/pitch/roll
+    towards the selected world position, including behind/above/below targets.
+    When within 1 metre inclusive, retain the arrow with an arrived indicator.
+    When a completed search proves no extant match, replace the arrow with a
+    question mark in exactly the same anchor and label it No match.
+  - Re-evaluate nearest-target selection every 1 second and on query changes;
+    interpolate orientation each frame with a 0.1-second smoothing time.
+    On target removal, stop pointing to stale data and reacquire. Incremental
+    indexing/search gets at most 2 ms per server frame across all GPS users;
+    retain a Searching state until coverage is complete, never report absent
+    merely because an area is unloaded or work is pending. Track world-index
+    revisions and discard stale query replies. Return only the selected target
+    ID/type/name/position to the authorized owner, at most once per second.
+    GPS is debug-authorized, default off, unsaved and cleared on logout/expiry,
+    disconnect or world change; respawn rebinds a valid connection's search.
+    This grants directional debug discovery only, not permanent map reveal.
+  - Arbitrary progression editing, free construction/material-payment bypass,
+    map reveal, world reset, natural-entity mass deletion, save editing,
+    remote-player control and general server administration are out of scope.
+    Console availability must not grant access to existing unrestricted cheats.
+
+  **Run rule:** Complete the first unchecked, unblocked child in order, exactly
+  one per run; split further before implementation if it exceeds one turn.
+  Perform applicable lightweight checks, update backlog/progress, commit only
+  run-owned changes, then stop. Target 10–20 minutes per normal child.
+
+  - [x] **DC01 — Map existing input, settings, server auth and cheat routes.**
+    Record concrete reuse points and the confidential login transport in this
+    goal; identify and gate any bypass. Keep runtime commands disabled.
+    Mapping: connection lifetime is AKalmalaMapPlayerController; attach a
+    replicated console component there, with UI in a LocalPlayer subsystem.
+    Reuse SettingsWidget local config/action rebinding and normal inventory
+    transactions. Remote secret submission requires UNetConnection encryption
+    on both endpoints; local authority is confidential without a network hop.
+    Disable the native Tilde/four-finger console route; registry never calls
+    ConsoleCommand/Exec. Existing map presentation CVars cannot mutate gameplay
+    and stay outside this authenticated command dispatcher.
+  - [x] **DC02 — Add the local console panel and enable/rebind controls.**
+    Verify open/close, input capture, focus restore and bounded output.
+  - [x] **DC03 — Add the bounded parser and explicit command registry.**
+    Verify argument/number rejection; connect public help/clear/status/pos only.
+  - [x] **DC04 — Add server opt-in and server-only secret configuration.**
+    Verify missing/invalid configuration fails closed without exposing secrets.
+  - [x] **DC05 — Add masked login and confidential server authentication.**
+    Verify correct/wrong keys, redaction and remote insecure-transport denial.
+  - [x] **DC06 — Add login limits, connection grants and revocation.**
+    Verify attempt boundaries, absolute expiry, logout/reconnect and respawn.
+  - [x] **DC07 — Connect the privileged dispatch authorization/rate gate.**
+    Verify forged requests, ownership, audit redaction and no Unreal bypass.
+  - [x] **DC08 — Add filtered history, completion and command feedback.**
+    Verify bounds, permissions and exclusion of authentication material.
+  - [x] **DC09 — Add safe teleport and bounded session bookmarks.**
+    Verify valid travel and unsafe/unloaded/out-of-world rejection.
+  - [x] **DC10 — Add caller-only god/heal and damage-path integration.**
+    Verify incoming damage, death/status behavior and revocation cleanup.
+  - [x] **DC11 — Add flight, noclip and speed controls.**
+    - [x] **DC11a — Add collision-respecting flight and speed commands.**
+      Verify server movement, multiplier bounds and safe grounded restoration.
+    - [x] **DC11b — Add server-authorized noclip movement.** Verify collision
+      bypass for the caller only, mode dependencies and world/loaded-area bounds.
+    - [x] **DC11c — Add separate Fly/Noclip console settings.** Verify default
+      off, server-confirmed UI state, command/toggle parity and denied requests.
+    - [x] **DC11d — Cover safe movement restoration and revocation.** Verify
+      disable inside terrain, last-safe/spawn fallback, expiry/logout, death/
+      respawn, disconnect and world change; both flags remain unsaved.
+  - [x] **DC12 — Add catalogue-only transactional item grants.**
+    Verify quantity/capacity/ID gates, equipment identity, rollback and Kit denial.
+  - [x] **DC13 — Add carried-equipment repair through existing transactions.**
+    Verify ownership, authored maxima and persistence-failure rollback.
+  - [x] **DC14 — Add bounded transient creature spawning.**
+    Verify safe placement, caps, peer visibility, no rewards and save exclusion.
+  - [x] **DC15 — Add debug-creature despawn and AI pause/resume.**
+    Verify radius bounds, debug ownership tags and natural-population exclusion.
+  - [x] **DC16 — Add reversible server time override.**
+    Verify hour bounds, single-owner conflict, replication and reset/revocation.
+  - [x] **DC17 — Add reversible existing-preset weather override.**
+    Verify preset allowlist, single-owner conflict and simulation restoration.
+  - [x] **DC18 — Add inspect and local diagnostic/performance displays.**
+    Verify range/privacy limits, public data only and revocation cleanup.
+  - [x] **DC18a - Add GPS world-target indexing and matching.** Implement
+    authoritative live/persisted/descriptor lookup, invalidation and full-world
+    coverage within the shared frame budget; verify unloaded features, depleted
+    resources and actual living creatures without materializing new actors.
+  - [x] **DC18b - Add GPS command, nearest selection and owner-only replies.**
+    Verify names/IDs, 3D distances/ties, moving/deleted targets, stale results,
+    incremental Searching/No match distinction and authorization cleanup.
+  - [x] **DC18c - Add the top-centre 3D GPS arrow and question-mark state.**
+    Verify camera-relative front/back/vertical directions, nearest changes,
+    arrival, no-match replacement, UI scaling and existing HUD clearance.
+  - [x] **DC19 — Add focused authorization/lifecycle regression coverage.**
+    Cover direct RPC bypass, concurrent authorized users, secret redaction,
+    logout/expiry/disconnect, respawn, flight/noclip cleanup and debug-entity
+    shutdown cleanup.
+  - [x] **DC20 — Document command help and operator setup.**
+    Update existing architecture/setup docs with actual configuration, transport,
+    persistence consequences and reset behavior; never include a working key.
+  - [ ] **DC21 — Perform console milestone-final verification and repairs.**
+    Inspect the combined feature; run applicable full build/automation and
+    solo/listen/dedicated peer checks from `docs/07-development-setup.md`,
+    including unauthorized and authorized remote peers, unsafe input, restart,
+    ordinary gameplay after logout, flight/noclip peer movement and safe
+    collision restoration, and secret-free logs/history. Verify that
+    GPS finds the closest extant match across loaded/unloaded world areas,
+    the arrow follows camera/target movement, and a completed absent search
+    shows a question mark. Verify build configurations fail closed without
+    opt-in, commands affect only permitted targets, normal construction still pays materials, and no debug creatures
+    or privileges survive restart. Repair milestone defects and rerun required
+    verification; record actual commands/results/limits in `PROGRESS.md`.
+    Mark the parent complete only after required verification passes.
 
 ## User-requested fixes
 

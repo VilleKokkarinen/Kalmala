@@ -1,3 +1,401 @@
+## DC20 - Operator setup and command reference, 2026-10-26
+
+- Added concrete per-command help and existing architecture/setup documentation
+  for opt-in/env keys, encrypted remote route, controls, lifecycle/persistence,
+  GPS states and final verification criteria. No working key generated/stored.
+- Files: ConsoleComponent source, architecture/setup docs, backlog/progress.
+  Source/link/whitespace inspection only; no builds/tests run yet.
+- Next DC21 milestone-final integration, builds, regression/peer/render checks
+  and repairs. Parent backend async repair remains in progress and must land
+  before acceptance. DC parent remains incomplete awaiting required checks.
+
+## DC19 - Focused console regression coverage, 2026-10-26
+
+- Added malformed/quoted input, numeric grammar/bounds, command visibility,
+  fixed-work key comparison and rolling-attempt boundary tests. Added GPS
+  camera-relative front/back/vertical/arrival geometry coverage. Existing
+  lifecycle/world-owner fixtures cover revoke/expiry/pawn replacement and
+  different-authorized-owner cleanup conflicts.
+- Files: ConsoleContractTest, ConsoleOverlayTest, backlog/progress. Authored
+  and inspected only; no tests claimed run. Actual direct-RPC peer denial,
+  remote encrypted auth, rendered HUD, restart/cleanup remain DC21 gates.
+- Next DC20 operator/command documentation, then milestone-final verification.
+
+## DC18c - GPS directional HUD, 2026-10-26
+
+- Added original shaded 3D arrow mesh projected at top-centre (96-pixel area,
+  top 64), camera-relative yaw/pitch/roll with 0.1-second orientation smoothing.
+  Displays name/distance/arrival; completed absence replaces arrow with a
+  question mark at same anchor; incomplete search shows Searching instead.
+- Files: ConsoleOverlay header/source, backlog/progress. Static geometry/state
+  inspection only; scaled HUD/rendered acceptance remains required at DC21.
+- Next DC19 focused registry/auth/lifecycle regression coverage.
+
+## DC18b - GPS command and private target state, 2026-10-26
+
+- Added gps query/off/status through authorized registry, bounded multiword
+  query and controller session tracking. Backend advances incrementally and
+  publishes selected target/state to owning player at most once per second.
+  Requery clears stale state; revocation/world teardown clears search. Valid
+  connection search survives pawn respawn and uses the current pawn position.
+- Files: ConsoleComponent header/source, backlog/progress. Source/whitespace
+  checks only; full peer/nearest acceptance deferred DC21. Next DC18c HUD arrow.
+
+## DC18a - Incremental whole-world GPS backend, 2026-10-26
+
+- Added parent-authored read-only radial search across resources/forest/world
+  features and saved constructions, plus actual live creatures/actor transforms.
+  No spawn-site-as-creature matches, materialization or private inventory query.
+  Saved/session depletion gates and deterministic 3D nearest/ties included.
+- Files: GpsSearch header/source, GpsSearchTest, GameMode friend, backlog/progress.
+  Static/whitespace checks only. Known development limitation: atomic existing
+  generators can overrun time slice; scheduling repair and measurement remain
+  before DC21 acceptance. Full checks deferred DC21. Next DC18b command/replies.
+
+## DC18 - Inspect and local diagnostics, 2026-10-26
+
+- Added range-limited server inspect returning public type/location/health,
+  excluding player pawns/private inventory. Added authorized owner diagnostic
+  mode and performance display, with local coords/biome/network text and own
+  capsule drawing. All diagnostic flags clear on revocation.
+- Files: ConsoleComponent header/source, ConsoleOverlay header/source,
+  ConsoleSubsystem header/source, backlog/progress. Static checks only; full
+  build/render acceptance deferred DC21. Next DC18a GPS search backend.
+
+## DC17 - Reversible existing weather-family override, 2026-10-26
+
+- Connected weather calm/rain/storm/reset through server owner-bound world
+  setter; natural weather advancement pauses while owned override is active,
+  then resumes from captured baseline. Unsupported names/conflicting owners
+  reject without mutation; release on grant revocation.
+- Corrected plan's nonexistent authored-preset assumption: aliases select
+  actual deterministic outcomes in existing weather families, no new weather.
+- Files: ConsoleComponent/GameMode sources, backlog/progress. Static/diff
+  inspection only; full checks deferred DC21. Next DC18 inspect/diagnostics.
+
+## DC16 - Reversible replicated sun-hour override, 2026-10-26
+
+- Added time hour/reset with [0,24) bounds, single-owner server guard and
+  replicated client sun orientation. Captures/restores exact tagged sun baseline
+  on reset/revocation. Repository has no running day clock; corrected the
+  planning assumption and kept ordinary static lighting unchanged.
+- Parent-authored WorldGenerationGameState override infrastructure also includes
+  the disconnected weather setter needed next. Added ownership/restore fixture.
+- Files: WorldGenerationGameState header/source, DebugWorldTest, ConsoleComponent,
+  backlog/progress. Static/whitespace checks only; full build/tests deferred
+  DC21. Next DC17 existing weather-family command integration.
+
+## DC15 - Debug-only despawn and AI controls, 2026-10-26
+
+- Added radius-bounded despawn restricted to debug-tagged creatures and
+  reversible pause/resume for debug AI only. Other-authorized-owner conflicts
+  reject; logout/expiry resumes paused actors owned by the departing grant.
+  Natural creatures, structures and persistent records remain untouched.
+- Files: ConsoleComponent header/source, backlog/progress. Static/diff checks
+  only; full verification deferred DC21. Next DC16 reversible time override.
+
+## DC14 - Transient developer creature spawning, 2026-10-26
+
+- Added existing-archetype spawn command, integer batch 1-10 and session live
+  debug cap 20. Server chooses bounded safe sites within ten metres using
+  authored body shapes, loaded terrain, slope/clearance and aquatic checks;
+  failed batches roll back. Replicated debug tags suppress defeat rewards and
+  persistent depletion callbacks; no natural scheduler/save registration.
+- Files: Wildlife header/source, ConsoleComponent source, backlog/progress.
+  Static/diff inspection only; full checks deferred DC21. Next DC15 despawn/AI.
+
+## DC13 - Transactional carried-equipment repair, 2026-10-26
+
+- Repair restores carried tool authored condition at current levels and clears
+  own equipped/packed gear wear without upgrades/new items. Existing snapshot
+  persistence must succeed before publication; failure restores tools/gear/wear.
+- Files: ConsoleComponent source, backlog/progress. Source/whitespace inspection
+  only; full verification deferred DC21. Next DC14 transient creature spawning.
+
+## DC12 - Catalogue-only transactional grants, 2026-10-26
+
+- Added give item/count with integer 1-100 bounds, ordinary item catalogue and
+  capacity gates. Tools receive authored level-one condition, unique instance
+  GUIDs and torch fuel. Buildable/legacy Kit IDs are rejected.
+- Candidate stacks/tools persist through existing player snapshot before UI
+  publication; failed save restores exact pre-command contents. Successful
+  grants persist normally, as command feedback states.
+- Files: Inventory header, ConsoleComponent source, backlog/progress. Static
+  inspection/whitespace only; full acceptance deferred DC21. Next DC13 repair.
+
+## DC11d - Movement cleanup regression fixture, 2026-10-26
+
+- Added focused console movement lifecycle fixture: unsafe flight/noclip
+  startup rejection, speed/collision restoration, expiry and pawn replacement.
+  Inspected forced last-safe/spawn fallback and voluntary collision guards.
+- Files: ConsoleComponent header, ConsoleLifecycleTest, backlog/progress.
+  Test authored but not executed (normal development policy); full build/
+  automation and live embedded-pawn cleanup checks remain in DC21.
+- DC11 implementation complete; next DC12 transactional item grants.
+
+## DC11c - Fly/Noclip console settings, 2026-10-26
+
+- Wired separate Fly/Noclip toggles to replicated server-confirmed state;
+  disabled while unauthorized, default off, commands/toggles share dispatch.
+  Rejected requests are corrected by the next UI refresh, with owner feedback.
+- Files: ConsoleSubsystem source, backlog/progress. Source/whitespace inspection
+  only; full checks deferred DC21. Next DC11d movement lifecycle coverage.
+
+## DC11b - Noclip movement, 2026-10-26
+
+- Added server-authorized own-pawn noclip on/off, dependent flight and clear
+  capsule restoration. World XY/Z bounds and loaded-region movement remain
+  enforced on server; crossing unloaded terrain rolls back the movement step.
+- Files: ConsoleComponent/Movement sources, backlog/progress. Static inspection
+  only; full peer checks deferred DC21. Next DC11c state-reflecting toggles.
+
+## DC11a - Authoritative flight and speed, 2026-10-26
+
+- Added server-owned replicated movement overrides, collision-respecting
+  flight and speed [0.25,5]. Flight uses camera pitch for ascend/descend;
+  start requires safe loaded ground and voluntary exit requires safe ground.
+  Forced cleanup restores saved safe position/fallback and ordinary movement.
+- Files: Character/Movement/ConsoleComponent headers/sources, backlog/progress.
+  Source/whitespace inspection only; full verification deferred DC21.
+- Next DC11b noclip; no client-authorable movement privilege flags.
+
+## DC10 - God mode and healing, 2026-10-26
+
+- Added living caller-only god on/off and heal, integrated at wildlife/poison
+  health damage paths. God flag is pawn-transient and cleared on revoke/pawn
+  replacement. Heal restores current maxima and removes Wet/weak/major poison
+  without changing progression. No revival or attack-damage changes.
+- Files: Character header/source, Status header, ConsoleComponent header/source,
+  backlog/progress. Static inspection/whitespace only; full checks deferred
+  DC21. Next DC11a movement controls.
+
+## DC09 - Safe teleport and bookmarks, 2026-10-26
+
+- Added metre-coordinate tp plus ten bounded session bookmarks/mark/goto.
+  Authority validates playable bounds, loaded patch, capsule clearance and
+  walkable floor before teleport; unsafe destinations leave pawn unchanged.
+- Tightened finite numeric grammar to reject repeated signs/dots/exponents
+  rather than accepting parsed prefixes. Files: ConsoleContract/Component,
+  backlog/progress. Static/diff inspection only; full checks deferred DC21.
+- Next DC10 caller-only god/heal. No save/network authority changes beyond
+  explicitly authenticated own-pawn commands.
+
+## DC08 - Console history/completion/feedback, 2026-10-26
+
+- Integrated bounded 50-command session history, permission-filtered command
+  completion and catalogue ID completion for grants/GPS. Password input and
+  rejected inline login never enter history. Output capped at 200 entries with
+  a scrollable 260-pixel viewport; explicit errors arrive owner-only.
+- Files: ConsoleComponent and ConsoleWidget sources, backlog/progress. Static
+  inspection only; full runtime acceptance deferred DC21. Next DC09 teleport.
+
+## DC07 - Privileged command execution gate, 2026-10-26
+
+- Owning-controller RPC dispatch enforces explicit allowlist, current server
+  opt-in/grant/expiry and ten requests per rolling second. Parser rejects
+  malformed input; unimplemented commands fail without side effects.
+  Audit records controller/known command/outcome, never raw untrusted input.
+- Files: ConsoleComponent header/source, backlog/progress. Source/whitespace
+  inspection only; full runtime checks deferred DC21. Next DC08 UI completion.
+
+## DC06 - Connection authorization lifecycle, 2026-10-26
+
+- Added five-attempt connection/30-attempt world rolling minute limits,
+  30-minute monotonic absolute authorization lifetime and explicit logout/
+  EndPlay revocation. Grant lives on controller, surviving only pawn respawn.
+  Server-only secret is cleared on component teardown.
+- Files: ConsoleComponent header/source, backlog/progress. Inspected bounded
+  attempt arrays and expiry paths; no build run, full checks deferred DC21.
+- Next DC07 per-command execution gate. World override cleanup integrates
+  the parent-authored state API, which will be committed with DC16/DC17.
+
+## DC05 - Confidential developer login, 2026-10-26
+
+- Connected masked UI login to owning-controller server RPC, requiring
+  encrypted remote transport on both endpoints; local authority has no hop.
+  Server-only key comparison uses fixed 128-slot work; denies plaintext.
+- Added parent-authored GameInstance AESGCM transport setup and transport key
+  validation test. KALMALA_NET_KEY is a separate out-of-band 64-hex transport
+  key; public EncryptionToken=kalmala-dev-v1 contains no key. Installed engine
+  AESGCM handler enabled, no download/dependency installation.
+- Files: ConsoleComponent, GameInstance, TransportTest, DefaultEngine.ini,
+  Kalmala.uproject, BACKLOG.md/PROGRESS.md. Source/whitespace checks only;
+  actual encrypted peer acceptance remains required at DC21. Next DC06.
+
+## DC04 - Server-only console opt-in/configuration, 2026-10-26
+
+- Reads KALMALA_DEV_CONSOLE=1 and 32-128 character KALMALA_DEV_KEY only
+  on authority. Missing/malformed configuration fails closed; no shipped key,
+  config secret, URL token or client-replicated secret introduced.
+- Files: ConsoleComponent header/source, backlog/progress. Source and diff
+  inspection only; full runtime verification deferred to DC21. Next DC05.
+
+## DC03 - Bounded console command registry, 2026-10-26
+
+- Added explicit bounded parser, finite-number/window/key comparison seams and
+  controller-owned replicated console component. Public command dispatch only;
+  UI connects through the component, never engine Exec. Privileged paths deny.
+- Files: ConsoleContract/ConsoleComponent headers/sources, MapAwareness source,
+  ConsoleSubsystem source, BACKLOG.md, PROGRESS.md. Static inspection/whitespace
+  only; no runtime build, full verification deferred to DC21.
+- Authority: owning-controller RPC, no client-set privilege. Next DC04 server
+  opt-in/secret configuration. Parent transport helper remains unstaged.
+
+## DC02 - Local console panel/input, 2026-10-26
+
+- Added console widget/subsystem, local Enable Console option (off by default),
+  rebindable F5/controller action, modal input/focus capture and close cleanup.
+- Files: console UI headers/sources, SettingsWidget header/source,
+  Config/DefaultInput.ini, BACKLOG.md, PROGRESS.md. Native console disabled.
+- Bounded output/history and masked input scaffold exists; no server dispatch
+  yet. Source/diff inspection only, full runtime verification deferred to DC21.
+- Authority: presentation only. Next: DC03 registry and public command dispatch.
+
+## DC01 - Developer-console integration mapping, 2026-10-26
+
+- Read repository rules/backlog/progress and architecture/setup contracts.
+  User directed DC completion in a master-based isolated worktree, overriding
+  queue selection and single-increment stopping for this goal.
+- Mapped controller-owned component, local UI/settings, encrypted remote login
+  gate and transaction integration. Runtime remains disabled/unimplemented.
+- Files: BACKLOG.md, PROGRESS.md. Inspected source/API availability; whitespace
+  and path-length checks only. Full verification deferred to DC21.
+- Authority: server connection grants; no client flag enables gameplay cheats.
+- Next: DC02 console UI/input skeleton. Parent handles main handoff/merge.
+
+## Planning 2026-10-26 - GPS developer-console command
+
+- **Scope/completed:** Planning only. Added gps search/off/status, whole-world
+  nearest extant object/creature/feature lookup, a top-centre 3D directional
+  arrow and question-mark No match state. Added DC18a-DC18c implementation tasks.
+- **Files:** `BACKLOG.md`, `PROGRESS.md`; existing edits preserved.
+- **Authority/impact:** No runtime changes. Plan uses debug-authorized server
+  lookup and owner-only results, bounded incremental indexing and no new actor
+  spawning. Pending/unloaded searches cannot falsely report nonexistence.
+- **Checks:** Reviewed matching, distance/tie rules, moving/deleted targets,
+  lifecycle, HUD placement, task order, staged whitespace and MAX_PATH lengths.
+  No builds/tests; full verification remains deferred to DC21.
+- **Remaining/next:** All GPS implementation unchecked; existing priority remains
+  unchanged, DC01 first when eligible. Session concurrency override applies.
+
+## Planning 2026-10-26 - Add Fly and Noclip console settings
+
+- **Scope/completed:** Planning only; expanded DC movement commands with separate
+  Fly/Noclip toggles and four ordered DC11 child increments. Explicitly replaces
+  the earlier no-noclip exclusion at the user's request.
+- **Files:** `BACKLOG.md`, `PROGRESS.md`; all pre-existing edits preserved.
+- **Behavior/authority:** Server-authorized caller-only flight/collision bypass;
+  loaded-region/world bounds remain enforced. Toggles default off, are unsaved,
+  and reflect server state. Defined safe disable/revocation and spawn fallback.
+- **Checks:** Inspected contract/task consistency, staged diff, whitespace and
+  path lengths; no runtime builds/tests. Full verification deferred to DC21.
+- **Impact/remaining scope:** No runtime change. Existing queue order remains;
+  DC01 is first when eligible, DC11a is first movement increment. All new tasks
+  remain unchecked. The session's explicit concurrency override still applies.
+
+## Planning 2026-10-26 - Developer console and secret-key debug mode
+
+- **Scope:** Planning only. The user explicitly overrode the concurrent-run
+  stop for this backlog edit; no runtime implementation was authorized.
+- **Completed:** Appended DC after existing goals: 21 ordered unchecked tasks
+  for authenticated console UX, teleport/bookmarks, god/heal, flight/speed,
+  grants/repair, debug creatures, time/weather and diagnostic commands.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`. Existing edits are preserved.
+- **Checks:** Inspected task order, command bounds, authority, lifecycle,
+  persistence, existing Enable Console candidate and documentation links;
+  checked patch whitespace and committed path lengths below MAX_PATH.
+  No runtime build/tests run; full verification is deferred to DC21.
+- **Impact/authority:** No runtime change. Plan requires confidential secret
+  login, connection-bound server grants and allowlisted validated commands.
+  Construction still requires direct materials; no portable kits or bypass.
+- **Limitations/next task:** All implementation remains pending; no secret
+  generated/configured. Existing queue priority is unchanged. DC01 is the
+  first child when this goal becomes eligible. This is not milestone acceptance.
+
+## Run 2026-10-24 — BH10b1 Meadows hill profile sweep harness
+
+- **Selected increment:** BH10b1, add repeatable fixed-site Meadows height and
+  collision-slope profile sampling for hill amplitude trials.
+- **Work completed:** Added 88 fixed seed-418/419 numeric positions spanning
+  eight east-west/north-south transects at the Starter and outer dry Meadows
+  baseline sites. The full visualization numeric commandlet now accepts a
+  finite, bounded, commandlet-only `MeadowHillAmplitudeM` override and logs the
+  effective trial; with no override it retains the existing sampling defaults.
+  Added `BiomeHillProfiles.ps1` to run separate 4/6/8 m trials, reject stale
+  binaries without the marker, validate finite height/slope data, and write
+  per-transect ranges and maximum collision-triangle slopes. Split BH10b as
+  BH10b1 harness work; moved actual trial execution and final amplitude choice
+  to BH25a, which needs freshly compiled BH10a source. Checked BH10b1 and BH10.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeHillProfiles.ps1`,
+  `Scripts/Tests/World/BiomeHillTransects.csv`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, `docs/meadows-plan.md`.
+- **Lightweight checks/results:** PowerShell syntax parsing passed. The tracked
+  transect fixture contains 88 rows in eight groups of 11. Changed paths are
+  under MAX_PATH and `git diff --check` passed. No Editor build, automation, or
+  4/6/8 commandlet trial was run; measurements remain for BH25a and full
+  integrated verification for BH26.
+- **Observable impact / authority:** Diagnostics only. The amplitude override
+  is accepted only by the editor commandlet; absence of the override leaves
+  current sampling defaults unchanged. No gameplay, server authority, network,
+  or save behavior changed.
+- **Known limitations / remaining scope:** The 6 m hill amplitude remains a
+  provisional trial. Use freshly compiled source at BH25a to record actual
+  fixed-site deltas and transect height/slope distributions before selecting a
+  production amplitude. No rendered traversal acceptance has run.
+- **Next task in this directed goal:** BH11 — add Meadows rolling relief as a
+  separate middle-scale layer and inspect its 30–70 m profiles and slopes.
+
+## Run 2026-10-24T18:09:54Z — Integrate Meadows hills and shoulder curve (BH10a)
+
+- **Selected task:** BH10a, the first ordered child under BH10. BH10 remains
+  open until its profile-measurement child BH10b is complete.
+- **Work completed:** Added a deterministic broad Meadows hill signal with its
+  own world-seed noise salt and preview amplitude/scale. It replaces the old
+  40 cm Meadows detail candidate term. Added a monotonic exponential upper
+  shoulder compression with preview controls for its threshold and scale; the
+  curve is identity below its threshold and asymptotically bounded above it.
+  Kept the continuous biome/coast blend, hydrology ordering, and other biome
+  candidates intact. Added focused source coverage for bounded monotonic
+  compression, lower-candidate preservation, one-time signed hill addition,
+  continuous Meadows/Elderwood blending, and a fixed seed-418 baseline-site
+  hill neighborhood. Added the shoulder controls to commandlet parsing and
+  reporting. The provisional nominal hill amplitude is 6 m, pending BH10b.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`;
+  `Scripts/Tests/World/WorldMapExport.ps1`; `Scripts/WorldMapPreview.params`;
+  `Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp`;
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`;
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`;
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`;
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`;
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`;
+  `docs/02-technical-architecture.md`; `docs/07-development-setup.md`;
+  `docs/biome-height-rework.md`; `docs/meadows-plan.md`.
+- **Lightweight checks:** `git diff --check` passed (Git reported existing
+  CRLF-to-LF working-copy warnings). PowerShell parser validation passed for
+  `Scripts/Tests/World/WorldMapExport.ps1`; the source and staged-control
+  changes were inspected. No Unreal build or automation was run.
+- **Full verification:** Deferred to BH26; BH10a is not the final implementation
+  task in the roadmap milestone.
+- **Observable impact:** Meadows regional heights now receive a deterministic
+  broad hill/hollow signal and a smooth upper-height compression. Other
+  classifier fields and fast biome-map pixels are unaffected by these height
+  controls.
+- **Networking/authority:** The new hill signal uses the existing world seed
+  and absolute world coordinates, so regional sampling stays deterministic.
+  No RPC, gameplay authority, save schema, or player-state behavior changed.
+- **Known limitations / remaining scope:** BH01 recorded fixed-site values but
+  no 100–250 m Meadows transects. No low/nominal/high profile measurements or
+  rendered/gameplay acceptance were run. The 6 m hill, 10 m threshold, and 30 m
+  compression scale are provisional; BH10b must compare 4/6/8 m trials against
+  the baselines and record results. Shared rolling relief and floor detail
+  remain later tasks.
+- **Next eligible task:** BH10b — measure and tune Meadows hill trials using
+  fixed-site and 100–250 m height/slope profiles. Keep BH10 open until that
+  work is complete.
+- **Integration state:** Changes are in the detached BH10 worktree; handoff
+  synchronization to the main checkout is pending.
 ## Run 2026-10-24T18:09:54Z — Integrate Meadows hills and shoulder curve (BH10a)
 
 - **Selected task:** BH10a, the first ordered child under BH10. BH10 remains
@@ -11819,6 +12217,162 @@
   global queue. Within this requested monster-population goal, the next child
   is S04 — gather active living players on the server.
 
+## Run 2026-10-24 — Complete A10 catalogue icon audit
+
+- **Selected increment:** First unchecked child of A10 Acceptance: audit every
+  approved item ID against registered JSON and generated/imported runtime icons,
+  with no missing entries, references, or fallback icons. The user authorized
+  this isolated worktree run while other Kalmala tasks were active.
+- **Completed:** Added original Mending Scroll, Hearth Shield Scroll, Bear's
+  Vigor Scroll, and Deer Call Scroll artwork; retained each original and
+  prepared transparent 64×64 texture; imported the four canonical Unreal
+  Texture2D assets in isolated batch AP. Registered all four manifest rows and
+  extended the preparation/import allowlists. Removed the shared status-icon
+  redirect for these catalogue items, added a focused regression assertion, and
+  documented paths and generation prompts in `docs/icon-provenance.md`. Checked
+  the selected child in `BACKLOG.md`.
+- **Files changed:** Four `.uasset` packages under `Content/Kalmala/UI/Icons/Items/`,
+  four original PNGs under `Content/Kalmala/UI/Source/IconOriginals/`, and four
+  prepared PNGs under `Content/Kalmala/UI/Source/Icons/` (`MendingScroll`,
+  `HearthShieldScroll`, `BearsVigorScroll`, `DeerCallScroll`); `Scripts/Data/catalogue-icon-manifest.csv`;
+  `Scripts/Prepare-CatalogueIconBatch.py`; `Scripts/Import-CatalogueIconBatch.ps1`;
+  `Scripts/Import-CatalogueIconBatch.py`; `Scripts/Validate-CatalogueReferences.py`;
+  `Source/KalmalaUI/Private/KalmalaCatalogueIconLibrary.cpp`;
+  `docs/icon-provenance.md`; `BACKLOG.md`; `PROGRESS.md`.
+- **Lightweight checks/results:** All four source PNGs passed preparation as
+  transparent RGBA inputs and centered 64×64 transparent outputs. The first AP
+  import attempt exposed a missing AP entry in the Python importer allowlist;
+  after updating the allowlists, rerun imported and validated all four canonical
+  Texture2D packages. `python Scripts/Validate-CatalogueReferences.py` passed:
+  61 registered JSON files, 152 unique definitions, and 777 resolved references;
+  all 152 definitions have ledger-backed canonical runtime icon mappings.
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue` passed for all 152
+  identities, originals, prepared textures, mappings, and imported packages.
+- **Full verification:** Deferred; this is not A10's final task. No full Unreal
+  build, full test suite, live acceptance, or rendered runtime check was run.
+- **Impact / authority:** The four reusable support scrolls now resolve to their
+  own generated catalogue textures. Gameplay names, effects, status behavior,
+  networking, server authority, RPCs, and save data were not changed.
+- **Remaining scope / next eligible task:** Continue A10 with “Review milestones:
+  I0 A0; I1 A1; I2 A2–A6 except Planting Trowel; I3 A7 farming + Planting
+  Trowel; I4 A8–A8b with its final enemy gate before A9; I5 A9.” Item source,
+  recipe, use, upgrade and save review; fresh-start progression; approved
+  farming/shelter/cargo/accessory/peer/restart checks; and required milestone
+  final verification remain open. No other A10 child was started.
+
+## Run 2026-10-24 — Review A10 milestone evidence
+
+- **Selected increment:** Second A10 child: review I0–I5 milestone evidence.
+- **Review sources:** Reviewed current milestone/parent checkboxes in
+  `BACKLOG.md`, the milestone acceptance instructions in
+  `docs/07-development-setup.md` and `docs/04-roadmap.md`, current scope in
+  `docs/a9-acceptance.md`, and dated evidence in `PROGRESS.md`. The linked
+  `docs/alpha-item-details.md` is absent in this checkout. Read its A10 rubric
+  from `git show 9a8cbc0f^:docs/alpha-item-details.md` only; did not restore the
+  obsolete document. The rubric says each group needs its own final gate and
+  calls for per-item source/payment/use-or-equip/upgrade-or-N/A/icon/save
+  evidence, a fresh-world no-debug progression, and approved-system peer and
+  persistence scenarios. Setup requires an integrated built tree, full
+  `Automation RunTests Kalmala` queue, fresh profiles and applicable live,
+  rendered and package checks; static inspection alone is insufficient.
+- **Reviewed milestone map and evidence:**
+  - **I0 — A0:** A0 is checked. The 2026-10-20 10:15 UTC record reports an
+    isolated Editor build, focused checks and 151/151 full Kalmala automation
+    tests; Onion/Onion Seed icon checks and previously passed Boar/Deer peer
+    gates are recorded. The final record explicitly leaves package smoke,
+    rendered/manual PIE and a fresh-player walkthrough undone.
+  - **I1 — A1:** A1 is checked. The 2026-10-20 20:02 UTC final gate records a
+    successful Editor build, 151/151 automation tests, 75 catalogue icons,
+    rendered `Crafting.ps1 -Rendered`, and `ConstructionPersistence.ps1`.
+    Package smoke and an unscripted fresh-player journey were not run; active-
+    session processing and the lack of player-facing construction removal are
+    documented limitations.
+  - **I2 — A2–A6, excluding Planting Trowel:** the item parents are checked.
+    The 2026-10-21 11:45 UTC record reports a 74-action Editor build, 155/155
+    full automation tests after repairing the M7 fixture assertion, 90 catalogue
+    icons, inventory contract checks, and two-peer rendered inventory and
+    crafting/building acceptance. No no-grant end-to-end fresh-world progression
+    is recorded. The accepted hazard-preparation deferral and fishing removal
+    remain explicit; Planting Trowel is assigned to I3.
+  - **I3 — A7 farming plus Planting Trowel:** A7 is checked. The 2026-10-21
+    15:24 UTC gate records an Editor build, 11 focused automation cases plus
+    `Discovery.Schema2CurrentFormat`, and 92 catalogue icons. The 16:05 UTC
+    follow-up records a passing Garden Plot two-peer rendered run with payment,
+    seed/Trowel wear and crop-growth checks. After those gates, the 16:22 UTC
+    entry added the Trowel Farming menu and Garden Plot context route; that entry
+    explicitly says no Unreal build or tests were run. This post-gate UI change
+    needs relevant verification in the later A10 gate.
+  - **I4 — A8–A8b, ending before A9:** the A8a/A8b final gate is checked. The
+    2026-10-24 09:26 UTC record reports a successful Editor build, 178/178 full
+    automation tests, creature validation (17 profiles), catalogue icon
+    validation (148 identities), the shared Rat peer and A8b Vest peer, plus
+    earlier species-peer and two-visit InventoryReconnect evidence. Manual or
+    rendered presentation was not part of this gate. Saved-move warnings were
+    recorded without assertion failures.
+  - **I5 — A9:** A9 and its integration are checked at `d0ead245`. The final
+    2026-10-24 record reports successful Editor and Game builds, 187 completed
+    automation cases (182 clean passes, five warning passes, zero failures),
+    creature/catalogue/status validators, five documentation contracts,
+    applicable mining/treasure, crafting, discovery, inventory and reconnect
+    peers, and inspected gear renders. It explicitly does not establish a
+    no-grant fresh-character progression; general inventory/equipped gear are
+    session-only under the accepted contract. No package or dedicated-server
+    build was attempted.
+- **Review result and remaining evidence gaps:** The six groups and their
+  historical final-gate status are now mapped. I3 needs a verification refresh
+  for the later Planting Trowel menu change. No integrated A10 no-grant
+  fresh-world journey or single current-source final run covering the approved
+  item/source/use/save and competing-peer scenarios is recorded. The old A10
+  rubric includes a retired Skiff Cargo Chest proposal, but current A9 scope
+  explicitly excludes it (`docs/a9-acceptance.md:38`) and the active backlog
+  omits it. The remaining A9 cargo checklist is historical text; no scope
+  conflict remains. No cargo work was done. The later per-item audit should
+  record cargo as deferred/excluded (N/A). Fishing is
+  explicitly deferred. The prior 148-identity I4/I5 icon counts are historical;
+  the preceding A10 child now validates all 152 current catalogue identities.
+- **Completed:** Finished the milestone review and checked only the selected
+  A10 review child in `BACKLOG.md`. This does not mark any milestone or A10
+  complete.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Checks:** Compared all six milestone groups against current backlog state,
+  dated verification reports, the setup gate, and current/historical acceptance
+  sources. No build, automation, peer, render, or package command was run for
+  this review. `git diff --check` passed; a targeted backlog-state check
+  confirmed only this review child was checked and later A10 tasks remain open.
+- **Full verification:** Not run in this review increment. The later A10
+  verification child remains open; no current integrated A10 final gate is
+  claimed.
+- **Impact / authority:** Documentation and backlog review only. No gameplay,
+  networking/server authority, RPC, item behavior or save data changed.
+- **Next eligible task:** Check each included item's source, recipe, use,
+  upgrades, icon and save behavior, recording any explicit N/A or deferral.
+  Leave full A10 verification, fresh-start progression and approved-system
+  acceptance for their later A10 children.
+
+## Worktree sync 2026-10-24 — BH01a seed overviews and site selection
+
+- **Work completed:** The dedicated biome-height worktree commit `4e3d8919`
+  completed BH01a: seed 418/419 full-world visualization exports were inspected,
+  their settings/checksums and representative coordinates/camera-relative pose
+  were recorded in `docs/biome-height-rework.md`, and only BH01a is checked in
+  `BACKLOG.md`. BH01 remains open for BH01b and BH01c.
+- **Main-checkout synchronization:** Applied this run's BH01 child split/status
+  and appended this handoff only. Existing A10/S03 changes were retained. The
+  detailed BH01a documentation remains in the dedicated worktree until its
+  implementation commit is merged; no implementation files were synchronized.
+- **Lightweight checks:** Both existing commandlet exports exited successfully
+  with zero errors; all 18 P6 images per seed passed dimensions/size checks,
+  principal-image SHA-256 values were checked, and both composite overviews were
+  visually inspected. The commandlet emitted one known OceanSkiff material
+  warning for each seed. Worktree `git diff --check` and temporary-path length
+  checks passed. No build or full verification was run.
+- **Impact / authority:** Baseline evidence only; runtime, networking, server
+  authority and save behavior did not change.
+- **Remaining scope:** Exact height/slope/weights/water/tree samples remain BH01b;
+  rendered fixed-camera views and consolidated baseline acceptance remain BH01c.
+- **Next in the requested biome-height workstream:** BH01b — add the narrow
+  quantitative sampler diagnostic. BH01 is not complete.
+
 ## Run 2026-10-24 — Gather active population players (S04)
 
 - **Selected increment:** S04, the first unchecked child in the requested
@@ -11855,6 +12409,145 @@
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the
   global queue. Within this requested monster-population goal, the next child
   is S05 — deduplicate active keys.
+
+## Worktree sync 2026-10-24 — BH01b1 scalar sampler output path
+
+- **Work completed:** Dedicated worktree commit `139473df` added optional
+  `-SampleInput`/`-SampleOutput` CSV handling to
+  `RenderWorldGenerationVisualization` for final regional height, biome index,
+  seven weights and water state. The optional branch leaves standard map exports
+  unchanged. BH01b1 is checked; BH01b and BH01 remain open.
+- **Main-checkout synchronization:** Applied only the BH01b split/status and
+  appended this handoff. Existing A10/S03 progress and backlog edits were kept.
+  The implementation and plan-document changes remain in the dedicated
+  worktree until merge; no implementation files were synchronized.
+- **Checks / verification:** The 28-row temporary CSV matches the BH01a site
+  table; source inspection and worktree `git diff --check` passed. The changed
+  commandlet was not rebuilt or executed, so numeric values have not been
+  emitted. No Unreal build or tests were run; full verification remains deferred.
+- **Impact / authority:** Optional editor diagnostic only; no generation,
+  gameplay, networking, server authority or save behavior changed.
+- **Remaining scope:** BH01b2 adds runtime collision-triangle height/slope and
+  containing-patch forest descriptor counts. BH01c records the numeric baseline
+  and rendered fixed-camera views.
+- **Next in the requested biome-height workstream:** BH01b2. BH01 remains open.
+
+## Run 2026-10-24 — A10 per-item audit: Sinew
+
+- **Selected increment:** The first A0 item in A10's per-item source, recipe,
+  use, upgrade, icon and save audit. This is one cumulative item review; the
+  A10 child remains unchecked until all included items and scope N/A decisions
+  are covered.
+- **Evidence reviewed:** Current `BACKLOG.md`; `Content/Data/GameCatalogues/items/materials/crafting-ingredients.json`,
+  `creatures.json`, `recipes/stations/workbench.json`, and bow upgrade costs;
+  `KalmalaWildlifeSpawn.cpp`, item-catalogue/wildlife/two-handed tests,
+  `KalmalaInventoryComponent.h`, player and storage save records/tests;
+  `docs/01-game-design.md`, `docs/02-technical-architecture.md`,
+  `docs/07-development-setup.md`, `docs/a9-acceptance.md`, `docs/icon-provenance.md`,
+  and the catalogue icon manifest. The obsolete `docs/alpha-item-details.md`
+  remains absent and was not restored.
+- **Sinew source and data:** The registered Deer loot entry grants exactly 1
+  Sinew at 0.5 chance. Runtime damage attribution keeps the last validated
+  attacker; defeat rewards require server authority, process once, perform one
+  server-owned random roll, and grant one only for a finite roll in `[0, 0.5)`.
+  The item definition is stack size 20, weight 0.1 kg, with no equipment,
+  attack, or level-up data applicable. Bow String is its only authored recipe
+  use: the Workbench `BowStringRecipe` consumes 4 Sinew for 1 Bow String.
+  Bow, Light Bow and Horn Bow acquisition, and bow upgrade costs, each use
+  1 Bow String. Existing catalogue, wildlife boundary and bow progression tests
+  cover these rules; recorded A0 peer/full-automation evidence is in the earlier
+  PROGRESS entry and was not rerun in this audit.
+- **Icon:** Batch K has a retained original at
+  `Content/Kalmala/UI/Source/IconOriginals/Sinew.png`, prepared 64x64 texture at
+  `Content/Kalmala/UI/Source/Icons/Sinew.png`, imported canonical package at
+  `/Game/Kalmala/UI/Icons/Items/Sinew`, and a distinct `Sinew` manifest/runtime
+  identity. The exact generation prompt is in `docs/icon-provenance.md`. The
+  prior A10 icon audit reports the full 152-identity catalogue validation pass;
+  it was not rerun here.
+- **Save behavior:** Ordinary carried `Stacks` and `EquippedGear` are replicated
+  player state, not fields in the player SaveGame; that SaveGame stores discovery,
+  claims, learned effects and tool records, not normal material quantities.
+  Carried Sinew therefore has no player-inventory save/restore path. Chest
+  storage has a separate SaveGame record for generic validated item stacks, and
+  its existing memory round-trip test uses ordinary materials; it does not
+  assert Sinew by name. No Sinew-specific chest persistence test was found.
+- **Cargo scope correction:** Current A9 acceptance explicitly excludes the
+  retired cargo proposal (`docs/a9-acceptance.md:38`); the active backlog also
+  omits it. The old A9 cargo checklist text does not leave a scope conflict.
+  Cargo is deferred/excluded and should receive an explicit N/A disposition in
+  the later comprehensive audit. No cargo implementation or scope expansion.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`.
+- **Checks:** Read-only catalogue/source/save/icon cross-check and existing test
+  assertions reviewed; `git diff --check` passed after edits. No tests, builds,
+  peer runs, or persistence runtime checks were run for this item audit.
+- **Full verification:** Deferred. This is not A10's final increment. No gameplay,
+  networking, authority, recipe, inventory or save behavior was changed.
+- **Impact and limitations:** Audit records Sinew's current credited-Deer path,
+  sole Bow String recipe use, dedicated icon, and session-only carried quantity;
+  storage uses a separate generic stack persistence route. Other item audits,
+  fresh-start progression, approved-system acceptance and final milestone gates
+  remain open.
+- **Next eligible item:** Bow String (A0), then continue A0 item order. Keep the
+  A10 per-item audit child unchecked until the full included-item/N/A list is
+  complete.
+
+## Run 2026-10-24 — A10 per-item audit: Bow String
+
+- **Selected increment:** The next A0 item in A10's per-item audit after Sinew.
+  This is a cumulative item review only; the broad A10 child remains unchecked.
+- **Evidence reviewed:** `Content/Data/GameCatalogues/items/materials/crafting-ingredients.json`,
+  `Content/Data/GameCatalogues/recipes/stations/workbench.json`,
+  `Content/Data/GameCatalogues/item-level-up/costs/weapons/bows.json`,
+  `Content/Data/GameCatalogues.json`, `creatures.json`, the icon manifest,
+  `KalmalaIconWidget.cpp`, `KalmalaCatalogueIconLibrary.cpp`, catalogue and
+  bow-progression test assertions, inventory/player/storage save records, and
+  the relevant design, architecture, setup, A9 and icon-provenance docs.
+  Sinew's Deer source and generic inventory save limit are cross-referenced in
+  the previous A10 per-item record rather than repeated here.
+- **Registered identity and acquisition:** Runtime/catalogue ID is `BowString`
+  (display name `Bow String`), stack limit 20 and weight 0.05 kg, registered
+  through `GameCatalogues.json` via `items/materials/crafting-ingredients.json`.
+  The retired generic `String` identity has no definition. Bow String has no
+  direct creature/world drop; its authored acquisition is the enabled Workbench
+  `BowStringRecipe`: 4 Sinew produces 1 Bow String, max batch 1. The earlier
+  A10 entry audits how Sinew is sourced.
+- **Uses and dependencies:** Catalogue-wide search found Bow String only as an
+  ingredient in Bow, Light Bow and Horn Bow acquisition recipes and in their
+  matching upgrade costs; it has no other authored recipe use. Each acquisition
+  and each upgrade consumes 1 Bow String at the Workbench. The upgrades are:
+  Bow with 5 Wood; Light Bow with 3 Lightwood; Horn Bow with 1 Goat Horn and
+  5 Densewood. The item itself has no equipment profile, equip slot, attack or
+  effect, or level/stat upgrade record; these categories are N/A for a crafting
+  material. Existing item-catalogue and two-handed/bow progression tests assert
+  the name, recipe, stack limit and bow cost relationships; those tests were
+  inspected, not run in this audit.
+- **Icon:** Batch K retains the original at
+  `Content/Kalmala/UI/Source/IconOriginals/BowString.png`, the prepared 64x64
+  texture at `Content/Kalmala/UI/Source/Icons/BowString.png`, and imported
+  package `Content/Kalmala/UI/Icons/Items/BowString.uasset`. Its manifest row
+  records batch K, canonical ID `BowString`, and pack/detail/storage/ingredient
+  uses. The catalogue library resolves the canonical ID to
+  `/Game/Kalmala/UI/Icons/Items/BowString.BowString`; the widget's generic
+  `String` symbolic enum is the lookup gate, not a shared catalogue texture.
+  Its exact original prompt is retained in `docs/icon-provenance.md`. The prior
+  152-identity A10 catalogue icon audit passed; it was not rerun here.
+- **Save behavior:** As with Sinew, ordinary carried material quantities are
+  not included in the player SaveGame and remain session-only. Chest storage
+  saves generic validated item stack arrays separately; the existing storage
+  round-trip test uses Wood and Stone, not Bow String by name, so no
+  BowString-specific persistence assertion was found. There is no item-specific
+  Bow String save field or migration.
+- **Checks:** Read-only JSON/reference/use search, runtime icon-path inspection,
+  and existing test assertions reviewed; `git diff --check` passed after edits.
+  No tests, builds, peers or persistence runtime checks were run.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  gameplay, crafting authority, networking or save behavior changed.
+- **Impact and remaining scope:** Bow String's current source dependency, sole
+  recipe, bow costs, dedicated icon and session-only carried quantity are
+  recorded. Other item audits, fresh-start progression, approved-system
+  acceptance and final milestone verification remain open. The broad per-item
+  audit child remains unchecked.
+- **Next eligible item:** Lightwood (A0). Continue in backlog order.
 
 ## Run 2026-10-24 — Deduplicate active population keys (S05)
 
@@ -11897,70 +12590,966 @@
   is S06 — add stable scheduler cadence.
 
 
+## Worktree sync 2026-10-24 — BH01b2a mesh and forest output fields
+
+- **Work completed:** Dedicated worktree commit 8e341481 added optional output
+  for exact collision-triangle height, slope/grade, start-relative patch/grid
+  metadata, and deterministic forest descriptor counts. Checked BH01b2a only;
+  BH01b2, BH01, and BH01c remain open. No numeric results were produced.
+- **Main-checkout synchronization:** Applied the BH01b2 split and b2a status and
+  appended this handoff. Existing A10 and S03/S04/S05 edits were preserved.
+  Implementation and plan-document changes remain only in the managed worktree
+  pending the parent workflow; no source files were copied here.
+- **Checks:** Worktree source inspection matched runtime triangle ordering and
+  forest generation; git diff --check passed, CSV schema counts are 28/28/28,
+  and changed paths are below 260 characters. The commandlet was not rebuilt or
+  executed, and no tests were run; full verification is deferred.
+- **Impact / authority:** Optional editor diagnostic output only. Generation,
+  gameplay, server authority, networking, RPCs, and save behavior are unchanged.
+- **Remaining scope / next:** BH01b2b must run and validate all 28 fixed-site
+  rows for seeds 418/419. BH01c will capture rendered views and consolidate
+  numeric baselines. Keep BH01b and BH01 open.
+
+## Run 2026-10-24 — A10 per-item audit: Lightwood
+
+- **Selected increment:** The next A0 item after Bow String in A10's cumulative
+  source, recipe/use, upgrade, icon and save audit. This review covers Lightwood
+  only; the broad A10 child remains unchecked.
+- **Evidence reviewed:** Registered wood item JSON and `GameCatalogues.json`,
+  all catalogue recipes/upgrades containing `Lightwood`, the server forest and
+  campfire code, focused harvest assertions, icon manifest/runtime lookup and
+  retained files, player/world save callbacks, and the relevant design,
+  architecture, setup and icon-provenance records.
+- **Registered item and source:** `Lightwood` is registered from
+  `items/materials/wood.json`, description “Lightweight yet durable.”, stack
+  limit 50. No catalogue recipe produces it. The deterministic Meadow forest
+  marks Aspen candidates; source `meadows-aspen-trunk` selects 4 Lightwood on
+  the server and requires a Stone Axe or better. The player fells the tree,
+  breaks its trunk, then picks up the exposed bundle. The fixed four-item yield
+  is not the variable M9 source-loot table. Existing `KalmalaM9AxeHarvestGate`
+  and `KalmalaM9SourceAcceptance` assertions cover the source, tool tier and
+  quantity; they were inspected, not run here.
+- **Uses and upgrades:** A read-only traversal of all catalogue JSON found 18
+  Lightwood ingredient references. Acquisition costs: Light Bow 25; Iron Axe 3,
+  Bronze Axe 4, Bronze Knife 2, Bronze Spear 4, Bronze Mace 2, Bronze Sword 2,
+  Bronze Shield 5 and Reef Harpoon 4. Upgrade costs: Iron Axe 3, Bronze Axe 4,
+  Light Bow 3, Bronze Knife 2, Bronze Mace 2, Bronze Spear 4, Bronze Sword 1,
+  Bronze Shield 1 and Reef Harpoon 2. No other recipe output or catalogue use
+  was found. `FKalmalaRawFuelContract` also includes Lightwood as a possible
+  campfire fuel: each selected unit adds 60 seconds. Lightwood itself has no
+  equipment profile, equip slot, attack, effect, or item-level upgrade record;
+  those categories are N/A for this raw material.
+- **Icon:** Batch A manifest row maps canonical ID `Lightwood` to the pack,
+  detail and storage views. The retained original is
+  `Content/Kalmala/UI/Source/IconOriginals/Lightwood.png`, prepared texture is
+  `Content/Kalmala/UI/Source/Icons/Lightwood.png`, and imported package is
+  `Content/Kalmala/UI/Icons/Items/Lightwood.uasset`. The widget assigns the log
+  symbol variant and the catalogue library resolves the canonical ID to its
+  own `/Game/Kalmala/UI/Icons/Items/Lightwood.Lightwood` texture. The prior
+  152-identity catalogue icon audit passed. This checkout's
+  `docs/icon-provenance.md` has no Lightwood-named prompt entry; I did not infer
+  its original generation wording.
+- **Save behavior:** Carried Lightwood quantity follows the session-only
+  ordinary-material inventory limit recorded in the Sinew audit and architecture
+  docs; generic chest storage has a separate stack save, but its round-trip test
+  does not assert Lightwood by name. Forest source depletion has a distinct
+  server world-population save: successful pickup records the forest spawn ID,
+  and patch activation skips IDs already harvested. The documented
+  `Kalmala.Gameplay.Harvest.ForestProcessRestart` writer/reader gate confirms
+  saved tree depletion across process restart; it does not restore player
+  Lightwood. Uncollected tree stages/drops are session state, so the saved
+  depleted source may remain absent while carried materials are not restored.
+- **Checks:** Read-only JSON traversal/search confirmed the 18 catalogue cost
+  references; source, test, icon-path and save-contract inspections completed.
+  `git diff --check` passed after edits. No tests, builds, peer or restart runs
+  were performed for this audit.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  gameplay, recipe, harvest authority, networking or save behavior changed.
+- **Impact and remaining scope:** Records the fixed Aspen source, all
+  catalogue-cost dependencies, campfire fuel use, canonical icon and distinct
+  item/source persistence boundaries. Exact Lightwood icon prompt is not
+  documented in the current provenance guide. Other item audits, fresh-start
+  progression, approved-system acceptance and final A10 verification remain
+  open; the broad per-item child stays unchecked.
+- **Next eligible item:** Bone Fragment (A0). Continue in backlog order.
+
 ### Monster population — S06 scheduler cadence
 
 - **Selected increment:** S06, stable per-key cadence and inactive-key cleanup.
 - **Work completed:** Added deterministic 0.25 s phase staggering over the 5 s key interval, due-key query/service operations, and server Tick maintenance of the active candidate-key set. Inactive keys leave the active schedule and lose their per-key due entry; reactivation assigns the deterministic initial phase again. S02 creature unload cooldowns remain separately keyed by stable spawn ID.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
-- **Lightweight checks:** Code and lifecycle-contract inspection; focused cadence automation coverage added for stable staggering, once-only service, five-second advancement, due-entry cleanup on inactivity, fresh deterministic phase on reactivation and no catch-up after a missed interval. `git diff --check` passed, and the staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Code and lifecycle-contract inspection; focused cadence automation coverage added for stable staggering, once-only service, five-second advancement, due-entry cleanup on inactivity, fresh deterministic phase on reactivation and no catch-up after a missed interval. git diff --check passed, and the staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server Tick now keeps scheduler eligibility synchronized with the S05 loaded-key union. It tracks cadence only; the existing nine-key materialization cap is unchanged, and natural spawn admission remains disabled.
 - **Networking/authority:** Candidate collection, active schedule state, deterministic phase and service advancement are server-authoritative. The per-key due map contains active keys only; S02 creature cooldown state is separate. No client selects or advances spawn state.
 - **Known limitations:** S11+ still needs area caps, candidate evaluation and spawn admission. S06 does not create attempts or activate additional keys.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within the requested monster-population goal, the next child is S11 — enforce area caps.
 
+## Run 2026-10-24 — A10 per-item audit: Bone Fragment
+
+- **Selected increment:** Next included A0 item after Lightwood in A10's
+  per-item review. This is a source/recipe/use/icon/save audit only; the broad
+  A10 child remains unchecked.
+- **Files changed:** BACKLOG.md and PROGRESS.md.
+- **Evidence reviewed:** Registered material and creature catalogues,
+  GameCatalogues.json, a recursive parse of catalogue references, Workbench
+  recipe and cape upgrade files, wildlife reward and GameMode claim code,
+  focused reward assertions, catalogue icon manifest/runtime lookup and retained
+  files, plus item/save contracts in 02-technical-architecture.md,
+  biome-enemies.md, creature-catalogues.md, a9-acceptance.md,
+  07-development-setup.md and icon-provenance.md.
+- **Registered item and sources:** Canonical ID BoneFragment, display name
+  “Bone fragment,” stack limit 40 and weight 0.1 kg, registered through
+  items/materials/crafting-ingredients.json. Current creatures.json and
+  GetBoneFragmentRewardQuantity agree on 13 guaranteed sources: Boar and Deer
+  (1 each); Rat, Badger, Viper and Death Adder (1 each); Giant Snake, Wolf,
+  Lynx and Horned Goat (2 each); Moon Bear, Polar Bear and Reef Maw (3 each).
+  Every drop has chance 1.0. Mireling, MosquitoSwarm, PeatHusk and
+  ThunderSentinel have no Bone Fragment drop. The earlier A0 child records the
+  original Boar/Deer increment; later creature catalogue additions expand the
+  current source list.
+- **Reward delivery and authority:** The server credits LastValidatedAttacker.
+  Boar and Deer grant Bone Fragment directly with TryGrantFromServer; this path
+  does not queue a saved claim or retry a capacity failure, and the grant result
+  is ignored. Other Bone-dropping species use owner-bound, spawn-keyed
+  population-save claims; the complete reward bundle is delivered atomically
+  when capacity permits and remains queued for retry/reload otherwise. Once
+  delivered, Bone Fragment is an ordinary carried stack.
+- **Recipe, uses and N/A categories:** The recursive catalogue scan found one
+  acquisition recipe use: enabled Workbench BoarHideCapeRecipe, 5 Boar Hide +
+  1 Bone Fragment → 1 Boar Hide Cape, maximum batch 1. Level-one Workbench
+  upgrade costs also use 2 Boar Hide + 1 Bone Fragment for Boar Hide Cape and
+  2 Lynx Pelt + 1 Bone Fragment for Lynx Mantle. No recipe produces Bone
+  Fragment. It has no equipment profile, equip slot, attack data, item effect
+  or use handler, or own item-level upgrade/stat reward; those categories are
+  N/A for this crafting material.
+- **Icon:** Batch H manifest row maps BoneFragment to pack, detail, storage and
+  ingredient views. The retained 1254×1254 RGBA original is
+  Content/Kalmala/UI/Source/IconOriginals/BoneFragment.png; the prepared 64×64
+  texture is Content/Kalmala/UI/Source/Icons/BoneFragment.png; and the imported
+  texture is Content/Kalmala/UI/Icons/Items/BoneFragment.uasset.
+  FindCatalogueIcon assigns its bone vector symbol as fallback, while the
+  catalogue library resolves BoneFragment to
+  /Game/Kalmala/UI/Icons/Items/BoneFragment.BoneFragment. The imported package
+  is present and the earlier 152-item A10 icon audit passed; in-game rendering
+  was not rerun. The exact prompt and reproduction steps remain in
+  docs/icon-provenance.md.
+- **Save behavior:** Carried player inventory is transient and is not restored
+  after reconnect/restart; a9-acceptance.md and
+  02-technical-architecture.md distinguish inventory from persistent
+  world/source claims. Pending later-enemy reward claims persist for owner
+  retry, but do not persist Bone Fragment after delivery to the player's pack.
+  Storage saves validated generic item stacks separately; no
+  BoneFragment-specific chest round-trip assertion was found. Boar/Deer's
+  direct path has no pending claim, so a failed full-pack grant is not saved.
+- **Checks:** Parsed and traversed catalogue JSON read-only; inspected runtime
+  source, reward claims, icon files/mapping, focused test assertions and save
+  contracts. git diff --check passed after the documentation edit. No tests,
+  builds, peers, restart runs or runtime rendering were run.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  gameplay, recipe, inventory, networking, authority or save behavior changed.
+- **Impact and remaining scope:** Records all current guaranteed Bone Fragment
+  sources, three catalogue cost relationships, its dedicated imported icon and
+  the distinction between persistent pending claims and transient delivered
+  inventory. Fresh-start progression, remaining per-item audits,
+  approved-system acceptance and final A10 verification remain open.
+- **Next eligible A0 item:** Food use for the six current cooking outputs;
+  begin with CookedBoarMeat. Keep the A10 per-item audit child unchecked until
+  all included items and scope N/A dispositions are covered.
+
+
+## Worktree sync 2026-10-24 - BH01b2b fixed-site baseline
+
+- **Work completed:** Dedicated worktree commit 08f6af8d built and ran the
+  updated visualization commandlet for the 28 fixed BH01a samples. Validation
+  passed for all rows, and a repeat export was byte-identical. Ten diagonal and
+  patch-seam probes passed. The fixed CSV SHA-256 is
+  48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf.
+  BH01b2b, BH01b2 and BH01b are checked; BH01 remains open for BH01c.
+- **Main-checkout synchronization:** Applied those BH01 statuses and appended
+  this handoff only. Existing A10 and Monster Population edits were preserved.
+  No implementation files or ignored CSV/build outputs were copied.
+- **Checks / evidence:** UE 5.8 Editor build succeeded in .tmp/bh01/m with 55
+  actions and normal LOCALAPPDATA UnrealBuildTool access. The 28-row commandlet,
+  byte-identical repeat, and 10 continuity probes exited successfully with
+  zero errors. Numeric/weight/biome/water/grid/forest validations and triangle
+  diagonal/patch seam bounds passed. One previously recorded OceanSkiff
+  hull-material warning remains. Full verification is deferred to BH26; no
+  rendered fixed-camera views were captured.
+- **Impact / authority:** Baseline evidence only. Runtime generation,
+  networking, server authority and save behavior are unchanged.
+- **Retained output / next:** The ignored quantitative CSV and probe evidence
+  remain under .tmp/bh01 in the dedicated worktree for BH01c; only their
+  validation summary and hash are in the worktree commit. Continue with BH01c,
+  then leave the BH01 parent open until camera and numeric consolidation passes.
 
 ### Monster population — S07 bounded scheduler wake
 
 - **Selected increment:** S07, the 0.25 s wake and bounded per-wake work plan.
-- **Work completed:** Added a server-side wake that selects at most four due keys; each key receives at most four candidate slots and the total candidate budget is capped at 16. The next wake is reset to `now + 0.25 s`, so missed wake intervals are skipped. This records a key/budget plan only; descriptor generation and spawn admission remain later increments.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
-- **Lightweight checks:** Code and scheduler-contract inspection; focused automation coverage added for the 4/4/16 limits, stable key ordering, quarter-second cadence, and skipped catch-up wakes. `git diff --check` passed; staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
+- **Work completed:** Added a server-side wake that selects at most four due keys; each key receives at most four candidate slots and the total candidate budget is capped at 16. The next wake is reset to now + 0.25 s, so missed wake intervals are skipped. This records a key/budget plan only; descriptor generation and spawn admission remain later increments.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Code and scheduler-contract inspection; focused automation coverage added for the 4/4/16 limits, stable key ordering, quarter-second cadence, and skipped catch-up wakes. git diff --check passed; staged paths/diff were reviewed before commit. The automation test and Unreal build were not run.
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** The authoritative GameMode creates a bounded due-key/budget plan on 0.25 s wake intervals; S08 now consumes it to select existing descriptors. The materialized-key limit is unchanged, and no actors are created.
 - **Networking/authority:** Wake timing, due-key selection and candidate budgets are server-only.
 - **Known limitations:** S11+ still needs area caps, evaluator wiring and actor admission; this scheduler performs no creature spawn work.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
 
+## Run 2026-10-24 — A10 per-item audit: A0 cooking outputs
+
+- **Selected increment:** Audit the six existing A0 cooking outputs after the
+  preceding Sinew, Bow String, Lightwood and Bone Fragment reviews. This
+  increment covers only this cooking-output group; the broad A10 per-item
+  audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md`.
+- **Evidence reviewed:** A0 backlog order, `items/food.json`, its
+  `GameCatalogues.json` registration, all catalogue JSON references and
+  station recipe JSON, the server status/food-consumption path, focused status
+  and catalogue assertions by source inspection, icon manifest and runtime
+  lookup, retained icon files, `docs/icon-provenance.md`,
+  `docs/02-technical-architecture.md`, `docs/a9-acceptance.md`, and
+  `docs/07-development-setup.md`.
+- **Included IDs and registration:** The exact six are `CookedBoarMeat`,
+  `CookedDeerMeat`, `MeatStew`, `RootVegetableSoup`,
+  `RoastedRootVegetables`, and `DeerRootRoast`. All six ordinary food item
+  records are registered through `items/food.json`, each with stack limit
+  20. Searching the complete catalogue-data tree found each ID in its item
+  record and its single cooking-output recipe only; no other catalogue grant
+  source, equipment profile, attack data, or item-level upgrade/reward record
+  was found. Those equipment, attack, and own-upgrade categories are N/A for
+  these prepared foods.
+- **Cooking acquisition:** A parsed traversal of all station recipe JSON
+  confirmed the six enabled outputs, each with quantity 1 and maximum batch
+  5:
+  - `CookedBoarMeat`: `CookedBoarMeatRecipe`, Cooking Rack,
+    `BoarMeat ×1 → CookedBoarMeat ×1`.
+  - `CookedDeerMeat`: `CookedDeerMeatRecipe`, Cooking Rack,
+    `DeerMeat ×1 → CookedDeerMeat ×1`.
+  - `MeatStew`: `MeatStewRecipe`, Cauldron,
+    `BoarMeat ×1 + DeerMeat ×1 + Carrot ×2 + Potato ×2 → MeatStew ×1`.
+  - `RootVegetableSoup`: `RootVegetableSoupRecipe`, Cauldron,
+    `Carrot ×1 + Potato ×1 + Rutabaga ×1 + Onion ×1 →
+    RootVegetableSoup ×1`.
+  - `RoastedRootVegetables`: `RoastedRootVegetablesRecipe`, Frying Pan,
+    `Carrot ×1 + Potato ×1 + Onion ×1 → RoastedRootVegetables ×1`.
+  - `DeerRootRoast`: `DeerRootRoastRecipe`, Frying Pan,
+    `DeerMeat ×1 + Rutabaga ×1 + Onion ×1 → DeerRootRoast ×1`.
+  No direct item drop/grant route is registered for these outputs; cooking is
+  their catalogue acquisition path.
+- **Use and authority:** `IsKnownFoodItem` allowlists all six. The
+  `ConsumeFoodFromServer` transaction requires server authority, checks the
+  active meal slot and pack, consumes one serving through a candidate
+  inventory exchange, then applies the effect; a failed effect application
+  restores the prior stacks. Every item supplies the same `State.Food.SteadyMeal`
+  effect: stamina costs are reduced by 10% for 120 server seconds, additive
+  with existing Wet/accessory deltas. Only one meal may be active; a second
+  use is rejected without consuming a serving. No movement or item-specific
+  combat effect was found. The timer expires and removes the meal status.
+- **Icons and provenance:** Manifest batches are 07/B for CookedBoarMeat,
+  08/B for CookedDeerMeat, MeatStew and RootVegetableSoup, and 09/C for
+  RoastedRootVegetables and DeerRootRoast. Each canonical ID has a retained
+  original PNG, a prepared PNG, a matching imported `.uasset`, a vector
+  fallback identity, and the normal runtime `/Game/Kalmala/UI/Icons/Items/`
+  texture route. All six focused `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id <ID>` checks passed: originals are 1254×1254 RGBA and
+  prepared images are transparent 64×64 RGBA; each check found its expected
+  imported Texture2D package and target path. The current
+  `docs/icon-provenance.md` contains no item-specific generation prompts or
+  records for these six IDs. The missing prompt provenance remains a
+  documentation gap; no wording was reconstructed.
+- **Save and expiry:** The architecture contract says carried inventory,
+  food, cooking progress and meal effects are transient and add no save field
+  or schema. `docs/a9-acceptance.md` confirms ordinary material inventory
+  remains session-only; persistence of world claims does not restore carried
+  items. The food item records define no per-item expiry/decay timer. The
+  consumed meal status itself expires after 120 server seconds. A generic
+  chest stack save is separate from carried inventory and does not establish
+  a six-item food restoration guarantee.
+- **Checks:** Parsed the food item and recipe JSON with PowerShell
+  `ConvertFrom-Json`, traversed the station recipes, and searched all
+  catalogue-data references for the six canonical IDs. Ran all six focused
+  catalogue icon validators; all passed as stated above. Reviewed runtime and
+  persistence code/docs without executing tests.
+- **Full verification:** Deferred; this is not A10's final increment. No
+  Unreal build, test suite, peer/restart run, or live runtime acceptance was
+  performed. The earlier global 152-icon result was not rerun in this audit.
+- **Impact and remaining scope:** This is a documentation-only audit; food
+  recipes, effects, authority and save behavior are unchanged. Server
+  authority remains required for meal use. The exact icon-generation prompts
+  are not present in current provenance docs. Remaining A10 work includes
+  later A0 item audits, fresh-world progression, approved-system acceptance
+  and milestone-final verification; keep the broad child unchecked.
+- **Next eligible A0 item:** Hearth Broth. Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Hearth Broth
+
+- **Selected increment:** Audit the next A0 item after the six current
+  cooking outputs, Hearth Broth only. The broad A10 per-item audit child
+  remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md`.
+- **Evidence reviewed:** Hearth Broth's registered item JSON and
+  GameCatalogues registration, all catalogue-data references, Cauldron recipe
+  JSON, server cooking/use/status source, focused status assertions by source
+  inspection, icon manifest/runtime lookup and retained files, current
+  `docs/icon-provenance.md`, `docs/02-technical-architecture.md`,
+  `docs/07-development-setup.md`, `docs/a9-acceptance.md`, and the generic
+  storage save/transfer contract.
+- **Registered item and acquisition:** Canonical ID `HearthBroth`, display
+  name Hearth Broth, description A simple savory broth for a camp meal,
+  stack limit 20, registered from `items/food.json`. The catalogue-data
+  search found the item entry and its single recipe output only; no separate
+  drop/grant source, equipment profile, attack data, or item-level upgrade
+  or stat reward record was found. Those equipment, combat, and own-upgrade
+  categories are N/A for this food.
+- **Recipe:** Enabled `HearthBrothRecipe` is registered in
+  `recipes/stations/cauldron.json`: Cauldron,
+  `DeerMeat ×1 + Onion ×1 → HearthBroth ×1`, maximum batch 5. Successful
+  payment awards 10 Cooking XP; no Cooking-level gate is required. The
+  server checks the visible same-world station, recipe inputs, output
+  capacity, and a usable Lit hearth with finite positive heat within 250 cm
+  of both player and station. Cooking consumes only the listed ingredients;
+  hearth fuel burns at its ordinary elapsed-time rate, with no extra recipe
+  fuel debit.
+- **Use and effect:** The Cauldron panel's Eat one Hearth Broth action sends
+  only the `HearthBroth` identity to the existing server food transaction.
+  It requires server authority, checks the private pack and meal slot,
+  consumes one item through a candidate exchange, then applies
+  `State.Food.SteadyMeal`; if application fails, the prior stack is restored.
+  The shared meal lowers stamina costs by 10% for 120 server seconds, adds
+  with existing Wet/accessory modifiers, and neither stacks nor refreshes nor
+  replaces another active meal. A duplicate use preserves the broth and
+  active timer. There is no movement bonus or HearthBroth-specific combat
+  effect.
+- **Icon and provenance:** Manifest row 08/B maps `HearthBroth` to Pack,
+  Item Detail, Storage and Recipe Result views. Its retained original,
+  prepared texture and imported `.uasset` are present. The canonical vector
+  fallback is Bowl variant 0; the catalogue icon library resolves the
+  canonical identity to `/Game/Kalmala/UI/Icons/Items/HearthBroth.HearthBroth`.
+  Focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id HearthBroth`
+  passed: 1254×1254 8-bit RGBA original, transparent 64×64 RGBA prepared
+  texture, and expected imported Texture2D package/target path. Current
+  `docs/icon-provenance.md` has no HearthBroth prompt or provenance record.
+  I did not reconstruct generation wording.
+- **Save and expiry:** Carried ordinary inventory is session-only and is not
+  restored on restart; food, cooking progress, and meal effects are transient
+  and add no save field or schema. The item definition has no expiry/decay
+  field; the consumed meal status expires after 120 server seconds. Storage
+  is separate: the world-keyed `UKalmalaStorageSaveGame` validates stacks
+  against the item catalogue, and the authoritative chest transfer persists
+  its candidate contents before publishing the pack change. A registered
+  HearthBroth stack can use that generic chest path, but no
+  HearthBroth-specific chest round-trip assertion or runtime storage run was
+  reviewed here.
+- **Checks:** PowerShell `ConvertFrom-Json` parsed and asserted the item and
+  exact recipe contract; searching all catalogue-data references showed
+  only the item definition and recipe entry/output. The focused catalogue
+  icon validator and `git diff --check` passed without whitespace errors;
+  Git emitted CRLF-to-LF advisory warnings. Runtime, save source and contract
+  docs were inspected; no automation, build, peer/restart, or live runtime
+  test was executed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; recipe, food
+  effect, authority and persistence behavior are unchanged. Server authority
+  remains required for cooking and meal use. The exact icon prompt is absent
+  from current provenance docs. Later A0 audits, fresh-world progression,
+  approved-system acceptance and milestone-final verification remain open;
+  keep the broad child unchecked.
+- **Next eligible A0 group:** Wild carrots. Continue in backlog order.
 
 ### Monster population — S08 stable ring candidate selector
 
 - **Selected increment:** S08, stable wildlife descriptor selection within the player ring.
 - **Work completed:** The bounded S07 wake now fills each key work item from existing deterministic wildlife descriptors, examining no more than its assigned candidate budget. It advances a persistent per-key cursor even when a descriptor fails, increments a per-key check ordinal once per serviced key, and applies a dedicated deterministic unbiased 0–99 roll with 0–24 accepted. Passing descriptors inside the inclusive 32–96 m ring are returned unchanged. Cursor and ordinal state is removed when a key becomes inactive. No actor creation or later gates were added.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
-- **Lightweight checks:** Source/contract inspection and `git diff --check`; focused automation coverage added for deterministic rolls, once-per-service ordinals, inclusive ring bounds, budget adherence, cursor advancement on rejects and preservation of identity/location/content. Tests and builds were not run.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Source/contract inspection and git diff --check; focused automation coverage added for deterministic rolls, once-per-service ordinals, inclusive ring bounds, budget adherence, cursor advancement on rejects and preservation of identity/location/content. Tests and builds were not run.
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server-side bounded work items now contain selected original descriptors for later gates. Their spawn IDs, positions, and content IDs remain unchanged; no actor or natural spawn is created.
 - **Networking/authority:** Player positions, descriptor selection, cursor, ordinal and seeded roll are used only on the authoritative GameMode.
-- **Known limitations:** S09 now adds the separate 36 m all-player exclusion; the earlier backlog-versus-contract threshold discrepancy is resolved with the backlog value. S11+ still adds caps, evaluator wiring and actor admission.
+- **Known limitations:** S09 adds the separate 36 m all-player exclusion; the earlier backlog-versus-contract threshold discrepancy is resolved with the backlog value. S11+ still adds area caps, evaluator wiring and actor admission.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
 
+## Run 2026-10-24 — A10 per-item audit: Wild carrots
+
+- **Selected increment:** Audit the A0 Wild carrots item group only. The broad
+  A10 per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Carrot` (display Carrot, stack 20) and
+  `CarrotSeed` (display Carrot Seeds, stack 50) are in
+  `items/crops.json`, registered by `Content/Data/GameCatalogues.json`.
+  No equipment profile, attack record, or item-specific upgrade/stat reward
+  record exists for either; those categories are N/A. Carrot is an ingredient,
+  not a directly edible meal; `IsKnownFoodItem` excludes both IDs. CarrotSeed
+  has no recipe ingredient/output use.
+- **Sources and uses:** A0's Meadow source is
+  `meadows-wild-carrot-patch`: the first dry, safe candidate per eligible
+  6,000 cm spatial key, with its documented stable seed domain. The server
+  hand-gathers without a tool and grants 2 Carrots plus 1 CarrotSeed per patch.
+  The A7 Garden Plot adds reciprocal planting: 1 CarrotSeed grows 3 Carrots,
+  while 1 Carrot grows 3 Carrot Seeds, after 600 active seconds in an active
+  terrain patch. Crop mode and remaining active time are saved in construction
+  schema 6; growth pauses for inactive patches/server downtime, a full pack
+  leaves the mature crop on the plot, and accepted planting spends one Trowel
+  condition.
+- **Recipes/effects:** Carrot is used by five enabled recipes, all maximum
+  batch 5 and 10 Cooking XP per recipe: Cauldron
+  `BerryRecoveryDraughtRecipe` uses Lingonberry x3 + Carrot x1 for one
+  BerryRecoveryDraught; `MeatStewRecipe` uses BoarMeat x1 + DeerMeat x1 +
+  Carrot x2 + Potato x2 for one MeatStew; `RootVegetableSoupRecipe` uses
+  Carrot x1 + Potato x1 + Rutabaga x1 + Onion x1 for one
+  RootVegetableSoup; `WolfStewRecipe` uses WolfMeat x1 + Carrot x3 + Onion x3
+  for one WolfStew; Frying Pan `RoastedRootVegetablesRecipe` uses Carrot x1 +
+  Potato x1 + Onion x1 for one RoastedRootVegetables. Carrot itself has no
+  status effect or direct meal action; the outputs retain their existing food
+  behavior. CarrotSeed is only used by wild-patch gathering and A7 planting.
+- **Icon and provenance:** Manifest rows 09 and 10 assign Carrot and
+  CarrotSeed to import batch C, respectively; the declared views are
+  PackInventory, ItemDetail, Storage and Ingredient for Carrot, and
+  PackInventory, ItemDetail and Storage for CarrotSeed. Both retained original
+  PNGs, prepared 64x64 PNGs, and expected imported `.uasset` packages exist.
+  The runtime canonical IDs resolve through the catalogue icon library to
+  `/Game/Kalmala/UI/Icons/Items/Carrot.Carrot` and
+  `/Game/Kalmala/UI/Icons/Items/CarrotSeed.CarrotSeed`; the general vector
+  fallbacks are Root variant 0 and Seed variant 0. The focused validator passed
+  for each: 1254x1254 8-bit RGBA originals and transparent 64x64 RGBA prepared
+  textures at the expected package paths. Current `docs/icon-provenance.md`
+  contains no dedicated original generation-prompt entries for either ID;
+  prompt wording was not reconstructed.
+- **Carried/save behavior:** Ordinary carried inventory is session-only; the
+  player-state save does not restore these stacks. On gathering, the server
+  checks the living player, range, final pack capacity, and grants before
+  committing patch depletion; failed player-state persistence rolls both
+  item grants back. Patch depletion is then written through the population
+  SaveGame path, but `RecordHarvestedSpawn` currently ignores the disk-write
+  result, so write-failure recovery is not established. Catalogue-valid stacks
+  can use the generic world-keyed chest save path; no carrot-specific chest
+  round-trip was run. Neither item defines its own expiry or decay timer.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, the recipe/item
+  JSON, manifest, icon runtime lookup, and architecture/setup/A9 save contracts.
+  PowerShell `ConvertFrom-Json` parsed `crops.json` and the recipe files; the
+  exact registered IDs and five recipe uses were enumerated. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Carrot` and the same
+  command for `CarrotSeed` passed. Source automation assertions were inspected,
+  not run. No build, test suite, peer/restart session, or live runtime check was
+  performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; no item, recipe,
+  gameplay, network-authority, or persistence behavior changed. Gathering and
+  planting remain server-authoritative. Prompt provenance is a documentation
+  gap. Later A0 item groups, approved-system/fresh-world acceptance, and
+  milestone-final verification remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Wild potatoes. Continue in backlog order.
 
 ### Monster population — S09 all-player distance exclusion
 
 - **Selected increment:** S09, reject candidates closer than 36 m to any living player.
-- **Work completed:** Added a separate server-side gate after the unchanged S08 inclusive 32–96 m ring selector. It compares each selected descriptor against every current-world living player and rejects horizontal distances below 36 m; exactly 36 m passes. This includes a second player outside the selecting player's 96 m neighborhood.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
-- **Lightweight checks:** Source/contract inspection and `git diff --check`; focused automation coverage added for the inclusive 36 m boundary and a second player outside the selecting player's 96 m neighborhood. Tests and builds were not run.
+- **Work completed:** Added a separate server-side gate after the unchanged S08 inclusive 32–96 m ring selector. It compares each selected descriptor against every current-world living player and rejects horizontal distances below 36 m; exactly 36 m passes. This includes a second player outside the selecting player's 96 m neighborhood. The conflicting spatial-contract minimum was updated from 32 m to 36 m, resolving the earlier discrepancy using the backlog criterion.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Source/contract inspection and git diff --check; focused automation coverage added for the inclusive 36 m boundary and a second player outside the selecting player's 96 m neighborhood. Tests and builds were not run.
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server-side scheduler candidates are removed when they are within 36 m horizontally of any living player; the S08 ring selection and stable descriptors remain unchanged.
 - **Networking/authority:** The GameMode applies the gate using the authoritative current-world living-player list; no client distance or spawn decision is accepted.
 - **Known limitations:** Live-actor registration is now in place; area caps, placement checks, natural-spawn actor creation and camp suppression remain for later S11–S26 work.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
 
+## Run 2026-10-24 — A10 per-item audit: Wild potatoes
+
+- **Selected increment:** Audit the A0 Wild potatoes group only. The broad
+  A10 per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Potato` (display Potato, stack 20) and
+  `PotatoSeed` (display Potato Seeds, stack 50) are registered in
+  `items/crops.json` through `Content/Data/GameCatalogues.json`. No equipment
+  profile, attack record, or item-specific upgrade/stat reward exists for
+  either; those categories are N/A. Neither is directly edible or allowlisted
+  by `IsKnownFoodItem`. PotatoSeed has no source or gameplay use in the current
+  item scope; A0 explicitly adds no seed source and A7 does not plant seeds.
+- **Sources and crop use:** `meadows-wild-potato-patch` is the next dry, safe
+  Meadow candidate after the carrot patch in each eligible 6,000 cm key. Its
+  independent stable identity seed domain is
+  `Mix(candidate-seed XOR 0xA0B070A71019)`. A server-validated, tool-free
+  hand gather grants exactly 2 Potato, no PotatoSeed. The A7 Garden Plot has
+  one Potato tuber mode: pay 1 Potato, then harvest 3 Potatoes after 600 active
+  seconds in an active terrain patch. It saves crop mode and remaining active
+  time in construction schema 6, pauses while the patch is inactive or server
+  stopped, spends one Trowel condition only on accepted planting, and leaves a
+  mature crop in place when the pack is full. There is no PotatoSeed planting
+  mode.
+- **Recipes/effects:** `Potato` is an ingredient in five enabled recipes, all
+  with maximum batch 5 and 10 Cooking XP per recipe:
+  - Cauldron `RootStaminaDraughtRecipe`: Potato x2 + Onion x1 produces one
+    RootStaminaDraught.
+  - Cauldron `MeatStewRecipe`: BoarMeat x1 + DeerMeat x1 + Carrot x2 +
+    Potato x2 produces one MeatStew.
+  - Cauldron `RootVegetableSoupRecipe`: Carrot x1 + Potato x1 + Rutabaga x1 +
+    Onion x1 produces one RootVegetableSoup.
+  - Cauldron `PeatHeartStewRecipe`: PeatHeart x1 + Potato x2 + Onion x1
+    produces two PeatHeartStew.
+  - Frying Pan `RoastedRootVegetablesRecipe`: Carrot x1 + Potato x1 + Onion
+    x1 produces one RoastedRootVegetables.
+  No recipe outputs Potato or PotatoSeed, and no recipe references PotatoSeed.
+  Potato itself has no direct meal effect; the prepared outputs retain their
+  own existing effects. PotatoSeed remains an unused registered item.
+- **Icon and provenance:** Manifest row 09/C assigns Potato to
+  PackInventory, ItemDetail, Storage and Ingredient views; row 10/C assigns
+  PotatoSeed to PackInventory, ItemDetail and Storage. Both retained original
+  PNGs, prepared 64x64 PNGs, and imported `.uasset` packages exist. The
+  catalogue icon library resolves each canonical ID to its matching
+  `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` texture; the vector fallback entries
+  are Root variant 1 and Seed variant 1. Both focused validators passed:
+  1254x1254 8-bit RGBA originals, transparent 64x64 RGBA prepared textures,
+  and the expected imported package paths. Current `docs/icon-provenance.md`
+  has no Potato- or PotatoSeed-specific primary generation-prompt record;
+  incidental mentions in other food prompts are not treated as provenance.
+- **Carried/save behavior:** Ordinary carried material stacks are session-only;
+  `PersistPlayerStateFromServer` stores tools and discovery/claim state, not
+  Potato or PotatoSeed stacks. The server validates player, range, capacity,
+  grant and player-state persistence before committing wild-patch depletion;
+  failed player-state persistence rolls back the item grant. The subsequent
+  population-ledger SaveGame marks the persistent spawn ID, but
+  `RecordHarvestedSpawn` ignores the disk-write result, so depletion write
+  failure is not handled. Catalogue-valid stacks can use generic world-keyed
+  chest storage; no Potato-specific chest round-trip was run. Neither item has
+  an expiry/decay field.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, the item/recipe
+  JSON, icon manifest/runtime lookup, and A0/A7 architecture and setup contracts
+  plus A9 inventory-save limits. PowerShell `ConvertFrom-Json` parsed
+  `crops.json` and the recipe files; the exact IDs and five Potato recipe uses
+  were enumerated, with no PotatoSeed recipe reference. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Potato` and the same
+  command for `PotatoSeed` passed. Source acceptance assertions were inspected,
+  not run. No build, test suite, peer/restart session, or live runtime check was
+  performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; item definitions,
+  recipes, gameplay, server authority and persistence are unchanged. The lack
+  of PotatoSeed source/use and dedicated icon prompt remains an explicit scope
+  fact/provenance gap, not a new gameplay task. Later A0 item groups,
+  approved-system/fresh-world acceptance and milestone-final verification
+  remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Wild rutabaga. Continue in backlog order.
+
+## Run 2026-10-24 — A10 per-item audit: Wild rutabaga
+
+- **Selected increment:** Audit the A0 Wild rutabaga group only. The broad
+  A10 per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Rutabaga` (display Rutabaga, stack 20) and
+  `RutabagaSeed` (display Rutabaga Seeds, stack 50) are registered in
+  `items/crops.json` through `Content/Data/GameCatalogues.json`. Neither has
+  an equipment profile, attack record, or item-specific upgrade/stat reward;
+  those categories are N/A. Neither is directly edible or included in
+  `IsKnownFoodItem`.
+- **Sources and crop uses:** A0's `lakes-wild-rutabaga-patch` is the first dry,
+  safe Shimmering Lakes candidate within the shared 400 cm cardinal shoreline
+  probe in each eligible key, classified as land outside lake/ocean water. Its
+  stable identity seed domain is `Mix(candidate-seed XOR 0xA0B07ABA71019)`.
+  Server-validated hand gathering needs no tool and grants 2 Rutabagas plus 1
+  RutabagaSeed per patch. The A7 Garden Plot has reciprocal modes: pay 1
+  RutabagaSeed to grow 3 Rutabagas, or pay 1 Rutabaga to grow 3 Rutabaga Seeds.
+  Both mature after 600 active seconds in an active terrain patch. Construction
+  schema 6 saves crop mode and remaining active time; growth pauses when the
+  patch is inactive or the server is stopped. Accepted planting spends one
+  Trowel condition; harvest/rejection do not. A mature crop remains on a full
+  pack and the planted plot cannot be removed.
+- **Recipes/effects:** `Rutabaga` is an ingredient in two enabled recipes, each
+  maximum batch 5 and awards 10 Cooking XP per recipe: Cauldron
+  `RootVegetableSoupRecipe` uses Carrot x1 + Potato x1 + Rutabaga x1 + Onion x1
+  to produce one RootVegetableSoup; Frying Pan `DeerRootRoastRecipe` uses
+  DeerMeat x1 + Rutabaga x1 + Onion x1 to produce one DeerRootRoast. No recipe
+  outputs Rutabaga or RutabagaSeed, and no recipe references RutabagaSeed.
+  Neither item has a direct meal/status effect; the prepared foods retain their
+  existing behavior.
+- **Icon and provenance:** Manifest row 10/C maps Rutabaga to PackInventory,
+  ItemDetail, Storage and Ingredient; row 11/C maps RutabagaSeed to
+  PackInventory, ItemDetail and Storage. Retained originals, prepared 64x64
+  textures and imported `.uasset` packages exist for both. The catalogue icon
+  library maps each canonical ID to its matching
+  `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` path. Their vector fallback entries
+  are Root variant 2 and Seed variant 2. Both focused validators passed with
+  1254x1254 8-bit RGBA originals, transparent 64x64 RGBA prepared images and
+  expected imported package paths. Current `docs/icon-provenance.md` has no
+  Rutabaga- or RutabagaSeed-specific primary generation-prompt record; prompt
+  wording was not inferred from food or ingredient mentions.
+- **Carried/save behavior:** Ordinary carried inventory remains session-only;
+  `PersistPlayerStateFromServer` stores tools and discovery/claim state, not
+  Rutabaga/RutabagaSeed stacks. Gathering validates the living player, range,
+  full grant capacity and player-state persistence before committing patch
+  depletion. Full-pack, invalid-range or repeated-request rejection leaves the
+  patch available; failed player-state persistence rolls back both grants. The
+  subsequent population-ledger SaveGame marks the stable spawn ID, but
+  `RecordHarvestedSpawn` ignores the disk-write result, so depletion write
+  failure is not handled. Catalogue-valid stacks can use generic world-keyed
+  chest storage; no Rutabaga-specific chest round-trip was run. Neither item
+  has an expiry/decay field.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, item and recipe
+  JSON, icon manifest/runtime lookup, A0/A7 architecture/setup contracts and
+  A9 inventory-save limits. PowerShell `ConvertFrom-Json` parsed `crops.json`
+  and the recipe files; the exact IDs and two Rutabaga recipe uses were
+  enumerated, with no RutabagaSeed recipe reference. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Rutabaga` and the same
+  command for `RutabagaSeed` passed. Source acceptance assertions were
+  inspected, not run. No build, test suite, peer/restart session, or live
+  runtime check was performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; definitions,
+  recipes, gameplay, authority and persistence are unchanged. The missing
+  dedicated icon prompts are a documentation gap. Later A0 groups,
+  approved-system/fresh-world acceptance and milestone-final verification
+  remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Wild onions. Continue in backlog order.
 
 ### Monster population — S10 live creature tracking
 
 - **Selected increment:** S10, register/unregister authoritative live creatures and count their current positions.
-- **Work completed:** Added a GameMode-owned weak registry for server wildlife actors. Actor BeginPlay registers after authority checks; accepted DefeatServer unregisters before the existing defeat notification, and EndPlay unregisters destroyed actors. The radius count prunes invalid, defeated, dead-health and wrong-world entries and computes inclusive horizontal distance from current actor locations.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`, `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLiveCreatureRegistryTest.cpp`, `docs/monster-spawning.md`, `BACKLOG.md`, `PROGRESS.md`.
-- **Lightweight checks:** Lifecycle/code inspection and `git diff --check`; focused automation coverage added for duplicate registration, inclusive current-position counts after movement, unregister on accepted defeat, cleanup on destruction and invalid-radius handling. Tests and builds were not run.
+- **Work completed:** Added a GameMode-owned weak registry for server wildlife actors. Actor BeginPlay registers after authority checks; accepted defeat unregisters before the existing defeat notification, and EndPlay unregisters destroyed actors. The radius count prunes invalid, defeated, dead-health and wrong-world entries and computes inclusive horizontal distance from current actor locations.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLiveCreatureRegistryTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
+- **Lightweight checks:** Lifecycle/code inspection and git diff --check; focused automation coverage added for duplicate registration, inclusive current-position counts after movement, unregister on accepted defeat, cleanup on destruction and invalid-radius handling. Tests and builds were not run.
 - **Full verification:** Deferred to S35. This is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server-only registry counts live wildlife by current location across tracked world actors. Existing defeat/reward/save callbacks and actor creation behavior are unchanged; no SaveGame fields, caps or reservations were added.
 - **Networking/authority:** Registration, removal and count queries require the authoritative GameMode/world. Clients do not maintain or affect the registry.
 - **Known limitations:** S11 area caps and S12 pack reservations remain unimplemented; this count query is not wired into admission. Unload cooldown/unload behavior, actor creation, placement and camp suppression remain later work.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, the next child is S11 — enforce area caps.
 
+## Run 2026-10-24 — A10 per-item audit: Wild onions
+
+- **Selected increment:** Audit the A0 Wild onions group only. The broad A10
+  per-item audit child remains unchecked.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Registered identities:** `Onion` (display Onion, stack 20) and
+  `OnionSeed` (display Onion Seeds, stack 50) are registered in
+  `items/crops.json` through `Content/Data/GameCatalogues.json`. Neither has
+  an equipment profile, attack record, or item-specific upgrade/stat reward;
+  those categories are N/A. Neither is directly edible or allowlisted by
+  `IsKnownFoodItem`.
+- **Source and crop uses:** A0's `elderwood-wild-onion-patch` uses the first
+  dry, safe Elderwood harvest candidate in each eligible key, with separate
+  stable seed domain `Mix(candidate-seed XOR 0xA0E10A71019)`. The server
+  accepts tool-free, range-validated hand gathering and grants exactly 2 Onion
+  plus 1 OnionSeed. The A7 Garden Plot has reciprocal modes: pay 1 OnionSeed to
+  grow 3 Onions, or pay 1 Onion to grow 3 Onion Seeds after 600 active seconds
+  in an active terrain patch. Schema 6 saves crop mode and remaining active
+  time; growth pauses for inactive patches and server downtime. Accepted
+  planting spends one Trowel condition; harvest/rejection do not. A full pack
+  leaves the mature crop on the plot, which cannot be removed while planted.
+- **Recipes/effects:** Onion is used by seven enabled recipes, all maximum
+  batch 5 and 10 Cooking XP per recipe:
+  - Cauldron `RootStaminaDraughtRecipe`: Potato x2 + Onion x1 → one
+    RootStaminaDraught.
+  - Cauldron `HearthBrothRecipe`: DeerMeat x1 + Onion x1 → one HearthBroth.
+  - Cauldron `RootVegetableSoupRecipe`: Carrot x1 + Potato x1 + Rutabaga x1 +
+    Onion x1 → one RootVegetableSoup.
+  - Cauldron `PeatHeartStewRecipe`: PeatHeart x1 + Potato x2 + Onion x1 →
+    two PeatHeartStew.
+  - Cauldron `WolfStewRecipe`: WolfMeat x1 + Carrot x3 + Onion x3 → one
+    WolfStew.
+  - Frying Pan `RoastedRootVegetablesRecipe`: Carrot x1 + Potato x1 + Onion
+    x1 → one RoastedRootVegetables.
+  - Frying Pan `DeerRootRoastRecipe`: DeerMeat x1 + Rutabaga x1 + Onion x1
+    → one DeerRootRoast.
+  No recipe outputs Onion or OnionSeed, and no recipe references OnionSeed.
+  Neither item has a direct food/status effect; prepared outputs retain their
+  existing effects.
+- **Icon and provenance:** Manifest row 10/C maps Onion to PackInventory,
+  ItemDetail, Storage and Ingredient; row 11/C maps OnionSeed to PackInventory,
+  ItemDetail and Storage. Retained original PNGs, prepared 64x64 PNGs and
+  imported `.uasset` packages exist for both. The catalogue icon library maps
+  each canonical ID to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`; fallback
+  identities are Root variant 3 and Seed variant 3. Both focused validators
+  passed: 1254x1254 8-bit RGBA originals, transparent 64x64 RGBA prepared
+  textures, and expected imported package paths. `docs/icon-provenance.md`
+  contains no Onion- or OnionSeed-specific primary prompt; its onion mentions
+  are ingredients in other food icons, not these items' provenance. The linked
+  `docs/material-icons.md` workflow guide is absent in this checkout; validation
+  relied on the current manifest, import/validation scripts and runtime code.
+- **Carried/world-save behavior:** Ordinary carried item stacks are
+  session-only; `PersistPlayerStateFromServer` saves carried tools and
+  discovery/claim state, not Onion/OnionSeed stacks. The authoritative gather
+  checks player/range/capacity and player-state persistence before source
+  depletion; full-pack, invalid-range, repeated-request or failed-player-save
+  paths do not grant/commit the patch. Population depletion marks the stable
+  source ID in its SaveGame, but `RecordHarvestedSpawn` ignores the disk-write
+  result, so failure recovery is not established. Garden Plot crop mode/time is
+  persisted separately in construction schema 6; it does not restore carried
+  Onion stacks. No item expiry/decay field exists. Generic chest storage is a
+  separate path; no Onion-specific chest round-trip was run.
+- **Evidence and checks:** Inspected `KalmalaHarvestNode.cpp`,
+  `KalmalaGameMode.cpp`, `KalmalaPlayerStatusComponent.cpp`, the crops and
+  station-recipe JSON, icon manifest/runtime lookup, A0/A7 architecture and
+  setup contracts, and A9 inventory-save limits. PowerShell `ConvertFrom-Json`
+  parsed `crops.json` and recipe files; seven Onion recipe uses and no
+  OnionSeed recipe reference were enumerated. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Onion` and the same
+  command for `OnionSeed` passed. The documented
+  `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance` covers exact Onion/OnionSeed
+  rewards, full-pack rejection, persistence rollback and duplicate prevention;
+  source assertions were inspected but not run. No build, test suite,
+  peer/restart session, or live runtime check was performed.
+- **Full verification:** Deferred; this is not A10's final increment.
+- **Impact and remaining scope:** Documentation-only audit; definitions,
+  recipes, gameplay, server authority and persistence are unchanged. Missing
+  dedicated Onion icon prompt and workflow doc are documentation gaps. Later
+  A0 source items, A1+ item groups, approved-system/fresh-world acceptance and
+  milestone-final verification remain open; keep the broad child unchecked.
+- **Next eligible A0 group:** Retained material sources: Wood, Densewood, Stone,
+  Boar/Deer Hide and Meat, Amber, and Frost Salt. Continue in A0 scope order.
+
+## Run 2026-10-24 - BH01c1 runtime capture fixture
+
+- **Selected increment:** BH01c1, the first child of BH01c. Added a one-shot
+  development-only game-view capture path, a narrow runner and one actual
+  rendered smoke capture. BH01c and BH01 remain open.
+- **Completed:** The game mode defers capture until its world-generation config
+  is initialized, activates terrain around the fixed site, sets the local
+  standalone camera to BH01a's pose and requests a no-UI PNG. The runner checks
+  the runtime seed/site log, PNG signature and dimensions, and sampled-pixel
+  variation. The seed-418 Starter Meadows smoke capture succeeded and visual
+  inspection confirmed rendered terrain, tree geometry, shadows and sky. The
+  first launch exposed early PostLogin ordering and a seed-zero attempt; an
+  explicit config-initialized guard corrected it. The local pawn remains at its
+  generated start.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md,
+  Source/KalmalaGameplay/Private/KalmalaGameMode.cpp,
+  Source/KalmalaGameplay/Public/KalmalaGameMode.h,
+  Scripts/Tests/World/BiomeBaselineCapture.ps1. The final PNG, logs, user cache
+  and build mirror remain ignored under .tmp/bh01/ and are not staged.
+- **Lightweight checks/results:** PowerShell AST parsing and `git diff --check`
+  passed. The exact final source built in the isolated KalmalaEditor mirror in
+  4 UBT actions with normal LOCALAPPDATA access. The runner produced a
+  1024x768, 921,694-byte PNG; signature, dimensions, pixel variance, seed, site
+  and fixed pose checks passed. Its SHA-256 is
+  `25c17c4f8bdd07b71513891202209a84d8cfec717db6c181810a8564bc5e5912`. No
+  terrain-generation behavior changed.
+- **Full verification:** Deferred; this is not milestone-final. No full test
+  suite, multiplayer peers, or broad world verification ran.
+- **Impact / authority:** Diagnostic-only development flag. It changes the
+  standalone capture camera and activates requested terrain patches for the
+  view; no gameplay rules, RPCs, networking code or save schema changed. Peer
+  replication is not exercised by this renderer capture.
+- **Known limitations:** Only the seed-418 Starter Meadows pose has an actual
+  rendered capture. Earlier overview images are null-RHI diagnostics and are not
+  treated as rendered evidence. The numeric CSV remains temporary. BH01c2 must
+  capture all 28 seed/site rows and consolidate numeric measurements plus
+  camera and vertical bounds before BH01 closes.
+- **Next task in this directed goal:** BH01c2 — capture and validate all fixed
+  rendered views for seeds 418/419 and consolidate the baseline record. Keep
+  BH01c and BH01 open.
+
+## Run 2026-10-24 — A10 per-item audit: Wood, Densewood, Stone
+
+- Selected increment: audit the retained A0 Wood, Densewood and Stone family
+  only. The broad A10 per-item audit child remains unchecked.
+- Files changed: BACKLOG.md and PROGRESS.md only.
+- Registered identities: Wood and Densewood are in
+  Content/Data/GameCatalogues/items/materials/wood.json; Stone is in
+  items/materials/ore.json. All three are listed through
+  Content/Data/GameCatalogues.json, each has MaxStack 50, and each has exactly
+  one registered definition. These raw materials have no equipment profile,
+  attack record, item-level upgrade target, direct consumable/status effect, or
+  expiry field; those categories are N/A. Their downstream recipe ingredients
+  and the separate upgrade costs that consume them are audited below.
+
+- Sources and quantities:
+  - The first-wave biome source contract retains Meadow meadows-birch-bark,
+    Lakes lakes-reed-cluster, and Elderwood elderwood-resinwood as Wood routes;
+    Thunder Mountains mountains-slate-vein yields Stone. Their server tool
+    selections award one material per accepted node. The separate M2 generated
+    harvest-node route deterministically selects one Wood or one Stone from
+    PersistentSpawnId CRC parity.
+  - The current generated forest route uses meadows-birch-trunk for Wood and
+    elderwood-ironheart-trunk for Densewood. Birch requires Stone Axe or
+    better; Ironheart requires Iron Axe. Axe felling, settled-log break and
+    bundle pickup are server-owned. FKalmalaM9SourceLootContract uses a
+    stable seed/source/spawn hash: the pickup is one item, with a deterministic
+    one-in-four bonus item (one or two total). Densewood is not the reward from
+    the older elderwood-resinwood selector; that selector still produces Wood.
+  - Stone also comes from allbiomes-stone-outcrop at exactly one per exhausted
+    outcrop, with a Stone Pick minimum. The reviewed layout permits at most one
+    dry, slope-safe candidate per 6,000 cm key in each of the six land biomes,
+    including Meadows, where no slate source occupies the key; candidates keep
+    250 cm from other harvest descriptors. Thunder Mountains' Thunder Sentinel
+    is a separate combat source: creatures.json sets three Stone at chance 1.0,
+    and the server reward contract confirms that amount. No other creature
+    Stone drop was found in the current creature catalogue.
+
+- Recipe and processing uses:
+  - Wood is an ingredient in 37 registered recipe rows. The 20 direct-build
+    rows consume: Floor 6, Wall 6, Roof 6, CampFire 3, Smelter 20, Workbench 9,
+    Forge 15, Storage 6, ReinforcedChest 8, CookingRack 9, Cauldron 9,
+    ForgeAnvil 9, GrindingStone 6, WorkbenchToolRack 6, GardenPlot 4,
+    TimberDoor 8, TimberBeam 2, TimberStairs 6, CampBed 4 and StandingLight 3.
+    Other recipe rows consume: BuildingHammer 3, BasicTorch 2, IronPick 2,
+    BronzePick 4, PlantingTrowel 10, WoodenClub 4, Bow 5, StoneAxe 3,
+    StoneKnife 1, StoneMace 2, StonePick 3, StoneSpear 3, WoodShieldRecipe
+    10, WoodenArrows 5, StoneArrows 20, BronzeArrows 20, and FangArrowsRecipe
+    10. Wood is also the Charcoal Kiln input: one Wood becomes one Coal in
+    30 seconds; this processing operation is described in the A1 contract,
+    outside the ordinary recipe arrays.
+  - Densewood is consumed by eight acquisition recipes: Forge IronKnife 2,
+    IronSpear 3, IronMace 2, IronSword 2, FangSpear 10, ThunderMaul 10 and
+    StormcutSword 2; Workbench HornBow 10.
+  - Stone is an ingredient in 22 recipe rows. Direct-build rows consume:
+    CampFire 5, CharcoalKiln 20, Smelter 20, Workbench 2, Forge 6, Cauldron 3,
+    ForgeAnvil 4, GrindingStone 4 and GardenPlot 1. Other recipe rows consume:
+    IronPick 2, BronzeAxe 3, BronzeKnife 2, BronzePick 4, BronzeSpear 3,
+    BronzeMace 2, BuildingHammer 1, StoneAxe 2, StoneKnife 1, StoneMace 2,
+    StonePick 3, StoneSpear 2 and StoneArrows 5. These rows produce their
+    named crafted/buildable outputs; no registered recipe outputs Wood,
+    Densewood or Stone.
+  - Nineteen level-one upgrade-cost records consume this family. Wood costs
+    appear on Bow 5, StoneAxe 3, StoneKnife 1, BronzePick 4, IronPick 2,
+    StonePick 3, StoneSpear 3, WoodenClub 2, StoneMace 2,
+    ConstructionHammer 2 and WoodShield 5. Densewood costs appear on HornBow
+    5, IronKnife 2, IronSpear 3, FangSpear 5, IronSword 1, StormcutSword 1,
+    IronMace 2 and ThunderMaul 5. Stone upgrade inputs appear on StoneAxe 2,
+    StoneKnife 1, IronPick 2, StonePick 3, StoneSpear 2, StoneMace 2 and
+    ConstructionHammer 2. Authored costs are the base level-one records; the
+    existing carried-tool upgrade path scales them for higher levels.
+
+- Icons and provenance: the catalogue icon manifest has rows for all three.
+  Wood uses its retained original
+  Content/Kalmala/UI/Source/IconOriginals/Wood.png, prepared
+  Source/Icons/Wood.png, and imported UI/Icons/Items/Wood.uasset; Densewood
+  and Stone have the corresponding exact-ID files. The catalogue icon library
+  builds each exact canonical asset path with no alias. Runtime fallback
+  identities are Wood Log variant 0, Densewood Log variant 2, and Stone Rock
+  variant 0. The manifest marks Wood and Stone for Ingredient presentation;
+  Densewood's usage list omits Ingredient even though recipe detail
+  UKalmalaIngredientWidget calls SetCatalogueIcon for each cost. The focused
+  icon validator checks the exact asset/source/prepared/mapping but does not
+  validate that usage tag, so retain it as manifest metadata follow-up rather
+  than claiming a missing runtime icon. All three focused
+  Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id checks passed:
+  original 1254x1254 RGBA, prepared transparent 64x64 RGBA, and expected
+  imported target paths. docs/icon-provenance.md has no dedicated primary
+  generation-prompt record for these three originals; mentions of Stone as a
+  style reference for other icons are not Stone provenance. The linked
+  docs/material-icons.md workflow document is absent in this checkout. No
+  prompt was inferred or added in this tracking-only increment.
+
+- Carried and world-save behavior: ordinary carried material stacks last for
+  the pawn session and are not saved/restored; PersistPlayerStateFromServer
+  writes carried-tool state and discovery/claim fields, not ordinary inventory.
+  Generic world-keyed storage is a separate save path; no material-specific
+  chest round-trip was run. Harvested stable source IDs are written through the
+  world population sparse ledger. For generated forests, uncollected tree
+  health/stages/drop reset if the actor regenerates/restarts before pickup;
+  successful bundle pickup records the forest ID to prevent regrant. The
+  RecordHarvestedSpawn callback calls SaveGameToSlot but ignores its boolean
+  result, so disk-write failure handling is not established for that depletion
+  marker. The Thunder Sentinel defeat/pending-reward claim has a separate
+  population-save path; the awarded Stone stacks still are not ordinary
+  player-inventory saves. No decay timer applies to these items.
+
+- Evidence and checks: parsed every manifest-listed item, recipe, item-profile,
+  upgrade-cost, stat-reward, attack and creature JSON file with PowerShell
+  ConvertFrom-Json (26, 8, 9, 14, 1, 2 and 1 files respectively). Confirmed
+  one registered definition per ID, no raw-material item-profile or attack
+  subject record, no recipe output for these IDs, and enumerated 37 Wood,
+  eight Densewood and 22 Stone recipe consumers plus 19 upgrade-cost rows.
+  Focused catalogue icon validation passed for Wood, Densewood and Stone.
+  Source, recipe, save and UI call paths were inspected; automation/source
+  acceptance tests were not run. No build, full suite, peer/restart session or
+  live runtime verification was performed.
+- Full verification: deferred; this is not A10's final increment.
+- Impact and remaining scope: tracking-only audit; definitions, gameplay,
+  source quantities, server authority and saves did not change. The missing
+  original prompt records and Densewood Ingredient manifest tag remain
+  documented audit gaps. Continue later A0 items and the wider included-item
+  and N/A audit; keep the broad child unchecked.
+- Next eligible A0 family: Boar/Deer Hide and Meat.
+
+## Run 2026-10-24 — A10 per-item audit: Boar/Deer Hide and Meat
+
+- **Scope and definitions:** audited exactly `BoarHide`, `DeerHide`, `BoarMeat`,
+  and `DeerMeat`. They are each registered once in `items/materials/hides.json`
+  (the two hides) or `items/food.json` (the two raw meats), all stack to 20,
+  and all four are listed in the catalogue icon manifest. No acquisition
+  station recipe is authored; natural creature rewards are their source.
+- **Source and linked IDs:** `creatures.json` registers `Boar` and `Deer` in
+  Meadows, Elderwood, and Shimmering Lakes. Each has a guaranteed 1 meat + 1
+  hide drop; each also lists BoneFragment x1 at 100%, and Deer lists Sinew x1
+  at 50%. `AKalmalaWildlifeSpawn::GrantDefeatReward` grants these four IDs to
+  the last validated attacker through the server-authoritative inventory path;
+  the source acceptance contract in `KalmalaGameMode.cpp` checks the owner’s
+  quantities and rejects remote-peer receipt. Bone Fragment and Deer Sinew are
+  cross-references already audited separately, not additional scope here.
+- **Use and recipes:** raw meat is not directly edible: the server food allowlist
+  accepts cooked outputs, stews and broth, not `BoarMeat` or `DeerMeat`.
+  `BoarMeat` x1 yields `CookedBoarMeat` through CookedBoarMeatRecipe at the
+  Cooking Rack; MeatStewRecipe at the Cauldron consumes BoarMeat x1 + DeerMeat
+  x1 + Carrot x2 + Potato x2. `DeerMeat` x1 yields `CookedDeerMeat` through
+  CookedDeerMeatRecipe at the Cooking Rack; HearthBrothRecipe consumes DeerMeat
+  x1 + Onion x1 at the Cauldron; DeerRootRoastRecipe consumes DeerMeat x1 +
+  Rutabaga x1 + Onion x1 at the Frying Pan. These yield 1 output per recipe.
+  `BoarHide` recipe uses: direct-material CampBed = Wood x4 + BoarHide x2 +
+  DeerHide x2; Forge BronzeHelmet = Bronze x10 + hide x5, BronzeTunic and
+  BronzeLeggings = Bronze x15 + hide x5 each, BronzeShield = Bronze x10 +
+  Lightwood x5 + hide x5; Workbench BoarHideBootsRecipe = hide x5,
+  BoarHideCapeRecipe = hide x5 + BoneFragment x1, and BoarHideHelmet,
+  BoarHideLeggings, BoarHideTunic recipes = hide x10 each; WoodShieldRecipe =
+  Wood x10 + BoarHide x3 + DeerHide x3. `DeerHide` recipe uses: the same
+  CampBed and WoodShield costs; Forge BronzeSword = Bronze x10 + Lightwood x2 +
+  hide x2, IronSword = Iron x20 + Densewood x2 + hide x2, OpalHelm = Iron x20 +
+  hide x5 + StarOpal x1, StormcutSword = Iron x20 + Densewood x2 + hide x2 +
+  StormSapphire x1; Workbench LightBow = Lightwood x25 + BowString x1 + hide
+  x5. No recipe outputs any of the four
+  audited IDs. CampBed remains direct-material Hammer placement, not an
+  inventory construction kit.
+- **N/A and upgrade references:** these are stackable materials, not equipment;
+  none has an item profile, attack, or stat-reward subject. There are no
+  upgrades of the materials themselves and no applicable equipment condition,
+  attack, or skill progression. Nine level-one gear cost rows consume BoarHide:
+  BoarHideBoots x2, BoarHideCape x2 + BoneFragment x1, BoarHideHelmet x5,
+  BronzeHelmet x1 + Bronze x1, BoarHideLeggings x5, BronzeLeggings x1 +
+  Bronze x2, WoodShield x2 + Wood x5 + DeerHide x2, BoarHideTunic x5, and
+  BronzeTunic x1 + Bronze x2. Two level-one rows consume DeerHide: OpalHelm x2
+  + Iron x5 and WoodShield x2 + Wood x5 + BoarHide x2. These are authored
+  wearable costs; the development docs say general wearable upgrades remain
+  pending equipment integration except explicitly wired cases. Higher-level
+  base-cost scaling is outside this item audit.
+- **Icons/provenance:** each item has retained `Content/Kalmala/UI/Source/IconOriginals/<ID>.png`, prepared `Content/Kalmala/UI/Source/Icons/<ID>.png`,
+  and imported `Content/Kalmala/UI/Icons/Items/<ID>.uasset`. The catalogue
+  library resolves exact canonical `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`
+  paths. Legacy widget fallbacks still map Boar/Deer Meat to Meat variants 0/1
+  and Boar/Deer Hide to Hide variants 0/1; the catalogue validator confirms
+  their distinct imported mappings. All four manifest rows are batch B. Focused
+  validation reports 1254x1254 RGBA originals, transparent 64x64 RGBA prepared
+  files, and the expected imported targets. `docs/icon-provenance.md` has gear
+  icon records but no source prompt record for these four raw materials; the
+  linked `docs/material-icons.md` is absent in this checkout. No prompt was
+  inferred or added in this tracking-only increment.
+- **Save and pending-claim behavior:** `DefeatServer()` marks the spawn defeated
+  and broadcasts `OnDefeated`; `RecordDefeatedSpawn()` persists its world
+  population defeated marker with `SaveGameToSlot` before `ApplyDefeatedState()`
+  calls `GrantDefeatReward()`. This ordinary Boar/Deer path does not enqueue a
+  pending wildlife claim. The marker save result is ignored, and the immediate
+  `TryGrantFromServer` results for these materials are also ignored, so a full
+  inventory has no recorded persistent retry path after defeat. Ordinary pack
+  stacks are owner-only, last for the pawn session, and are not restored;
+  `PersistPlayerStateFromServer()` persists carried tools and discovery/claim
+  state, not material stacks. No decay or expiry field/path is authored for
+  these raw materials. These are inspected source contracts, not a new live
+  peer/restart result.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** PowerShell `ConvertFrom-Json` parsed all 61
+  manifest-listed catalogue JSON files. `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered files, 152 unique definitions, 777 resolved references,
+  and canonical icon mappings for all definitions. All four commands
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id <ID>` passed for
+  BoarHide, DeerHide, BoarMeat, and DeerMeat with source/prepared/import checks.
+  Item, source, recipe, upgrade, icon, reward and save paths were inspected;
+  no automation, build, full suite or live peer/restart run was performed.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact/authority/remaining scope:** tracking-only; no definitions, gameplay,
+  recipes, reward amounts, server authority or save behavior changed. The
+  server remains authoritative for defeat attribution and reward grants. A10's
+  broad per-item audit remains unchecked; provenance prompts and actual live
+  full-pack/restart behavior remain for the final evidence gate, along with all
+  other included items and scope N/A dispositions.
+- **Next eligible A0 family:** Amber and Frost Salt.
 
 ### Monster population — S11 area and actor-budget caps
 
@@ -11971,9 +13560,43 @@
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Later admission code can query one server-owned policy for nearby species, home-key and aggregate active-key limits. Existing actors and spawn behavior are unchanged in this increment.
 - **Networking/authority:** The query requires GameMode authority and counts only authoritative same-world live actors. Home-key ownership is server-local descriptor state; no replicated or saved-data schema changed.
-- **Known limitations:** Wolf pack capacity is not reserved atomically until S12. The cap query is not yet wired into the evaluator or actor creation; S19/S26 perform that work. Focused automation was added but not executed.
+- **Known limitations:** Wolf pack capacity is not reserved atomically until S12. The cap query is not yet wired into the evaluator or actor creation; S19/S26 perform that work. Unload cooldown/unload behavior, placement and camp suppression remain later work.
 - **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S12 is next — reserve Wolf pack capacity atomically.
 
+## Run 2026-10-24 - BH01c2a durable baseline and seed-418 captures
+
+- **Selected increment:** BH01c2a, the first of four ordered BH01c2 children.
+  BH01c2, BH01c and BH01 remain open.
+- **Completed:** Preserved the validated BH01b2b numeric output as the tracked
+  28-row, 28-column CSV at Scripts/Tests/World/BiomeBaseline418419.csv. Captured
+  and validated the first seven fixed seed-418 sites with the live renderer:
+  Starter Meadows, Outer dry Meadows, Shimmering Lakes, Elderwood interior,
+  Wooded Elderwood, Mossy Mire and Freezing Tundra. The plan records per-site
+  anchor, XY, camera coordinates, dimensions, bytes and image hashes. Fixed
+  anchors use collision-triangle height on dry land, WaterLevelCm for
+  water-present non-ocean samples, and Z=0 for Ocean.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md and
+  Scripts/Tests/World/BiomeBaseline418419.csv. The rendered PNGs, logs and
+  capture user data remain ignored under .tmp/bh01 and are not committed.
+- **Lightweight checks/results:** Revalidated all 28 CSV rows and columns,
+  seed/site/coordinate identity, finite numeric fields, normalized biome
+  weights and water flags. The durable CSV hash is
+  48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf, matching
+  the previously validated commandlet output. All seven live capture logs
+  matched requested seed/site/XY, anchor Z, camera, aim, FOV and output path
+  within 0.2 cm for Unreal float rounding. Every image was 1024x768, passed
+  sampled-pixel diversity/nonblank checks and was visually reviewed. Per-image
+  SHA-256 values are in docs/biome-height-rework.md.
+- **Full verification:** Deferred; this is not milestone-final.
+- **Impact / authority:** Baseline evidence and test-only rendering only. No
+  terrain generation, gameplay, networking, authority or save behavior changed.
+- **Known limitations:** Only the first seven of 28 live views are captured.
+  Two initial wet-site attempts used the land-height anchor; they are marked
+  invalid in temporary output and excluded from the manifest. Their corrected
+  water-level views are recorded. The captures document current prototype
+  rendering, not water/material acceptance.
+- **Next task in this directed goal:** BH01c2b — capture and validate the other
+  seven fixed seed-418 views with their appropriate land/water/ocean anchors.
 
 ### Monster population — S12 atomic Wolf pack reservations
 
@@ -11987,65 +13610,456 @@
 - **Known limitations:** The S26 actor-creation path must acquire a token before spawning and release it on success after registration or on every failed/rolled-back pack. No actor creation or cap evaluator wiring was added.
 - **Next eligible task:** A10 catalogue/icon acceptance remains earlier in the global queue. Within this requested monster-population goal, S13 is next — add the nine-gate evaluator.
 
-
 ### Monster population — S13 ordered spawn-gate evaluator
 
 - **Selected increment:** S13, add a nine-gate evaluator with a distinct first rejection reason.
-- **Work completed:** Added the private GameMode evaluator in contract order: scheduler budget, seeded admission roll, player distance, species habitat, time, weather, progression, caps and physical placement. Every result defaults to rejection, and only all nine passing results produce `None`. No runtime candidate pipeline or actor creation is wired in this increment.
+- **Work completed:** Added the private GameMode evaluator in contract order: scheduler budget, seeded admission roll, player distance, species habitat, time, weather, progression, caps and physical placement. Every result defaults to rejection, and only all nine passing results produce None. No runtime candidate pipeline or actor creation is wired in this increment.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Reviewed the gate sequence against the spatial scheduling/gate contract and inspected each evaluator branch and the focused rejection fixture. `git diff --check` passed; tests and builds were not run.
+- **Lightweight checks:** Reviewed the gate sequence against the spatial scheduling/gate contract and inspected each evaluator branch and the focused rejection fixture. git diff --check passed; tests and builds were not run.
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** No current gameplay behavior changes yet. The private evaluator provides ordered fail-closed decisions for later authoritative gate wiring; it does not create actors or activate natural spawning.
 - **Networking/authority:** The helper consumes already-computed results and performs no world or client queries. Future callers must supply authoritative server-side results, as documented.
 - **Known limitations:** S14–S22 must populate scheduler, roll, distance, habitat, unrestricted current-species time/weather/progression, caps and physical-placement results; S23–S25 still implement and wire the camp suppression portion of placement. Every gate currently defaults false until its wiring sets the result.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S14 is next — wire scheduler and roll gates.
 
+## Run 2026-10-24 - BH01c2b remaining seed-418 captures
+
+- **Selected increment:** BH01c2b, the second BH01c2 child. BH01c2, BH01c and
+  BH01 remain open.
+- **Completed:** Captured the other seven fixed seed-418 sites: Thunder
+  Mountains, Ocean, Meadows/Elderwood, Elderwood/Tundra and Tundra/Mountains
+  transitions, source coast, and highland river. The live runtime matched each
+  site, coordinate, anchor, camera, aim, FOV and output path within 0.2 cm.
+  Dry land used collision-triangle heights, wet non-ocean sites used
+  WaterLevelCm, and Ocean used Z=0. Together with c2a, all 14 seed-418 rows now
+  have live captures.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  PNGs and logs are ignored under .tmp/bh01/captures/418 and are not committed.
+- **Lightweight checks/results:** Each capture passed PNG signature, 1024x768
+  dimensions and sampled-pixel nonblank checks; each image was visually
+  inspected. External validation matched runtime seed/site/XY/anchor/camera/
+  aim/FOV/output-path data. Per-image bytes, sampled-color counts, hashes and
+  camera bounds are in docs/biome-height-rework.md.
+- **Full verification:** Deferred; this is not milestone-final.
+- **Impact / authority:** Baseline evidence only; no terrain generation,
+  gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** The prototype renderer does not show a distinct water
+  surface in the Ocean, source-coast or highland-river frames; these are not
+  visual water/material acceptance. The 14 seed-419 captures and final
+  28-image verification remain open.
+- **Next task in this directed goal:** BH01c2c — capture and validate the first
+  seven fixed seed-419 views using the documented anchor rule.
+
+## Run 2026-10-24 — A10 per-item audit: Amber and Frost Salt
+
+- **Scope and definitions:** audited exactly `Amber` and `FrostSalt`. Both are
+  registered once in `items/materials/crafting-ingredients.json` and
+  `items/materials/cooking-ingredients.json`, respectively; each has a maximum
+  stack of 40. Neither has a recipe output, item profile, attack, stat reward,
+  or upgrade record. Neither is equipment, so condition, attack, and equipment
+  upgrade categories are N/A.
+- **Sources and quantities:** `creatures.json` defines one guaranteed Amber
+  from each credited PeatHusk defeat; PeatHeart is a separate 25% drop. The
+  server queues the baseline Amber reward for its credited owner, including
+  when the separate PeatHeart roll misses. The architecture source table also
+  declares `mire-peat-amber-seam` / `peat-amber-seam` as an Amber mining source,
+  and the M9 loot/tool contracts map that identity to Stone-tier mining and a
+  deterministic unique-source quantity of 1 or 2. A search of `Source` found
+  no generated or placed descriptor for this seam, including in population
+  descriptor construction, so it is declared and contract-tested but not an
+  active reachable source in the inspected code.
+
+  Frost Salt has two source routes. Existing `tundra-frostmoss` nodes in the
+  Freezing Tundra map through the ordinary gathering selection to one
+  `FrostSalt`; this is not the M9 mining deposit. The supplemental
+  `tundra-frost-salt-deposit` / `tundra-salt-crystals` source yields one
+  guaranteed FrostSalt plus a deterministic unique-source bonus, for 1 or 2
+  total, with Stone-tier Mining selection. Its generator allows at most one
+  deposit per 6,000 cm spatial key and 32 candidate attempts; eligible slots
+  are terrain/biome filtered and at least 250 cm from other harvest nodes.
+  Gemstone replacement uses 1% of eligible deposit slots for Opal, leaving
+  Frost Salt in the other 99%.
+- **Recipes, use, and N/A:** Amber is consumed by exactly two registered
+  recipes: inventory `BasicTorch` uses Wood x2 + Amber x1 to craft one torch;
+  the direct-material Building Hammer `StandingLight` recipe uses Wood x3 +
+  Amber x1 to place one light. Amber is a construction/crafting cost, not the
+  Basic Torch's fuel (the utility item description gives 300 seconds of held
+  fuel and 6 m light). FrostSalt has no registered recipe consumer or gameplay
+  preservation effect. Its catalogue description says it can preserve food,
+  but no current recipe or effect implements that use; do not treat this
+  description as behavior. Neither raw material is itself upgraded or used
+  directly for combat, equipment, or attacks; no level-up cost record consumes
+  either ID.
+- **Icons and provenance:** both exact IDs have catalogue-manifest entries and
+  canonical runtime catalogue mappings to `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`.
+  The older widget fallback table still lists Amber as Rock variant 2 and
+  FrostSalt as Snow variant 0, but focused catalogue validation confirms the
+  direct imported assets for both. Amber is batch F and FrostSalt batch A;
+  each manifest row covers PackInventory, ItemDetail, and Storage. The
+  validator confirmed retained 1254x1254 RGBA originals, transparent 64x64
+  prepared RGBA textures, and the expected imported `.uasset` targets.
+  `docs/icon-provenance.md` has no dedicated original generation prompt for
+  either material; the linked `docs/material-icons.md` is absent in this
+  checkout. No prompt was inferred or added in this tracking-only increment.
+- **Persistence and reward delivery:** a credited PeatHusk defeat queues the
+  owner-bound Amber claim in world-population state and persists it before the
+  defeat path accepts finalization; delivery grants one Amber, retains the
+  pending claim if the inventory cannot accept it, and includes PeatHeart only
+  when its separate roll succeeded. Once delivered, Amber is an ordinary
+  carried stack. Ordinary Amber and FrostSalt stacks are owner-only, last for
+  the pawn session, and are not restored by `PersistPlayerStateFromServer`,
+  which saves carried tools and discovery/claim state rather than ordinary
+  materials. Generic storage has a separate world-keyed save path; no
+  Amber/FrostSalt-specific chest transfer or reload was exercised here.
+  Existing Frostmoss depletion marks the persistent spawn ID and invokes
+  `SaveGameToSlot`, but ignores its boolean result. By contrast, M9
+  `resource:m9:v1:` depletion is only added to `SessionM9ResourceDepletionIds`;
+  no save write or other use of that set was found, so the new Frost Salt
+  deposit (and any generated Amber seam) could reactivate after server restart.
+  This source behavior conflicts with `docs/02-technical-architecture.md`,
+  which describes M9 depletion as a world-scoped `ResourceDepleted` sparse
+  delta. Record as an acceptance gap; no runtime/save change was made.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered files, 152 unique definitions, 777 resolved
+  references, and ledger-backed canonical icon mappings for all definitions.
+  Focused catalogue icon validation passed for `Amber` and `FrostSalt`, each
+  confirming source/prepared/imported targets. PowerShell `ConvertFrom-Json`
+  parsed the two material files, two recipe files, and creature catalogue
+  inspected for this increment. Source, recipe, icon, reward and save paths
+  were inspected; no automation, build, full suite, live peer or restart check
+  was run.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item definitions, reward
+  quantities, recipes, gameplay effects, authority, icons or save behavior
+  changed. Server authority remains in the existing harvest/defeat routes. The
+  ungenerated Amber seam, missing material prompt records, nonimplemented Frost
+  Salt preservation description, and M9 session-only depletion versus the
+  architecture save contract remain for later disposition/verification. A10's
+  broad per-item audit remains unchecked until every included item and scope
+  N/A disposition is reviewed; full verification and fresh-start progression
+  remain open.
+- **Next eligible group:** A1 metals and fuel.
+
+## Run 2026-10-24 — A10 per-item audit: CopperOre and TinOre
+
+- **Scope and definitions:** audited exactly `CopperOre` and `TinOre`, each
+  registered once in `items/materials/ore.json` with maximum stack 20. Neither
+  is an equipment item or upgrade subject; neither has an item profile, attack,
+  stat reward, or level-up cost. Condition, equipment, combat, and upgrade
+  categories are N/A.
+- **Sources and quantities:** server-generated `elderwood-copper-vein` nodes
+  use the next dry, safe Elderwood harvest candidate; `lakes-tin-shore-gravel`
+  uses a dry Shimmering Lakes shoreline candidate. Each is a stable harvest
+  identity, at most one of that source kind per shared spatial key; Tin has a
+  bounded 32-candidate shoreline search and 250 cm separation from other
+  harvest nodes. Server Mining selection requires a Stone-tier pick minimum
+  and classifies both resources as Bronze grade, so Stone Pick or better can
+  mine them; an accepted source yields exactly three matching ore. Seeded
+  gemstone replacement can substitute Quartz for 5% of Copper nodes; Tin
+  nodes can instead become Quartz at 5% or Jade at 2%. These replacements
+  change the one source identity and reward, so not every eligible key yields
+  CopperOre or TinOre.
+- **Uses, recipes, and N/A:** a scan of all registered catalogue JSON found no
+  references to either ID beyond its item definition: neither is a recipe
+  output, ordinary recipe ingredient, upgrade cost, or direct equipment/combat
+  input. The runtime Smelter path is their actual use: one CopperOre plus one
+  Coal produces one Copper bar, and one TinOre plus one Coal produces one Tin
+  bar, each after 30 active seconds. The Smelter accepts ore one item at a time,
+  with a 10-ore input capacity and shared output capacity of 10; jobs pause when
+  output is full and processing does not advance offline. Downstream Forge
+  alloying consumes Copper x2 + Tin x1 to produce Bronze x1; the bars and Coal
+  are outside this two-ID audit. No recipe directly outputs either audited ore.
+- **Icons and provenance:** both IDs are manifest-backed in batch J with
+  PackInventory, ItemDetail, Storage, and Ingredient usages, retained source
+  1254x1254 RGBA PNGs, prepared transparent 64x64 textures, and imported
+  exact-ID assets. The catalogue library resolves their canonical
+  `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>` paths; the legacy widget table has
+  Rock variants 4 and 5 as visual fallbacks. `docs/icon-provenance.md#material-icons`
+  records the shared original-art prompt and each exact subject (copper-seamed
+  dark rock; pale silvery seams in cool gray rock); it reports the prepared
+  icons visually inspected at 64x64.
+- **Persistence and delivery:** accepted mining uses the existing server-side
+  tool/reward transaction: the server selects the source and quantity,
+  preflights the full inventory result and pick condition, and does not deplete
+  on capacity, tool-use, or player-save rejection. Copper/Tin use ordinary
+  stable population harvest IDs, not the separate M9 session-only depletion
+  route. `RecordHarvestedSpawn` marks the ID in the world population save and
+  calls `SaveGameToSlot`, but ignores that write's result; a failed world save
+  can therefore allow a depleted node to return after restart. Ordinary
+  carried ore stacks are transient: `PersistPlayerStateFromServer` saves
+  carried tools and discovery/claim state, not material inventory. Loading ore
+  into a Smelter persists the station queue in the world construction save;
+  no CopperOre/TinOre-specific chest transfer/reload or live restart was
+  exercised in this audit. No pending wildlife claim or decay/expiry applies.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed with 61 registered files, 152 unique definitions, 777 resolved
+  references, and canonical runtime icon mappings for all definitions. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id CopperOre` and the
+  corresponding `TinOre` check passed, including retained originals, prepared
+  transparent textures, and imported assets. A Python walk parsed all
+  registered catalogue JSON and confirmed the two exact definitions are their
+  only catalogue references. Source, recipe, upgrade, icon and save paths were
+  inspected; the existing `Kalmala.World.M7.BiomeContentContract` and
+  `Kalmala.Gameplay.Tools.LifecycleContract` cover deterministic descriptors,
+  exact ore rewards, and tool tiers, but were not executed. No build, full suite,
+  peer or restart run was done.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only. No item definitions, source
+  amounts, recipes, icons, rewards, server authority or persistence changed.
+  Existing source depletions remain server-selected and use the world-ledger
+  callback; the ignored sparse-write result and transient carried materials
+  remain acceptance limitations. Keep the broad A10 item-audit child unchecked
+  until every included ID and scope N/A is covered.
+- **Next eligible A1 group:** `Coal`, produced by the Charcoal Kiln.
+
+## Run 2026-10-24 — A10 per-item audit: Coal
+
+- **Scope and definition:** audited exactly `Coal`, registered once in
+  `items/materials/others.json` with maximum stack 50. It has no equipment
+  profile, attack, stat reward, or level-up cost; equipment condition, combat,
+  and upgrades are N/A.
+- **Source and quantity:** Coal has no natural mining/harvest source, biome,
+  tool-tier requirement, or world-depletion identity. Its current acquisition
+  is the directly placed Charcoal Kiln: load one Wood and receive one Coal
+  after 30 active server seconds. The Kiln holds up to 10 Wood and 10 Coal,
+  runs one job at a time, and pauses at full output. There is no offline
+  processing. The Kiln itself is a presentation-only buildable placed with the
+  Building Hammer for 20 Stone; it is not a portable Coal source or inventory
+  item.
+- **Fuel and recipe uses:** the registered catalogue scan found no Coal
+  references outside its own definition, so Kiln/Smelter processing and hearth
+  fuel are runtime operations rather than ordinary recipe rows. The Smelter
+  accepts one Coal per ore, matching one Copper/Tin/Iron bar after 30 active
+  seconds; Coal input capacity is 10, output is shared across bar types, and
+  full output pauses the queue. Campfire placement also requires one initial
+  raw-fuel unit; later direct Interact refuelling consumes one raw-fuel item
+  for 60 seconds up to the 300-second cap. Coal is accepted after Wood,
+  Lightwood, and Densewood in the server's raw-fuel priority. No other Coal
+  recipe/fuel consumer, crafted output, equipment use, attack, or upgrade was
+  found. `BasicTorch` refuelling and `StandingLight` burn Wood instead.
+- **Icons and provenance:** Coal is manifest-backed in batch A for
+  PackInventory, ItemDetail, and Storage. The validator confirmed a retained
+  1254x1254 RGBA original, prepared transparent 64x64 RGBA texture, and
+  imported `/Game/Kalmala/UI/Icons/Items/Coal.Coal` asset. The catalogue
+  library uses that canonical texture; the older widget fallback is Rock
+  variant 1. `docs/icon-provenance.md` has no dedicated Coal generation prompt
+  or source-path record, and the linked `docs/material-icons.md` is absent in
+  this checkout. No prompt was inferred or added in this tracking-only audit.
+- **Inventory, containers, and world save:** the Kiln's queued Wood, output
+  Coal, and remaining active job time are saved with its world construction
+  record. Accepted Wood input is consumed only after server validation and
+  restored if the Kiln save fails. Coal collection saves the reduced Kiln
+  output before granting one item; a capacity failure keeps the Coal in the
+  Kiln. If inventory changes before commit, the code attempts to restore the
+  prior output record; failure of that rollback save is logged. Smelter Coal
+  input and processing state are also world-saved, with the item restored if
+  the station save rejects its transfer. Once carried, ordinary Coal stacks
+  are owner-only pawn-session inventory and are not restored by
+  `PersistPlayerStateFromServer`.
+  Coal placed in a Chest uses the separate world-keyed storage save path; no
+  Coal-specific chest transfer/reload was exercised here. Campfire fuel/state
+  is transient and is not in the construction save record, so Coal burned
+  there does not persist across server restart. No source-depletion callback
+  applies to the manufactured item.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered files, 152 unique definitions, 777 resolved
+  references, and canonical runtime icon mappings for every definition.
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Coal` passed with the
+  original/prepared/imported checks. A Python walk parsed all registered
+  catalogue JSON and confirmed `Coal` appears only in its definition. The
+  source, Kiln, Smelter, raw-fuel, save, storage, and Campfire paths were
+  inspected; no automation, build, full suite, live peer or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item, process, fuel amount,
+  authority, inventory, container, or save behavior changed. The Coal item is
+  server-created/consumed through the existing Kiln, Smelter, and Campfire
+  transactions. Its missing dedicated icon prompt record and actual live
+  station/storage/restart behavior remain for later evidence. Keep the broad
+  A10 item-audit child unchecked until every included ID and scope N/A is
+  covered.
+- **Next eligible A1 group:** `Copper`, `Tin`, and `Bronze` metal bars/alloy.
+
+## Run 2026-10-24 — A10 per-item audit: Copper, Tin, and Bronze
+
+- **Scope and definitions:** audited exactly `Copper`, `Tin`, and `Bronze`,
+  registered in `items/materials/metal.json`; each has `MaxStack=50`. These
+  are ordinary material stacks, not equipment. They have no item profiles,
+  attacks, stat rewards, or upgrade identities, so condition/combat/stat and
+  self-upgrade categories are N/A. Copper and Tin are not direct inputs to
+  other recipes or level-up costs; their only registered catalogue use is the
+  Bronze alloy recipe.
+- **Source and processing:** Copper and Tin have no bar-specific mining node,
+  biome, or depletion ID. The Smelter consumes one matching `CopperOre` or
+  `TinOre` plus one Coal to output one matching bar after 30 active server
+  seconds. Accepted ore is FIFO; the input limit is 10 ore including the
+  reserved job and 10 Coal including its reservation; all Copper/Tin/Iron bar
+  outputs share 10 slots. Full output pauses processing and no offline time
+  advances. Bronze has no direct drop or Smelter route: the enabled Forge
+  `BronzeAlloy` recipe immediately consumes Copper x2 and Tin x1 for Bronze
+  x1, with `MaxBatch=5`, no Coal, and no skill requirement.
+- **Downstream recipes and upgrades:** the JSON reference walk found Bronze in
+  the Forge recipes for Bronze Sword (10 Bronze, 2 Lightwood, 2 Deer Hide),
+  Bronze Helmet (10 Bronze, 5 Boar Hide), Bronze Tunic and Leggings (15 Bronze
+  and 5 Boar Hide each), Bronze Shield (10 Bronze, 5 Lightwood, 5 Boar Hide),
+  Planting Trowel (5 Bronze, 10 Wood), and Scale Cuirass (10 Bronze, 10 Giant
+  Scale). It also appears in the Workbench Bronze Arrows recipe (1 Bronze + 20
+  Wood produces 20), the direct Hammer Reinforced Chest recipe (2 Bronze + 8
+  Wood), and eight Forge accessory recipes: `QuartzNecklace` (3 Bronze),
+  `MoonstoneRing` (2), `GarnetNecklace` (3), `JadeRing` (2),
+  `AmethystNecklace` (3), `AquamarineRing` (2), `TourmalineNecklace` (3),
+  and `DuskRing` (5), each with its matching gem.
+  Bronze is an authored upgrade cost for BronzeAxe x3, BronzeKnife x2,
+  BronzePick x4, BronzeSpear x3, BronzeMace x2, BronzeSword x2,
+  BronzeHelmet x1, BronzeTunic x2, BronzeLeggings x2, BronzeShield x1, and
+  ScaleCuirass x5, plus each entry's other listed materials. These amounts are
+  the level-one base costs. Carried-tool costs use the existing doubling rule
+  and Forge progression; the architecture notes that wearable upgrade
+  execution remains pending equipment integration. Other Bronze-named tool
+  acquisitions do not all consume Bronze: the registered BronzeAxe, Knife,
+  Pick, Spear, and Mace Forge recipes still list Wood/Lightwood and Stone.
+  Specifically, the current `BronzePick` recipe is Wood x4 + Stone x4, while
+  the current A1 architecture target is Wood x10 + Bronze x10. This is a
+  confirmed acquisition-data gap for later disposition;
+  no recipe was changed in this audit.
+- **Icons and legacy identities:** all three identities are manifest-backed in
+  batch J for PackInventory, ItemDetail, Storage, and Ingredient. Their
+  retained originals are `Content/Kalmala/UI/Source/IconOriginals/<ID>.png`,
+  prepared transparent textures are `Content/Kalmala/UI/Source/Icons/<ID>.png`,
+  and imports are `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. The catalogue icon
+  library resolves these exact IDs directly; the old widget fallback enum
+  uses Ingot variants Bronze 2, Copper 3, Tin 4. `docs/icon-provenance.md`
+  records the shared original prompt and each metal's exact subject; no
+  `CopperBar`, `TinBar`, `BronzeBar`, or `*Ingot` legacy IDs were found in the
+  catalogue, source, or icon ledger.
+- **Queue, carried stacks, and save behavior:** Smelter queues, Coal, active
+  ore, remaining active seconds, and outputs are world-saved in construction
+  schema 6 and replicated by the server. Loading one bar-input ingredient
+  consumes it only after the server accepts and persists the candidate state;
+  save rejection attempts to restore the consumed item. Collection saves the
+  output reduction before committing one carried bar, and attempts to restore
+  the saved output if the pack changes before commit. The Bronze alloy recipe
+  uses the regular server-validated atomic inventory exchange. General carried
+  material stacks are not included in `PersistPlayerStateFromServer`, so bars
+  held in the pack do not restore after restart. Chest item storage uses a
+  separate world-keyed save path; no metal-specific Chest transfer/reload or
+  live restart was exercised. No source depletion, decay, or pending claim
+  applies to the manufactured bars.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed: 61 registered JSON files, 152 unique definitions, 777 resolved
+  references, and ledger-backed runtime icon mappings for all definitions.
+  Focused catalogue icon checks passed for `Copper`, `Tin`, and `Bronze`, each
+  confirming a 1254x1254 RGBA original, transparent 64x64 prepared texture,
+  and canonical imported asset. A parsed catalogue-reference walk confirmed
+  their exact registered recipe and upgrade uses; searches for legacy metal
+  bar/ingot IDs returned no matches. No build, automation, full suite, live
+  station, peer, or restart test ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no recipe, quantity, icon,
+  gameplay, authority, queue, or save behavior changed. The existing
+  `BronzePick` acquisition-cost discrepancy, wearable upgrade execution, and
+  actual live Smelter/Forge/Chest restart behavior remain for later review.
+  Keep the broad A10 item-audit child unchecked until every included ID and
+  scope N/A disposition is covered.
+- **Next eligible A1 group:** `IronOre` and `Iron` — Mossy Mire ore source and
+  Smelter bar.
 
 ### Monster population — S14 scheduler and seeded-roll gates
 
 - **Selected increment:** S14, feed the bounded scheduler work and S08 seeded admission roll into the S13 evaluator.
 - **Work completed:** Added one evaluation-attempt record per descriptor examined within the assigned per-key and per-wake budgets. Each record marks its scheduler slot as available, stores the single deterministic S08 roll outcome, and retains the evaluator's first rejection reason even when the roll fails. The cursor and check ordinal advance only through those already bounded attempts; no retry/catch-up path was added. Passing rolls remain rejected at the unwired player-distance gate.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected the S06–S13 scheduling, selector and evaluator flow; updated focused automation assertions for a seeded-roll rejection retained in the evaluator attempt list and exact attempt-budget accounting. `git diff --check` passed; tests and builds were not run.
+- **Lightweight checks:** Inspected the S06–S13 scheduling, selector and evaluator flow; updated focused automation assertions for a seeded-roll rejection retained in the evaluator attempt list and exact attempt-budget accounting. git diff --check passed; tests and builds were not run.
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server scheduler work now records and evaluates every examined descriptor, including failed rolls. The existing bounded work limits remain unchanged; no natural actor is created.
 - **Networking/authority:** Scheduler records, world seed, descriptor IDs, roll and evaluator results are produced in the authoritative GameMode. No replicated or saved state changed.
 - **Known limitations:** S15 must populate player-distance and species-habitat gate results; time, weather, progression, caps and physical placement remain safely false until their later increments. Spawn actor admission remains S26.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S15 is next — wire distance and habitat gates.
 
+## Run 2026-10-24 - BH01c2c first seven seed-419 captures
+
+- **Selected increment:** BH01c2c, the third ordered BH01c2 child. BH01c2,
+  BH01c and BH01 remain open.
+- **Completed:** Captured the first seven seed-419 fixed sites: Starter
+  Meadows, Outer dry Meadows, Shimmering Lakes, Elderwood interior, Wooded
+  Elderwood, Mossy Mire and Freezing Tundra. All seven samples have
+  HasWater=0; each camera used its collision-triangle anchor. Per-view camera
+  coordinates, aim height, image bytes, sampled-color count and SHA-256 are
+  recorded in docs/biome-height-rework.md.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  PNGs and logs remain ignored under .tmp/bh01/captures/419.
+- **Lightweight checks/results:** Runtime logs matched seed/site/XY/ViewZ,
+  camera, aim, FOV and output path within 0.2 cm. All seven PNGs passed
+  signature, 1024×768 dimensions and sampled-pixel nonblank checks; each was
+  visually inspected. Full project verification remains deferred.
+- **Impact / authority:** Baseline capture evidence only. No terrain generation,
+  gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** These images document the current neutral prototype
+  rendering and are not terrain/art acceptance. Seven seed-419 captures and
+  final 28-row/28-image manifest verification remain in BH01c2d.
+- **Next task in this directed goal:** BH01c2d — capture the final seven
+  seed-419 views, validate all 28 image/numeric rows and finalize the baseline
+  manifest.
 
 ### Monster population — S15 distance and species-habitat gates
 
 - **Selected increment:** S15, populate distance and habitat results for every bounded evaluator attempt.
 - **Work completed:** Distance now requires the inclusive S08 32–96 m ring to at least one living player and the S09 minimum 36 m from every living player. Habitat uses the existing seed/biome species mapping and activation habitat helper, including dry-shore, water/traversability rules and the existing hard-enemy start exclusion. The same hard-enemy species classification now serves both natural-work evaluation and the existing activation path. Attempts remain in the work list and are reevaluated in gate order; the candidate projection removes distance- and habitat-rejected descriptors.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected the existing activation habitat path, biome-specific tests and hard-enemy start helper; updated focused assertions for the 36 m inclusive boundary, a second player outside the selecting neighborhood, and preservation of earlier seeded-roll rejection. `git diff --check` passed; tests and builds were not run.
+- **Lightweight checks:** Inspected the existing activation habitat path, biome-specific tests and hard-enemy start helper; updated focused assertions for the 36 m inclusive boundary, a second player outside the selecting neighborhood, and preservation of earlier seeded-roll rejection. git diff --check passed; tests and builds were not run.
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server-owned scheduler attempts now carry distance and habitat rejection results. Existing generated descriptors and their IDs/positions are unchanged; no actor creation, cap gate or physical placement was added.
 - **Networking/authority:** Distance uses the current-world living-player list on the authoritative GameMode. Habitat, species and start-exclusion queries also run only in that server-owned path; no save or replication schema changed.
 - **Known limitations:** Time, weather and progression remain fail-closed until S16–S18; caps wait for S19; surface, clearance and camp-aware placement remain later work. Natural actor creation remains disabled until S26.
 - **Next eligible task:** A10 catalogue/icon acceptance remains ahead in the global queue. Within this requested monster-population goal, S16 is next — add the unrestricted current-species time gate and rejection-test seam.
 
+## Run 2026-10-24 - BH01c2d complete seed-419 baseline
+
+- **Selected increment:** BH01c2d, the final ordered BH01c2 child.
+- **Completed:** Captured the final seven live seed-419 sites, validated all
+  28 fixed-seed numeric rows and all 28 rendered image/log rows, and recorded
+  the final camera/aim bounds and per-image hashes. All BH01a, BH01b and BH01c
+  baseline criteria are complete; BH01 is checked. BH02 remains next.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  Numeric CSV is unchanged. Images/logs remain ignored under .tmp/bh01.
+- **Lightweight checks/results:** CSV has 28 rows and 28 columns; numeric
+  fields are finite, biome weights normalize, water flags match levels, biome
+  identities and slope/grade/forest ranges validate. Every image matched its
+  seed/site/XY/anchor/camera/aim/FOV/runtime log and documented bytes/hash.
+  All 28 PNGs have valid signatures, 1024×768 dimensions and nonblank sampled
+  pixels; all seven c2d frames were visually inspected. git diff --check
+  passed. Full terrain verification is deferred to BH26.
+- **Impact / authority:** Baseline capture and documentation only. No terrain
+  generation, gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** Captures show neutral prototype materials and tree
+  meshes. Ocean has a checker-grid surface; source coast and highland river
+  show no distinct water surface. Baseline evidence is not terrain-art/water
+  acceptance. Complete terrain implementation and full integrated checks
+  remain.
+- **Next task in this directed goal:** BH02 — map integration points for
+  height, water, forest, harvest, preview, material and test consumers.
 
 ### Monster population — S16 unrestricted time gate
 
 - **Selected increment:** S16, wire the time-of-day gate for every bounded evaluator attempt.
-- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting a clock or applying species restrictions. Unknown enum values fail closed. The scheduler now records this result after the earlier distance and habitat gates, preserving ordered rejection. A development-automation-only seam can force rejection for a known species, and the focused evaluator fixture checks current-species pass, unknown rejection, forced rejection and the `Time` reason.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting a clock or applying species restrictions. Unknown enum values fail closed. The scheduler now records this result after the earlier distance and habitat gates, preserving ordered rejection. A development-automation-only seam can force rejection for a known species, and the focused evaluator fixture checks current-species pass, unknown rejection, forced rejection and the Time reason.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected the S13–S15 evaluator flow and the current wildlife archetype enum; verified the allowlist covers all current values and unknown values take the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Lightweight checks:** Inspected the S13–S15 evaluator flow and the current wildlife archetype enum; verified the allowlist covers all current values and unknown values take the default rejection. git diff --check passed; the automation fixture and builds were not run.
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server scheduler attempts now carry the unrestricted time-pass result for every known current species. No game clock, public setting, new species restriction, actor creation or natural-spawn activation was added.
 - **Networking/authority:** Time result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
 - **Known limitations:** Weather and progression gates remain fail-closed until S17–S18; caps and placement remain later work. Natural actor creation remains disabled until S26.
 - **Next eligible task:** Within this requested monster-population goal, S17 is next — add the unrestricted current-species weather gate and rejection-test seam.
 
-
 ### Monster population — S17 unrestricted weather gate
 
 - **Selected increment:** S17, wire the weather gate for every bounded evaluator attempt.
-- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting weather state or applying restrictions. Unknown enum values fail closed. The scheduler now records the weather result after time and preserves first-rejection order. A development-automation-only seam can force rejection, and the focused evaluator fixture checks every current species, unknown rejection, forced `Weather` rejection and precedence of an earlier `Time` rejection.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting weather state or applying restrictions. Unknown enum values fail closed. The scheduler now records the weather result after time and preserves first-rejection order. A development-automation-only seam can force rejection, and the focused evaluator fixture checks every current species, unknown rejection, forced Weather rejection and precedence of an earlier Time rejection.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected the S13/S16 evaluator order and current wildlife archetype enum; verified the weather allowlist covers all current values and unknown values use the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Lightweight checks:** Inspected the S13/S16 evaluator order and current wildlife archetype enum; verified the weather allowlist covers all current values and unknown values use the default rejection. git diff --check passed; the automation fixture and builds were not run.
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server scheduler attempts now carry the unrestricted weather-pass result for every known current species. No weather simulation, public setting, new restriction, actor creation or natural-spawn activation was added.
 - **Networking/authority:** Weather result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
@@ -12053,36 +14067,295 @@
 - **Next eligible task:** Within this requested monster-population goal, S18 is next — add the unrestricted current-species progression gate and rejection-test seam.
 
 
+## Run 2026-10-24 - BH02 integration map
+
+- **Selected increment:** BH02, map the current height, lake, river, map/wetness,
+  forest-layout, harvest, preview, material and test consumers.
+- **Work completed:** Recorded the actual production source paths and their
+  shared contracts in docs/biome-height-rework.md, including the distinction
+  between fast biome previews and full shaped-height/hydrology diagnostics.
+  Mapped focused world, forest and UI tests and their development runners.
+  Checked only BH02; no runtime source or asset changed.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md.
+- **Lightweight checks/results:** Inspected source symbols, test files, runner
+  references, existing material assets, and the applicable architecture/setup
+  guidance. git diff --check passed. Full verification remains deferred to
+  BH26.
+- **Observable impact / authority:** Planning and integration documentation only;
+  no generator, gameplay, map, networking, server-authority or save behavior
+  changed.
+- **Known limitations / remaining scope:** BH03–BH26 still implement and accept
+  the planned terrain, basin, forest, presentation and verification changes.
+- **Next task in this directed goal:** BH03 — add the shared disabled-by-default
+  analytic-basin policy at regional generation.
+
 ### Monster population — S18 unrestricted progression gate
 
 - **Selected increment:** S18, wire the progression gate for every bounded evaluator attempt.
-- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting progression or applying locks. Unknown enum values fail closed. The scheduler records progression after time and weather while retaining first-rejection ordering. A development-automation-only seam can force rejection, and the focused evaluator fixture checks all current species, unknown rejection, forced `Progression` rejection, and precedence of an earlier `Weather` rejection.
+- **Work completed:** Added an exhaustive allowlist for all 17 current wildlife archetypes; each passes without consulting progression or applying locks. Unknown enum values fail closed. The scheduler records progression after time and weather while retaining first-rejection ordering. A development-automation-only seam can force rejection, and the focused evaluator fixture checks all current species, unknown rejection, forced Progression rejection, and precedence of an earlier Weather rejection.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected the S13/S16/S17 evaluator order and current wildlife archetype enum; verified the progression allowlist covers all current values and unknown values take the default rejection. `git diff --check` passed; the automation fixture and builds were not run.
+- **Lightweight checks:** Inspected the S13/S16/S17 evaluator order and current wildlife archetype enum; verified the progression allowlist covers all current values and unknown values take the default rejection. git diff --check passed; the automation fixture and builds were not run.
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Server scheduler attempts now carry the unrestricted progression-pass result for every known current species. No boss system, progression lock, public setting, actor creation or natural-spawn activation was added.
 - **Networking/authority:** Progression result population runs in the authoritative GameMode scheduler path; the rejection seam is compiled only with development automation tests. No replicated or saved-data state changed.
 - **Known limitations:** Cap admission remains to be wired in S19; physical placement and camp suppression remain later work. Natural actor creation remains disabled until S26.
 - **Next eligible task:** Within this requested monster-population goal, S19 is next — wire area caps and reservations immediately before creation.
 
+## Run 2026-10-24 — A10 per-item audit: Iron Ore and Iron
+
+- **Scope and definitions:** audited exactly `IronOre` and `Iron`, registered in
+  `items/materials/ore.json` and `items/materials/metal.json`. IronOre has a
+  maximum stack of 20; Iron bars have a maximum stack of 50. Both are materials,
+  not equipment: they have no equipment profile, attack data, stat reward, or
+  self-upgrade record. Iron is used as a recipe and level-up ingredient.
+- **Source and mining authority:** Mossy Mire's gathering-source contract maps
+  to `mire-bog-iron`; the deterministic server population layout assigns that
+  identity to generated harvest candidates and materializes them as server
+  harvest nodes with stable sparse-population IDs. The server mining selection
+  grants exactly 3 `IronOre` per accepted node, requires Mining, sets the
+  resource tier to Iron, and requires a Bronze-tier pick or better. Stone Pick's
+  mining ceiling is Bronze, so it cannot mine this Iron-tier source; Bronze and
+  Iron Picks can. The seeded gemstone replacement can substitute Amethyst for
+  3% of bog-iron candidates, retaining the source slot identity/location rather
+  than granting IronOre from those replaced nodes. There is no direct Iron bar
+  drop. It is manufactured from ore in the Smelter.
+- **Processing and catalogue uses:** each accepted Smelter job consumes one
+  IronOre and one Coal and produces one Iron bar after 30 active server seconds.
+  Ore and Coal inputs each hold 10 including reservations; Copper, Tin, and Iron
+  share 10 output slots. Full output pauses work and no offline time advances.
+  The parsed catalogue has no ordinary recipe or upgrade references to
+  `IronOre`; the Smelter path is runtime-authoritative. `Iron` appears in 14
+  recipe rows: IronAxe, IronKnife, IronPick, IronSpear, IronMace, IronSword,
+  PolarBearCoatRecipe, FangSpear, ThunderMaul, ReefHarpoon, FryingPanRecipe,
+  WolfPeltBootsRecipe, OpalHelm, and StormcutSword. It appears in 13 level-one
+  upgrade-cost rows: IronAxe, IronKnife, IronPick, IronSpear, IronMace,
+  IronSword, PolarBearCoat, FangSpear, ThunderMaul, ReefHarpoon, WolfPeltBoots,
+  OpalHelm, and StormcutSword. IronOre and Iron have no direct attack/equipment
+  behavior; material equipment fields are N/A.
+- **Progression discrepancy:** the approved A1 Iron Pick acquisition target is
+  10 Wood + 10 Iron. The current Forge acquisition recipe still costs 4 Iron +
+  2 Wood + 2 Stone. The existing level-one Iron Pick upgrade cost is the same
+  old combination; the architecture explicitly leaves pickaxe upgrade costs
+  unchanged, so this audit records the acquisition mismatch for final A10
+  progression disposition without changing either recipe. Bronze Pick has the
+  analogous acquisition-target gap recorded in the preceding bar-family audit.
+- **Icons and provenance:** focused validation confirmed retained 1254×1254 RGBA
+  originals, prepared transparent 64×64 RGBA icons, and canonical imported
+  `/Game/Kalmala/UI/Icons/Items/IronOre.IronOre` and
+  `/Game/Kalmala/UI/Icons/Items/Iron.Iron` textures. IronOre has an exact
+  subject description in the shared material provenance section; the current
+  guide has no dedicated Iron-bar prompt record. `Iron` is in the early batch-A
+  icon manifest and IronOre is in batch J. The runtime catalogue validator
+  resolves both canonical IDs; the older widget fallback remains distinct from
+  the canonical texture mapping.
+- **Inventory, Smelter, and world save:** the mining source's stable depletion
+  ID is marked in the world population save and written via `SaveGameToSlot`,
+  but the callback discards the save result; a failed sparse write can let the
+  depleted node return after restart. Mining selection and rewards remain
+  server-owned, with the server validating source ID, pick tier, inventory
+  capacity, and tool condition before committing the accepted harvest. Ordinary
+  carried ore and bar stacks are session-only and are not restored by the
+  player-discovery save. Loading IronOre into a Smelter persists the candidate
+  station state before consuming the inventory unit; save rejection attempts to
+  return it. Smelter queues, active-job time, and output are world-saved, and
+  bar collection saves the output reduction before committing the carried stack,
+  with output rollback if the pack changes. Chest storage uses its separate
+  world-keyed save path; no Iron-specific chest or live restart was exercised.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed with 61 registered JSON files, 152 unique definitions, 777 resolved
+  references, and canonical icon mappings for all definitions. Focused
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id IronOre` and the matching
+  `Iron` validation passed for original, prepared, and imported textures. A
+  Python parse of registered catalogue JSON found 0 IronOre recipe/upgrade
+  rows, 14 Iron recipe rows, and 13 Iron upgrade-cost rows. Source, mining,
+  Smelter, icon, and save code was inspected. Related world/resource contracts
+  were not executed. No build, full suite, peer, or restart test ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no source amount, recipe, icon,
+  server authority, or persistence behavior changed. The Iron Pick acquisition
+  mismatch, sparse-save write-failure behavior, exact Iron-bar prompt provenance,
+  and live Iron progression/restart evidence remain open for A10's final
+  disposition. Keep the broad A10 per-item audit child unchecked until every
+  included item and scope N/A is covered.
+- **Next eligible group:** A2 melee weapons (`BronzeSword`, `IronSword`,
+  `WoodenClub`).
 
 ### Monster population — S19 cap gate
 
 - **Selected increment:** S19, wire existing area-cap and reservation-aware admission into the bounded attempt path.
-- **Work completed:** Added a cap stage after progression. Every bounded attempt records `bCapsPassed` and the ordered `Caps` rejection; the candidate projection removes candidates that fail. The gate resolves the existing descriptor archetype and calls the server-authoritative cap query, which counts live creatures by current position, per-species area limits, descriptor home-key budget, the aggregate active-key budget, and all pending Wolf reservation members. Wolf attempts trial-reserve all three deterministic member locations atomically through S12, then release the token immediately; a pack only passes when all three fit. No limits or actor budgets changed, no reservation is retained after evaluation, and no actors are created.
+- **Work completed:** Added a cap stage after progression. Every bounded attempt records bCapsPassed and the ordered Caps rejection; the candidate projection removes candidates that fail. The gate resolves the existing descriptor archetype and calls the server-authoritative cap query, which counts live creatures by current position, per-species area limits, descriptor home-key budget, the aggregate active-key budget, and all pending Wolf reservation members. Wolf attempts trial-reserve all three deterministic member locations atomically through S12, then release the token immediately; a pack only passes when all three fit. No limits or actor budgets changed, no reservation is retained after evaluation, and no actors are created.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected the S11 count and budget path and S12 atomic reservation/release path; confirmed the cap gate follows progression and precedes physical placement in evaluator order. `git diff --check` passed. Added focused area-cap fixture assertions for an admitted descriptor and a zero home-key-budget rejection; tests and builds were not run.
+- **Lightweight checks:** Inspected the S11 count and budget path and S12 atomic reservation/release path; confirmed the cap gate follows progression and precedes physical placement in evaluator order. git diff --check passed. Added focused area-cap fixture assertions for an admitted descriptor and a zero home-key-budget rejection; tests and builds were not run.
 - **Full verification:** Deferred to S35; this is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** Authoritative bounded attempts now retain cap decisions and expose only candidates that fit current live and reserved population counts plus existing budgets. No actor creation or saved/replicated state change.
 - **Networking/authority:** The cap gate runs on the authoritative GameMode and its existing cap query requires authority. The Wolf token remains session-only and is unchanged.
-- **Known limitations:** The cap result is an evaluation-time query, not a held reservation. S26 must recheck immediately before creating actors and keep a `TryReserveWolfPackCapacity` token for all three Wolf members through creation, releasing on success after registration or on rollback. S20–S25 still wire physical placement and camp suppression.
+- **Known limitations:** The cap result is an evaluation-time query, not a held reservation. S26 must recheck immediately before creating actors and keep a TryReserveWolfPackCapacity token for all three Wolf members through creation, releasing on success after registration or on rollback. S20–S25 still wire physical placement and camp suppression.
 - **Next eligible task:** Within this requested monster-population goal, S20 is next — validate generated dry land and the accepted slope limit.
 
+
+## Run 2026-10-24 - BH03 disable analytic basin generation
+
+- **Selected increment:** BH03, add a shared compiled policy defaulting analytic
+  basin generation off.
+- **Work completed:** Added FKalmalaRegionalTuning::bEnableAnalyticBasins,
+  default false, as the sole switch around regional bowl/rim shaping, inland
+  basin water-level assignment and positive BasinWeight output. Regional
+  biome weights and labels remain computed by their existing path. Updated the
+  focused regional and water-mesh automation assertions and corrected the
+  architecture/setup descriptions; retained synthetic lake-mesh and basin
+  topology utility coverage. Checked only BH03.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaWorld/Public/KalmalaRegionalTuning.h,
+  Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp,
+  docs/02-technical-architecture.md, docs/07-development-setup.md.
+- **Lightweight checks/results:** Inspected the guarded sampler block and all
+  focused regression references; searched updated architecture/setup text for
+  stale enabled-basin claims. git diff --check passed. No build or automation
+  was run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** Generated analytic bowl/rim terrain and
+  positive basin water support are disabled; eligible wetland biome weights
+  and labels, ocean, and sea-level rivers remain. No RPC, replicated state,
+  save data or server-authority path changed; peers derive the same compiled
+  sampler behavior from the existing seed/build.
+- **Known limitations / remaining scope:** BH04 still needs to gate downstream
+  lake samplers, meshes, map/audio/gameplay wetness and their derived caches.
+  The reusable basin flood-fill helper remains covered by synthetic utility
+  tests, not active production lake generation.
+- **Next task in this directed goal:** BH04 — prevent basin resurrection across
+  lake samplers, shoreline/water meshes, maps and gameplay wetness.
+
+## Run 2026-10-24 — A10 per-item audit: A2 melee weapons
+
+- **Scope and definitions:** audited `BronzeSword`, `IronSword`, and
+  `WoodenClub`. They are carried-tool profiles, so separate ordinary stack-item
+  definitions are not applicable. Registered profiles, station recipes,
+  level-one upgrade costs, shared stat rewards, and Basic attack rows are all
+  present in the catalogue. No direct loot, harvest, or gathering source, or
+  additional recipe use as an ingredient, was found.
+- **Acquisition and stats:** Bronze Sword is crafted at a level-one Forge for
+  10 Bronze, 2 Lightwood, and 2 Deer Hide; its profile is 100 condition, 35
+  Slash, and the existing 2 kg default carried weight. Iron Sword costs 20
+  Iron, 2 Densewood, and 2 Deer Hide at a level-one Forge; it has 180 condition,
+  55 Slash, and 2.5 kg weight. Wooden Club costs 4 Wood at a level-one
+  Workbench; it has 40 condition, 10 Crush, and 1 kg weight. The reviewed
+  decision keeps Deer Hide as the swords' binding input and Bow String bow-only.
+- **Upgrades and attacks:** Bronze Sword's level-one Forge cost is 2 Bronze +
+  1 Lightwood; Iron Sword's is 2 Iron + 1 Densewood. Both receive +30 condition
+  and +4 Slash per level. Wooden Club's level-one Workbench cost is 2 Wood and
+  it receives +20 condition and +2 Crush per level. All three use their
+  registered Basic melee attack with zero additional attack-style damage; no
+  alternate or elemental attack is authored. Existing server-side combat
+  resolves the profile's typed damage through the standard melee path.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers the
+  sword and mace profile files, Forge and Workbench recipes, weapon upgrade
+  files, shared stat rewards, and attacks. The three canonical IDs appear in
+  their corresponding profile/recipe/cost/reward/attack files. Icon manifest
+  batches M, N, and O each have retained original artwork, prepared transparent
+  64x64 textures, imported canonical runtime textures, and exact original
+  prompts in `docs/icon-provenance.md`.
+- **Persistence and authority:** player-discovery save schema 3 stores each
+  carried tool's item ID, level, condition, and instance GUID. Server crafting
+  and upgrades validate station, recipe, payment, capacity, and tool state;
+  they persist a candidate before publishing the accepted change and roll back
+  on save failure. Ordinary material stacks remain session-only. No live
+  station, peer, or restart transaction was exercised for this audit.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed with 61 registered JSON files, 152 unique definitions, 777 resolved
+  references, and canonical runtime icon mappings for all definitions.
+  Focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id` checks passed
+  for all three IDs, confirming original, prepared, and imported assets. A
+  focused parse successfully parsed all 61 registered catalogue files and
+  confirmed each ID's profile, station recipe, upgrade cost, stat reward, and
+  attack references. Source, save, and A2 contract text were inspected. No
+  build, automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only. No recipe, stat, attack, icon,
+  authority, or save behavior changed. A2 data and icon coverage have no gap
+  identified in this audit. The referenced `docs/alpha-item-details.md` is
+  absent from this checkout; reviewed values were cross-checked against the A2
+  backlog rows, the 2026-10-21 decision-log entry, and the A2 sections in
+  `docs/07-development-setup.md` rather than inferred. Keep the broad A10
+  item-audit child unchecked until every included ID and scope N/A disposition
+  is covered. Preserve the BronzePick target gap (10 Wood + 10 Bronze versus
+  current 4 Wood + 4 Stone) and IronPick target gap (10 Wood + 10 Iron versus
+  current 4 Iron + 2 Wood + 2 Stone) for final progression disposition.
+- **Next eligible group:** A3 ranged items (`LightBow`, `StoneArrow`,
+  `BronzeArrow`).
+
+## Run 2026-10-24 — A10 per-item audit: A3 ranged items
+
+- **Scope and definitions:** audited `LightBow`, `StoneArrow`, and
+  `BronzeArrow`. Light Bow is a carried-tool profile, so a separate ordinary
+  stack-item definition is not applicable. Stone and Bronze Arrows are ordinary
+  stack items; they have no equipment profile or level-up cost. The catalogue
+  has the Light Bow profile/acquisition/upgrade, shared stat reward, and Bow
+  attack rows, plus arrow item, Workbench recipe, and fixed Pierce attack rows.
+  No direct loot, harvest, or gathering sources exist; the Workbench recipes
+  below are their acquisition routes.
+- **Acquisition and authored values:** Light Bow's level-one Workbench recipe
+  costs 25 Lightwood, 1 Bow String, and 5 Deer Hide. It is two-handed, weighs
+  1.5 kg, starts at 140 condition, has no bow damage bonus, and draws fully in
+  2 seconds. Stone Arrows stack to 100 at 0.05 kg and cost 20 Wood + 5 Stone
+  for 20 at a Workbench. Bronze Arrows stack to 100 at 0.05 kg and cost 20
+  Wood + 1 Bronze for 20 at a Workbench. Both arrow recipes have a one-batch
+  cap. No additional recipe use as an ingredient was found.
+- **Upgrades and shot behavior:** Light Bow's level-one Workbench upgrade costs
+  3 Lightwood + 1 Bow String and adds 30 maximum condition per level, with no
+  damage reward. Its Basic bow attack and profile have zero Pierce bonus. Stone
+  Arrow's Basic attack is fixed at 25 Pierce; Bronze Arrow's is fixed at 50
+  Pierce. Bow charge changes their projectile velocity and spread, not those
+  fixed damages. Each accepted shot commits one selected arrow and one bow
+  condition together; the server selects a validated preferred owned stack or
+  falls back to row-major inventory order, derives arrow/bow damage from the
+  catalogue, and finishes the projectile only after player-state persistence
+  succeeds. A persistence failure restores the arrow and bow condition. No
+  arrow recovery, PvP, or Archery progression is in this item's accepted design.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers the
+  ordinary arrow file, carried bow profiles, Workbench recipes, bow upgrade
+  costs, shared stat rewards, and bow/arrow attacks. Manifest batches P, Q, and
+  R map LightBow, StoneArrow, and BronzeArrow to canonical runtime icons.
+  `docs/icon-provenance.md` records the original generation prompts and asset
+  paths. Focused validation confirmed each retained original, prepared
+  transparent 64x64 texture, runtime mapping, and imported Texture2D.
+- **Persistence and authority:** player-discovery save schema 3 stores carried
+  tool identity, level, condition, and instance GUID; Light Bow therefore uses
+  the existing carried-tool save path. Ordinary arrow stacks are not in the
+  player save and remain session inventory, so the audit found no saved-arrow
+  restoration. The server owns shot selection, damage, projectile creation,
+  ammunition debit, condition payment, and candidate persistence; clients send
+  only draw/release intent and an optional preference GUID that the server
+  validates against owned stacks. No save schema or network field changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** a focused JSON parser verified schema-16 registration
+  and exact Light Bow profile/recipe/upgrade/reward, arrow stack/recipe, and
+  attack values. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id` passed
+  for `LightBow`, `StoneArrow`, and `BronzeArrow`, confirming original,
+  prepared, and imported assets. Bow, projectile, inventory-selection, and save
+  paths plus the A3 design/setup/provenance records were inspected. No build,
+  automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item, recipe, damage,
+  icon, authority, or save behavior changed. No A3 catalogue or icon gap was
+  found. Historical `BowDrawAndArrows` Editor automation passes are recorded
+  in `PROGRESS.md` and `docs/07-development-setup.md`; this audit did not rerun
+  them and adds no A3-specific live craft/delivery, rendered Workbench/Inventory,
+  or restart evidence. The linked `docs/alpha-item-details.md` is absent in this
+  checkout; A3 values were cross-checked against the backlog,
+  `docs/01-game-design.md`, and `docs/07-development-setup.md`, without
+  inferring data. Keep the broad A10
+  item-audit child unchecked until every included ID and scope N/A disposition
+  is covered. Preserve both BronzePick and IronPick acquisition-target gaps for
+  final progression disposition.
+- **Next eligible group:** A4 armour and shields.
 
 ### Monster population — S20 land-surface validation
 
 - **Selected increment:** S20, validate land descriptors against generated dry ground, world bounds, the existing hard-enemy start restriction and the accepted slope limit.
-- **Work completed:** Added the reusable server-side land-surface predicate. It rejects nonfinite or out-of-bounds positions, missing generated-height samples, invalid/ocean/lake water samples, Reef Maw, and slopes above 32 degrees; the inclusive slope limit is a named tuning constant. It reuses S15's habitat method, which retains biome and start-exclusion rules. Wolf descriptors use the existing pack-member builder and validate the center plus all three actual member locations independently, so one member above the limit rejects the pack. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
+- **Work completed:** Added the reusable server-side land-surface predicate. It rejects nonfinite or out-of-bounds positions, missing generated-height samples, invalid/ocean/lake water samples, Reef Maw, and slopes above 32 degrees; the inclusive slope limit is a named tuning constant. It reuses S15 habitat checks. Wolf descriptors use the existing pack-member builder and validate the center plus all three actual member locations independently, so one member above the limit rejects the pack. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLandSurfaceTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
 - **Lightweight checks:** Inspected the generated terrain, ocean and lake sampler contracts, the S15 start-exclusion path, the Wolf member builder and evaluator order. Added focused automation assertions for dry/water, bounds, generated-ground validity, the inclusive 32-degree boundary, over-limit slope and whole-pack rejection when one member fails; the existing hard-enemy tests cover the reused 150 m start rule. Tests and builds were not run.
 - **Full verification:** Deferred to S35; S20 is not the final implementation task in the monster-population goal.
@@ -12091,11 +14364,126 @@
 - **Known limitations:** S21 must implement Reef Maw aquatic checks; S22–S24 add clearance and camp suppression; S25 combines those policies into the final placement result. S26 remains the first task allowed to enable natural actor creation.
 - **Next eligible task:** Within this requested monster-population goal, S21 is next — validate Reef Maw aquatic surfaces and water clearance.
 
+## Run 2026-10-24 — BH04 prevent basin resurrection
+
+- **Selected increment:** BH04, apply the compiled basin policy to downstream lake consumers and verify derived cache behavior.
+- **Work completed:** Gated Shimmering Lakes water/visibility sampling, lake sheet and shore clipping, basin-derived minimap depth, basin shoreline exposure, lake-adjacent discovery, and the Rillstone lake-dependent candidate on analytic-basin support. Sea-level ocean and river mesh/map classification stay on their existing independent paths. Retained synthetic basin topology utility fixtures and added focused checks distinguishing basin-only lake water from a submerged sea-level river triangle. Audited cache owners: no persistent basin-result cache exists independently of presentation rasters; minimap/map output follows normal input invalidation, generated patch sections are cleared when rebuilt, the regional cache stores only hydrology splines, and the lake visibility helper memoizes only its start-relative origin. The policy is compile-time, so changing it requires a rebuild. Updated architecture and setup guidance; checked only BH04.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaWorld/Public/KalmalaShimmeringLakeSampler.h`, `Source/KalmalaWorld/Private/KalmalaLakeBasin.cpp`, `Source/KalmalaWorld/Public/KalmalaWaterSurfaceMesh.h`, `Source/KalmalaWorld/Private/KalmalaWaterSurfaceMesh.cpp`, `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`, `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`, `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`, `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`, `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Inspected lake, map, wetness, discovery, audio, mesh and cache call sites; verified river/ocean paths remain independent; searched documentation for stale BH04-pending notes; and ran `git diff --check` successfully. No Unreal build or automation was run. Full verification remains deferred to BH26.
+- **Observable impact:** With the default-off analytic-basin policy, former inland basin water no longer appears through lake samplers, shoreline/water meshes, minimap depth, shoreline wetness or water-adjacent lake discovery. Ocean and sea-level river water remain visible in their existing mesh and map paths. Shimmering Lakes biome identity and field-based exposure profile remain.
+- **Networking/authority:** The compiled policy and deterministic samples are shared by server and clients. Discovery remains server-owned; no RPC, replicated field, save schema or authority path changed.
+- **Known limitations / remaining scope:** The Unreal source and added automation assertions have not been built or executed. Inland lake content stays dormant while the compiled basin policy is off. Full milestone verification remains for BH26.
+- **Next task in this directed goal:** BH05 — protect ocean and rivers with focused source-coast, sea-level river, swimming/wetness and map controls.
+
+## Run 2026-10-24 — A10 per-item audit: retained A4 hide boots and cape
+
+- **Scope and definitions:** audited exactly `BoarHideBoots` and
+  `BoarHideCape`, the first A4 items in backlog order and the retained hide
+  pair named by the A4 decision. They are registered ordinary wearable items,
+  not carried-tool profiles: stack limit 1; Boots, 1 kg, 50 maximum condition,
+  1 Armor; Cape, 2 kg, 50 maximum condition, 1 Armor. Both have an authored
+  shared stat reward; no attack record or attack behavior applies.
+- **Source and recipes:** there is no direct drop, harvest or starter grant for
+  either wearable. The enabled level-one Workbench recipe for Boots consumes
+  5 Boar Hide for 1. The Cape recipe consumes 5 Boar Hide + 1 Bone Fragment
+  for 1. The existing creature source gives 1 Boar Hide from each credited
+  Boar defeat; Boar and Deer defeat sources each give 1 Bone Fragment. The A0
+  source audit already records that a full inventory has no persistent retry
+  for those ordinary hide/bone rewards. No recipe uses either wearable as an
+  ingredient.
+- **Upgrades and defense:** the authored level-one Workbench cost is 2 Boar
+  Hide for Boots, and 2 Boar Hide + 1 Bone Fragment for Cape. Their shared
+  reward adds 10 maximum condition and 1 Armor per level, with no damage bonus.
+  These costs and stats are data only: general wearable upgrade transactions
+  remain pending equipment integration. Wearable Armor reduces physical
+  Slash/Crush/Pierce/Stab damage only; no attack, elemental resistance, or
+  insulation value is authored. The A4 decision defers further Boots/Cape tiers
+  and insulation/cold protection.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers the
+  ordinary Boots/Cape files, Workbench recipes, type-specific upgrade costs,
+  and shared item-stat rewards. Icon manifest batch G contains both canonical
+  IDs and maps their retained originals under
+  `Content/Kalmala/UI/Source/IconOriginals/`, prepared transparent 64x64 files
+  under `Content/Kalmala/UI/Source/Icons/`, and imported Texture2D assets at
+  `/Game/Kalmala/UI/Icons/Items/<ID>.<ID>`. `docs/icon-provenance.md#armor-icons`
+  records the shared style prompt, per-item subjects, paths, and batch workflow.
+  The referenced `docs/material-icons.md` and `docs/alpha-item-details.md` are
+  absent in this checkout; A4 decisions and values were checked against the
+  backlog, decision log, and development setup guide.
+- **Equip, authority, and save behavior:** equip/replace requests send an exact
+  carried item GUID; the server derives its compatible slot from the catalogue.
+  Return requests use the validated slot and free-cell transaction. Equipped gear
+  and the gear grid replicate owner-only; accepted wildlife hits consume one
+  condition from each non-depleted equipped wearable after resolving damage.
+  Wear is retained across same-pawn pack/equip swaps by a server-only session
+  ledger, but equipped slots and wear are not saved or transferred to another
+  pawn. Ordinary player item stacks also remain session-only. No A4-specific
+  live craft/equip, peer, or restart scenario was run.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions parsed the
+  registered A4 definitions and confirmed exact recipes, upgrade costs, shared
+  reward, and the guaranteed Boar Hide source; the attack catalogue has no
+  record for either ID. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id`
+  passed for `BoarHideBoots` and `BoarHideCape`, confirming original PNG,
+  prepared transparent texture, runtime mapping, and imported asset. Source,
+  authority, save, and relevant A4 design/provenance records were inspected.
+  No build, automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no item, recipe, stat,
+  authority, icon, or save behavior changed, and no missing catalogue/icon data
+  was found for these two IDs. Runtime wearable upgrading and persistence are
+  known shared gaps; the previously recorded full-inventory Boar reward gap
+  remains under A0. Keep the broad A10 item-audit child unchecked until all
+  included IDs, N/A dispositions, and final runtime acceptance are covered.
+- **Next eligible A4 group:** Bronze armor and shield
+  (`BronzeHelmet`, `BronzeTunic`, `BronzeLeggings`, `BronzeShield`).
+
+
+## Run 2026-10-24 - BH05 ocean and river controls
+
+- **Selected increment:** BH05, add focused controls for retained ocean, source coast, sea-level river, swimming/Wet behavior and water-map classification with analytic basin water disabled.
+- **Work completed:** Connected fixed seed-418 river, seed-419 deep ocean, and former seed-418 basin fixtures across regional outputs, the same ocean/lake water gate used for server Wet refresh, generated-ocean swimming thresholds, exposure shoreline wetness, and minimap classification. Source-coast sign remains covered by Regional.RiverUnchangedControls. Updated setup guidance to remove stale expectations for elevated enclosed-lake water. No production behavior changed; checked only BH05.
+- **Files changed:** BACKLOG.md, PROGRESS.md, Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp, Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp, docs/07-development-setup.md.
+- **Lightweight checks/results:** Reviewed fixed coordinates and baseline values in Scripts/Tests/World/BiomeBaseline418419.csv, existing sampler/coast/water-mesh/map assertions, and server water/swimming gates. git diff --check passed. Unreal build and automation remain deferred to BH26.
+- **Observable impact / authority:** Regression coverage only. Server Wet and swim decisions remain server-owned and use existing sampled sea/lake paths; basin-disabled lakes cannot keep a player wet, while sea-level rivers and deep ocean remain water. No RPC, replication or save change.
+- **Known limitations / remaining scope:** The new automation fixtures have not been built or executed. Rendered/traversal and peer acceptance remain for BH26; biome height extraction starts at BH06.
+- **Next task in this directed goal:** BH06 — extract output-preserving named candidate height functions for the six land biomes.
+
+
+## Run 2026-10-24 - BH06 biome height candidate functions
+
+- **Selected increment:** BH06, extract named candidate land-height functions
+  for Meadows, Elderwood, Shimmering Lakes, Mossy Mire, Freezing Tundra and
+  Thunder Mountains with output-preserving defaults.
+- **Work completed:** Replaced the anonymous per-biome offset array with six
+  named functions that each return a complete candidate height from the shared
+  source height and existing detail inputs. The sampler blends the same float
+  offsets in the same biome-weight order; Ocean's independent seabed term,
+  classifications, weights, basins and rivers are unchanged. Added focused
+  fixed expected-value automation coverage for each candidate across negative,
+  neutral and positive detail, including the Mountains region contribution.
+  Checked only BH06.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h,
+  Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp.
+- **Lightweight checks/results:** Inspected candidate-to-weight ordering and
+  verified the extracted expressions match the previous six land shape terms;
+  git diff --check passed. The new automation fixture was added but not built
+  or run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** No intended terrain-output change. The
+  sampler now exposes explicit candidate functions for later per-biome relief
+  work; no gameplay, networking, server-authority or save behavior changed.
+- **Known limitations / remaining scope:** The focused automation has not been
+  compiled or executed. BH07–BH26 still add controls, relief, forest/presentation
+  integration and final acceptance.
+- **Next task in this directed goal:** BH07 — add validated preview controls
+  while keeping production output unchanged.
 
 ### Monster population — S21 aquatic-surface validation
 
 - **Selected increment:** S21, validate Reef Maw water habitat and the full body collision shape at its existing spawn depth.
-- **Work completed:** Added an authoritative aquatic descriptor predicate that accepts only Reef Maw, reuses S15 habitat/start checks plus the existing Reef Maw Ocean navigation rule and 150 cm minimum-depth helper at the spawn center, and checks a bounded grid across the actual root-sphere footprint. Each footprint point must have Ocean/non-lake water and enough vertical clearance for the lower sphere surface above generated terrain. The 92 cm radius is now one shared constant used by the actor's root sphere and the clearance calculation; the actor remains at its existing 120 cm spawn depth. S20 continues to reject Reef Maw. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
+- **Work completed:** Added an authoritative aquatic descriptor predicate that accepts only Reef Maw, reuses S15 habitat/start checks plus the existing Reef Maw Ocean navigation rule and 150 cm minimum-depth helper at the spawn center, and checks a bounded grid across the actual root-sphere footprint. Each footprint point must have Ocean/non-lake water and enough vertical clearance for the lower sphere surface above generated terrain. The 92 cm radius is now one shared constant used by the actor root sphere and clearance calculation; the actor remains at its existing 120 cm spawn depth. S20 continues to reject Reef Maw. The final physical-placement gate remains false until S25; natural actor creation remains disabled until S26.
 - **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAquaticSurfaceTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
 - **Lightweight checks:** Inspected the existing Reef Maw habitat/depth helper, swimming-navigation path, spawn-depth assignment, root sphere configuration and disabled secondary snake collider. Added focused automation assertions for the 150 cm habitat boundary, lake rejection, full-sphere water containment, shallow-water rejection, terrain penetration, invalid samples, aquatic species classification, and equality between the configured root-sphere radius and the clearance radius. Tests and builds were not run.
 - **Full verification:** Deferred to S35; S21 is not the final implementation task in the monster-population goal.
@@ -12104,19 +14492,1357 @@
 - **Known limitations:** The footprint check uses bounded terrain-derived samples; S22–S24 still add collision/navigation clearance, roofs and camp suppression, and S25 combines all placement results before any later actor admission.
 - **Next eligible task:** Within this requested monster-population goal, S22 is next — validate physical clearance and species movement support.
 
+## Run 2026-10-24 — A10 per-item audit: A4 Bronze armor and shield
+
+- **Scope and definitions:** audited exactly `BronzeHelmet`, `BronzeTunic`,
+  `BronzeLeggings`, and `BronzeShield`. These are ordinary non-stackable
+  wearable definitions, not carried-tool profiles. Bronze Helmet is 2 kg in
+  Head, 100 maximum condition, and 3 Armor; Bronze Tunic is 5 kg in Chest, 120
+  condition, and 5 Armor; Bronze Leggings is 4 kg in Legs, 100 condition, and
+  5 Armor; Bronze Shield is 5 kg in Shield, 100 condition, and 10 Armor.
+- **Acquisition and material sources:** each has one level-one Forge acquisition
+  recipe: Helmet costs 10 Bronze + 5 Boar Hide; Tunic and Leggings each cost 15
+  Bronze + 5 Boar Hide; Shield costs 10 Bronze + 5 Lightwood + 5 Boar Hide.
+  The catalogue contains no direct loot, harvest, or starter source for these
+  four outputs, and no other recipe uses them as ingredients. Bronze comes from
+  the enabled Forge `BronzeAlloy` recipe (2 Copper + 1 Tin -> 1 Bronze,
+  `MaxBatch=5`, no Coal). Boar Hide comes from the guaranteed one-hide Boar
+  reward; Lightwood comes from Meadow aspen bundles (4 with Stone Axe or better).
+  Those input sources were audited under A0/A1; A0 records the existing lack of
+  a persistent retry when ordinary Boar rewards meet a full inventory.
+- **Upgrade data and combat:** the authored level-one Forge costs are Helmet,
+  1 Bronze + 1 Boar Hide; Tunic, 2 Bronze + 1 Boar Hide; Leggings, 2 Bronze +
+  1 Boar Hide; Shield, 1 Bronze + 1 Lightwood. Their shared reward adds 10
+  maximum condition and 1 Armor per level, with no damage bonus. These rows are
+  data only: general wearable upgrades are not executable; the separate
+  OpalHelm path does not apply to these IDs. None has an attack record. Bronze
+  Shield supplies passive Armor only, with no block/parry action. Wearable
+  Armor reduces physical Slash/Crush/Pierce/Stab damage; no elemental resistance
+  or insulation is authored. A4 defers insulation/cold protection.
+- **Icons and registration:** schema-16 `GameCatalogues.json` registers all
+  four wearable files, the Forge acquisition file, four armor cost files, and
+  shared item-stat rewards. Manifest batches S, T, U, and V identify retained
+  original artwork, prepared transparent 64x64 PNGs, and canonical imported
+  Texture2D mappings for Helmet, Tunic, Leggings, and Shield respectively.
+  `docs/icon-provenance.md#armor-icons` records the original prompt subjects,
+  source/prepared/import paths, and generation/import workflow. The linked
+  `docs/material-icons.md` and `docs/alpha-item-details.md` are absent in this
+  checkout; exact values were checked against registered JSON, the A4 backlog,
+  decision log, and development setup text where present.
+- **Equipment, authority, and save behavior:** server equip/replace accepts a
+  carried item GUID and derives the compatible slot from the catalogue;
+  return validates the slot and free-cell transaction. Equipped gear replicates
+  owner-only and remains session-only. Server-resolved wildlife hits spend one
+  condition on each non-depleted equipped wearable; same-pawn pack/equip swaps
+  retain wear in the server session ledger, but equipped slots and wear are not
+  saved or transferred to another pawn. Ordinary player item stacks also are
+  not restored. Equipping a two-handed item returns a held Shield through the
+  server-validated pack transaction; capacity failure leaves the hands intact.
+  No A4 Bronze-specific craft/equip, peer, chest, or restart case was run.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions verified schema-16
+  registration; exact definitions, Forge acquisitions, level-one costs, shared
+  reward and Boar Hide source; no direct creature drops or attack rows were
+  found. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id` passed for all
+  four IDs, confirming 1254x1254 RGBA originals, transparent 64x64 prepared
+  icons, canonical runtime mappings, and imported textures. Relevant catalogue,
+  source, authority, save, A4, and provenance records were inspected. No build,
+  automation, full suite, peer, or restart check ran.
+- **Full verification:** deferred; this is not A10's final increment.
+- **Impact and remaining scope:** tracking-only; no recipe, stat, source,
+  authority, icon, or save behavior changed, and no A4 catalogue/icon gap was
+  found. Runtime wearable upgrades and equipped-gear/wear persistence remain
+  open shared gaps; keep the recorded full-inventory Boar reward limitation
+  under A0, plus both BronzePick/IronPick acquisition-target gaps, for final
+  progression disposition. Keep the broad A10 audit child unchecked until all included IDs,
+  N/A dispositions, and final acceptance are covered.
+- **Next eligible A10 group:** no A4 families remain in the checklist; A5
+  Basic Torch (`BasicTorch`) comes next, followed by Planting Trowel.
+
+
+## Run 2026-10-24 - BH07 validated terrain preview controls
+
+- Selected increment: BH07, add named and bounded shared relief and Meadows controls in the regional tuning/preview path without changing production output.
+- Work completed: Added shared broad/middle/local scales and documented Meadows hill, rolling and floor scale/amplitude constants. Added matching commandlet preview fields, finite inclusive range validation, parameter-file parsing and effective-value reporting. The preview setter rejects invalid staged terrain values. Added all controls to the sample parameter file, documented their units/ranges and staged status, added focused bounds/default automation assertions, and extended the map-export runner to reject invalid values and prove staged-only controls leave current fast-map pixels unchanged. Checked only BH07.
+- Files changed: BACKLOG.md, PROGRESS.md, Source/KalmalaWorld/Public/KalmalaRegionalTuning.h, Source/KalmalaWorld/Public/KalmalaGenerationPreview.h, Source/KalmalaWorld/Private/KalmalaGenerationPreview.cpp, Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp, Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp, Scripts/WorldMapPreview.params, Scripts/Tests/World/WorldMapExport.ps1, docs/07-development-setup.md, docs/biome-height-rework.md.
+- Lightweight checks/results: git diff --check passed. WorldMapExport.ps1 passed PowerShell parser syntax validation. Source search confirmed the new controls are not read by terrain sampling, so production height output remains unchanged. The Unreal automation and exporter were not run. Full verification remains deferred to BH26.
+- Observable impact / authority: Designers can provide bounded, named experiment values to the headless preview and see their effective centimetre values in LastRender.txt. The current fast PNGs do not consume terrain controls for height. No gameplay, network, server-authority or save behavior changed.
+- Known limitations / remaining scope: Relief layers and shaped-height preview consumption begin in BH08 and later shaping increments; BH08–BH26 remain. Current map PNGs cannot visually compare terrain relief.
+- Next task in this directed goal: BH08 — add the deterministic shared broad, middle and local relief stack.
+
+
+## Run 2026-10-24 - BH08 shared relief stack
+
+- **Selected increment:** BH08, sample deterministic broad, middle and local
+  relief in absolute world coordinates without integrating height shaping.
+- **Work completed:** Added a pure shared-relief sampler using the validated
+  preview scales and three named, stable independent salts. Kept current field
+  and regional height sampling unchanged; no terrain consumer uses the stack
+  until later blend/shape increments. Added focused automation coverage for
+  normalized finite channels, independent domains, seed and query-order
+  determinism, cache clearing, negative coordinates, patch-edge continuity and
+  unchanged production height. Documented the salts and integration boundary.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaWorld/Public/KalmalaRegionalTuning.h,
+  Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h,
+  Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp,
+  docs/biome-height-rework.md.
+- **Lightweight checks/results:** Source-level inspection and git diff --check
+  passed. Unreal automation/build were not run; full verification remains
+  deferred to BH26.
+- **Observable impact / authority:** No production terrain, ecological field,
+  gameplay, networking, server-authority or save output changed. Peers will use
+  identical seed/domain samples when later shaping is integrated.
+- **Known limitations / remaining scope:** Relief is sampled but not yet blended
+  into candidate heights; BH09–BH26 remain.
+- **Next task in this directed goal:** BH09 — blend candidate heights through
+  existing normalized biome weights and continuous coast attenuation.
+
+## Run 2026-10-24 — A10 per-item audit: A5 Basic Torch
+
+- **Scope and definition:** audited only `BasicTorch`, the Utility item profile,
+  rather than an ordinary stack item. It weighs 0.5 kg, has a maximum durability
+  of 1 and an empty damage-bonus object. Its recipe creates one carried-tool
+  instance. The fresh starter-tool set does not include Basic Torch. Catalogue
+  schema 16 registers `items/equipment/utility.json` in `itemProfileFiles`
+  and registers the separate inventory recipe file.
+- **Acquisition and material sources:** the only authored Basic Torch output
+  is the enabled, stationless Inventory recipe `BasicTorch`: 2 Wood + 1 Amber
+  creates one torch, with `MaxBatch=1`. The catalogue has no Basic Torch
+  creature drop, starter grant, pickup, or additional recipe output. Wood routes
+  were audited under A0. Amber is a guaranteed one-item reward for credited
+  Peat Husk defeats. A0 also records the declared `mire-peat-amber-seam`
+  mining source but found no generated descriptor for it, so the seam is not an
+  active source in the inspected runtime.
+- **Use, refuelling and expiry:** the torch burns only while selected in Main
+  Hand, for at most 300 seconds, and presents a 600 cm point light. The server
+  advances fuel; when it reaches zero the flame turns off and the carried tool
+  remains available for refuelling. Uncovered-rain exposure snuffs the flame
+  without draining further fuel; selecting the torch again in dry conditions
+  clears the rain-suppression state. Refuelling addresses the exact carried
+  tool GUID, consumes exactly 1 Wood from inventory, and resets remaining fuel
+  to 300 seconds (it does not add time past the cap). Craft and refuel each
+  persist before success and roll back the material payment if saving fails.
+- **Profile N/A and external behavior:** runtime kind is `BasicTorch`, action
+  is `None`, and the profile has no damage bonuses. Registered attack, level-up
+  cost, and reward data contain no Basic Torch row; generic combat explicitly
+  rejects it. It has no harvest, attack, repair, or upgrade action and does not
+  grant warmth, remove Wet, or ignite world objects. Mosquito repulsion is the
+  separate A8a held-flame interaction, not a torch attack.
+- **Icons and provenance:** `docs/icon-provenance.md#basic-torch-icon` records
+  the original built-in generated prompt and confirms no outside reference was
+  used. Batch W retains the 1254x1254 RGBA original, prepared transparent 64x64
+  PNG, and imported `BasicTorch` Texture2D. The manifest maps canonical
+  `BasicTorch` to the carried-tool views (tool detail, refuel and recipe result);
+  runtime lookup resolves `/Game/Kalmala/UI/Icons/Items/BasicTorch.BasicTorch`.
+  A legacy Fire fallback row remains in the generic icon table, but the direct
+  imported texture is present and the focused validator passes. The referenced
+  `docs/material-icons.md` and `docs/alpha-item-details.md` are absent in this
+  checkout; the backlog, decision log and extant provenance guide were used.
+- **Authority and save behavior:** server authority owns craft payment, refuel
+  validation, fuel drain and rain suppression. The lit boolean replicates for
+  presentation; the carried-tool array is owner-only. Player-discovery save
+  schema 3 records each carried tool ID, level, condition, instance GUID and
+  remaining burn seconds. Validation accepts finite Basic Torch fuel from 0 to
+  300 seconds; burning persists every 10 seconds and flushes dirty fuel when
+  unequipped, rain-snuffed or exhausted. The save record has no Main Hand
+  selection field and does not persist ordinary packed inventory stacks. Schema-2
+  player saves remain incompatible and are rejected without migration, per the
+  recorded decision.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema
+  and registrations, exact profile and recipe values, absence of attack/upgrade
+  rows, the guaranteed Peat Husk Amber input, and the batch-W icon manifest.
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id BasicTorch` passed:
+  original 1254x1254 RGBA, prepared transparent 64x64 RGBA, and imported target
+  confirmed. Static source inspection covered craft/refuel rollback, server fuel
+  advancement, rain handling, save validation and restore. The earlier A8a
+  MosquitoCounterplay peer run covered held-torch repulsion and no protection
+  while unequipped, but did not exercise full burn, refuelling, rain, or save
+  restoration. `KalmalaBasicTorchTest` was not built or executed.
+- **Full verification:** deferred; the A10 audit is not complete. No build,
+  automation, or full suite was run for this tracking-only audit.
+- **Impact and remaining scope:** no runtime, recipe, icon, authority or save
+  behavior changed. No Basic Torch catalogue or icon gap was found. Runtime
+  refuel/expiry/rain/save acceptance and A10 no-grant fresh-world progression
+  remain for later verification; preserve the existing BronzePick/IronPick
+  acquisition-target gaps and the A0 Amber seam limitation for final disposition.
+  Keep the broad A10 per-item child unchecked until the included IDs, N/A
+  dispositions and final acceptance are covered.
+- **Next eligible A10 group:** A6 foraged foods, `Lingonberry` and
+  `ForestChanterelle`; this is the next group directed for the audit.
+
+
+## Run 2026-10-24 — A10 per-item audit: A6 foraged foods
+
+- **Scope and definitions:** audited only ordinary stackable food items
+  Lingonberry and ForestChanterelle, registered in the schema-16 food file.
+  Lingonberry: “Tart red berries gathered from Meadow shrubs”; stack 20,
+  0.05 kg. Forest Chanterelle: “Golden mushrooms hand-gathered from
+  Elderwood patches”; stack 20, 0.1 kg. Neither has a wearable/carried-tool
+  profile, attack, level-up cost, stat reward, or spoilage/expiry field;
+  those categories do not apply to these raw foods.
+- **Generated source and yield:** harvest nodes are built from deterministic
+  6000 cm spatial-key candidates, not separate fixed spawn tables. In the
+  Meadow, after the established carrot and potato patches, the next eligible
+  dry terrain-safe candidate may become meadows-wild-lingonberry-shrub, with
+  the stable seed domain Mix(candidateSeed XOR 0x1A660B3A71019). In Elderwood,
+  the first eligible candidate is onion and the next may become
+  elderwood-wild-chanterelle-patch, using
+  Mix(candidateSeed XOR 0xF0E57C4A71019). The server source mapping grants
+  3 Lingonberries or 2 Forest Chanterelles per accepted hand-gather. At most
+  one of each forage source is assigned per spatial key, only if the candidate
+  is within that key's generation budget and passes the terrain safety checks;
+  coverage is therefore not guaranteed in every key.
+- **Recipes and direct use:** Lingonberry is consumed by three enabled Cauldron
+  recipes. Berry Recovery Draught consumes 3 Lingonberry + 1 Carrot for one
+  dose; Rat-tail Tonic consumes 2 Rat Tail + 2 Lingonberry for one dose;
+  Antidote consumes 1 Venom Sac + 2 Lingonberry for one dose. Each has a
+  five-batch cap and awards 10 Cooking XP per batch. Forest Chanterelle
+  has no recipe consumer in the registered catalogue. Both are directly
+  edible through the server-owned one-slot Steady Meal: 120 seconds with
+  10% lower stamina use. A meal cannot stack, refresh, or replace an active
+  meal; neither forage item has a separate healing effect.
+- **Icons and registration:** GameCatalogues.json registers the food file.
+  docs/icon-provenance.md records built-in generated original art:
+  - Lingonberry, batch X:
+    Original: `Content/Kalmala/UI/Source/IconOriginals/Lingonberry.png`
+    Prepared: `Content/Kalmala/UI/Source/Icons/Lingonberry.png`
+    Imported: `Content/Kalmala/UI/Icons/Items/Lingonberry.uasset`
+    Runtime: `/Game/Kalmala/UI/Icons/Items/Lingonberry.Lingonberry`
+  - Forest Chanterelle, batch Y:
+    Original: `Content/Kalmala/UI/Source/IconOriginals/ForestChanterelle.png`
+    Prepared: `Content/Kalmala/UI/Source/Icons/ForestChanterelle.png`
+    Imported: `Content/Kalmala/UI/Icons/Items/ForestChanterelle.uasset`
+    Runtime: `/Game/Kalmala/UI/Icons/Items/ForestChanterelle.ForestChanterelle`
+  Both catalogue validators passed: 1254x1254 RGBA originals, transparent
+  64x64 prepared icons, and canonical mappings. The referenced
+  docs/material-icons.md and docs/alpha-item-details.md are absent in this
+  checkout; the backlog, architecture, decision log, setup guide, catalogue,
+  and extant icon-provenance guide supplied the evidence.
+- **Authority and save behavior:** hand gathering validates server authority,
+  actor identity/alive state, interaction range, and pack capacity. It commits
+  the granted stacks, then requires player-state persistence before finalizing
+  actor depletion; that persistence failure rolls the inventory exchange back.
+  Depletion is then recorded as a sparse world-population ID. Static inspection
+  found that RecordHarvestedSpawn ignores the world SaveGameToSlot result
+  and does not roll back actor depletion if that separate write fails, so a
+  failed write can leave the source eligible to return after a later restart
+  unless a subsequent successful world save captures the ID. This failure path
+  was not exercised. Ordinary packed item stacks and status entries have no
+  SaveGame fields in the player save; the two forage stacks and active meal
+  therefore remain transient. Status is server-owned and owner-only replicated;
+  no save schema changed.
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema
+  16, both exact food definitions, and all three Lingonberry ingredient recipe
+  consumers; no Forest Chanterelle ingredient recipe consumer was found.
+  Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id passed separately for
+  Lingonberry and ForestChanterelle. Source inspection covered generation,
+  harvest grant/depletion and save flow, food use, and player/world save fields.
+  No build, automation, full suite, live harvest/use, write-failure, peer, or
+  restart check ran.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no catalogue, source, recipe,
+  icon, authority, or save behavior changed. No item definition, recipe, or icon
+  gap was found. Procedural safe-candidate availability and best-effort world
+  depletion persistence remain part of final source-coverage/restart acceptance;
+  the write-failure consequence above is an unexercised source-code finding.
+  Preserve both BronzePick/IronPick acquisition-target gaps for final
+  progression disposition. Keep the broad A10 item audit unchecked until every
+  included ID, scope N/A disposition, and final acceptance are covered.
+- **Next eligible A10 group:** A6 recovery draughts
+  (BerryRecoveryDraught, RootStaminaDraught).
+
+## Run 2026-10-24 — A10 per-item audit: A6 recovery draughts
+
+- **Scope and definitions:** audited ordinary consumable item definitions
+  BerryRecoveryDraught and RootStaminaDraught in the schema-16 food file.
+  Berry Recovery Draught: “A ruby-red berry draught that restores up to
+  20 health over 10 seconds.” MaxStack 10, WeightKg 0.2.
+  Root Stamina Draught: “A green-gold root draught that restores up to 20
+  stamina immediately.” MaxStack 10, WeightKg 0.2. Neither has a
+  spoilage/expiry field, equipment profile, attack, or level-up item data.
+  No attack, stat reward, upgrade cost, or separate direct drop/harvest/
+  starter source is authored for either ID.
+- **Acquisition and recipes:** both items are registered ordinary items
+  and are produced by enabled Cauldron recipes only. BerryRecoveryDraughtRecipe
+  consumes 3 Lingonberry + 1 Carrot for one dose. RootStaminaDraughtRecipe
+  consumes 2 Potato + 1 Onion for one dose. Each recipe has MaxBatch 5,
+  OutputCount 1, and awards 10 Cooking XP per batch. The server validates
+  the declared Cauldron, live hearth heat, batch, ingredients, and output
+  capacity. A focused scan of registered catalogue JSON found no other
+  recipe, loot, creature, or source reference for these output IDs.
+- **Use, authority, and effects:** the owner request supplies only the item
+  ID. The server requires authority, a valid controlled character, known
+  draught ID, finite living health above 1, and no active shared cooldown
+  or Berry/Tonic recovery. Berry requires health below maximum; on acceptance
+  it consumes one item and grants up to 20 health over 10 server seconds
+  (2 per second), clamped to maximum health. Healing ends at full health or
+  death; the separate shared 60-second draught cooldown is applied.
+  Root requires finite current stamina below its finite positive current
+  maximum. It consumes one item, restores up to 20 stamina immediately,
+  clamps to that current maximum, and clears sprint exhaustion once the
+  recovery threshold is met. It applies the same 60-second cooldown and no
+  timed healing status. Full-health/full-stamina, dead, cooldown, or active
+  recovery rejection preserves the dose; if effect application fails after
+  candidate exchange, the inventory is rolled back. These are draught uses,
+  not the separate Steady Meal food effect.
+- **N/A categories:** no wearable/carried-tool profile, attack, durability,
+  equipment slot, level-up cost, or stat reward applies. Neither item grants
+  a melee/ranged action. The exact JSON scan confirmed no entries in the
+  registered profile, attack, upgrade, reward, creature, or other recipe
+  files beyond the ordinary item definitions and the two Cauldron outputs.
+- **Icons and registration:** GameCatalogues.json registers food.json and
+  the Cauldron recipe file. docs/icon-provenance.md records built-in original
+  art and batch Z for both identities:
+  - Berry Recovery Draught: original Content/Kalmala/UI/Source/IconOriginals/BerryRecoveryDraught.png;
+    prepared Content/Kalmala/UI/Source/Icons/BerryRecoveryDraught.png;
+    imported Content/Kalmala/UI/Icons/Items/BerryRecoveryDraught.uasset;
+    runtime /Game/Kalmala/UI/Icons/Items/BerryRecoveryDraught.BerryRecoveryDraught.
+  - Root Stamina Draught: original Content/Kalmala/UI/Source/IconOriginals/RootStaminaDraught.png;
+    prepared Content/Kalmala/UI/Source/Icons/RootStaminaDraught.png;
+    imported Content/Kalmala/UI/Icons/Items/RootStaminaDraught.uasset;
+    runtime /Game/Kalmala/UI/Icons/Items/RootStaminaDraught.RootStaminaDraught.
+  Both catalogue validators passed, confirming 1254x1254 RGBA originals,
+  transparent 64x64 prepared icons, imported Texture2D assets, and canonical
+  runtime mappings. docs/alpha-item-details.md and docs/material-icons.md
+  are absent in this checkout; the backlog, architecture, setup guide, and
+  extant icon-provenance guide supplied the contract evidence.
+- **Inventory/effect saves:** the schema-3 PlayerDiscovery save serializes
+  discovery IDs, learned-effect IDs, M9 claim IDs, and carried-tool records.
+  It has no packed player inventory stack array or active status entries.
+  Stamina is replicated but is not saved. Ordinary packed item stacks are
+  session-only; Berry healing, Root stamina, and the shared cooldown are not
+  restored from this save. Consumption adds no persistence call or
+  save-schema field.
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for
+  exact definitions, recipe ingredients/output/station/batch/XP metadata, and
+  absence of other registered catalogue references. Catalogue icon checks
+  passed separately for BerryRecoveryDraught and RootStaminaDraught.
+  Static inspection covered server gates, candidate consumption/rollback,
+  effects, cooldowns, replication, save declarations, and provenance. No
+  build, automation, gameplay/UI, peer, or reconnect check ran in this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no catalogue, recipe, icon,
+  runtime, authority, or save behavior changed, and no definition or icon gap
+  was found. A6 item families are covered; the explicit cold/fire preparation
+  deferral remains in force and A8b Antidote remains a separate item audit.
+  No live Cauldron/use/reconnect scenario was exercised in this increment;
+  A10 final acceptance remains open. Preserve BronzePick and IronPick target
+  gaps for final progression disposition. Keep the broad A10 item audit
+  unchecked until every included item, N/A disposition, and final acceptance
+  is covered.
+- **Next eligible A6 group:** none remains; A6 has no further in-scope
+  item family. Next A10 family: A7 farming.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Planting Trowel and Garden Plot
+
+- **Scope and catalogue identities:** reviewed the registered PlantingTrowel
+  utility profile and Forge acquisition row, plus GardenPlot presentation-only
+  buildable metadata and its direct construction recipe. GardenPlot is the
+  catalogue identity; the loader normalizes it to placed construction ID
+  GardenPlotKit and partitions it into Buildables, not inventory Items. Its
+  legacy MaxStack 1 metadata does not create a stackable or portable object.
+  Crop source-pair definitions already reviewed under A0 were not re-audited;
+  only the shared Garden Plot planting/harvest modes were traced here.
+
+- **Acquisition, recipe, and N/A data:** PlantingTrowel is acquired from Forge
+  level 1 with 10 Wood + 5 Bronze. Its utility profile is weight 1.0 kg,
+  MaxDurability 100, and empty DamageBonuses. The only registered catalogue
+  references are that profile and Forge recipe; no attack list, item-level
+  upgrade cost, or level-up stat reward applies. Existing free Workbench/Forge
+  repair behavior remains. The `GardenPlot` recipe is enabled and places one
+  buildable for 4 Wood + 1 Stone, with MaxBatch 1 and no station or XP
+  requirement. The loader sets BuildableOutput to GardenPlotKit and leaves
+  inventory Output empty.
+  There is no GardenPlotKit inventory/recipe entry. The Farming menu exposes
+  this sole plot recipe with a usable Main Hand Trowel; the server placement
+  transaction rechecks placement, direct material payment, save capacity and
+  permits the existing Construction Hammer path or a usable Main Hand Trowel.
+  GardenPlot has no equipment, attack, item upgrade or stat-reward category.
+
+- **Cultivation modes and authority:** four crop families use seven server
+  actions, each planting 1 input and yielding 3 matching items after 600
+  active seconds: Carrot food (1 CarrotSeed → 3 Carrot), Carrot seed
+  (1 Carrot → 3 CarrotSeed); Potato tuber (1 Potato → 3 Potato; PotatoSeed
+  remains unused); Rutabaga food (1 RutabagaSeed → 3 Rutabaga), Rutabaga seed
+  (1 Rutabaga → 3 RutabagaSeed); Onion food (1 OnionSeed → 3 Onion), Onion
+  seed (1 Onion → 3 OnionSeed). Cultivation requires the current visible
+  GardenPlot context and usable Main Hand Trowel. Server RPC validation checks
+  authority, current same-world plot/context, empty or mature state, input
+  availability, output capacity and Trowel condition. Accepted planting spends
+  one input and one Trowel condition; harvest and rejected actions do not wear
+  the tool. A full pack fails the harvest grant before the mature crop state
+  is cleared, leaving the crop available on the plot.
+
+- **Placement limits and persistence:** preview accepts dry Meadows, Elderwood
+  or Shimmering Lakes ground at up to 15 degrees, with open sky and clearance;
+  server re-evaluates placement and payment. Construction schema 7 currently
+  stores GardenPlot crop mode and remaining active seconds in the saved
+  construction record; each server tick advances and persists only while the
+  plot terrain patch is active. Inactive patches and server downtime add no
+  growth. Restore loads the saved crop state. Player Discovery schema 3 stores
+  carried-tool ID, level, condition and instance GUID, so Trowel condition is
+  persistent; ordinary packed crop stacks are not in that player save. Plant
+  and harvest paths write candidate state before applying it and roll back
+  resource/tool changes on save rejection. Architecture/setup passages still
+  call the current construction format schema 6; schema 7 is confirmed by
+  the current header and later progress, so those contract references are
+  stale.
+
+- **Icons and provenance:** docs/icon-provenance.md records built-in generated
+  originals and transparent prepared icons: PlantingTrowel batch AA and
+  GardenPlotKit batch AB. The manifest maps PlantingTrowel to its carried-tool
+  views and GardenPlotKit to BuildMenu/PlacementPreview/ResultPreview;
+  GardenPlot recipe identity GardenPlot resolves to the GardenPlotKit texture.
+  Runtime paths are /Game/Kalmala/UI/Icons/Items/PlantingTrowel.PlantingTrowel
+  and /Game/Kalmala/UI/Icons/Items/GardenPlotKit.GardenPlotKit. Both focused
+  validators passed (1254x1254 RGBA original, transparent 64x64 prepared
+  image, imported Texture2D and runtime mapping). docs/alpha-item-details.md
+  and docs/material-icons.md are absent in this checkout; architecture, setup
+  and icon-provenance were the available contract sources.
+
+- **Menu and acceptance gaps:** the 2026-10-21 I3 live runner covered direct
+  placement, one Carrot planting/payment/replication, and all seven actions
+  visible/enabled. The later post-I3 Farming-menu addition record says no build
+  or tests were run. A 2026-10-22 I4 build then reported the RequestInteract
+  access error; commit a172e6be moved the declaration public, and the 2026-10-24
+  I4 Editor build and full automation later passed. That gate reports no
+  rendered or menu-specific check, and the A10 review still calls for an I3
+  verification refresh. The other six crop transactions and full-pack Garden
+  Plot harvest have no recorded live run; their mapping and capacity behavior
+  were source-inspected only.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON assertions passed for schema-16
+  registration, exact profile/recipes, direct-material ingredients, and no
+  registered PlantingTrowel upgrade/attack or GardenPlotKit portable entry.
+  Focused catalogue icon validation passed for PlantingTrowel and GardenPlotKit.
+  Static inspection covered server gates, payment/rollback, crop modes, active
+  growth, save/restore and menu history. No build, automation, gameplay, UI,
+  peer or reconnect check was run in this increment.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item, recipe, icon, runtime,
+  authority or persistence behavior changed, and no catalogue or icon gap was
+  found. Record schema-version documentation mismatch and post-I3 menu/runtime
+  acceptance as later A10 evidence gaps. No no-grant fresh-world progression,
+  all-mode peer exercise, full-pack GardenPlot test or restart run was performed
+  here. Preserve both BronzePick/IronPick acquisition-target gaps for final
+  progression disposition. Keep the broad A10 item audit unchecked until all
+  included IDs, N/A dispositions and final acceptance are covered.
+
+- **Next eligible A7 crop audit:** Carrot and CarrotSeed. Their A0 source
+  pairs are already covered; audit only the A7 recipe/use/growth roles.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Carrot and CarrotSeed
+
+- **Scope and definitions:** audited only Carrot and CarrotSeed for their A7
+  Garden Plot roles; the existing A0 source-pair review was cross-referenced,
+  not repeated. Both are registered in schema-16 `items/crops.json`. Carrot is
+  named `Carrot`, described as “The original orange stick.” and has MaxStack
+  20. CarrotSeed is named `Carrot Seeds`, described as “Seeds to grow carrots.”
+  and has MaxStack 50. Neither item has an equipment/carried-tool profile,
+  attack data, level-up cost, or stat reward; those categories are N/A.
+
+- **Reciprocal planting and harvest:** `CarrotFood` spends one CarrotSeed and
+  yields 3 Carrots. `CarrotSeed` spends one Carrot and yields 3 CarrotSeeds.
+  Both are direct Garden Plot actions, not separate recipe outputs; the shared
+  crop state sets 600 active seconds and a harvest yield of three. PotatoSeed
+  remains unused; that pair is the next crop audit.
+
+- **Authority, Trowel wear, and full-pack behavior:** the client chooses only
+  the Garden Plot mode. Server code revalidates authority, the same-world
+  visible current plot context, an empty plot, input availability and a usable
+  Main Hand Planting Trowel. It atomically exchanges one planting input,
+  spends one Trowel condition only after accepted planting, and persists the
+  player tool and plot candidates with rollback on save failure. Rejected
+  planting and harvesting do not spend Trowel condition. Harvest requests
+  server-grant three Carrots or CarrotSeeds; if the pack cannot fit the grant,
+  the action rejects before clearing the mature crop, which remains on the plot.
+
+- **Persistence:** the current construction schema 7 saves plot crop mode and
+  remaining active seconds; the server advances and saves growth only while
+  that plot terrain patch is active. Inactive regions and server downtime add
+  no growth, and saved plot state is restored with the construction. Player
+  schema 3 saves the carried Trowel ID, level, condition and GUID, but not
+  ordinary packed Carrot/CarrotSeed stacks. The schema-6 wording remaining in
+  architecture/setup docs is the previously recorded version mismatch.
+
+- **Icons and provenance:** the icon manifest identifies Carrot as image batch
+  09 and CarrotSeed as batch 10, both imported in batch C with pack-inventory
+  identities. Runtime paths are
+  /Game/Kalmala/UI/Icons/Items/Carrot.Carrot and
+  /Game/Kalmala/UI/Icons/Items/CarrotSeed.CarrotSeed; the generic icon table
+  also maps Carrot to Root variant 0 and CarrotSeed to Seed variant 0. Both
+  focused validators passed for 1254x1254 RGBA originals, transparent 64x64
+  prepared icons, imported Texture2D packages and runtime targets. The current
+  `docs/icon-provenance.md` has no Carrot/CarrotSeed entry or generation prompt;
+  it and the manifest establish paths/batches but do not establish the original
+  prompt/tool provenance. `docs/material-icons.md` is absent, so this specific
+  origin detail remains undocumented; no generation method was inferred.
+
+- **Existing evidence and remaining acceptance:** the historical I3 live peer
+  run exercised the Carrot-food route (seed payment, Trowel wear and replicated
+  crop state) and confirmed the seven actions were visible. It did not exercise
+  the reciprocal Carrot-seed route or full-pack plot harvest. Static source
+  inspection and existing contract tests cover their mappings, but no such
+  runtime check ran in this audit. The post-I3 menu still needs its A10
+  menu-specific verification refresh; later I4 build/automation passed but
+  reported no rendered/menu-specific run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON assertions passed for schema-16
+  registration, exact item names/descriptions/stack caps, and absence of Carrot
+  or CarrotSeed profile/attack/upgrade/reward entries. Focused catalogue icon
+  validation passed separately for Carrot and CarrotSeed. Static inspection
+  covered mode mapping, server payment/rollback, active growth, persistence and
+  icon runtime mapping. No build, automation, gameplay, UI, peer or reconnect
+  check was run in this increment.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. Catalogue entries and imported icons are present; the item-specific
+  original-art prompt/provenance record is the confirmed documentation gap.
+  Full-pack harvest and Carrot-seed mode remain without recorded live evidence;
+  A10 no-grant fresh-world and restart acceptance remain open. Preserve the
+  BronzePick and IronPick acquisition-target gaps for final disposition and
+  keep the broad A10 item audit unchecked until all included IDs, N/A
+  dispositions and final acceptance are covered.
+
+- **Next eligible A7 crop audit:** Potato and PotatoSeed; PotatoSeed remains
+  intentionally unused in the current farming contract.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Potato and PotatoSeed
+
+- **Scope and definitions:** audited only the A7 cultivation use of Potato and
+  PotatoSeed. The prior A0 wild-potato source-pair review is cross-referenced,
+  not repeated. Both are registered in schema-16 `items/crops.json`. Potato is
+  displayed as `Potato`, described as `A trusty root for stews, soups, and pan
+  roasts.`, with MaxStack 20. PotatoSeed is displayed as `Potato Seeds`,
+  described as `Seeds to grow potatoes.`, with MaxStack 50. Neither item has an
+  equipment/carried-tool profile, attack data, level-up cost, or stat reward;
+  those categories are N/A. PotatoSeed remains intentionally unused per the
+  approved A0/A7 contract.
+
+- **A7 tuber contract:** `PotatoFood` is the sole Potato mode. Planting spends
+  one Potato; harvest yields three Potatoes after 600 active seconds. PotatoSeed
+  is not a payment or harvest output, and there is no PotatoSeed mode or
+  catalogue recipe reference. Potato is also an ingredient in the existing
+  RootStaminaDraughtRecipe (2), MeatStewRecipe (2), RootVegetableSoupRecipe (1),
+  PeatHeartStewRecipe (2), and RoastedRootVegetablesRecipe (1); this pass did
+  not repeat their earlier A6/A9 review.
+
+- **Authority, Trowel wear, and full-pack behavior:** the server checks
+  authority, same-world GardenPlot identity, visible current plot context, an
+  empty plot, payment inventory, and a usable Main Hand Planting Trowel. It
+  commits one Potato and one Trowel condition only for accepted planting,
+  persists player and crop candidates, and restores payment/condition if save
+  or plot application rejects the action. Harvest requires the valid Trowel
+  context but does not spend condition. The server builds the three-Potato
+  grant before clearing a mature crop; insufficient pack capacity rejects the
+  grant and leaves the crop planted.
+
+- **Persistence and growth:** GardenPlot save state contains crop mode and
+  remaining active seconds in current construction schema 7. The server
+  advances and saves an immature crop only while its terrain patch is active;
+  inactive regions and server downtime add no growth. Restoring construction
+  records restores the crop mode and remaining growth time. Ordinary Potato and
+  PotatoSeed stacks have no item-specific player-save state; their
+  ordinary-inventory save limitation is recorded in the Carrot audit.
+  Architecture/setup text that still names construction schema 6 is the
+  previously recorded documentation mismatch.
+
+- **Icons and provenance:** the catalogue icon manifest identifies Potato as
+  image batch 09/import batch C and PotatoSeed as image batch 10/import batch C,
+  both pack items. Original files exist under
+  `Content/Kalmala/UI/Source/IconOriginals/`; prepared files exist under
+  `Content/Kalmala/UI/Source/Icons/`. Imported packages are
+  `Content/Kalmala/UI/Icons/Items/Potato.uasset` and
+  `Content/Kalmala/UI/Icons/Items/PotatoSeed.uasset`. Focused validation
+  confirms each original is 1254x1254 RGBA, each prepared icon is transparent
+  64x64 RGBA, and both imported Texture2D targets resolve at
+  `/Game/Kalmala/UI/Icons/Items/Potato.Potato` and
+  `/Game/Kalmala/UI/Icons/Items/PotatoSeed.PotatoSeed`. The fallback table maps
+  Potato to Root variant 1 and PotatoSeed to Seed variant 1.
+  `docs/icon-provenance.md` has no item-specific Potato/PotatoSeed entry or
+  prompt, and `docs/material-icons.md` is absent. Batch/art identity is
+  recorded, but original prompt/tool provenance cannot be established; this is
+  a documentation gap, not a missing icon or runtime mapping.
+
+- **Evidence and remaining acceptance:** the construction-save test source
+  asserts Potato payment/output mapping, 600-second maturation, and one-time
+  crop clearing; this audit did not execute it. The historical I3 live peer run
+  exercised Carrot-food, not Potato tuber mode. Static inspection confirms the
+  full-pack guard, but no Potato full-pack or rendered-menu runtime check is
+  recorded. The post-I3 menu still needs its A10 menu-specific verification
+  refresh; later I4 build/automation evidence did not report a rendered/menu
+  run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16
+  crop registration, exact Potato/PotatoSeed definitions and stack caps, no
+  registered profile/attack/upgrade/reward rows, and PotatoSeed's absence from
+  recipes; it also enumerated Potato's five existing recipe ingredient
+  references. Catalogue icon validation passed separately for Potato and
+  PotatoSeed. Static inspection covered PotatoFood mapping, payment/rollback,
+  Trowel condition, full-pack harvest, active growth, save/restore, and runtime
+  icon mapping. No build, automation, gameplay, UI, peer or reconnect check was
+  run in this increment.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. PotatoSeed remains deliberately unused. The per-item art
+  prompt/provenance record and Potato-specific live GardenPlot/menu evidence
+  remain open. A10 no-grant fresh-world and restart acceptance remain open.
+  Preserve the BronzePick and IronPick acquisition-target gaps for final
+  disposition and keep the broad A10 item audit unchecked until all included
+  IDs, N/A dispositions and final acceptance are covered.
+
+- **Next eligible A7 crop audit:** Rutabaga and RutabagaSeed.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Rutabaga and RutabagaSeed
+
+- **Scope and definitions:** audited Rutabaga and RutabagaSeed for their A7
+  Garden Plot use. The prior A0 wild-rutabaga source-pair review is
+  cross-referenced, not repeated. Both are registered in schema-16
+  `items/crops.json`. Rutabaga is displayed as `Rutabaga`, described as `A hardy
+  root with a mild, earthy flavor.`, with MaxStack 20. RutabagaSeed is displayed
+  as `Rutabaga Seeds`, described as `Seeds to grow rutabagas.`, with MaxStack
+  50. Neither item has an equipment/carried-tool profile, attack data, level-up
+  cost, or stat reward; those categories are N/A. RutabagaSeed is an A0 source
+  reward and an A7 crop input/output, with no separate crafting recipe.
+
+- **Reciprocal A7 modes:** `RutabagaFood` spends one RutabagaSeed and yields
+  three Rutabagas. `RutabagaSeed` spends one Rutabaga and yields three
+  RutabagaSeeds. Both actions use the Garden Plot rather than ordinary recipe
+  outputs. Each crop takes 600 active seconds. The menu enables each button
+  only for its matching inventory input, a ready Trowel, and an empty plot.
+  PotatoSeed remains the separate, approved unused seed; the reciprocal
+  Rutabaga seed mode is registered and usable.
+
+- **Other catalogue uses:** focused JSON inspection found Rutabaga as one input
+  in `RootVegetableSoupRecipe` and `DeerRootRoastRecipe`; RutabagaSeed has no
+  recipe reference. Their earlier A6/A9 recipe review was not repeated.
+
+- **Authority, Trowel wear, and full-pack behavior:** the server checks
+  authority, same-world GardenPlot identity, visible current plot context, an
+  empty plot, matching payment inventory, and a usable Main Hand Planting
+  Trowel. It commits one planting input and one Trowel condition only for
+  accepted planting, persists player and crop candidates, and rolls payment and
+  condition back if saving or plot application rejects the action. Harvest
+  requires the valid Trowel context but spends no condition. The server
+  prebuilds the three-item harvest grant before clearing the mature crop; an
+  insufficient pack rejects the grant and leaves the crop planted.
+
+- **Persistence and growth:** GardenPlot save state contains crop mode and
+  remaining active seconds in current construction schema 7. The server
+  advances and saves an immature crop only while its terrain patch is active;
+  inactive regions and server downtime add no growth. Restoring construction
+  records restores the crop mode and remaining time. Ordinary Rutabaga and
+  RutabagaSeed stacks have no item-specific player-save state; their
+  ordinary-inventory save limitation is recorded in the Carrot audit.
+  Architecture/setup text that still names construction schema 6 is the
+  previously recorded documentation mismatch.
+
+- **Icons and provenance:** the icon manifest identifies Rutabaga as image
+  batch 10/import batch C and RutabagaSeed as image batch 11/import batch C,
+  both pack items. Original files exist under
+  `Content/Kalmala/UI/Source/IconOriginals/`; prepared files exist under
+  `Content/Kalmala/UI/Source/Icons/`. Imported packages are
+  `Content/Kalmala/UI/Icons/Items/Rutabaga.uasset` and
+  `Content/Kalmala/UI/Icons/Items/RutabagaSeed.uasset`. Focused validation
+  confirms each original is 1254x1254 RGBA, each prepared icon is transparent
+  64x64 RGBA, and both imported Texture2D targets resolve at
+  `/Game/Kalmala/UI/Icons/Items/Rutabaga.Rutabaga` and
+  `/Game/Kalmala/UI/Icons/Items/RutabagaSeed.RutabagaSeed`. The fallback table
+  maps Rutabaga to Root variant 2 and RutabagaSeed to Seed variant 2.
+  `docs/icon-provenance.md` has no item-specific Rutabaga/RutabagaSeed entry or
+  prompt, and `docs/material-icons.md` is absent. Batch/art identity is
+  recorded, but original prompt/tool provenance cannot be established; this is
+  a documentation gap, not a missing icon or runtime mapping.
+
+- **Evidence and remaining acceptance:** the construction-save test source
+  asserts both reciprocal payments/outputs, 600-second maturation, one-time
+  harvest, and Rutabaga mode/time round-trip; this audit did not execute it.
+  The historical I3 live peer run planted Carrot and confirmed the seven
+  actions were visible; it did not exercise either Rutabaga route.
+  Static inspection confirms full-pack rejection; no Rutabaga full-pack or
+  rendered-menu runtime check is recorded here. The post-I3 menu still needs
+  its A10 menu-specific verification refresh; later I4 build/automation
+  evidence did not report a rendered/menu-specific run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16
+  crop registration, exact Rutabaga/RutabagaSeed definitions and stack caps,
+  absence of equipment/profile/attack/upgrade/reward rows, and absence of
+  RutabagaSeed recipe references; it also found the two Rutabaga recipe inputs.
+  Catalogue icon validation passed separately for Rutabaga and RutabagaSeed.
+  Static inspection covered reciprocal mode mappings, payment/rollback, Trowel
+  condition, full-pack harvest, active growth, save/restore, and icon mapping.
+  No build, automation, gameplay, UI, peer or reconnect check was run.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. The item-specific art prompt/provenance record and Rutabaga-specific
+  live cultivation/menu evidence remain open. A10 no-grant fresh-world and
+  restart acceptance remain open. Preserve the BronzePick and IronPick
+  acquisition-target gaps for final disposition and keep the broad A10 item
+  audit unchecked until all included IDs, N/A dispositions and final acceptance
+  are covered.
+
+- **Next eligible A7 crop audit:** Onion and OnionSeed.
+
+## Run 2026-10-24 — A10 per-item audit: A7 Onion and OnionSeed
+
+- **Scope and definitions:** audited Onion and OnionSeed for their A7 Garden
+  Plot use. The prior A0 wild-onion source-pair review is cross-referenced, not
+  repeated. Both are registered in schema-16 `items/crops.json`. Onion is
+  displayed as `Onion`, described as `Layers upon layers of destruction to the
+  eyes.`, with MaxStack 20. OnionSeed is displayed as `Onion Seeds`, described
+  as `Seeds to grow onions.`, with MaxStack 50. Neither item has an
+  equipment/carried-tool profile, attack data, level-up cost, or stat reward;
+  those categories are N/A. OnionSeed is an A0 source reward and an A7 planting
+  input/harvest output.
+
+- **Reciprocal A7 modes:** `OnionFood` spends one OnionSeed and yields three
+  Onions. `OnionSeed` spends one Onion and yields three OnionSeeds. Both are
+  Garden Plot actions, not ordinary recipe outputs. Each crop takes 600 active
+  seconds. The menu enables each action only when its matching item is in the
+  pack, the Trowel is ready, and the plot is empty.
+
+- **Other catalogue uses:** Onion is used as an input in
+  `RootStaminaDraughtRecipe` (1), `HearthBrothRecipe` (1),
+  `RootVegetableSoupRecipe` (1), `PeatHeartStewRecipe` (1), `WolfStewRecipe`
+  (3), `RoastedRootVegetablesRecipe` (1), and `DeerRootRoastRecipe` (1).
+  OnionSeed has no recipe reference. Their earlier recipe reviews were
+  cross-referenced, not repeated.
+
+- **Authority, Trowel wear, and full-pack behavior:** the server checks
+  authority, same-world GardenPlot identity, visible current plot context, an
+  empty plot, matching payment inventory, and a usable Main Hand Planting
+  Trowel. It commits one planting input and one Trowel condition only for
+  accepted planting, persists player and crop candidates, and rolls payment and
+  condition back if saving or plot application rejects the action. Harvest
+  requires the valid Trowel context but spends no condition. The server
+  prebuilds the three-item harvest grant before clearing the mature crop; an
+  insufficient pack rejects the grant and leaves the crop planted.
+
+- **Persistence and growth:** GardenPlot save state contains crop mode and
+  remaining active seconds in current construction schema 7. The server
+  advances and saves an immature crop only while its terrain patch is active;
+  inactive regions and server downtime add no growth. Restoring construction
+  records restores the crop mode and remaining time. Ordinary Onion and
+  OnionSeed stacks have no item-specific player-save state; their
+  ordinary-inventory save limitation is recorded in the Carrot audit.
+  Architecture/setup text that still names construction schema 6 is the
+  previously recorded documentation mismatch.
+
+- **Icons and provenance:** the icon manifest identifies Onion as image batch
+  11/import batch C and OnionSeed as image batch 12/import batch C, both pack
+  items. Original files exist under
+  `Content/Kalmala/UI/Source/IconOriginals/`; prepared files exist under
+  `Content/Kalmala/UI/Source/Icons/`. Imported packages are
+  `Content/Kalmala/UI/Icons/Items/Onion.uasset` and
+  `Content/Kalmala/UI/Icons/Items/OnionSeed.uasset`. Focused validation
+  confirms each original is 1254x1254 RGBA, each prepared icon is transparent
+  64x64 RGBA, and both imported Texture2D targets resolve at
+  `/Game/Kalmala/UI/Icons/Items/Onion.Onion` and
+  `/Game/Kalmala/UI/Icons/Items/OnionSeed.OnionSeed`. The fallback table maps
+  Onion to Root variant 3 and OnionSeed to Seed variant 3.
+  `docs/icon-provenance.md` has no item-specific Onion/OnionSeed entry or
+  prompt, and `docs/material-icons.md` is absent. Batch/art identity is
+  recorded, but original prompt/tool provenance cannot be established; this is
+  a documentation gap, not a missing icon or runtime mapping.
+
+- **Evidence and remaining acceptance:** the construction-save test source
+  asserts both reciprocal payments/outputs, 600-second maturation, one-time
+  harvest, and an OnionSeed mode/time round-trip; this audit did not execute it.
+  The historical I3 live peer run planted Carrot and confirmed the seven
+  actions were visible; it did not exercise either Onion route. Static
+  inspection confirms full-pack rejection, but no Onion full-pack or rendered-
+  menu runtime check is recorded. The post-I3 menu still needs its A10
+  menu-specific verification refresh; later I4 build/automation evidence did
+  not report a rendered/menu-specific run.
+
+- **Files changed:** BACKLOG.md, PROGRESS.md only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16
+  crop registration, exact Onion/OnionSeed definitions and stack caps, absence
+  of equipment/profile/attack/upgrade/reward rows, and absence of OnionSeed
+  recipe references; it also enumerated Onion's seven recipe-input references.
+  Catalogue icon validation passed separately for Onion and OnionSeed. Static
+  inspection covered reciprocal mode mappings, payment/rollback, Trowel
+  condition, full-pack harvest, active growth, save/restore, and icon mapping.
+  No build, automation, gameplay, UI, peer or reconnect check was run.
+
+- **Full verification:** deferred; this is not the final A10 increment.
+
+- **Impact and remaining scope:** tracking-only; no item or gameplay behavior
+  changed. The item-specific art prompt/provenance record and Onion-specific
+  live cultivation/menu evidence remain open. A10 no-grant fresh-world and
+  restart acceptance remain open. Preserve the BronzePick and IronPick
+  acquisition-target gaps for final disposition and keep the broad A10 item
+  audit unchecked until all included IDs, N/A dispositions and final acceptance
+  are covered.
+
+- **Next eligible A8 item audit:** Timber Beam (`TimberBeam` buildable ID).
+
+## Run 2026-10-24 — A10 per-item audit: A8 Timber Door
+
+- **Scope and catalogue:** audited the placed `TimberDoor` buildable only. Schema-16 `GameCatalogues.json` registers `items/buildItems/other.json` and `recipes/building.json`; the metadata entry is `TimberDoor`, displayed as Timber Door, with a description that it replaces one Windbreak Wall segment. The loader partitions build metadata into presentation-only Buildables. Catalogue search found only the buildable definition and its placement recipe: no ordinary inventory item or portable `TimberDoorKit`, acquisition/loot grant, equipment profile, attack, upgrade cost, or stat reward. Those inventory/combat/upgrade categories are N/A for this buildable.
+
+- **Direct-material placement:** the enabled `TimberDoor` recipe costs exactly 8 Wood, outputs one `TimberDoor`, has `MaxBatch=1`, and has no station. It is normalized to a buildable output, not an inventory stack. The preview targets a saved Windbreak Wall within 2 m. Server placement rechecks the wall's world, authority, identity, construction ID, and saved transform; it charges the recipe materials server-side, replaces that record with `TimberDoorKit` while preserving its construction ID and transform, and restores payment if persistence rejects the replacement. The replacement starts closed. No kit fallback or portable item is created.
+
+- **Interaction, authority, and persistence:** door interaction is server-authoritative and requires a visible door target within 200 cm. The server saves the next open/closed value before mutating and replicating `bDoorOpen`; closing is rejected if a pawn overlaps the doorway. The door leaf rotates open, and only a closed door retains the Windbreak tag. Construction save source uses schema 7 and stores `bDoorOpen`; restore passes that value back into the actor. The save-test source covers same-transform replacement, closed default, and SaveGame byte save/reload of an open door, but this audit did not execute it. `docs/07-development-setup.md` and `Scripts/Tests/Construction/ConstructionPersistence.ps1` still expect/schema-name 6, while the current header defines construction schema 7. The setup guide explicitly leaves rendered placement, interaction, and peer replication acceptance pending; no runtime or restart harness ran here.
+
+- **Icons and provenance:** manifest row 47, import batch AC, marks `TimberDoor` as a buildable and maps its recipe/buildable ID to the shared `TimberDoorKit` texture for BuildMenu, PlacementPreview, and ResultPreview. `docs/icon-provenance.md` records built-in image generation on 2026-10-21, no reference art, the closed door in a short wall prompt, and original/prepared/imported paths. The runtime catalogue mapping and Wall fallback exist. Focused validation passed: 1254x1254 RGBA original, transparent 64x64 RGBA prepared asset, imported Texture2D at `/Game/Kalmala/UI/Icons/Items/TimberDoorKit.TimberDoorKit`. The referenced `docs/material-icons.md` is absent; the specific Timber Door provenance and validator command are present in `docs/icon-provenance.md`.
+
+- **Files changed:** BACKLOG.md and PROGRESS.md only.
+- **Lightweight checks:** focused PowerShell JSON parsing/assertions passed for schema-16 file registration and exact 8-Wood recipe/buildable output/batch/station values. Catalogue-data search found no other TimberDoor entries. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id TimberDoorKit` passed. Static source inspection covered server payment/replacement, interaction/occupancy, save/restore, and icon mappings. No build, automation, gameplay, UI, peer, or restart check was run.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay or asset changes. Current schema-7 save source conflicts with schema-6 setup/restart-script expectations. Rendered placement/interaction/peer acceptance and an executed construction restart check remain open, as do A10 fresh-start progression and final BronzePick/IronPick acquisition-target disposition. Keep the broad A10 item audit unchecked.
+- **Next eligible A8 item audit:** Timber Beam (`TimberBeam` buildable ID).
+
+## Run 2026-10-24 — A10 per-item audit: A8 Timber Beam
+
+- **Scope and catalogue:** audited the A8 `TimberBeam` buildable only. Schema-16 `GameCatalogues.json` registers `items/buildItems/other.json` and `recipes/building.json`. The metadata entry is displayed as Timber Beam and describes a squared beam bracing supported shelter endpoints. Loader normalization maps canonical `TimberBeam` to the presentation-only runtime buildable `TimberBeamKit`; the item catalogue does not expose it as an inventory item. Catalogue search found only its buildable metadata and direct placement recipe, with no inventory acquisition/loot output, equipment profile, attack, upgrade cost or stat reward. Those categories are N/A for a placed structural object.
+
+- **Recipe and placement:** the enabled TimberBeam recipe costs exactly 2 Wood for one buildable, has `MaxBatch=1`, and has no station. The loader normalizes its output to `BuildableOutput=TimberBeamKit`, leaving inventory `Output` empty. Server placement requires the carried Construction Hammer, reruns the same evaluator used by the preview, validates material availability, and saves a generic construction record; failed persistence restores the charged materials. No portable kit or inventory item is created.
+
+- **Support and attachment behavior:** the beam is 200 cm long with a 15 cm square section and cardinal yaw snapping. View pitch below 60 degrees selects a horizontal span; absolute pitch of 60 degrees or more selects a vertical post. A structural target must be visible in a 250 cm trace and aimed within 65 cm of an endpoint. Horizontal beams require both endpoints supported; vertical beams require a supported lower endpoint. A supported endpoint is accepted when generated terrain is within 22 cm vertically or a structural endpoint is within 22 cm. For free-ground placement, terrain normals must have `Z >= 0.85`; horizontal ground endpoints must also be within 30 cm elevation. The evaluator rejects water, world-edge placements and blocking pawn overlap. Runtime endpoint sources include Floor, Wall, Timber Door, Roof, Timber Beam and Timber Stairs. Source and the focused placement test include Timber Stairs, but the setup and architecture endpoint lists omit them; that is a documentation gap. The server rechecks the shared support/clearance evaluator before payment.
+
+- **Authority and save behavior:** the server validates authority, Hammer ownership, preview validity/range, direct material cost, support and persistence. TimberBeam uses the generic construction save record for its placed ID, `TimberBeamKit` identity and snapped transform; there is no beam-specific state. Current construction schema is 7. Setup and architecture still name schema 6, and `ConstructionPersistence.ps1` still expects a schema-6 load message. Actor health is replicated and defaults to 100, but the generic construction record has no Health field, so Wall-category rain-wear damage has no persisted beam-health value. The reviewed A8 contract does not say whether worn construction health should survive restart, so this is recorded as a save boundary for final acceptance, not as an inferred feature requirement. Existing test source checks a valid current-format beam record, but no save/restart harness or live placement/peer/rendered acceptance ran here; the setup guide defers those checks to I4 verification.
+
+- **Icons and provenance:** manifest row 48, isolated batch AD, identifies `TimberBeam` as the buildable/recipe identity and `TimberBeamKit` as its BuildMenu/PlacementPreview/ResultPreview texture. The original, prepared and imported assets exist. `docs/icon-provenance.md` records built-in image generation on 2026-10-21, no reference art, the full generation prompt, and prepare/import/validate commands. Loader and recipe normalization supply `TimberBeamKit` at runtime; the icon widget has the Wall vector fallback for both `TimberBeam` and `TimberBeamKit`, and the catalogue texture path resolves the imported Kit asset for runtime buildable IDs. Focused validation passed: 1254x1254 RGBA source, transparent 64x64 RGBA prepared texture, imported target `/Game/Kalmala/UI/Icons/Items/TimberBeamKit.TimberBeamKit`. The referenced `docs/material-icons.md` is absent; item-specific workflow/provenance instructions remain in `docs/icon-provenance.md`.
+
+- **Files changed:** BACKLOG.md and PROGRESS.md only.
+- **Lightweight checks:** focused PowerShell JSON parsing/assertions passed for schema-16 registration, exact buildable metadata, and enabled 2-Wood direct recipe/output/batch/station values. Catalogue-data search found no other TimberBeam entries. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id TimberBeamKit` passed. Static source/test inspection covered runtime identity, direct payment and rollback, placement support, endpoint set, rain-wear category, save-record scope and icon mappings. No build, automation, gameplay, UI, peer or restart check was run.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay or asset changes. Resolve the schema-6 documentation/script mismatch and the omitted Timber Stairs endpoint documentation; decide whether rain-worn construction health needs restart persistence after reviewing the approved scope. A10 fresh-start progression and final BronzePick/IronPick acquisition-target disposition remain open. Keep the broad A10 item audit unchecked.
+- **Next eligible A8 item audit:** Timber Stairs (`TimberStairs` buildable ID).
+
+## Run 2026-10-24 — A10 per-item audit: A8 Timber Stairs
+
+- **Scope and catalogue:** audited the placed `TimberStairs` buildable. Schema-16 `GameCatalogues.json` registers `items/buildItems/other.json` and `recipes/building.json`. The canonical buildable metadata uses `TimberStairs`, displayed as Timber Stairs, with `MaxStack=1`; loader normalization maps it to presentation-only runtime buildable `TimberStairsKit`. Catalogue search found only that buildable definition and its building recipe: no ordinary inventory item, portable kit, acquisition/loot grant, equipment profile, attack, upgrade cost, or stat reward. Those categories are N/A for a placed structure.
+
+- **Direct-material recipe and authority:** the enabled recipe produces one canonical `TimberStairs` buildable for exactly 6 Wood, has `MaxBatch=1`, and requires no station. Runtime normalization leaves inventory `Output` empty and supplies `BuildableOutput=TimberStairsKit`. The only authored placement path is direct material payment with the Construction Hammer; no portable output is made. The server validates its authoritative character/controller and Hammer, uses the shared placement evaluator, checks range and material availability, persists the placed record, and rolls payment back if persistence fails.
+
+- **Geometry and support:** five 40 cm deep, 100 cm wide solid treads rise by 20 cm each, forming a 200 cm run, 100 cm width, and 100 cm rise inside a 2 m × 1 m × 1 m placement envelope. Yaw snaps to a cardinal direction. Ground placement probes the lower edge 165 cm forward and requires dry, in-bounds terrain with `ImpactNormal.Z >= 0.85`; the full envelope must be clear of blocking pawns. The alternate route traces a placed `FloorKit` with a nonempty construction ID within 250 cm and puts the upper edge against the nearest side; the lower edge must meet generated terrain within the 22 cm structural endpoint tolerance and satisfy the same normal threshold. Water, world-edge, and overlap checks apply to both routes. Timber Stairs expose lower and upper structural endpoints and use the Wall-category health/rain-wear behavior without a windbreak tag. Setup prose calls the ground level/firm, while the implementation's confirmed normal threshold permits some slope; the exact accepted slope envelope remains an acceptance question.
+
+- **Save and test coverage:** the generic construction record stores placed identity, construction ID, and transform; Timber Stairs adds no state field. Current source defines construction schema 7, while architecture/setup prose still says schema 6 and `ConstructionPersistence.ps1` still expects a schema-6 load message. The record has no Health field, so persistence of rain-wear health is not established by this record; the approved A8 contract does not specify whether that health must survive restart. Existing placement-test source checks buildable-vs-item identity, recipe/cost, current-format record validity, cardinal yaw, envelope, endpoints, and step colliders, but does not execute either placement evaluator route or a save/restart roundtrip. No Unreal test or runtime placement/peer/restart acceptance was run in this audit.
+
+- **Icons and provenance:** manifest row 49, batch AE, maps canonical buildable/recipe identity `TimberStairs` to `TimberStairsKit` for BuildMenu, PlacementPreview, and ResultPreview. Original, prepared, and imported assets are documented in `docs/icon-provenance.md`; it records built-in image generation on 2026-10-21 with no reference art. Loader, catalogue icon library, and icon-widget fallback mappings cover the canonical/runtime IDs. Focused validation passed with a 1254×1254 RGBA source, transparent 64×64 prepared texture, and imported target `/Game/Kalmala/UI/Icons/Items/TimberStairsKit.TimberStairsKit`. The referenced `docs/material-icons.md` is absent; the item-specific provenance and validation command are available in `docs/icon-provenance.md`.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16 file registration, canonical item/recipe identity, exact 6-Wood recipe, output count, batch cap, and empty station requirement. Catalogue search found no additional TimberStairs definitions. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id TimberStairsKit` passed. Static source/test inspection covered server payment/rollback, both support routes, collision geometry, save-record scope, and runtime icon mappings. `git diff --check` passed. No build, suite, Unreal automation, gameplay, UI, peer, or restart check ran.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay or asset files changed. Resolve the schema-6 documentation/script mismatch and confirm the intended ground-slope tolerance, placement routes, and restart behavior at final A10 acceptance. Construction health persistence remains a contract disposition, not an inferred requirement. Fresh-start progression and the BronzePick/IronPick acquisition-target disposition remain open. Keep the broad A10 item audit unchecked.
+- **Next eligible A8 item audit:** Camp Bed (`CampBed` buildable ID).
+
+## Run 2026-10-24 — A10 per-item audit: A8 Camp Bed
+
+- **Scope and catalogue:** audited the placed `CampBed` buildable. Schema-16 `GameCatalogues.json` registers `items/buildItems/other.json` and `recipes/building.json`. Its metadata is presented as Camp Bed with `MaxStack=1`; loader normalization maps canonical `CampBed` to presentation-only runtime `CampBedKit`. Catalogue search found only the buildable metadata and its building recipe: no ordinary inventory item or portable kit, loot/grant source, equipment profile, attack, upgrade cost, or stat reward. Those categories are N/A for this placed object; direct-material placement is its only authored acquisition/use route.
+
+- **Recipe and placement authority:** the enabled direct Hammer recipe produces one canonical `CampBed` buildable for exactly 4 Wood, 2 Boar Hide, and 2 Deer Hide; `MaxBatch=1`, with no station. Runtime normalization leaves inventory `Output` empty and supplies `BuildableOutput=CampBedKit`. The server requires its authoritative character/controller and carried Construction Hammer, reruns the shared placement evaluator, checks the 250 cm placement range, validates the material exchange, and verifies save capacity before spawning. It charges materials on the server, persists the construction record, and restores the prior inventory stacks if persistence fails. No portable output or kit fallback exists.
+
+- **Support and clearance:** the collision envelope is 200 × 100 cm with 22 cm half-height. Preview/cardinal yaw follows the shared stair orientation helper. It probes support 165 cm forward; accepted support is generated terrain or an existing same-world `FloorKit` with construction identity. Ground needs normal `Z >= 0.85`; on the ground route, the four sampled contacts at offsets of ±88 cm along and ±38 cm across must remain dry, have normal `Z >= 0.85`, and be within 12 cm elevation of the support point. For a floor, the support trace must reach its top within 5 cm and the four contacts must fit inside the floor bounds. The design/setup contract describes support across the full 200 × 100 cm footprint, while source samples these four points within the 100 × 50 cm collision half-extents; continuous support across the full envelope is not established and should be confirmed at acceptance. The evaluator also checks a 300 cm world-edge margin, water at the support/contact points, blocking overlap across the bed envelope, and a clear 1 m approach at one short end. The server uses this same evaluator before payment.
+
+- **Interaction, rest, and occupancy:** `CanUse` requires a valid controller and construction ID, the same world, a visible trace to the bed, and distance within 200 cm; server `CanInteract` also requires authority on both actor and character and rechecks `CanUse`. The client starts `StartCampBedRestPose` when its local trace and `CanUse` pass, before the server interaction result arrives. The server traces its own view, rechecks `CanInteract`, applies the 0.2 s action throttle, and publishes an accepted `Resting briefly` result. No Camp Bed busy/occupied reservation or exclusive-user field is stored, so the source does not serialize multiple users; simultaneous use was not exercised. The pose moves only the locally controlled procedural model to the bed-facing lie-down transform, not the character actor. It ends when local speed exceeds 5 cm/s, health drops, or local control ends. The rest action changes no stats, health, world time, or spawn point. Bed rest state is local-only and neither replicated nor saved; no CampBed-specific RPC is added, while the accepted-result message uses the existing owner-only crafting result fields. No stop-on-rejection callback appears in the inspected source. The local pose does not inspect the published server result; if the server rejects or drops the action, the pose still exits only through motion, health loss, or loss of local control. This reconciliation behavior remains runtime-unverified.
+
+- **Save behavior and test scope:** the generic construction record stores construction ID, `CampBedKit`, and transform, with no Camp Bed-specific state. Current source construction schema is 7; architecture/setup prose still says schema 6, and `ConstructionPersistence.ps1` still expects a schema-6 load message. The actor has Storage-category rain wear, but the generic record has no Health property; whether that wear must persist is not specified by the reviewed A8 contract. `Kalmala.Gameplay.Construction.CampBedContract` checks buildable/item separation, recipe and direct costs, envelope, generic record validity, and the local pose stop helper; its placement call supplies null context and checks only the fail-closed result; it does not exercise valid ground/floor placement, interaction RPCs, occupancy, SaveGame serialization, or restart restoration. This audit inspected the test source but did not run Unreal automation or runtime placement, peer, rendered-interaction, or restart acceptance.
+
+- **Icons and provenance:** manifest row 50, batch AF, maps canonical `CampBed` buildable/recipe identity to `CampBedKit` for BuildMenu, PlacementPreview, and ResultPreview. `docs/icon-provenance.md` records built-in image generation on 2026-10-21 with no reference art; an opaque checkerboard in the first render was removed in an image edit, and the transparent result was visually checked before preparation. Loader, catalogue icon library, and icon-widget fallback mappings cover both canonical/runtime IDs. Focused validation passed with a 1254×1254 RGBA source, transparent 64×64 prepared texture, and imported target `/Game/Kalmala/UI/Icons/Items/CampBedKit.CampBedKit`. The referenced `docs/material-icons.md` is absent; item-specific provenance and validator instructions are present.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused JSON parsing/assertions passed for schema-16 registrations, canonical item/recipe identity, exact 4 Wood + 2 Boar Hide + 2 Deer Hide recipe, output count, batch cap, and empty station list. Catalogue search found no additional CampBed JSON definitions. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id CampBedKit` passed. Static source inspection covered payment/persistence rollback, support/approach checks, interaction authority and distance, local pose behavior, generic save fields, and icon mappings. `git diff --check` passed. No build, suite, Unreal automation, gameplay, UI, peer, or restart check ran.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay or asset files changed. Confirm placement/interaction rendering, server rejection versus the optimistic local pose, concurrent use expectations, and restart behavior during final A10 acceptance. Resolve the schema-6 documentation/script mismatch; construction health persistence remains a contract disposition rather than an inferred requirement. A10 fresh-start progression and the BronzePick/IronPick acquisition-target disposition remain open. Keep the broad A10 item audit unchecked.
+- **Next eligible A8 item audit:** Standing Light (`StandingLight` buildable ID).
+
+## Run 2026-10-24 — A10 per-item audit: A8 Standing Light
+
+- **Scope and catalogue:** audited the placed `StandingLight` buildable only. Schema-16 `GameCatalogues.json` registers `items/buildItems/other.json` and `recipes/building.json`. Its canonical metadata is displayed as Standing Light, has `MaxStack=1`, and describes a freestanding timber brazier burning Wood for a “small cosmetic light.” The loader normalizes it to presentation-only runtime buildable `StandingLightKit`. Catalogue JSON search found only the definition and its recipe references; there is no ordinary inventory item, portable kit, loot/grant route, equipment profile, attack, upgrade cost, or stat reward. Those categories are N/A; direct-material placement is its only authored acquisition route.
+
+- **Recipe and server placement:** the enabled `StandingLight` recipe uses exactly 3 Wood and 1 Amber, outputs one buildable, has `MaxBatch=1`, and has no station. Loader normalization clears the inventory `Output` and sets `BuildableOutput=StandingLightKit`. The server placement path requires authority and a carried Construction Hammer, reruns the shared placement evaluator and range checks, charges the direct material cost, and persists the placed construction; if persistence fails it destroys the new actor and restores the charged stacks. No portable item or kit fallback is created.
+
+- **Light, fuel, rain, and wildlife:** the actor has a non-shadow-casting orange point light at +68 cm, intensity 1800 and 600 cm attenuation radius. The replicated `RemainingFuelSeconds` state begins at zero, is bounded to 1200 seconds, and each Wood adds exactly 600 seconds only when a full charge fits. “Add fuel” interaction is server-authoritative and range/visibility checked; it consumes one Wood, persists the candidate fuel state before applying it, and refunds Wood if the save fails. The actor's one-second tick advances fuel on the server only while fuelled and rain-safe. Missing weather state, or precipitation of at least 0.05 without a tagged shelter roof overhead, hides the light and pauses fuel burn. A valid fuelled rain-safe Standing Light is also an authoritative Mosquito repelling flame within 300 cm; line-of-sight blockers prevent protection. The reviewed source/docs evidence no warmth effect for this buildable. Its catalogue text calls the light “cosmetic” and the object a “brazier,” while runtime source uses the flame for Mosquito avoidance and current icon provenance describes a rope-bound wooden torch; confirm the intended player-facing description/art alignment at acceptance.
+
+- **Save and acceptance limits:** placed records retain the construction ID, `StandingLightKit`, transform, and bounded remaining fuel in current construction save schema 7; server tick/refuel writes the state before applying it, and actor state replicates via `OnRep_StandingLightState`. Source automation covers zero fuel, 600/1200-second bounds, rejected overfill/non-finite advancement, valid kit-bound records, and an in-memory SaveGame serialization/reload assertion for 1137.25 seconds remaining. This audit inspected those test sources but did not execute them. The generic actor also receives server rain-wear damage, but the construction record has no Health field; the reviewed A8 contract does not define whether that damage must persist, so leave it as a final acceptance disposition rather than an inferred requirement. `docs/07-development-setup.md` defers Standing Light rain suppression and related fire/peer scenarios to combined I4 acceptance. Current source construction schema 7 conflicts with the setup/restart runner's schema-6 expectation. No live placement, refuel, rain, Mosquito, peer replication, or restart scenario ran here.
+
+- **Icons and provenance:** catalogue icon manifest row 51, batch AO, maps the `StandingLight` buildable/recipe identity to `StandingLightKit` for BuildMenu, PlacementPreview, and ResultPreview. The loader maps canonical to runtime ID; catalogue texture lookup maps canonical ID to the Kit asset, and the icon widget has Fire fallback entries for both IDs. `docs/icon-provenance.md` records original generation and the later edit replacing the brazier/crystal with a wooden torch head and flame, retained 1254×1254 RGBA original, centered transparent 64×64 preparation, and imported `StandingLightKit` asset. The referenced `docs/material-icons.md` and `docs/alpha-item-details.md` are absent; item-specific provenance remains available.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema-16 registrations, one buildable definition, and the exact enabled recipe ingredients/output/count/batch/station values. Catalogue-data search found one definition and two recipe identity references. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id StandingLightKit` passed with a 1254×1254 RGBA source, transparent 64×64 RGBA final, and target `/Game/Kalmala/UI/Icons/Items/StandingLightKit.StandingLightKit`. Static source/test inspection covered runtime normalization, server placement/refuel, light/rain/fuel, Mosquito avoidance and save boundaries. No build, automation, live interaction, peer, or restart check was run.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay or asset files changed. Keep the broad A10 item audit unchecked. Final acceptance still needs fresh-start progression and BronzePick/IronPick acquisition-target disposition, construction runtime/peer/restart checks, the schema-7/schema-6 setup-runner reconciliation, the construction-health save contract decision, and the Standing Light description/art wording disposition.
+- **Next eligible A8 item audit:** none; the currently listed A8 buildables are audited. Next separately tracked A10 per-item scope: A8b Antidote (`Antidote`).
+
+## Run 2026-10-24 — A10 per-item audit: A8b Antidote
+
+- **Scope and catalogue:** audited the `Antidote` consumable only. Schema-16 `GameCatalogues.json` registers `items/food.json` and `recipes/stations/cauldron.json`. The item definition is `Antidote`, displayed as Antidote, described as a draught prepared from Venom Sac and Lingonberry, weight 0.2 kg, stack cap 10. It has no equipment profile, attack, level-up cost, stat reward, or portable-object category; those are N/A for this consumable.
+
+- **Source and recipe:** the enabled `AntidoteRecipe` uses exactly 1 VenomSac + 2 Lingonberry, outputs one Antidote per batch, allows up to 5 batches, requires the Cauldron, and awards 10 Cooking XP per batch. The Cauldron menu exposes it through the existing heated-cooking path. Both inputs have runtime sources: a generated stable Meadow Lingonberry shrub harvest node maps to Lingonberry; VenomSac is a guaranteed quantity-1 Death Adder drop, delivered by the server's owner-bound durable reward claim together with its Bone Fragment and retained until the bundle fits. The prior Antidote peer fixture staged these ingredients rather than exercising the Death Adder source in the same scenario; this audit inspected the source path without rerunning acceptance.
+
+- **Use, authority, and cooldown:** `Antidote` is allowlisted as a draught. The server accepts only the item identity, verifies character authority/liveness and the private inventory/status components, checks eligibility, commits exactly one item through an inventory exchange, then applies the effect; if status application fails, the server restores the prior inventory stacks. A living player can use it at full health and before poison. It clears active weak poison; active major poison is replaced with weak poison at 1 damage/second for no longer than its remaining duration or 5 seconds. It grants 600 seconds of poison resistance: new weak poison is rejected, while a new major hit is reduced to the weak profile. Converted weak poison keeps its own expiry and does not return to major strength after resistance expires. Antidote shares the 60-second cooldown with Berry Recovery Draught, Root Stamina Draught, and Rat-tail Tonic; use is rejected without consumption during cooldown or existing resistance. Death clears poison and resistance without refunding the dose or cooldown. Status entries are written only by the server and replicate owner-only; inventory and action results remain private.
+
+- **Persistence and acceptance evidence:** the replicated status array has no `SaveGame` field; Antidote resistance/cooldown and poison are transient, with no saved status or offline catch-up ticks. No Antidote-specific player-save schema or client mutation path exists. Source coverage includes the shared `Kalmala.Gameplay.Status.PoisonEffects` regression, crafting transaction assertions for the exact station, recipe, batch, ingredients, XP and exchange, item catalogue checks, prepared-food details and status-hotbar presentation. Historical PROGRESS records the three-peer `Verify-A8bAntidotePeer.ps1` craft/use/poison/cooldown pass and the combined A8/I4 gate; that gate's 178 automation cases included `PoisonEffects` and `Crafting.Transactions`. These tests were inspected as recorded evidence, not executed in this A10 increment. `docs/alpha-item-details.md` and `docs/material-icons.md` are absent; the A8b effect contract and focused verification guidance are present in `docs/biome-enemies.md` and `docs/07-development-setup.md`.
+
+- **Icons and provenance:** catalogue icon manifest row 71, batch AK, maps `Antidote` to `AntidoteRecipe` for PackInventory, ItemDetail, and RecipeResult. The catalogue texture lookup uses the canonical ID as the imported texture asset ID; the icon widget retains a Drop fallback variant for `Antidote`. The grouped A8b provenance records original generation without external references, its complete vial prompt, 1254×1254 RGBA original, centered transparent 64×64 preparation, and imported `Antidote` Texture2D.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema-16 file registration, exact item definition and enabled recipe values, the registered VenomSac definition, and its guaranteed Death Adder drop record. Catalogue-data search found only the Antidote item and recipe identities/display/output references. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Antidote` passed with a 1254×1254 RGBA source, transparent 64×64 RGBA final, and target `/Game/Kalmala/UI/Icons/Items/Antidote.Antidote`. Static inspection confirmed the Lingonberry harvest mapping, status/consumption authority and prior acceptance evidence. No Unreal automation, build, or new live peer run was performed.
+- **Full verification:** A10 full verification remains deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay or asset files changed. No concrete runtime or catalogue contradiction was found. Keep the broad A10 item audit open; preserve the recorded BronzePick/IronPick acquisition-target gaps for final progression disposition.
+- **Next eligible A8b item audit:** Peat Heart Stew (`PeatHeartStew`), following the current recipe/output ordering.
+
+## Run 2026-10-24 — A10 per-item audit: A8b Peat Heart Stew
+
+- **Scope and catalogue:** audited the prepared-food `PeatHeartStew` item only. Schema-16 `GameCatalogues.json` registers `items/food.json` and `recipes/stations/cauldron.json`. The item is displayed as Peat Heart Stew, described as a hearty peat-heart and root-vegetable stew, with a 20-item stack cap. Catalogue data has no equipment/tool profile, attack, level-up cost or stat reward for this consumable; those categories are N/A.
+
+- **Source and recipe:** the enabled `PeatHeartStewRecipe` consumes exactly 1 PeatHeart + 2 Potato + 1 Onion, outputs 2 stew servings per batch, caps at 5 batches, requires the Cauldron and awards 10 Cooking experience per batch. The loader normalizes authored `Cauldron` to runtime `CauldronKit`; the server craft path checks the nearby usable station, lit-hearth heat and material payment. Peat Husk supplies one PeatHeart at 25% on a credited defeat through the existing owner-bound durable reward claim; the stored roll outcome and Amber/Peat Heart bundle retain their retry/save/full-pack behavior. Potato and Onion are inputs from their previously audited A7 crop modes; those source-pair reviews are not repeated here.
+
+- **Consumption and authority:** `PeatHeartStew` is on the existing known-food allowlist and uses the shared Steady Meal: 120 seconds with a -0.10 additive stamina-cost modifier. The server validates the food ID and eligibility, commits exactly one serving from the private inventory, then applies the status; if status application fails it restores the prior stacks. An active meal rejects another food serving without consumption or refresh. Status writes are server-only and the status array replicates owner-only; the observer cannot read the owner's meal or inventory state.
+
+- **Save behavior and acceptance evidence:** the status array is transient and has no SaveGame field; the existing save contract excludes active food/support effects and does not claim general inventory persistence. No PeatHeartStew-specific saved status or inventory schema exists. Existing focused source coverage includes `Kalmala.Gameplay.Food.CookingStationHeat`, `Kalmala.Gameplay.Status.SteadyMeal`, `Kalmala.UI.Inventory.PreparedFoodDetails`, and the Cauldron checks in `Scripts/Tests/Construction/Crafting.ps1`. Historical PROGRESS records a passed three-peer Peat Heart Stew craft/use scenario: exact payment, two distinct serving GUIDs, one serving consumed, effect, duplicate-use rejection, host baseline and observer privacy. That fixture stages the PeatHeart input rather than exercising its source claim. The separate Peat Husk source regression covers the 25% stored outcome, atomic bundle delivery, full-pack deferral and retry; the combined A8/I4 gate later recorded a passing full automation queue (178/178). These recorded checks were inspected, not rerun in this A10 audit.
+
+- **Icons and provenance:** manifest row 72, batch AK, maps `PeatHeartStew` / `PeatHeartStewRecipe` to PackInventory, ItemDetail, Storage and RecipeResult. `docs/icon-provenance.md` records the original bowl-of-stew concept prompt. Runtime lookup uses the canonical `PeatHeartStew` imported Texture2D and the widget keeps a Bowl variant-3 fallback. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id PeatHeartStew` passed with a 1254×1254 RGBA source, transparent 64×64 RGBA prepared image and target `/Game/Kalmala/UI/Icons/Items/PeatHeartStew.PeatHeartStew`.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema-16 registrations, the exact food definition and enabled recipe values, and Peat Husk's quantity-1/25% PeatHeart drop. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id PeatHeartStew` passed. Static source inspection confirmed station normalization/heat validation, server craft and consumption ordering, owner-only status replication, persistence limits, runtime icon mapping, and the recorded focused automation/peer evidence. No Unreal build, automation, or new live peer scenario was run.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No within-scope runtime or catalogue contradiction was found. The prior live stew peer fixture staged its PeatHeart input, so its source-to-stew chain was not exercised in that scenario. Keep the broad A10 per-item audit open, preserve the BronzePick/IronPick acquisition-target gaps for final progression disposition, and defer A10 final verification.
+- **Next eligible A8b item audit:** Wolf Pelt Boots (`WolfPeltBoots`), following Peat Heart Stew in recipe/output order.
+
+## Run 2026-10-24 — A10 per-item audit: A8b Wolf Pelt Boots
+
+- **Scope and profile:** audited the wearable `WolfPeltBoots` item only. Schema-16 `GameCatalogues.json` registers the Boots equipment file, hides material file, Workbench recipe, armor upgrade costs, shared stat rewards and creature catalogue. Its definition is stack one, 3 kg, Boots slot, 10 physical Armor and 120 maximum condition. It has no authored weapon attack data; attack behavior is N/A for this armor item.
+
+- **Sources and acquisition recipe:** Wolf is a Freezing Tundra creature whose catalogue drop is one `WolfPelt` at 100%; the pelt is part of the server's credited-owner durable reward claim, bundled with two Bone Fragments and one Wolf Meat, plus a stored 25% Wolf Fang outcome. Claim delivery validates the owner's candidate inventory and leaves the claim pending when the bundle cannot fit. The other recipe input, Iron, comes from the previously audited A1 route: Bronze-tier mining yields three IronOre at a Mossy Mire bog-iron node, then the Smelter consumes one IronOre and one Coal for one Iron after 30 active seconds. The enabled `WolfPeltBootsRecipe` consumes exactly 5 WolfPelt + 5 Iron at a Workbench, outputs one pair, caps at one batch and awards no experience.
+
+- **Craft, equip and upgrade support:** the server independently checks authority, the visible usable same-world Workbench, exact recipe materials and output capacity before committing the exchange. `ServerEquipGear` accepts a physical item GUID; `EquipGearFromServer` checks authority and the generic GUID transaction places the catalogue profile in the Boots slot. Equipped gear and inventory replicate to the owner only; accepted-hit server armor and condition paths use the profile. Level-one upgrade metadata records 2 WolfPelt + 2 Iron at a Workbench, and the shared level-two armor reward adds 1 Armor and 10 maximum condition. Wearable upgrade transactions are not implemented, so this cost/reward record does not currently expose an upgrade action. This remains a confirmed A10 runtime-support gap, not an inferred action.
+
+- **Save and acceptance evidence:** carried inventory is pawn-lifetime and the save contract does not claim general inventory persistence. Wearable equipment, condition spent and level remain session state; there is no WolfPeltBoots-specific SaveGame record. The Wolf reward claim itself is durable, but delivered materials and equipped boots do not become saved inventory/equipment. Existing focused source coverage includes `Kalmala.Gameplay.ItemCatalogue`, `Kalmala.Gameplay.M9.ToolProgressionCatalogue`, `Kalmala.Gameplay.Inventory.WornGearTransactions`, and the Workbench `Kalmala.Gameplay.Food.CookingStationHeat` assertions for missing-station rejection, exact payment, output GUID and Boots-slot equip. Historical PROGRESS records the three-peer `Verify-A8bWolfPeltBootsPeer.ps1` pass: remote craft/equip, 10 Armor / 120 condition, accepted 20-Crush hit reduced to 10 with one condition spent, client mutation rejection and owner privacy. That fixture stages WolfPelt and Iron; the separate Wolf combat peer tested pack combat/telegraph, not pelt acquisition. The combined A8/I4 gate later recorded 178/178 automation success. These checks were inspected as recorded evidence, not rerun; rendered equipment presentation and a live source-to-craft flow were not exercised in this increment.
+
+- **Icons and provenance:** manifest row 73, batch AK, maps `WolfPeltBoots` / `WolfPeltBootsRecipe` to PackInventory, ItemDetail and RecipeResult. `docs/icon-provenance.md` contains the original pair-of-fur-cuffed-leather-boots prompt. Runtime lookup uses the canonical `WolfPeltBoots` Texture2D; the icon widget retains a Hide variant-5 fallback. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfPeltBoots` passed with a 1254×1254 RGBA source, transparent 64×64 RGBA prepared image and target `/Game/Kalmala/UI/Icons/Items/WolfPeltBoots.WolfPeltBoots`.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema-16 registration, the exact Boots profile, Workbench recipe, upgrade cost/reward, WolfPelt definition and guaranteed Wolf drop. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfPeltBoots` passed. Static source inspection confirmed the durable Wolf reward claim and server grant, authority-checked crafting/equip, owner-only inventory/equipment replication, and the session-only wearable save boundary. No Unreal build, automation or new live peer scenario was run.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No recipe/profile/source inconsistency was found. Wearable upgrade execution remains unsupported despite registered cost/reward metadata; the boots peer fixture staged its ingredients and did not test the Wolf reward route, and rendered gear presentation remains outside that historical peer run. Keep the broad A10 per-item audit open, preserve the BronzePick/IronPick acquisition-target gaps for final progression disposition, and defer A10 final verification.
+- **Next eligible A8b item audit:** Fang Spear (`FangSpear`), following Wolf Pelt Boots in recipe/output order.
+
+## Run 2026-10-24 — A10 per-item audit: A8b Fang Spear
+
+- **Scope and catalogue:** audited the carried `FangSpear` only. Schema-16 `GameCatalogues.json` registers the spear profile, Forge progression recipe, spear upgrade costs, shared stat rewards, attack lists, creature drops, and material definitions. The profile is 4 kg, one-handed, 200 maximum condition, and 100 Stab. Its Basic attack adds no attack-specific damage. It is a carried tool rather than a wearable armor piece or placed buildable; those categories and consumable/status behavior are N/A.
+
+- **Acquisition and source chain:** the `FangSpear` row in `recipes/stations/forge.json` is a level-one Forge tool-progression record: 4 WolfFang + 10 Iron + 10 Densewood. It uses the tool-progression `Level` field rather than ordinary inventory-recipe output and batch fields. `FKalmalaToolProgressionContract` loads this record and `ServerProgressTool` creates the same-identity carried tool. Wolf is a Freezing Tundra creature whose catalogue drop gives one WolfFang at 25%; the server's credited-owner durable reward claim records and delivers the roll. Iron follows the earlier A1 audit: Bronze-tier mining yields three IronOre from Mossy Mire bog-iron, then one IronOre plus one Coal smelts to one Iron in 30 active seconds. Densewood follows the earlier material audit: Iron Axe felling of the Elderwood ironheart trunk yields a stable one-item pickup with a deterministic one-in-four bonus item. The live Fang Spear peer fixture staged its materials and did not exercise these source chains.
+
+- **Upgrade and combat:** the single registered Forge upgrade uses 2 WolfFang + 5 Iron + 5 Densewood and advances the same tool to level two; its reward adds 5 Stab and 50 maximum condition. Server melee uses the shared Basic path, standard 0.18-second windup, 0.36-second recovery and 220 cm reach, with the profile's 100 Stab and no status or extra attack effect. Historical damage-profile coverage checks base and upgraded values.
+
+- **Authority, persistence, and acceptance:** `ServerProgressTool` requires server authority, a visible same-world Forge within 2.5 m and line of sight, the required Forge level, and the exact catalogue costs; it commits the candidate inventory/tool state and rolls back if player-state persistence fails. The per-player save stores carried tool ID, level, condition, instance GUID and remaining torch fuel; general pack inventory is outside this save record. `ServerSetMainHand` equips by GUID and the server resolves melee damage. Historical `Verify-A8bFangSpearPeer.ps1` passed with a remote owner, staged exact materials, GUID-bearing level-one spear at 200 condition, GUID equip, one accepted 100-Stab hit against an armor-free Moon Bear, unchanged spear condition, exact payment, unchanged listen-host inventory, client direct-progression rejection and observer privacy. The focused `BasicAttack.AuthorityAndCooldown`, `AllItemSwings` and `DamageProfiles` automations are recorded as passed on 2026-10-23. These tests and peer results were inspected, not rerun in this audit; source-to-Wolf acquisition, rendered Forge/Main Hand presentation and reconnect were not exercised by the peer fixture.
+
+- **Icons and provenance:** catalogue icon manifest row 74, batch AK, maps `FangSpear` to CarriedTool, ToolDetail, Repair and RecipeResult contexts. `docs/icon-provenance.md` records the original isolated ivory-fang-on-wood prompt. The canonical runtime texture is `/Game/Kalmala/UI/Icons/Items/FangSpear.FangSpear`; the icon widget also has a Spear variant-2 fallback. The focused validator confirmed a 1254×1254 RGBA original, transparent 64×64 RGBA prepared icon and imported target.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for manifest registrations, exact profile, level-one Forge progression inputs, Wolf's 25% Fang drop, Basic attack, upgrade inputs/reward and material definitions. The first assertion draft expected generic recipe output/batch fields; after confirming the tool-progression schema uses `Level`, the corrected focused assertions passed. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id FangSpear` passed. Static source inspection confirmed server station/payment/persistence and combat authority. No Unreal build, automation, or new peer scenario was run.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No within-item source or catalogue defect was found. Keep the broad A10 item audit open, preserve the BronzePick/IronPick acquisition-target gaps for final progression disposition, and defer A10 final verification.
+- **Next eligible A8b item audit:** Wolf Stew (`WolfStew`), following Fang Spear in recipe/output order.
+
+## Run 2026-10-24 — A10 per-item audit: A8b Wolf Stew
+
+- **Scope and catalogue:** audited only the prepared-food item `WolfStew`. Schema-16 `GameCatalogues.json` registers `items/food.json`, the Cauldron recipe file, creature drops and crop items. The definition is displayed as Wolf Stew, described as a stew of wolf meat, carrots and onions, and has MaxStack 20. It has no equipment or carried-tool profile, attack list, item upgrade cost or stat reward; those categories are N/A. Its applicable use is the shared prepared-food effect.
+
+- **Recipe and ingredient sources:** enabled `WolfStewRecipe` consumes exactly 1 WolfMeat + 3 Carrot + 3 Onion at the Cauldron, outputs one serving per batch, allows up to five batches and awards 10 Cooking experience per accepted batch. Wolf is a Freezing Tundra creature whose catalogue drop supplies one WolfMeat at 100%; it is delivered through the server's credited-owner durable Wolf reward claim. Carrot and Onion follow the previously audited A0/A7 paths: the Meadow wild-carrot patch grants 2 Carrots + 1 CarrotSeed, and the Elderwood wild-onion patch grants 2 Onions + 1 OnionSeed. In A7, each Garden Plot crop uses one matching seed to grow three foods after 600 active seconds in an active terrain patch; the reciprocal food-to-seed modes each yield three seeds. These source-pair audits are cross-referenced, not repeated.
+
+- **Server cooking, consumption and effect:** `CraftFromServer` checks server authority, the visible same-world Cauldron, a usable lit hearth and the exact recipe payment before granting output and Cooking experience. The accepted Wolf Stew cooking test confirms one serving and no extra hearth-fuel debit. `ConsumeFoodFromServer` accepts `WolfStew` through the known-food allowlist, checks that no Steady Meal is active, commits exactly one serving and applies the 120-second Steady Meal with a -0.10 additive stamina-cost modifier. A second food is rejected while the effect is active without consuming or refreshing it; a failed status application rolls the serving back. The status list is server-authored and owner-only replicated.
+
+- **Save boundary and acceptance evidence:** active Steady Meal state is transient: the replicated status array has no SaveGame field, and there is no offline catch-up. The player save covers discoveries, learned effects, M9 claims and carried tools, not ordinary pack inventory or food status. `Kalmala.Gameplay.Food.CookingStationHeat` checks exact Wolf Stew ingredient payment, one output, Cooking experience and heat/fuel behavior; `Kalmala.Gameplay.Status.SteadyMeal` checks WolfStew server use, one-serving consumption and client rejection; `Kalmala.UI.Inventory.PreparedFoodDetails` checks the owner-facing effect/action. The focused setup record says all three automations passed on 2026-10-23. They were inspected, not rerun here. `Scripts/Tests/Inventory/ItemPeers.ps1 -Scenario Meal` exercises Peat Heart Stew, not Wolf Stew; no WolfStew-specific live peer run is recorded. The cooking fixture grants its ingredients, so it does not exercise the Wolf reward claim or the full source-to-Cauldron flow. The referenced `docs/alpha-item-details.md` and `docs/material-icons.md` are absent; current Wolf Stew details and verification guidance are available in `docs/07-development-setup.md`, `docs/biome-enemies.md` and `docs/icon-provenance.md`.
+
+- **Icons and provenance:** catalogue icon manifest row 75, batch AK, maps `WolfStew` / `WolfStewRecipe` to PackInventory, ItemDetail, Storage and RecipeResult. `docs/icon-provenance.md` records the original red-brown bowl-of-stew prompt. Catalogue texture lookup resolves the canonical `WolfStew` Texture2D; the icon widget has a Bowl variant-4 fallback. The focused validator confirmed the 1254×1254 RGBA original, transparent 64×64 RGBA prepared icon and imported target `/Game/Kalmala/UI/Icons/Items/WolfStew.WolfStew`.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema-16 registration, the exact food definition/recipe, Wolf's guaranteed WolfMeat drop, registered Carrot/Onion definitions and N/A attack/profile/upgrade/reward categories. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id WolfStew` passed. Static inspection confirmed the server cooking/consumption transaction, status replication/save boundary and historical acceptance scope. No Unreal build, automation or live peer scenario was run.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No within-item recipe, source registration, effect or authority defect was found. Keep the broad A10 item audit open, preserve the BronzePick/IronPick acquisition-target gaps for final progression disposition, and defer A10 final verification.
+- **Next eligible A8b item audit:** Lynx Mantle (`LynxMantle`), following Wolf Stew in recipe/output order.
+
+## Run 2026-10-24 — A10 per-item audit: A8b Lynx Mantle
+
+- **Scope and catalogue:** audited only `LynxMantle`. Schema-16 `GameCatalogues.json` registers its Cape definition, the hides material catalogue, Workbench recipe, cape upgrade costs, shared item-stat rewards and Lynx creature source. The definition is MaxStack 1, 2 kg, Cape slot, 8 Armor and 100 maximum condition. It has no attack record or consumable/status behavior; those categories are N/A. Current A8b design/setup evidence says fur gear grants no cold protection.
+
+- **Source and recipe:** enabled `LynxMantleRecipe` consumes exactly 4 `LynxPelt` at a Workbench, outputs 1 Mantle, allows one batch, and awards no skill experience. The Lynx is a Freezing Tundra creature; its registered drops are 2 `BoneFragment` at 100% and 1 `LynxPelt` at 50%. The accepted source path is a server-rolled credited-owner reward claim; the stored result and complete reward candidate are retained for retry when pack capacity is insufficient. This is the pelt's source route, not a separate crafting recipe. The Lynx source regression covers reward serialization and full-pack retry; the Lynx combat peer does not exercise the source-to-Mantle chain.
+
+- **Craft, equip, upgrade, authority and save:** `CraftFromServer` requires authority/controller, an enabled recipe, the visible same-world Workbench within 2.5 m, and server inventory exchange for exact payment. `EquipGearFromServer` validates the physical item GUID and catalogue slot on the server; owner-only replicated gear then contributes the authored armor profile to server damage resolution. The registered level-one Workbench upgrade costs 2 `LynxPelt` + 1 `BoneFragment`; its shared level-two reward adds 1 Armor and 10 maximum condition. Runtime has no general wearable upgrade transaction (the specific wearable upgrade RPC is Opal Helm); the Lynx Mantle upgrade entry is catalogue metadata without an available execution route. Player SaveGame records carried tools, discoveries, learned effects and M9 claims; they do not serialize ordinary pack inventory or `EquippedGear`. Gear wear and level are session-only maps, so the crafted/equipped Mantle and its condition/level do not persist in the current player save. The source reward claim is durable separately from delivered inventory.
+
+- **Icons and provenance:** catalogue icon manifest row 76, batch AK, maps `LynxMantle` / `LynxMantleRecipe` to PackInventory, ItemDetail and RecipeResult. `docs/icon-provenance.md` contains its original russet spotted-fur mantle prompt. `FindCatalogueIcon` maps the item to Hide variant 6 for fallback; canonical texture lookup resolves `/Game/Kalmala/UI/Icons/Items/LynxMantle.LynxMantle`. The focused validator confirmed a 1254×1254 RGBA source, transparent 64×64 prepared image and imported target.
+
+- **Acceptance evidence and remaining gaps:** existing focused coverage includes `Kalmala.Gameplay.Inventory.Catalogue` (Cape profile and level-two stats), `Kalmala.Gameplay.M9.ToolProgressionCatalogue` (acquisition/upgrade records), `Kalmala.Gameplay.Inventory.WornGearTransactions` (exact-GUID Cape replacement/return), and `Kalmala.Gameplay.Food.CookingStationHeat` (missing Workbench rejection, no payment, accepted exact-cost craft, GUID output and Cape equip). The setup records `CookingStationHeat`, `WornGearTransactions`, and `ToolProgressionCatalogue` passed alongside the 2026-10-23 Editor build. These records were inspected, not rerun. The combined A8/I4 gate later passed its 178-test queue and shared live peers, including the representative Vest craft/equip peer; it intentionally had no per-item fixtures, and no Lynx Mantle live craft/equip or rendered owner-presentation acceptance is recorded. This increment did not rerun that gate. The linked `docs/alpha-item-details.md` and `docs/material-icons.md` are absent; the current item contract and icon provenance are recorded in `docs/07-development-setup.md`, `docs/biome-enemies.md` and `docs/icon-provenance.md`.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16 registrations, the exact Cape definition, enabled Workbench recipe, Freezing Tundra Lynx drop, registered upgrade costs and shared reward. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id LynxMantle` passed. Static inspection confirmed server craft/equip authority, owner-only gear replication, tool-only SaveGame records, session-only gear wear/level, and the existing upgrade/live-acceptance boundary. No Unreal build, automation, or live peer run was performed in this A10 audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No within-scope definition, recipe, source-registration or icon-mapping contradiction was found. Wearable upgrade execution and Lynx Mantle-specific live/rendered craft/equip acceptance remain gaps. Keep the broad A10 per-item audit open, preserve the BronzePick/IronPick acquisition-target gaps for final progression disposition, and defer A10 final verification.
+- **Next eligible A8b item audit:** Polar Bear Coat (`PolarBearCoat`), following Lynx Mantle in recipe/output order.
+
+## Run 2026-10-24 — A10 per-item audit: A8b Polar Bear Coat
+
+- **Scope and catalogue:** audited only `PolarBearCoat`. Schema-16 `GameCatalogues.json` registers the Chest wearable definition, Polar Bear Pelt and Iron materials, Forge recipe, tunic upgrade costs, shared armor stat reward and creature source. The item is MaxStack 1, 12 kg, Chest slot, 50 physical Armor and 200 maximum condition. It has no attack or consumable/status action; those categories are N/A. Fur equipment grants no cold protection.
+
+- **Sources and Forge recipe:** enabled `PolarBearCoatRecipe` consumes exactly 5 `PolarBearPelt` + 20 `Iron` at the Forge, outputs one coat, caps at one batch and awards no skill experience. Polar Bear is a Freezing Tundra creature whose accepted credited-owner reward claim supplies 3 `BoneFragment` and 2 guaranteed `PolarBearPelt`; the world population save retains the owner-bound claim and its all-or-nothing bundle for retry when inventory cannot fit. Iron follows the prior A1 source audit: Bronze-tier pick or better mines 3 `IronOre` from accepted Mossy Mire bog-iron nodes (a seeded 3% Amethyst replacement can replace a node), then the Smelter consumes 1 IronOre + 1 Coal to produce 1 Iron after 30 active server seconds. Coal follows the A1 Charcoal Kiln route, 1 Wood to 1 Coal after 30 active seconds. No Iron bar is dropped directly. The prior A1 audit also recorded that the mine-node depletion callback ignores a failed sparse-save result; an unsuccessful write can let an IronOre node return after restart. This upstream persistence caveat was not retested or changed here. The source and recipe values align with the accepted A8b item record; the armor table's 2-Pelt + 10-Iron Forge cost is the upgrade, not the acquisition recipe.
+
+- **Craft, equip, combat and upgrade:** `CraftFromServer` checks server authority, enabled recipe, visible same-world Forge context/range, capacity and exact payment. Existing `Kalmala.Gameplay.Food.CookingStationHeat` coverage rejects the missing-Forge request without spending the five Pelts or twenty Iron, then pays the exact recipe and equips its one physical output GUID into Chest. `EquipGearFromServer` validates that item GUID and catalogue slot on the server; equipped gear is owner-only replicated and its physical Armor profile is applied by authoritative combat resolution. The registered level-one Forge upgrade costs 2 `PolarBearPelt` + 10 `Iron`; the shared level-two reward adds 1 Armor and 10 maximum condition. Wearable costs/rewards are validated catalogue metadata, but runtime has no general wearable upgrade transaction; the only dedicated wearable upgrade RPC is for Opal Helm, leaving the Coat upgrade without an execution route.
+
+- **Save behavior:** the Polar Bear defeat/reward claim is population-save escrow and the Smelter's ore/Coal queues, output and active time are world-saved. Current schema-3 player SaveGame stores discoveries, M9 claims, learned effects and carried tool records; it does not serialize ordinary inventory or `EquippedGear`. PolarBearCoat condition and level are held in session-only gear maps. Delivered Pelts/Iron, the coat, and its equipped state therefore do not persist in the player save, separate from the durable enemy claim and station/world state.
+
+- **Icons and provenance:** catalogue icon manifest row 77, batch AK, maps `PolarBearCoat` / `PolarBearCoatRecipe` to PackInventory, ItemDetail and RecipeResult. `docs/icon-provenance.md` records the original ivory polar-bear chest-coat prompt. `FindCatalogueIcon` maps the fallback to Hide variant 7; canonical lookup resolves `/Game/Kalmala/UI/Icons/Items/PolarBearCoat.PolarBearCoat`. The focused validator confirmed the 1254×1254 RGBA source, transparent 64×64 prepared icon and imported target.
+
+- **Acceptance evidence and gaps:** focused coverage includes `Kalmala.Gameplay.Inventory.Catalogue` (Chest/level-two stats), `Kalmala.Gameplay.M9.ToolProgressionCatalogue` (Forge acquisition/upgrade records), `Kalmala.Gameplay.Inventory.WornGearTransactions` (exact-GUID Chest replacement/return), `Kalmala.Gameplay.Food.CookingStationHeat` (Forge rejection, exact craft/payment and GUID equip), and `Kalmala.Gameplay.Wildlife.PolarBear.TundraChargeAndRewardClaim` (owner-bound 3-Bone/2-Pelt escrow and capacity retry). The recorded 2026-10-23 Editor build and the four Coat item/catalogue automations passed; the records were inspected, not rerun. Historical `PolarBearPeer.ps1` passed generated-bear start exclusion, server charge/damage/recovery and observer telegraph checks; it is creature combat coverage, not a pelt-to-Coat progression peer. The combined A8/I4 gate later passed its 178-test queue and used one representative live A8b Chest craft/equip peer (`BadgerFurVest`), with no per-item Coat fixture or rendered owner-UI check. Other combat fixtures may equip a server-granted Coat as a test defense, but they do not verify its recipe/source route, explicit 50 Armor / 200 condition acceptance, or rendered owner presentation. No live PolarBearPelt-to-Coat craft/equip or Coat-specific profile/durability/render acceptance is recorded.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16 registrations, the exact Chest definition, enabled Forge recipe, guaranteed Polar Bear drops, upgrade cost and shared reward. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id PolarBearCoat` passed. Static inspection confirmed the earlier Iron/Coal source records, server crafting/equip authority, owner-only gear replication, tool-only player save records, session-only gear wear/level, durable Polar Bear claim and unsupported general wearable-upgrade boundary. No Unreal build, automation, or live peer was run in this A10 audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No within-scope definition, recipe, material source quantity, drop, or icon mismatch was found; the earlier IronOre source save-write caveat remains an upstream limitation. Wearable upgrade execution and Coat-specific live craft/equip/render acceptance remain gaps. Keep the broad A10 item audit open, preserve the BronzePick/IronPick acquisition-target gaps for final progression disposition, and defer A10 final verification.
+- **Next eligible A8b item audit:** Horn Bow (`HornBow`), following Polar Bear Coat in recipe/output order.
+
+## Run 2026-10-24 — A10 per-item audit: A8b Horn Bow
+
+- **Selected increment and registration:** audited only `HornBow`; the broad A10 item-audit child remains open. Schema-16 `GameCatalogues.json` registers the bow profile, Workbench recipe, bow attack list, upgrade cost/reward and Horned Goat creature source. The profile is two-handed, 2.5 kg, 140 condition, 3-second base full draw and +100 Pierce. Its `Basic` bow attack entry has no melee damage; melee use is intentionally N/A.
+
+- **Acquisition and source chain:** enabled level-one Workbench recipe `HornBow` costs exactly 2 `GoatHorn` + 10 `Densewood` + 1 `BowString` for one bow. The Horned Goat's Thunder Mountains creature row awards 1 `GoatHorn` at 100%; the prior A8b source record confirms the server-owned credited-owner claim and all-or-nothing retry behavior. Densewood follows the previously audited Elderwood `elderwood-ironheart-trunk` route: Iron Axe felling and server pickup yield one, with a stable deterministic one-in-four bonus item. Bow String has no direct drop: its Workbench recipe converts 4 Sinew into 1; the prior A10 Sinew review records Deer as its 1-at-50% source. Those component routes are cross-referenced, not re-audited here.
+
+- **Combat, upgrade and authority:** Bow draw duration is read from the registered profile; the server records draw start time and equipped tool GUID, derives the held bow identity/level, chooses a supported server-owned arrow stack, and resolves shot damage. Wooden Arrow uses its draw-progress curve; other supported arrows use their authored fixed Pierce attack. The equipped Horn Bow adds its level's +100 Pierce once. An accepted shot spends one arrow and one condition together; if player-state persistence fails, both inventory and condition changes roll back. Horn Bow is excluded from melee. Its one authored level-one Workbench upgrade costs 1 `GoatHorn` + 5 `Densewood` + 1 `BowString`; level two adds 30 maximum condition (170 total) and leaves Pierce at 100. Unlike the unsupported wearable-upgrade metadata recorded for armor, the carried-tool `ServerProgressTool` path supports the registered bow upgrade with server-validated station/material payment and persisted tool state. No slow-draw or upgrade data/runtime contradiction was found.
+
+- **Save boundary:** the schema-3 player save stores carried-tool item ID, level, condition and instance GUID, so Horn Bow ownership/progression/condition persist. The burn-time field is zero for this item and is special to Basic Torch. Ordinary arrow stacks and main-hand selection have no corresponding player-save fields; bow ammunition and selected hand therefore are not recorded by this save path.
+
+- **Icon and acceptance evidence:** icon manifest row 78, batch AK, records the `HornBow` original and CarriedTool/ToolDetail/Repair/RecipeResult uses; `docs/icon-provenance.md` contains its original cream-horn/darkwood bow prompt. `FindCatalogueIcon` maps to Bow variant 1, and canonical lookup resolves `/Game/Kalmala/UI/Icons/Items/HornBow.HornBow`. Historical `TwoHanded`, `BowDrawAndArrows`, `BasicAttack.AuthorityAndCooldown`, `AllItemSwings` and `M9.ToolProgressionCatalogue` coverage checked the profile, recipe, upgrade, draw/shot, rollback and melee rejection; the 2026-10-23 editor build and focused combat queue were recorded passing, inspected but not rerun here. These are local automations. The later 178-test I4 queue and representative `BadgerFurVest` live craft/equip peer do not provide a Horn Bow source-to-craft peer; no Horn Bow-specific multiplayer craft/delivery/equip/fire or rendered owner/combat acceptance is recorded. `docs/alpha-item-details.md` and `docs/material-icons.md` are absent; current contracts and icon provenance are in the existing setup, biome-enemy and icon-provenance documents.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell JSON assertions passed for schema-16 registration, the exact bow profile, acquisition and upgrade costs, level-two reward, attack registration, guaranteed Goat Horn source and Bow String recipe record. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id HornBow` passed and confirmed the 1254×1254 RGBA original, transparent 64×64 prepared icon and imported target. Static source inspection confirmed profile-driven draw duration, server-owned bow/arrow/damage resolution, persistence rollback, carried-tool upgrade execution and save fields. No automation, live peer or build was run in this A10 increment.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue or icon files changed. No within-item data/runtime defect was found. Horn Bow-specific live progression, peer visibility and rendered acceptance remain open under I4. Keep the broad A10 item audit open, preserve the BronzePick/IronPick acquisition-target gaps for final progression disposition, and defer A10 final verification.
+- **Next eligible A8b item audit:** Thunder Maul (`ThunderMaul`), following Horn Bow in recipe/output order.
+
+
+
+## Run 2026-10-25 — A10 per-item audit: A8b Thunder Maul
+
+- **Selected increment and registration:** audited only `ThunderMaul`; the broad A10 per-item audit remains open. Schema-16 `GameCatalogues.json` registers the mace profile, Forge acquisition, level-up cost/reward, attack row and Thunder Sentinel source. The carried-tool profile is a 10 kg, two-handed mace with 220 starting condition and 100 Crush + 30 Lightning. Its `Basic` attack row explicitly contains zero in each channel; runtime adds the profile and attack row once. It is a carried tool acquired through the tool-progression path, not an ordinary inventory item or portable construction kit.
+
+- **Sources and Forge progression:** the enabled level-one Forge recipe costs exactly 1 `ThunderCore` + 20 `Iron` + 10 `Densewood`. The approved material is `ThunderCore`; I found no `Thorium` catalogue ID, so the recipe/source audit follows the registered Thunder Core identity. The Thunder Sentinel source row supplies 3 `Stone` guaranteed and 1 `ThunderCore` at 25%. Server reward code binds a stored core/no-core roll to the authenticated owner claim; the serialized claim retains its outcome and the complete Stone/Core candidate waits for capacity before delivery. The Iron and Densewood component routes are cross-referenced to earlier A10 audits: Bronze-tier mining yields 3 `IronOre` per accepted Mossy Mire node, and one ore + one Coal smelts to Iron in 30 active seconds; Wood makes Coal at the Kiln in 30 seconds. `BronzePick`/`IronPick` acquisition target mismatches remain open. The earlier Iron audit also records that a failed sparse-save write can allow a depleted IronOre node to reappear after restart. Densewood comes from server-felled Elderwood `elderwood-ironheart-trunk` using an Iron Axe; the accepted pickup gives one with a stable one-in-four bonus. Those component routes were not re-audited here.
+
+- **Attack, Lightning, upgrade and authority:** server melee accepts a fresh action on authority, selects and rechecks the target, then revalidates the current carried item, level, condition and living owner after windup. The `ThunderMaul` profile contributes 100 Crush + 30 Lightning on the same accepted server hit. Lightning is instant, bypasses wearable physical Armor, and joins the remaining physical subtotal before target general Armor is applied once; any target-specific Lightning channel reduction still applies. The Maul adds no resistance, chaining, damage-over-time, stun or environmental effect, and its `Action=None` profile plus the server axe-action gate leave harvesting N/A. The level-one Forge upgrade costs 1 `ThunderCore` + 10 `Iron` + 5 `Densewood`; its reward is +5 Crush and +50 maximum condition, leaving Lightning at 30. Level two therefore has 105 Crush, 30 Lightning and 270 maximum condition. `ServerProgressTool` checks the same-world visible Forge and exact level/material contract, commits inventory and tool state together, and restores both if player-save persistence fails. The melee route checks that condition is positive but does not decrement it on an accepted hit. The design says misses spend no condition but does not specify a per-hit wear amount for the Maul; this audit records the contract gap and adds no inferred wear cost.
+
+- **Save behavior:** player SaveGame schema 3 validates and stores carried tool item ID, level, condition and instance GUID, so Maul ownership/progression/condition are represented by the existing tool record. Ordinary inventory materials and selected main-hand state are session-only. The separate world-population save owns the Thunder Sentinel outcome claim. No save schema changed.
+
+- **Icon and runtime mapping:** `Scripts/Data/catalogue-icon-manifest.csv` row 79, batch AK, maps `ThunderMaul` to CarriedTool, ToolDetail, Repair and RecipeResult presentation. `docs/icon-provenance.md` records the original two-handed maul prompt with inset blue-gray core and no emitted lightning. `Validate-UIIcons.ps1` resolves the imported canonical texture and runtime mapping; the player model maps the tool kind to the generic Mace held visual. No Maul-specific rendered peer acceptance is recorded.
+
+- **Acceptance evidence and gaps:** inspected setup records show the 2026-10-23 Editor incremental build and `Kalmala.Gameplay.M9.ToolStationProgression`, `Kalmala.Gameplay.Combat.DamageProfiles`, and `Kalmala.Gameplay.Combat.AllItemSwings` passing. The focused tests cover Forge costs/upgrade identity, 220/270 condition, 105 Crush/unchanged 30 Lightning, one server hit, and Lightning versus wearable/general Armor. The recorded 2026-10-24 A8a/A8b I4 gate passed its 178-test queue and shared Rat reward/Badger Fur Vest craft/equip peers; those do not provide a Thunder Maul-specific live Forge delivery, remote combat, or rendered-owner check. The Thunder Sentinel peer verifies the enemy attack/telegraph, not Maul progression. These historical runs were inspected, not rerun. The remaining A10-wide Bronze/Iron source progression gaps and the absence of a defined melee-hit condition cost remain explicit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused JSON assertions passed for schema-16 registrations, the exact Maul profile, acquisition and upgrade costs, level-two reward, zero-valued Basic attack row and guaranteed ThunderCore source. `python Scripts/Validate-CatalogueReferences.py` passed with 61 registered JSON files, 152 unique item/buildable definitions, 777 resolved references and 152 canonical icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ThunderMaul` passed and reported a 1254×1254 RGBA original plus transparent 64×64 RGBA target at `/Game/Kalmala/UI/Icons/Items/ThunderMaul.ThunderMaul`. Static inspection confirmed server damage, armor arithmetic, Forge transaction rollback, claim persistence and carried-tool save records. No Unreal build, automation, peer or live game run was performed in this A10 audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** the server owns the Thunder Core roll/claim/retry, exact Forge cost/station validation, tool progression persistence, target selection, attack timing and damage application. No client-provided damage channel or material quantity is trusted.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon or save files changed. No within-item recipe/profile/Lightning/runtime-mapping contradiction was found. Thunder Maul-specific live source-to-Forge delivery, peer-visible hit/presentation, and the undefined melee-hit condition cost remain for final acceptance disposition. Keep the broad A10 item audit open, preserve the BronzePick/IronPick acquisition-target gaps, and defer milestone-final verification.
+- **Next eligible A8b item audit:** Reef Harpoon (`ReefHarpoon`), following Thunder Maul in recipe/output order.
+
+## Run 2026-10-25 — A10 per-item audit: A8b Reef Harpoon
+
+- **Selected increment and registration:** audited only `ReefHarpoon`; the A10
+  item-audit child remains open. Schema-16 `GameCatalogues.json` registers the
+  spear profile, Forge acquisition, spear-family upgrade costs, shared stat
+  reward, attack list and creature definitions. `ReefHarpoon` is a carried
+  tool profile, not an ordinary stack item. Its one-handed profile weighs
+  4 kg, starts at 150 condition and adds 60 Pierce. The registered `Basic`
+  attack row is zero in every channel; the spear profile supplies Pierce
+  damage. It has no thrown/ammunition mode, harvesting action, use effect or
+  skiff-damage behavior. These categories are N/A under the approved contract.
+
+- **Sources and Forge costs:** enabled level-one Forge acquisition consumes
+  exactly 3 `ReefTooth` + 8 `Iron` + 4 `Lightwood` for one harpoon. Reef Maw is
+  registered in the Ocean with the accepted 50% Reef Tooth reward; the server
+  binds the roll to the credited owner's persisted population claim and commits
+  the Bone/Tooth bundle atomically, retaining the claim when inventory capacity
+  is insufficient. Iron and Lightwood routes were cross-referenced to earlier
+  A10 source audits: Bronze-tier mining yields 3 `IronOre` per accepted Mossy
+  Mire bog-iron node; the Smelter consumes 1 IronOre + 1 Coal for 1 Iron after
+  30 active server seconds; the Kiln produces Coal from 1 Wood after 30 active
+  seconds. Meadow Aspen bundles yield exactly 4 Lightwood with Stone Axe or
+  better. The earlier Iron audit's failed sparse-write risk for depleted
+  bog-iron, and the `BronzePick`/`IronPick` acquisition-target mismatches,
+  remain upstream A10 limitations; they were not retested here.
+
+- **Combat and upgrade:** shared server melee validates a fresh request, active
+  carried item, usable condition and owner state, then rechecks after windup and
+  applies the registered `Basic` attack through the authoritative target path.
+  The `Spear` family runtime contract explicitly states spear attack condition
+  does not wear; this resolves the generic “consuming uses” wording for Reef
+  Harpoon, so accepted hits do not spend condition. Misses also spend none. The
+  weapon uses the approved 220 cm close strike and is not thrown. Its level-one
+  Forge upgrade costs 1 `ReefTooth` + 4 `Iron` + 2 `Lightwood`; shared level-two
+  stats add 5 Pierce and 30 maximum condition, for 65 Pierce and 180 maximum
+  condition. `ProgressToolFromServer` requires authority, a visible same-world
+  Forge and exact station level/material contract, commits candidate tool and
+  inventory state together, and rolls both back when player-save persistence
+  fails.
+
+- **Save behavior:** current schema-3 player SaveGame records carried-tool item
+  ID, level, condition and instance GUID, so harpoon ownership, upgrade level
+  and condition persist. Ordinary material stacks and selected Main Hand remain
+  session state. Reef Tooth's owner-bound reward outcome lives in the separate
+  world-population claim; Lightwood depletion uses the forest source's sparse
+  world-save record. No save schema changed.
+
+- **Icon and held mapping:** catalogue icon manifest row 80, batch AK, maps
+  ReefHarpoon to the `CarriedTool`, `ToolDetail`, `Repair` and `RecipeResult`
+  views. `docs/icon-provenance.md` records the original prompt for one wooden
+  shaft, barbed iron head and pale reef-tooth inset on a transparent background.
+  Runtime icon lookup maps the ID to Spear variant 3 and canonical texture
+  `/Game/Kalmala/UI/Icons/Items/ReefHarpoon.ReefHarpoon`; the player model maps
+  `EKalmalaToolKind::ReefHarpoon` to the shared Spear held visual. The focused
+  validator confirmed the original RGBA source, transparent 64×64 prepared
+  texture and imported target.
+
+- **Acceptance evidence and gaps:** historical
+  `Kalmala.Gameplay.Combat.AllItemSwings` covers the Harpoon's server melee
+  route and catalogued hit; `DamageProfiles` covers handedness, Pierce, recipe,
+  upgrade and level-two stats; `M9.ToolStationProgression` covers exact Forge
+  costs, full starting condition and GUID/current-condition retention across
+  the level-two contract. The documented 2026-10-23 Editor incremental build
+  and these focused automations passed; records were inspected, not rerun. The
+  2026-10-24 combined A8/I4 gate passed its 178-test queue and shared Rat
+  reward / Badger Fur Vest live craft-equip peers. Reef Maw's earlier peer
+  confirms its own server bite and replicated cues, not Harpoon acquisition.
+  No ReefHarpoon-specific live Forge delivery, remote equip/combat or rendered
+  owner acceptance is recorded.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16
+  data registration, the exact profile, Forge acquisition and upgrade costs,
+  level-two reward and zero-valued `Basic` attack row.
+  `python Scripts/Validate-CatalogueReferences.py` passed with 61 registered
+  JSON files, 152 definitions, 777 resolved references and 152 canonical
+  runtime icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue
+  -Id ReefHarpoon` passed and confirmed the 1254×1254 RGBA original plus
+  transparent 64×64 target. Static inspection confirmed server Forge
+  transaction/persistence rollback, server melee validation, the spear
+  condition-wear contract, carried-tool save records and the held/icon mappings.
+  No Unreal build, automation, live peer or game session was run in this A10
+  audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns source reward rolls and claims, Forge
+  station/material validation, tool progression persistence, attack timing,
+  active-item validation and damage application; no client-authored damage or
+  cost is trusted.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon
+  or save files changed. No within-item recipe/profile/source/icon mismatch or
+  runtime defect was found. ReefHarpoon-specific live progression/combat/render
+  acceptance remains for A10/I4 disposition, alongside broader A9 item and N/A
+  audits, fresh-start progression, the pre-existing Iron/Pick source notes, and
+  final A10 verification.
+- **Next eligible A10 item audit:** Smoky Quartz (`SmokyQuartz`), first in A9
+  backlog order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Smoky Quartz
+
+- **Selected increment and registration:** audited only `SmokyQuartz`, the next
+  A9 item in backlog order. Schema-16 catalogue registration includes
+  `items/materials/gems.json` and the A9 gear recipes. Smoky Quartz is a raw
+  material stack (20 maximum, 0.1 kg); it has no equipment profile, attack,
+  upgrade, or use effect. A direct crafting recipe is N/A: it is acquired from
+  its world source and used in one enabled Forge recipe, `QuartzNecklace`, for
+  3 `Bronze` + 1 `SmokyQuartz` → 1 Quartz Necklace.
+
+- **World source and behavior:** the accepted A9 contract replaces 5% of
+  eligible Elderwood copper-vein slots or Shimmering Lakes tin-gravel slots
+  with a dedicated `gem-quartz-rock`; it does not add a gem co-drop to ordinary
+  ore. The seeded source maps to exactly one `SmokyQuartz`, is enabled, and
+  requires Stone-tier pick access. The node contract allows three accepted
+  hits and resolves a deterministic 10% smash roll on each, including the last;
+  if intact through extraction it releases one gem. No separate direct drop or
+  additional acquisition route was found.
+
+- **Authority, persistence, and save boundary:** server node handling validates
+  owner, target/range, active pick family/tier, living state and usable
+  condition. Accepted hit condition and sparse world-population hit/outcome
+  state are committed before replicated progress; a loose-gem claim validates
+  capacity and commits exactly one item and the consumed node state with
+  rollback on persistence failure. The world-population save schema is 2 and
+  retains partial, shattered, loose and claimed node states. Ordinary inventory
+  and gear remain session-only; this source persistence does not restore the
+  player's general item stacks. The save-version table in
+  `docs/02-technical-architecture.md` still lists generated population deltas
+  as schema 1, unlike the current code and A9 contract. This is a separate
+  cross-cutting documentation mismatch; it was not changed in this item audit.
+
+- **Icon and runtime mapping:** manifest row 81, batch AL, covers inventory
+  and item-detail views. The original icon is
+  `Content/Kalmala/UI/Source/IconOriginals/SmokyQuartz.png`, with the prepared
+  source at `Content/Kalmala/UI/Source/Icons/SmokyQuartz.png` and imported
+  asset at `Content/Kalmala/UI/Icons/Items/SmokyQuartz.uasset`. The provenance
+  guide records its original prompt; runtime lookup maps it to Rock variant 0.
+
+- **Focused and live acceptance evidence:** inspected focused gemstone contract
+  coverage for deterministic 5% Quartz slot replacement, three-hit/10% smash
+  behavior, and node-state save round trips; the A9 gear contract covers the
+  Quartz Necklace recipe and one-gem consumption. Historical A9 peer records
+  exercise a canonical Quartz node with two owning clients, partial-hit
+  reconstruction, full-pack claim rejection/retry, a single SmokyQuartz reward,
+  and fresh-process claim-state restoration. The peer provisions the pick and
+  equipment and does not prove fresh-start no-grant progression; no standalone
+  SmokyQuartz inventory/detail render is recorded. Historical A9 combined I5
+  records include 187 passing automation cases plus applicable peers/restarts
+  and renders; these records were inspected, not rerun here.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16
+  registration, Smoky Quartz stack/weight, the exact enabled Forge recipe and
+  ingredients, source mapping, and icon manifest row. `python
+  Scripts/Validate-CatalogueReferences.py` passed with 61 registered JSON
+  files, 152 definitions, 777 resolved references, and 152 canonical runtime
+  icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
+  SmokyQuartz` passed for the 1254×1254 RGBA original and transparent 64×64
+  imported target. Static inspection confirmed server validation and
+  persistence ordering. No Unreal build, automation, live peer, or game
+  session was run for this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** world-source selection, mining rolls, condition
+  changes, inventory grant and node claims are server-authored. The relevant
+  inventory grant remains owner-specific; no client-provided reward or damage
+  is trusted.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon,
+  or save files changed. No within-item data, recipe, source, icon, authority,
+  or persistence defect was found. A9 no-grant acceptance and the standalone
+  raw-gem render evidence remain unproven for this item; broader A10 item/N/A
+  coverage, previously identified Iron/Pick source issues, and final A10
+  verification remain open.
+- **Next eligible A10 item audit:** Moonstone (`Moonstone`), next in A9 backlog
+  order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Moonstone
+
+- **Selected increment and registration:** audited only `Moonstone`, next in
+  A9 backlog order. Schema-16 catalogues register the raw gem in
+  `items/materials/gems.json` and its use in `recipes/stations/a9-gear.json`.
+  Moonstone is a raw material stack (20 maximum, 0.1 kg); it has no equipment
+  profile, attack, upgrade, or use effect. It has no direct crafting recipe.
+  Its sole registered recipe use is the enabled Forge `MoonstoneRing` recipe:
+  2 `Bronze` + 1 `Moonstone` → 1 Moonstone Ring. The accessory profile gives
+  the equipped ring +20 maximum stamina without directly refilling stamina;
+  that effect belongs to the ring, not the raw gem.
+
+- **Accepted source and runtime route:** only a credited defeat of a validated,
+  generated Elderwood Moon Bear can select exactly one Moonstone, at the
+  accepted fixed 1/50 chance. `MoonstoneSourceAccepted` is enabled. The server
+  authenticates the stable generated descriptor, biome and actual species
+  before selecting the seed-derived result; non-Moon-Bear identities, other
+  biomes and malformed/forged spawn IDs fail closed. No other Moonstone source
+  or direct drop is registered.
+
+- **Authority, persistence, and save boundary:** the server records the
+  credited player's authenticated identity and the optional gem in the same
+  owner-bound pending Moon Bear reward, then saves the defeated source in the
+  world-population schema-2 record. Client input supplies neither gem ID nor
+  roll. Claim delivery validates the owner and complete inventory capacity;
+  a full pack retains the payload. For gem-bearing rewards the server durably
+  removes the pending payload before publishing the inventory change. A failed
+  removal write restores the pending reward in memory. If the inventory commit
+  fails after removal, the code restores the payload and attempts a rollback
+  save. Ordinary inventory remains session-only, so the delivered Moonstone
+  stack itself is not restored by the world claim record. No save schema
+  changed in this item.
+
+- **Icon and runtime mapping:** catalogue icon manifest row 81, batch AL,
+  covers PackInventory and ItemDetail. The original at
+  `Content/Kalmala/UI/Source/IconOriginals/Moonstone.png`, prepared source at
+  `Content/Kalmala/UI/Source/Icons/Moonstone.png`, and imported
+  `Content/Kalmala/UI/Icons/Items/Moonstone.uasset` are present. The provenance
+  guide records the original prompt; runtime lookup maps Moonstone to Rock
+  variant 1.
+
+- **Focused and acceptance evidence:** inspected `Kalmala.World.GemstoneContract`
+  coverage for the 1/50 roll and wrong-biome exclusion,
+  `Kalmala.Gameplay.Discovery.EnemyGemSources` for canonical generated
+  Moon-Bear selection, repeatability and species/forged-ID rejection,
+  `Kalmala.World.EnemyGemPayload` for credited-owner payload serialization and
+  claim removal, and `Kalmala.Gameplay.Inventory.A9GearRecipes` for the exact
+  ring recipe and crafted-item equip transaction. Historical A9 I5 records say
+  the 187-case automation queue passed and report canonical enemy-source and
+  owner-bound payload coverage; these were inspected, not rerun. The final live
+  three-peer A9 mining/treasure scenario covers Quartz and Garnet, not Moonstone.
+  The earlier Moon Bear acceptance predates Moonstone activation and covers
+  species/combat/ordinary rewards, not this gem route. No Moonstone-specific
+  live delivery/reconnect, fresh-process pending-reward restoration, or
+  unassisted fresh-start progression is recorded. No fault-injection acceptance
+  covers the rollback-save failure branch. The final A9 inventory render
+  uses Opal Helm, Garnet Necklace and Dusk Ring; it does not show Moonstone Ring
+  or a raw Moonstone inventory/detail tile.
+
+- **Cross-cutting documentation discrepancies:**
+  `docs/02-technical-architecture.md`'s current save-version table still says
+  generated population deltas use schema 1, while the implementation and A9
+  acceptance contract use schema 2. The older Moon Bear regression text in
+  `docs/07-development-setup.md` says the separate A9 Moonstone source remains
+  disabled; current A9 acceptance/code enable it. That note is pre-A9 context.
+  Neither document was changed in this item-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks:** focused PowerShell assertions passed for schema-16
+  registration, Moonstone stack/weight, the exact enabled Forge recipe and
+  ingredients, Moonstone Ring's +20 maximum stamina profile, the accepted 1/50
+  generated Moon Bear source, and its icon manifest row. `python
+  Scripts/Validate-CatalogueReferences.py` passed with 61 registered JSON
+  files, 152 definitions, 777 resolved references, and 152 canonical runtime
+  icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
+  Moonstone` passed for the 1254×1254 RGBA original and transparent 64×64
+  imported target. Static inspection confirmed server source validation,
+  owner-bound queueing and persistence-before-grant ordering. No Unreal build,
+  automation, live peer or game session was run in this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns generated-source validation, the 1/50
+  roll, owner-bound pending reward, capacity check and payload removal/grant.
+  No client-authored gem identity, roll or quantity is accepted.
+- **Impact and remaining scope:** tracking-only; no gameplay, catalogue, icon,
+  or save files changed. No within-item data, source, recipe, icon, authority,
+  or persistence defect was found. Moonstone-specific live delivery and ring
+  render remain unproven; fresh-start progression, broader A10 item/N/A
+  coverage, the previously identified Iron/Pick source issues and final A10
+  verification remain open.
+- **Next eligible A10 item audit:** Garnet (`Garnet`), next in A9 backlog
+  order.
+
+
+
+
+## Run 2026-10-24 - BH09 continuous biome-height blend
+
+- **Selected increment:** BH09, blend candidate heights with normalized land-biome weights and continuous coast attenuation.
+- **Work completed:** Added a single candidate-height blend that adds the shared source base once and applies the already coast-scaled land weights directly. Removed the duplicate coast multiplication from land offsets while retaining the existing separately weighted ocean offset, biome classifier inputs, labels and eligibility bands. Added fixed transition and synthetic blend regressions for normalized weights, coast attenuation, near-tie continuity, ocean contribution and classifier identity. Updated the architecture contract; checked only BH09.
+- **Files changed:** BACKLOG.md, PROGRESS.md, Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h, Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp, Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp, docs/02-technical-architecture.md.
+- **Lightweight checks/results:** Inspected the existing weight normalization, candidate functions, coast clamp and fixed seed-418 Meadows/Elderwood profile. git diff --check passed. Added automation coverage but did not run Unreal build or automation; full integrated verification remains deferred to BH26.
+- **Observable impact:** Land-biome relief now receives one continuous coast attenuation instead of a second attenuation; fully inland candidate blending retains its previous float accumulation. The ocean offset and its existing weight are unchanged.
+- **Networking/authority:** Shared deterministic sampling remains derived from the immutable world seed/current build; server gameplay authority is unchanged. No RPC, replicated property or save data changed.
+- **Known limitations / remaining scope:** This adds the shared blend only; biome-specific relief layers and their tuning remain BH10–BH18. Build, test execution and rendered acceptance remain deferred to BH26.
+- **Next task in this directed goal:** BH10 — shape Meadows hills and compare bounded shoulder compression against the recorded profiles.
 
 ### Monster population — S22a body-collision clearance
 
 - **Selected increment:** S22a, share each archetype's configured body shapes and reject out-of-bounds or colliding physical placements.
 - **Work completed:** Added an explicit profile for every current wildlife archetype. The root sphere and the Viper, Giant Snake and Death Adder secondary capsules are configured from this profile and consumed by a server-authoritative overlap query, so geometry values are not duplicated. The check validates the full shape footprint against world bounds and evaluates Wolves at their three deterministic member locations. A helper derives the actor origin from generated ground and the sampled upward surface normal: sphere support uses radius divided by normal Z, while capsule support includes its axis and relative offset. The actual world-overlap query remains the final check. Mosquito's existing flight height and Reef Maw's existing ocean depth are retained. Candidate descriptor position, key and seed remain unchanged. No evaluator gate is wired and natural actor creation remains disabled.
 - **Files changed:** Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationBodyClearanceTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected every current archetype's active root/capsule configuration, spawn anchor, generated world bounds, sampled surface normal and visibility-channel collision setup. Added focused automation coverage for all archetype profiles, component/profile agreement, sphere and capsule overlap and clearance, ignored candidate actor, full-body world bounds, unsupported profiles, invalid geometry, existing land/Mosquito/Reef Maw anchors, and nonzero-slope sphere/capsule support math including capsule axis and relative offset. `git diff --check` was run; tests and builds were not run.
+- **Lightweight checks:** Inspected every current archetype's active root/capsule configuration, spawn anchor, generated world bounds, sampled surface normal and visibility-channel collision setup. Added focused automation coverage for all archetype profiles, component/profile agreement, sphere and capsule overlap and clearance, ignored candidate actor, full-body world bounds, unsupported profiles, invalid geometry, existing land/Mosquito/Reef Maw anchors, and nonzero-slope sphere/capsule support math including capsule axis and relative offset. git diff --check was run; tests and builds were not run.
 - **Full verification:** Deferred to S35; S22a is one child of the physical-clearance task, not the final implementation task in the goal.
-- **Observable impact / authority:** Later server placement code can query each creature's actual configured collision shape against blocking world geometry. Land actor origins are derived from the generated-ground anchor and raised enough for every shape's support distance along the sampled surface normal while descriptor XY and identity stay stable. The query is not wired into population admission.
+- **Observable impact / authority:** Later server placement code can query each creature's actual configured collision shape against blocking world geometry. Land actor origins are derived from generated-ground anchors and raised enough for every shape's support distance along the sampled surface normal while descriptor XY and identity stay stable. The query is not wired into population admission.
 - **Networking/authority:** The descriptor predicate requires authoritative GameMode and reads server-owned world/collision state. The shared profiles are deterministic component configuration; no network or save schema changed.
-- **Known limitations:** The placement evaluator remains fail-closed until S25 and natural actor creation remains disabled until S26; S26 must consume the computed actor placement location for new land actors.
-- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
-
+- **Known limitations:** S22c still needs per-species movement support. The placement evaluator remains fail-closed until S25 and natural actor creation remains disabled until S26; S26 must consume the computed actor placement location for new land actors.
+- **Next eligible task:** none — monster-population goal complete.
 
 ### Monster population — S22b solid construction-roof rejection
 
@@ -12128,8 +15854,7 @@
 - **Observable impact / authority:** Later server placement code can ask whether the actual proposed collision-profile top is under an active solid construction roof. The query does not create actors, mutate world state, wire the evaluator, or change saved/replicated data.
 - **Networking/authority:** The descriptor predicate requires GameMode authority; eligible construction hits must be server-authoritative and backed by their current query-collision root box. No network protocol or save schema changed.
 - **Known limitations:** S25 must combine S20–S24 before physical placement can pass; S26 remains the first task that may enable natural actor creation.
-- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
-
+- **Next eligible task:** none — monster-population goal complete.
 
 ### Monster population — S22c movement support
 
@@ -12138,11 +15863,10 @@
 - **Files changed:** Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h, Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
 - **Lightweight checks:** Re-read the S22 support contract and inspected the current wildlife movement samplers, terrain support threshold, Reef Maw swim-depth query and actor placement anchors. Source review confirmed every shared movement rule matches its prior point query; `git diff --check` passed. No tests or builds were run.
 - **Full verification:** Deferred to S35; S22c is not the final implementation task in the monster-population goal.
-- **Observable impact / authority:** Later server placement code can verify movement support at every proposed actor location while preserving current biome, dry/water, slope, leash and depth policies. Existing movement code now shares those point checks. No actor creation, final gate activation, saved-data or replicated-state change was made.
+- **Observable impact / authority:** Later server placement code can verify movement support at every proposed actor location while preserving current biome, dry/water, slope, leash and depth policies. Existing wildlife movement now shares those point checks. No actor creation, final gate activation, saved-data or replicated-state change was made.
 - **Networking/authority:** The descriptor predicate requires GameMode authority and reads server-side deterministic samplers. Existing wildlife movement remains server-authoritative; the shared helper adds no network state.
 - **Known limitations:** S23–S24 still add camp station and spherical suppression queries; S25 combines placement checks. S26 remains the first task that may enable natural actor creation.
-- **Next eligible task:** S23 is next — add the Workbench/Forge station cylinder query.
-
+- **Next eligible task:** none — monster-population goal complete.
 
 ### Monster population — S23 Workbench/Forge station cylinder
 
@@ -12154,158 +15878,541 @@
 - **Observable impact / authority:** Later camp placement checks can query whether a proposed point falls inside an active Workbench/Forge suppression cylinder. The helper only reads server-owned construction state; it does not wire the evaluator, create actors, mutate construction, or alter saved/replicated state.
 - **Networking/authority:** Invalid or non-authoritative query context fails closed. Valid queries inspect only server-authoritative construction actors in the current world. No network protocol or save schema changed.
 - **Known limitations:** S24 still adds the Camp Bed, Campfire and Standing Light spherical query; S25 combines camp suppression and placement results. Natural actor creation remains disabled until S26.
-- **Next eligible task:** S24 is next — add the spherical camp-suppression query.
+- **Next eligible task:** none — monster-population goal complete.
 
+## Run 2026-10-24 — BH11a Meadows rolling relief
+
+- **Selected increment:** BH11a, integrate the Meadows middle-scale rolling
+  layer separately from the broad hill and later floor-detail layer.
+- **Work completed:** Added a dedicated deterministic Meadows rolling-noise
+  domain using the staged 45 m scale and 1.2 m amplitude. It contributes to the
+  complete Meadows candidate before the existing smooth shoulder compression,
+  is multiplied through the existing continuous Meadows/coast weight once, and
+  is sampled only where Meadows weight is positive. Added focused signed-layer,
+  lower-pocket, fixed seed-418/419 30/45/70 m profile, repeatability and
+  terrain-patch seam automation coverage. Updated the architecture/design
+  contract. Split BH11 into BH11a implementation and BH11b sweep harness;
+  moved fresh-source numerical trial selection to BH25b and rendered route
+  inspection to BH26. Checked only BH11a.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected relief sampling, candidate blend,
+  preview bounds, fixed dry-Meadows sites, test call patterns and staged hill
+  controls. `git diff --check` passed. No Unreal build or automation was run;
+  full project verification remains deferred to BH26.
+- **Observable impact / authority:** Meadows now has an additional smooth,
+  deterministic 30–70 m rolling terrain signal. The 1.2 m amplitude and 6 m
+  hill amplitude remain experimental until BH25b and BH25a respectively.
+  Labels, ecological fields, hydrology, networking, server authority and saves
+  are unchanged.
+- **Known limitations / remaining scope:** Automation has not been built/run;
+  BH11b must add an executable rolling trial harness, BH25b must tune using a
+  fresh build, and rendered gentler-route traversal remains BH26. Floor detail
+  is still BH12.
+- **Next task in this directed goal:** BH11b — add the reproducible rolling
+  profile/slope/patch-seam sweep harness before BH12.
 
 ### Monster population — S24 spherical camp suppression
 
-- **Selected increment:** S24, query spherical camp suppression around Camp Beds, Campfires and Standing Lights.
-- **Work completed:** Added an authoritative point query using the shared inclusive 1800 cm sphere radius. Any initialized, intact `CampBedKit` suppresses; a Campfire suppresses only when its current server state is lit with positive finite fuel; a Standing Light suppresses only when its current server flame-eligibility check passes and it has an initialized live construction record. Workbench/Forge cylinder results remain in the S23 query, while other pieces and cosmetics do not emit an S24 sphere. The prior documentation's 16 m sphere values are updated to the S24 backlog value of 18 m. S22 RoofKit rejection remains separate; neither camp query is wired to the final placement gate before S25, and natural actor creation remains disabled until S26.
+- **Selected increment:** S24, add an 18 m spherical camp-suppression query for intact Camp Beds and lit, fuelled Campfires and Standing Lights.
+- **Work completed:** Added an authoritative 3D sphere query about each eligible actor's placed origin, with an inclusive 1800 cm radius. Initialized, living CampBedKit construction suppresses while intact. Campfires require current lit state and positive finite fuel; Standing Lights require their existing server flame-eligibility check. Other construction, Workbench/Forge stations, cosmetics and invalid actors/positions do not emit a field. S23 now shares the same named 18 m radius tuning constant; the station cylinder retains its separate ±12 m height. S22 RoofKit rejection remains a separate query and all suppression is unwired until S25.
 - **Files changed:** Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationStationCylinderTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected construction initialization/health, Campfire lit/fuel state and Standing Light flame eligibility, including rain exposure. Added focused automation assertions for intact bed boundaries/destruction, unlit and fuel-exhausted Campfire states, rain-smouldered fire/light states, fuelled lit sources, unlisted stations, other pieces, cosmetics and invalid input. `git diff --check` passed; tests and builds were not run.
+- **Lightweight checks:** Added focused coverage for inclusive sphere boundaries, intact/destroyed beds, empty/lit/rain-smothered/fuel-exhausted Campfires, empty and flame-eligible/rain-exposed Standing Lights, excluded stations and pieces, cosmetics, and invalid candidate input. `git diff --check` passed; tests and builds were not run.
 - **Full verification:** Deferred to S35; S24 is not the final implementation task in the monster-population goal.
-- **Observable impact / authority:** Later placement checks can query whether a proposed point falls within the 18 m sphere of an eligible camp source. The helper reads current server-owned actor state only; it does not wire final admission, affect existing creatures, create actors or modify saved/replicated state.
-- **Networking/authority:** Invalid or non-authoritative query context fails closed. Construction and Campfire actors are considered only from the current authoritative world. No network protocol or save schema changed.
-- **Known limitations:** S25 still combines the S20–S24 placement, station and sphere results with live source state/destruction; natural actor creation remains disabled until S26.
-- **Next eligible task:** S25 is next — wire placement and camp suppression results into the physical-placement gate.
+- **Observable impact / authority:** Future placement admission can reject points inside the current active camp-source spheres. The query reads server-owned actor/fuel/weather state and does not create actors, alter camp state, wire the evaluator or change saved/replicated data.
+- **Networking/authority:** The query requires authoritative GameMode/world context and considers only server-authoritative live actors. No network protocol or save schema changed.
+- **Known limitations:** S25 still must combine the S20–S24 placement and camp queries. S26 remains the first task allowed to enable natural actor creation.
+- **Next eligible task:** none — monster-population goal complete.
+## Run 2026-10-24 — BH11b Meadows rolling profile sweep harness
+
+- **Selected increment:** BH11b, add reproducible fixed-seed rolling-height,
+  collision-slope and patch-seam trial coverage.
+- **Work completed:** Added 264 fixed sampler inputs covering 24 seed-418/419
+  Starter/outer Meadows profiles at 30/45/70 m lengths and 5 m spacing, plus
+  four X/Y start-relative patch-seam pairs derived from BH01 collision metadata.
+  Added a validated commandlet-only 0.6–1.8 m rolling-amplitude override that
+  restores preview defaults after sampling and emits a trial marker. Added a
+  runner for 0.6/1.2/1.8 m CSV sweeps that rejects stale binaries, validates
+  fixture cardinality, dry Meadows classification, finite height/slope fields,
+  adjacent patch coordinates and seam deltas. Checked BH11b and BH11; BH12 is
+  next. Numeric trial selection remains in BH25b and rendered traversal in BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeRollingProfiles.ps1`,
+  `Scripts/Tests/World/BiomeRollingTransects.csv`,
+  `docs/biome-height-rework.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation, CSV row/profile/
+  seam-coordinate checks and `git diff --check` passed. No Editor build, commandlet
+  sweep or automation was run; full terrain verification remains deferred to
+  BH26.
+- **Observable impact / authority:** Diagnostics-only addition. The amplitude
+  override is accepted only by the editor visualization commandlet; when absent,
+  sampling defaults remain unchanged. No gameplay, networking, server authority
+  or save behavior changed.
+- **Known limitations / remaining scope:** The 1.2 m rolling amplitude is
+  provisional. BH25b must run fresh-source trials, compare measured height/slope
+  distributions and select the smallest accepted setting. Rendered route
+  inspection and integrated verification remain for BH26.
+- **Next task in this directed goal:** BH12 — add Meadows floor detail as a
+  separate local layer.
 
 ### Monster population — S25 final placement gate
 
 - **Selected increment:** S25, combine current S20–S24 placement and camp-suppression checks in the physical-placement gate.
 - **Work completed:** Wired the server-authoritative physical-placement composite after the cap gate for bounded attempts that pass all earlier checks. The composite applies the S20/S21 surface and S22c movement predicate, S22a body clearance, S22b solid-roof clearance, and current S23 station-cylinder plus S24 camp-sphere queries at the actual proposed actor origins; Wolf packs validate all three member origins. Rejected attempts report PhysicalPlacement and are removed from this wake's bounded candidate list. This only affects new-spawn admission; it neither deletes existing creatures nor changes their movement. Actor creation remains disabled until S26.
 - **Files changed:** Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp, docs/monster-spawning.md, BACKLOG.md, PROGRESS.md.
-- **Lightweight checks:** Inspected scheduler order and confirmed physical placement follows caps; reviewed all S20–S24 helper calls, first-rejection preservation, actual Wolf/member placement origins, and candidate filtering. Added a focused automation fixture for invalid placement fail-closed behavior, earlier Caps rejection preservation, and ensuring an existing wildlife actor is neither deleted nor moved. git diff --check passed; fixture and builds were not run.
+- **Lightweight checks:** Inspected scheduler order and confirmed physical placement follows caps; reviewed all S20–S24 helper calls, first-rejection preservation, actual Wolf/member placement origins, and candidate filtering. Added a focused automation fixture for invalid placement fail-closed behavior, earlier Caps rejection preservation, and ensuring an existing wildlife actor is neither deleted nor moved. `git diff --check` passed; fixture and builds were not run.
 - **Full verification:** Deferred to S35; S25 is not the final implementation task in the monster-population goal.
 - **Observable impact / authority:** The current authoritative world's surfaces, collision, solid roof and live station/camp state now determine whether a bounded new-spawn candidate survives the physical-placement gate. No actor creation or save/replication schema changes were made.
 - **Networking/authority:** Composite and component queries require GameMode authority and read the current world's state; no client-controlled input or remote state is introduced.
 - **Known limitations:** S26 must still consume eligible candidates through one bounded creation transaction, recheck caps and handle reservation/registration rollback. Natural actor creation remains disabled.
-- **Next eligible task:** S26 is next — enable natural spawning through the complete bounded creation transaction.
+- **Next eligible task:** none — monster-population goal complete.
+
+## Run 2026-10-24 — BH12a integrate local Meadows floor detail
+
+- **Selected increment:** BH12a, the first child of BH12 after splitting its
+  source implementation from fresh-source profile and rendered acceptance.
+- **Work completed:** Added an independently salted, absolute-world MeadowFloor
+  noise signal at the provisional 12 m / 0.2 m settings. The candidate now adds
+  it after the broad hills and rolling layer, before monotonic shoulder
+  compression, and only when the continuous Meadows weight is positive. Added
+  focused automation coverage for signed contribution, shoulder ordering,
+  deterministic seed variation, domain separation, mesh-scale sampling density
+  and patch-edge continuity. Split BH12 into BH12a/BH12b, moved fresh-source
+  trial selection to BH25c, and retained under-vegetation acceptance at BH26.
+  Checked only BH12a.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Lightweight checks/results:** Inspected the source integration and focused
+  assertions; confirmed the 8 m minimum coordinate scale spans at least 6.4
+  collision samples on the 125 cm lattice. `git diff --check` passed and stale
+  BH10b2/floor-staged contract text was corrected. The automation was not built
+  or run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** Meadows height samples now include up to
+  the provisional 20 cm signed floor term through the existing deterministic
+  candidate blend. The four ecological fields, biome weights, labels, other
+  biome candidates, terrain lattice and coast behavior are unchanged.
+- **Networking/authority:** Server and clients derive the same floor signal
+  from the existing world seed and absolute XY. No RPC, replicated field,
+  gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The 12 m / 0.2 m values are
+  provisional. BH12b adds a sweep harness, BH25c measures and selects the floor
+  value with freshly compiled source, and BH26 checks rendered readability
+  beneath vegetation and repairs any aliasing/corrugation found.
+- **Next task in this directed goal:** BH12b — add the validated local-floor
+  profile and stale-binary-rejecting amplitude sweep harness.
+
+
+## Run 2026-10-24T18:54Z — Add Meadows floor-detail profile sweep harness (BH12b)
+
+- **Selected task:** BH12b, the first unchecked child under BH12. Added the
+  reproducible measurement harness; left numeric tuning selection to BH25c and
+  rendered under-vegetation acceptance to BH26.
+- **Work completed:** Added 400 fixed dry-Meadows samples: eight seed-418/419
+  starter and outer profiles with 49 samples each at 125 cm, plus eight
+  start-relative patch-side controls. Added a nine-trial commandlet-only sweep
+  for 8/12/20 m scales and 0.1/0.2/0.3 m amplitudes. The CSV exports floor
+  signal and pre-blend input contribution with final height, biome/water data,
+  collision triangle and patch/cell information, and forest descriptor counts.
+  The runner checks finite outputs, dry Meadows samples, signal/amplitude
+  agreement, profile lattice progression, forested patch coverage, seam
+  adjacency/continuity, and the fresh-parameter log marker. `-ValidateOnly`
+  validates the fixed fixture without launching Unreal. Updated BH12 state and
+  documented BH25c/BH26 boundaries.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeFloorProfiles.csv`,
+  `Scripts/Tests/World/BiomeFloorProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/07-development-setup.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Lightweight checks/results:** PowerShell parser validation passed;
+  `BiomeFloorProfiles.ps1 -ValidateOnly` passed with 400 rows, eight profiles,
+  125 cm spacing and eight seam controls; profile group cardinality and
+  `git diff --check` passed. The first fixture validation found seam coordinates
+  rounded to 0.1 cm; corrected those eight rows to match the baseline-derived
+  seam within the 0.01 cm check. No Unreal build, commandlet sweep or automation
+  was run.
+- **Full verification:** Deferred. Fresh-source numeric selection remains BH25c;
+  final terrain/rendered acceptance remains BH26.
+- **Observable impact:** Adds a reproducible way to export and compare the
+  floor-detail signal, final terrain and collision-lattice samples across the
+  specified trial matrix. It selects no production parameter and changes no
+  terrain default.
+- **Networking/authority:** The diagnostic uses the existing seeded world and
+  absolute coordinates. The override is installed only by the headless preview
+  commandlet; no RPC, gameplay authority, replicated state or save data changed.
+- **Known limitations / remaining scope:** No Unreal build or fresh-source
+  trial was run. Forest descriptor counts identify candidate-bearing patches,
+  not rendered vegetation placement or aliasing; those remain BH26 acceptance.
+- **Next task in this directed goal:** BH13 — shape Elderwood using the shared
+  base and bounded detail without Meadows shoulder compression.
 
 ### Monster population — S26 bounded natural creation
 
 - **Selected increment:** S26, enable natural wildlife creation through the bounded authoritative scheduler transaction.
-- **Work completed:** Passing attempt records now enter one server-side creation transaction after all nine gates. It rechecks caps and final placement immediately before spawning, rejects defeated/live IDs, uses computed body-supported origins, and holds/releases the atomic S12 reservation for all three Wolf members. Partial spawn or initialization failure destroys the new actors and releases reservations without defeat, reward or save callbacks. Success initializes stable descriptor/member IDs, registers actors and binds the existing defeat/reward/save callback. Normal key activation no longer creates wildlife; it continues materializing harvest nodes and hazards while the separate discovery path remains unchanged. Direct wildlife activation is limited to explicit non-shipping combat/reconnect verification. Added S02 session-only unload behavior: living actors beyond every current-world living player's inclusive 96 m radius are destroyed without defeat/reward/save, and their stable IDs receive a 30-second reactivation cooldown.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `docs/monster-spawning.md`, `docs/02-technical-architecture.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Work completed:** Passing attempt records now enter one server-side creation transaction after all nine gates. It rechecks caps and final placement immediately before creation, rejects defeated/live IDs, uses computed body-supported origins, and holds/releases the atomic S12 reservation for all three Wolf members. Partial spawn or initialization failure destroys the new actors and releases reservations without defeat, reward or save callbacks. Success initializes stable descriptor/member IDs, registers actors and binds the existing defeat/reward/save callback. Normal key activation no longer creates wildlife; it continues materializing harvest nodes and hazards while the separate discovery path remains unchanged. Direct wildlife activation is limited to explicit non-shipping combat/reconnect verification. Added S02 session-only unload behavior: living actors beyond every current-world living player's inclusive 96 m radius are destroyed without defeat/reward/save, and their stable IDs receive a 30-second reactivation cooldown.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, docs/monster-spawning.md, docs/02-technical-architecture.md, BACKLOG.md, PROGRESS.md.
 - **Lightweight checks:** Inspected scheduler/gate ordering, stable solo and Wolf member ID derivation, existing cap and reservation accounting, placement origin computation, BeginPlay/EndPlay/defeat registry callbacks, and reward/save delegates. Added focused coverage for attempts failing closed before actor creation and for inclusive 96 m unload distance, live-registry removal, no defeat persistence and the 30-second cooldown boundary. `git diff --check` passed, and staged scope/path lengths were reviewed before commit. Automation and builds were not run.
 - **Full verification:** Deferred to S35. S26 is not the final implementation task in this goal.
 - **Observable impact / authority:** Server scheduler candidates that pass every gate can now create replicated wildlife. Existing per-key materialization continues for harvest, hazards and discoveries. Camp suppression blocks only new admissions; it does not delete or move existing creatures. Recreated land actors use their computed collision-support origins while preserving stable identities.
 - **Networking/authority:** Admission, cap recheck/reservation, creation, lifecycle tracking and unload/cooldown state remain server-owned. No RPC or SaveGame schema changed; existing authenticated-owner reward claims remain in the existing defeat/reward path.
 - **Known limitations:** Environmental-source policy and scheduling remain at S27–S29. Boundary/rejection/rollback acceptance fixtures remain S30–S33, setup handoff S34, and milestone-final builds, tests and peer/restart verification remain S35.
-- **Next eligible task:** S27 — record the environmental spawner policy.
+- **Next eligible task:** none — monster-population goal complete.
+
+## Run 2026-10-24 — Integrate shared Elderwood relief (BH13a)
+
+- **Selected task:** BH13a, the source-integration child under BH13. Numeric
+  amplitude selection remains assigned to BH25b; this run did not implement
+  the profile sweep harness or rendered acceptance.
+- **Work completed:** Elderwood now adds provisional broad, middle and local
+  shared relief over the same source height as other candidates, followed by
+  its bounded existing detail term. It does not use Meadows shoulder
+  compression. Tundra calls the Elderwood candidate directly. Added focused
+  checks for bounded relief, uncompressed source-height differences, signed
+  relief, exact parity at seed-418/419 baseline sites, negative coordinates,
+  and the fixed Elderwood/Tundra transition blend. Checked BH13a only.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaWorld/Public/KalmalaRegionalTuning.h,
+  Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h,
+  Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp,
+  docs/02-technical-architecture.md, and docs/biome-height-rework.md.
+- **Lightweight checks/results:** Reviewed the candidate integration, existing
+  region/coast blending, fixed baseline coordinates, and source-level
+  assertions. git diff --check passed. No Unreal build or automation was run.
+  Full verification remains deferred until the roadmap verification gate.
+- **Observable impact:** Elderwood and Tundra now share the same seeded,
+  absolute-coordinate broad/middle/local relief candidate and bounded detail;
+  the Elderwood shape preserves source-height differences above the Meadows
+  shoulder. The 9 / 2.4 / 0.4 m amplitudes and 4–16 / 0.6–4 / 0.1–1 m ranges
+  are provisional trial settings, not accepted tuning.
+- **Networking/authority:** The change derives only from the existing world
+  seed and absolute XY. Biome classifier inputs, weights, coast blending,
+  replication, gameplay authority and save data are unchanged.
+- **Known limitations / remaining scope:** Fresh-source amplitude trials and
+  measured numeric selection remain BH13b/BH25b; rendered terrain and profile
+  acceptance remains BH26. Full verification is deferred.
+- **Next task in this directed goal:** BH13b — add the validated Elderwood /
+  Tundra profile sweep harness and reject stale binaries.
 
 ### Monster population — S27 environmental policy
 
 - **Selected increment:** S27, record the fixed local environmental-source policy and its shared-scheduler integration.
 - **Work completed:** Documented the exact two finite stable source slots, no replacement after defeat, local maximum of two living source-owned actors within inclusive 24 m, 8-second check interval, at most one creation and four fixed candidates within 12 m per check, and no missed-check accrual while inactive. Mapped source attempts to share the existing global 16-candidate wake, seeded roll, player/habitat/unrestricted policy/cap/placement gates and S25 camp suppression. Source-owned actors remain charged to shared species/home-key/aggregate budgets when outside the local radius. Source inspection found no environmental-spawner actor or configured source registry; existing campfires, lights and stations remain suppression/shelter sources. Added no runtime scheduling, source slots or world content.
-- **Files changed:** `docs/monster-spawning.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Files changed:** docs/monster-spawning.md, BACKLOG.md, and PROGRESS.md.
 - **Lightweight checks:** Inspected the fixed environmental policy and searched gameplay/world source for existing spawner/source classes; none were present. Reviewed the current scheduler wake/candidate limits, creation transaction, shared caps, physical-placement and camp-suppression seams. `git diff --check` passed; staged scope/path lengths were verified before commit. No tests or builds ran because S27 records policy only.
 - **Full verification:** Deferred to S35. S27 is not the final implementation task in this goal.
 - **Observable impact / authority:** No runtime behavior or world content changes. The integration map directs future source checks through server-owned shared budgets, admission gates and camp suppression.
 - **Networking/authority:** Future source configuration and policy are server-owned; S27 adds no network or save state.
 - **Known limitations:** No source actor or configured source exists. S28 must add disabled-unless-configured scheduling; S29 must apply local/shared safety gates and reservation before source creation. Boundary and peer acceptance remains S30–S35.
-- **Next eligible task:** S28 — add local spawner scheduling.
+- **Next eligible task:** none — monster-population goal complete.
+
+## Run 2026-10-24 - BH13b Elderwood/Tundra profile sweep harness
+
+- **Selected increment:** BH13b, add the fixed Elderwood/Tundra numeric profile
+  fixture, bounded commandlet-only amplitude overrides and stale-binary-safe
+  sweep runner.
+- **Work completed:** Added bounded Elderwood broad/middle/local preview
+  amplitude settings defaulted to the existing provisional tuning. Regional
+  sampling passes the same settings to the Elderwood candidate and the direct
+  Tundra reference. The numeric commandlet can export relief channels,
+  pre-blend contributions, both candidate heights, final height, weights,
+  water and collision-triangle slopes for fixed profiles. Added six 100 m
+  transects (66 samples total) at seed-418/419 Elderwood interior, wooded,
+  Elderwood/Tundra transition and Tundra interior sites, plus a nine-trial
+  one-layer-at-a-time runner. Marked BH13b and its parent complete; numeric
+  selection remains BH25b.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.csv`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/biome-height-rework.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell syntax parsing and
+  `BiomeWoodProfiles.ps1 -ValidateOnly` passed for all 66 rows, six fixed
+  transects and seed/coordinate/spacing controls. `git diff --check` passed.
+  No Unreal build, commandlet sweep or automation ran; full verification remains
+  deferred to BH26.
+- **Observable impact:** Adds a reproducible path for numeric Elderwood/Tundra
+  profile and slope measurement with per-layer trials. Production defaults
+  remain the existing provisional 9 / 2.4 / 0.4 m values; only commandlet
+  overrides vary them. Fresh-source selection remains BH25b.
+- **Networking/authority:** The overrides are installed only in the headless
+  editor commandlet and reset after sampling. Existing world seed, gameplay
+  authority, replication and save data are unchanged.
+- **Known limitations / remaining scope:** No fresh-source sweep was run, so
+  amplitudes remain provisional. Rendered parity and gameplay acceptance remain
+  BH26.
+- **Next task in this directed goal:** BH14 — shape Shimmering Lakes with the
+  continuous Meadows/Elderwood/Mire candidate blend and disabled-basin policy.
 
 ### Monster population — S28 local spawner scheduling
 
 - **Selected increment:** S28, add a reusable local-source schedule and living-count policy that stays disabled without an explicit configured source.
 - **Work completed:** Added authority/configuration-gated helpers for the fixed 8-second interval, service-relative next due time that skips missed checks, two finite source slots, up to four candidates clamped by remaining shared budget, an inclusive 12 m 3D candidate radius, at most one creation per check, and the local cap of two same-source living creatures within an inclusive 24 m horizontal radius. Invalid owned living samples fail closed. No source actor, registry or world content exists, so the runtime remains dormant.
 - **Files changed:** Source/KalmalaGameplay/Public/KalmalaEnvironmentalSpawnerPolicy.h, Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerPolicyTest.cpp, docs/monster-spawning.md, BACKLOG.md, and PROGRESS.md.
-- **Lightweight checks:** Inspected policy/helper contracts and the S27 shared scheduler/creation integration map. Added focused automation assertions for configured/server-only gating, due-time and hitch behavior, slot and candidate limits, 12 m/24 m boundaries, shared-work clamping and one-creation limit. Automation and builds were not run. git diff --check passed; staged scope and path lengths were reviewed (all under 260 characters).
+- **Lightweight checks:** Inspected policy/helper contracts and the S27 shared scheduler/creation integration map. Added focused automation assertions for configured/server-only gating, due-time and hitch behavior, slot and candidate limits, 12 m/24 m boundaries, shared-work clamping and one-creation limit. Automation and builds were not run. `git diff --check` passed; staged scope and path lengths were reviewed (all under 260 characters).
 - **Full verification:** Deferred to S35; S28 is not the final implementation task in this goal.
 - **Observable impact / authority:** No runtime scheduling or actor creation is enabled because there is no configured source. When wired later, policy inputs and local ownership counts are supplied by the authoritative server.
 - **Networking/authority:** Helpers require server authority and add no RPC, replication or save state.
 - **Known limitations:** S29 must connect configured sources to shared safety gates, capacity reservations and creation. S30–S34 add focused acceptance coverage and setup handoff; S35 performs milestone-final verification.
-- **Next eligible task:** S29 — apply environmental safety gates.
+- **Next eligible task:** none — monster-population goal complete.
 
+## Run 2026-10-24T19:23Z — Shimmering Lakes source integration (BH14a)
+
+- **Selected increment:** BH14a, integrate the continuous Shimmering Lakes
+  terrain blend and focused formula coverage. BH14 remains open for BH14b.
+- **Work completed:** Replaced the Lakes legacy detail-only candidate with a
+  continuous 0.50 Meadows/Elderwood candidate blend and a smooth lowland
+  offset derived from shared source height and existing humidity. The
+  lowland transform is independent of basin support; the existing disabled
+  basin policy, normalized biome weights, coast blending and hydrology order
+  remain intact. Added tests for monotonic/bounded lowland behavior, control
+  validation, the Lakes candidate formula, neighboring Meadows/Lakes weight
+  continuity, and a dry former-basin sample. Recorded the formula and
+  provisional bounds, split BH14a/BH14b, and added BH25d numeric selection.
+- **Files changed:** Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp,
+  Source/KalmalaWorld/Public/KalmalaGenerationPreview.h,
+  Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h,
+  Source/KalmalaWorld/Public/KalmalaRegionalTuning.h, BACKLOG.md,
+  docs/02-technical-architecture.md, and docs/biome-height-rework.md.
+- **Lightweight checks/results:** Source and test changes were inspected;
+  git diff --check passed. Unreal build and automation were not run.
+- **Full verification:** Deferred to BH26. Fresh-source Lakes measurement and
+  numeric selection remain BH25d; rendered acceptance remains BH26.
+- **Observable impact:** Shimmering Lakes now uses blended rounded shoulders,
+  shared Elderwood undulation and a humidity-weighted, bounded compression of
+  low source-height pockets. No analytic bowl or inland/perched water is added.
+  The 0.50 share, 200 cm floor, 1,200 cm ceiling and 0.20 compression are
+  provisional controls within the documented preview ranges; no trial result
+  or acceptance is claimed.
+- **Networking/authority:** Terrain remains deterministically sampled from
+  server-owned world fields and absolute coordinates. No RPC, replication,
+  gameplay authority or save data changed.
+- **Known limitations / remaining scope:** No build or automation was run.
+  BH14b adds the stale-safe numeric profile harness; BH25d measures and selects
+  Lakes values from fresh-source trials; BH26 performs rendered and integrated
+  verification.
+- **Next task in this directed goal:** BH14b — add fixed Lakes profile samples,
+  bounded preview overrides and a stale-binary-safe trial runner.
+
+## Run 2026-10-24 — Shimmering Lakes profile harness (BH14b)
+
+- **Selected increment:** BH14b, add fixed Shimmering Lakes samples and a
+  commandlet-only numeric profile sweep. No BH15 work was started.
+- **Work completed:** Added four fixed 100 m transects with 10 m spacing for
+  the seed-418 Meadows/Lakes/Elderwood former-basin blend and seed-419 Lakes
+  interior, each along X and Y (44 samples). The numeric commandlet accepts
+  one bounded Lakes control override per invocation, logs all effective
+  controls for stale-binary detection, exports the candidate/lowland inputs
+  and results, and resets preview settings after sampling. Added a 12-value
+  one-factor runner that validates lowland bounds/formula and candidate blend
+  parity while retaining raw output for BH25d. Checked BH14 and BH14b complete;
+  numeric selection remains BH25d and rendered acceptance remains BH26.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Scripts/Tests/World/BiomeLakesProfiles.csv,
+  Scripts/Tests/World/BiomeLakesProfiles.ps1,
+  Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp,
+  Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h,
+  docs/biome-height-rework.md, and docs/07-development-setup.md.
+- **Lightweight checks/results:** PowerShell parser validation and
+  BiomeLakesProfiles.ps1 -ValidateOnly passed for all 44 fixed coordinates
+  and four transects. git diff --check passed. No Unreal build, commandlet
+  sweep or automation ran; full verification remains deferred to BH26.
+- **Observable impact:** Adds reproducible numeric Lakes-profile and slope
+  measurement, with raw candidate components and a stale-binary guard. The
+  diagnostic snapshot is used only by commandlet CSV export and does not alter
+  production sampling. No trial values are claimed; all Lakes controls remain
+  provisional pending BH25d fresh-source measurement.
+- **Networking/authority:** Trial values are commandlet-only, reset after each
+  export, and cannot be supplied by clients. No RPC, replication, gameplay
+  authority or save data changed.
+- **Known limitations / remaining scope:** No fresh-source sweep or rendered
+  shoreline/traversal inspection was run. BH25d selects measured controls;
+  rendered and integrated verification remains BH26.
+- **Next task in this directed goal:** BH15 — shape Mossy Mire.
 
 ### Monster population — S29 environmental safety gates
 
 - **Selected increment:** S29, apply local-source safety limits together with shared wildlife admission gates and reservations.
 - **Work completed:** Added a server-only configured-source candidate seam that services the fixed 8-second check, enforces source/slot identity, 12 m candidate radius, four-candidate limit, one-creation check and remaining shared wake budget. Each recorded candidate runs through the existing seeded admission, living-player ring/exclusion, habitat, unrestricted time/weather/progression, shared caps and S25 physical-placement/camp gate before entering the normal creation transaction. The descriptor keeps its selected position and species seed but uses a stable actor/save ID derived from `(SourceId, slot 0|1)`; a defeated slot is not replaced by another candidate. The transaction rechecks shared caps and local source ownership immediately before creation, reserves every actor against species/home-key/aggregate budgets, and releases all reservations after registration or on any rollback. Pending reservations carry archetype and source identity so both shared species counts and local source counts see them. Successful source-owned actors are mapped by stable source-slot ID and removed from source ownership through the existing defeat/destroy lifecycle. Wolf packs remain all-or-none and cannot fit a 2-creature local cap.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Public/KalmalaEnvironmentalSpawnerPolicy.h`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerAdmissionTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerPolicyTest.cpp`, `docs/monster-spawning.md`, `BACKLOG.md`, and `PROGRESS.md`.
-- **Lightweight checks:** Inspected the current player, habitat, gate order, physical-placement/camp, cap and actor lifecycle paths. Added focused automation coverage for source/slot stable IDs and permanent defeat, pending source reservations counting toward shared world/species/home-key caps, the inclusive two-actor local cap and rollback release, a three-member Wolf pack not fitting the local cap, fail-closed unconfigured checks, candidate-budget charging, service-relative due time and first cap rejection. `git diff --check` passed, `rg` confirmed the new reservation/slot-ID references are consistent, and all changed absolute paths are under 260 characters. Automation and builds were not run.
+- **Files changed:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaGameplay/Public/KalmalaGameMode.h, Source/KalmalaGameplay/Public/KalmalaEnvironmentalSpawnerPolicy.h, Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h, Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerAdmissionTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerPolicyTest.cpp, docs/monster-spawning.md, BACKLOG.md, and PROGRESS.md. The S29 fixture compile correction is in a separate follow-up commit.
+- **Lightweight checks:** Inspected the current player, habitat, gate order, physical-placement/camp, cap and actor lifecycle paths. Added focused automation coverage for source/slot stable IDs and permanent defeat, pending source reservations counting toward shared world/species/home-key caps, the inclusive two-actor local cap and rollback release, a three-member Wolf pack not fitting the local cap, fail-closed unconfigured checks, candidate-budget charging, service-relative due time and first cap rejection. `git diff --check` passed on S29 and the follow-up repair; `rg` confirmed the new reservation/slot-ID references are consistent, and all changed absolute paths are under 260 characters. Automation and builds were not run.
 - **Full verification:** Deferred to S35; S29 is not the final implementation task in this goal.
 - **Observable impact / authority:** There is still no environmental source actor or configured source registry, so runtime environmental spawning remains dormant. If an authoritative caller explicitly configures a source, its fixed candidates use the existing shared admission and creation safety path. No placed content or save data changed.
 - **Networking/authority:** Configuration, candidate selection, cap counts, reservation, creation, source ownership and cleanup remain server-owned. No RPC, replication field or save schema changed.
 - **Known limitations:** No source actor/configuration registry exists. The new path is intentionally disabled without explicit caller-supplied configuration. A source-local cap of two rejects a three-individual Wolf pack atomically. S30–S35 still cover acceptance cases and milestone-final verification.
-- **Next eligible task:** S30 — cover spatial boundaries.
+- **Next eligible task:** none — monster-population goal complete.
 
+## Run 2026-10-24 — Mossy Mire source integration (BH15a)
+
+- **Selected increment:** BH15a, integrate the monotonic Mire lowland candidate
+  and focused formula/sampler coverage. BH15 remains open for BH15b.
+- **Work completed:** Replaced the Mire detail-only shape with a monotonic
+  rational compression toward a 300 cm target, 700 cm compression scale and
+  clipped ±25 cm residual detail. Added bounded preview controls (200–500 / 300–1200 /
+  10–60 cm) and a validation rule that guarantees positive coast-side clearance
+  for every accepted combination. Wired the candidate into regional sampling
+  and candidate diagnostics. Added coverage for monotonicity, bounded response,
+  coast clearance, residual limits, deterministic fixed-site results, priority
+  river carving, and dry former-basin samples. Split BH15 into source integration
+  and a stale-safe profile harness; added BH25e for fresh-source Mire tuning.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected formula integration, all `ShapeMire`
+  call sites, candidate diagnostics and the focused regression fixtures.
+  `git diff --check` passed (Git reported existing CRLF-to-LF working-copy
+  warnings). No Unreal build or automation ran.
+- **Full verification:** Deferred to BH26. Mire fresh-source range selection
+  remains BH25e; rendered acceptance remains BH26.
+- **Observable impact:** Mossy Mire now receives a bounded lowland shape rather
+  than the former constant offset. The curve retains a positive coast-side
+  floor and small deterministic detail without a hard flat shelf. Existing
+  biome weights, coast blend, river-last override and disabled analytic basin
+  policy are preserved. Coefficients are provisional; no measured acceptance
+  is claimed.
+- **Networking/authority:** Height remains a deterministic function of
+  server-owned world fields, world seed and absolute position. No RPC,
+  replication, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The focused automation was added but
+  not run, and no build, profile sweep or rendered inspection was performed.
+  BH15b adds fixed numeric profiles and stale-binary-safe controls; BH25e selects
+  values from a fresh build; BH26 performs final integrated/rendered verification.
+  Main-checkout handoff preserves the existing unrelated backlog and progress
+  edits; the BH25 block remains untouched because it has conflicting wording.
+- **Next task in this directed goal:** BH15b — add the fixed Mire profile
+  harness with bounded commandlet-only controls and stale-binary detection.
 
 ### Monster population — S30 spatial boundary coverage
 
 - **Selected increment:** S30, cover ring/key boundaries, overlapping player neighborhoods, moving-creature counts and Wolf reservation rollback.
 - **Work completed:** Reviewed the existing ring selector fixture and confirmed exact inclusive 32 m/96 m edges, adjacent outside points and seeded-roll isolation; reviewed the key-union fixture for overlapping players, one-result shared keys and deterministic order; reviewed the Wolf reservation fixture for provisional-member rollback with earlier reservations preserved. Added explicit floor-boundary assertions for negative spatial coordinates and a live Boar movement case proving species counts follow its current position while world and immutable home-key totals remain charged. No gameplay code changed.
-- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpatialKeyUnionTest.cpp`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Files changed:** Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpatialKeyUnionTest.cpp, BACKLOG.md, and PROGRESS.md.
 - **Lightweight checks:** Inspected the accepted ring, 64 m spatial-key floor, 96 m count radius, overlapping-neighborhood union and atomic pack rollback implementations. Carefully reviewed the new negative-coordinate and moved-creature assertions against those contracts. `git diff --check` passed; automation and builds were not run.
 - **Full verification:** Deferred to S35; S30 is not the final implementation task in this goal.
 - **Observable impact / authority:** Added test coverage only. The fixture moves a server-owned registered wildlife actor and checks current live counts without changing spawn policy, world content, save data or replication.
 - **Networking/authority:** No runtime or network behavior changed. The tested cap counts and reservation operations are authoritative GameMode paths.
-- **Known limitations:** The focused automation fixtures were not run. S31–S35 still cover gate rejection, placement/suppression, lifecycle/local-source acceptance, verification handoff and milestone-final builds/tests/peer checks.
-- **Next eligible task:** S31 — cover gate rejection.
-
+- **Known limitations:** The focused automation fixtures were not run. S31–S35 still cover gate rejection, placement/suppression, lifecycle/local-source acceptance, verification handoff and milestone-final verification.
+- **Next eligible task:** none — monster-population goal complete.
 
 ### Monster population — S31 gate rejection coverage
 
-- **Selected increment:** S31, cover the ordered nine-gate rejection outcomes,
-  unrestricted policy gates, and bounded work.
-- **Work completed:** Strengthened the evaluator fixture into an ordered matrix:
-  each gate is the first failing gate while all later gates remain false, and
-  each returns its distinct rejection reason. Existing fixture assertions verify
-  time, weather and progression pass for every current species, unknown species
-  fail closed, and internal seams can force each of those policies to reject.
-  Added a selector assertion that later gate evaluation does not retry a rejected
-  descriptor beyond its original bounded attempt slot. The existing scheduler
-  fixtures verify at most four keys per wake, four candidates per key, sixteen
-  candidates total, and no catch-up wake after a hitch.
-- **Files changed:**
-  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp`,
-  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp`,
-  `BACKLOG.md`, and `PROGRESS.md`.
-- **Lightweight checks:** Inspected the nine-gate evaluation order and the
-  scheduler/selector attempt budgets; `git diff --check` passed. Automation and
-  builds were not run.
-- **Full verification:** Deferred to S35; S31 is not the final implementation
-  task in the monster-population goal.
-- **Observable impact / authority:** Test coverage only. No runtime gameplay,
-  world content, save data or replication behavior changed.
-- **Networking/authority:** No runtime authority paths changed; the fixtures
-  exercise the server GameMode evaluator and scheduler helpers.
-- **Known limitations:** The focused automation fixtures remain unrun. S32–S35
-  still cover suppression/placement, lifecycle/local-source acceptance,
-  verification handoff, and milestone-final verification.
-- **Next eligible task:** S32 — cover suppression and placement.
-
+- **Selected increment:** S31, cover the ordered nine-gate rejection outcomes, unrestricted policy gates, and bounded work.
+- **Work completed:** Strengthened the evaluator fixture into an ordered matrix: each gate is the first failing gate while all later gates remain false, and each returns its distinct rejection reason. Existing fixture assertions verify time, weather and progression pass for every current species, unknown species fail closed, and internal seams can force each of those policies to reject. Added a selector assertion that later gate evaluation does not retry a rejected descriptor beyond its original bounded attempt slot. The existing scheduler fixtures verify at most four keys per wake, four candidates per key, sixteen candidates total, and no catch-up wake after a hitch.
+- **Files changed:** Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Inspected the nine-gate evaluation order and the scheduler/selector attempt budgets; `git diff --check` passed. Automation and builds were not run.
+- **Full verification:** Deferred to S35; S31 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only. No runtime gameplay, world content, save data or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed; the fixtures exercise the server GameMode evaluator and scheduler helpers.
+- **Known limitations:** The focused automation fixtures remain unrun. S32–S35 still cover suppression/placement, lifecycle/local-source acceptance, verification handoff, and milestone-final verification.
+- **Next eligible task:** none — monster-population goal complete.
 
 ### Monster population — S32 suppression and placement coverage
 
-- **Selected increment:** S32, cover suppression boundaries and physical
-  placement rejection cases.
-- **Work completed:** Added mixed-axis camp-sphere assertions: a point just
-  inside the 18 m three-dimensional radius suppresses, while a point whose
-  individual axes are each inside 18 m but whose combined distance is outside
-  does not. Reviewed the existing focused fixtures and confirmed coverage for
-  station cylinder radius/height edges; unlisted and destroyed stations; empty,
-  rain-extinguished and fuel-exhausted lights; solid RoofKit at the exact 24 m
-  trace limit and ignored non-roof/cosmetic hits; the inclusive 32-degree land
-  slope and over-limit case; dry-land rejection of water; and Reef Maw water
-  containment, insufficient water and terrain penetration.
-- **Files changed:**
-  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp`,
-  `BACKLOG.md`, and `PROGRESS.md`.
-- **Lightweight checks:** Inspected existing S20–S25 predicates and focused
-  fixtures against the S32 checklist; `git diff --check` passed. Automation and
-  builds were not run.
-- **Full verification:** Deferred to S35; S32 is not the final implementation
-  task in the monster-population goal.
-- **Observable impact / authority:** Test coverage only; no runtime behavior,
-  world content, save data or replication behavior changed.
-- **Networking/authority:** No runtime authority paths changed. The fixtures
-  exercise server-side station, camp and placement queries.
-- **Known limitations:** The focused automation fixtures remain unrun. S33–S35
-  still cover lifecycle/local-source acceptance, verification handoff and
-  milestone-final verification.
-- **Next eligible task:** S35 — perform milestone-final verification.
+- **Selected increment:** S32, cover suppression boundaries and physical placement rejection cases.
+- **Work completed:** Added mixed-axis camp-sphere assertions: a point just inside the 18 m three-dimensional radius suppresses, while a point whose individual axes are each inside 18 m but whose combined distance is outside does not. Reviewed the existing focused fixtures and confirmed coverage for station cylinder radius/height edges; unlisted and destroyed stations; empty, rain-extinguished and fuel-exhausted lights; solid RoofKit at the exact 24 m trace limit and ignored non-roof/cosmetic hits; the inclusive 32-degree land slope and over-limit case; dry-land rejection of water; and Reef Maw water containment, insufficient water and terrain penetration.
+- **Files changed:** Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Inspected existing S20–S25 predicates and focused fixtures against the S32 checklist; `git diff --check` passed. Automation and builds were not run.
+- **Full verification:** Deferred to S35; S32 is not the final implementation task in the monster-population goal.
+- **Observable impact / authority:** Test coverage only; no runtime behavior, world content, save data or replication behavior changed.
+- **Networking/authority:** No runtime authority paths changed. The fixtures exercise server-side station, camp and placement queries.
+- **Known limitations:** The focused automation fixtures remain unrun. S33–S35 still cover lifecycle/local-source acceptance, verification handoff and milestone-final verification.
+- **Next eligible task:** none — monster-population goal complete.
+## Run 2026-10-24 — Mossy Mire profile harness (BH15b)
 
+- **Selected increment:** BH15b, add the fixed numeric Mire profile sweep
+  harness. The worktree was clean at `31e8f2be` before implementation, and no
+  other active run was modifying this worktree.
+- **Work completed:** Added twelve 100 m transects at 5 m spacing on both axes
+  around the seed-418/419 Mire interiors, source-coast controls and Highland
+  river sites from BH01. Added one-at-a-time commandlet overrides for Mire
+  target height, compression scale and residual detail, each checked against
+  preview bounds and positive source-land clearance. Mire trials export the
+  source height, detail, shaped candidate, effective controls, worst-case
+  source-land clearance, biome/hydrology values, final/collision heights and
+  slopes. The PowerShell runner checks fixed rows, formula/bounds, water and
+  disabled-basin invariants, and the full effective-control log marker to
+  reject a stale binary. Updated this plan and the development-setup profile
+  instructions. Marked BH15b and BH15 implementation complete; BH25e still owns
+  numeric selection and BH26 owns rendered/integrated verification.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeMireProfiles.ps1`,
+  `Scripts/Tests/World/BiomeMireProfiles.csv`, `docs/biome-height-rework.md`,
+  and `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation and
+  `BiomeMireProfiles.ps1 -ValidateOnly` passed for all 252 coordinates across
+  twelve fixed transects. Static inspection confirmed one Mire override is
+  applied before export and the runner expects the exact full-control marker.
+  No Unreal build, commandlet sweep or automation ran. Full verification remains
+  deferred to BH26.
+- **Observable impact:** Adds repeatable raw candidate, collision, slope and
+  source-land clearance measurements for BH25e, with coastal, interior, ocean
+  and river controls. It does not change sampler outputs unless an explicit
+  commandlet-only trial argument is supplied; trial state resets on commandlet
+  exit. No trial values are selected or claimed.
+- **Networking/authority:** Controls are local commandlet preview values only;
+  no client input, RPC, replication, gameplay authority, or save data changed.
+- **Known limitations / remaining scope:** Fresh-source parameter selection is
+  BH25e. Rendered coast/interior/river acceptance and full integrated checks are
+  BH26. The script was parser/fixture-checked but no Unreal binary was built or
+  used to run the sweep.
+- **Next task in this directed goal:** BH16 — shape Freezing Tundra by reusing
+  the Elderwood candidate inside the existing outer eligibility band.
+
+## Run 2026-10-25 — Close Tundra height reuse (BH16)
+
+- **Selected increment:** BH16, the next eligible item under the biome height
+  rework goal. The worktree was clean at `7b16f615`; no other active Kalmala
+  run was modifying this checkout. Other active Kalmala work was in separate
+  A10 and monster-spawn worktrees.
+- **Work completed:** Verified that `ShapeTundra` directly returns
+  `ShapeElderwood` with the same source height, detail, shared relief and three
+  amplitudes. The existing classifier and Tundra outer eligibility remain
+  unchanged. Existing focused source coverage compares Elderwood and Tundra at
+  fixed seed-418/419 positions, including negative coordinates and an
+  Elderwood/Tundra transition where both weights blend the identical candidate.
+  The Tundra height path contains no snow offset; snow surface presentation is
+  still scheduled in BH24. Marked BH16 complete; fresh-source numeric parity
+  remains BH25b and rendered acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks/results:** Inspected the Tundra shape and sampler call
+  sites, existing eligibility expression and focused parity assertions.
+  `git diff --check` passed. No Unreal build or automation was run; full
+  verification remains deferred to BH26.
+- **Observable impact:** No runtime sampler change; records that BH16's source
+  implementation and deterministic parity proof are already present from BH13a
+  and closes the implementation checkbox. Numeric and rendered acceptance are
+  still pending their assigned gates.
+- **Networking/authority:** Height remains a deterministic candidate derived
+  from the existing world seed, absolute coordinates and server-owned fields.
+  No RPC, replicated state, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** BH25b must measure fresh-source
+  Elderwood/Tundra profiles; BH24 owns snow presentation; BH26 owns rendered and
+  full integrated verification.
+- **Main-checkout handoff:** Synchronized only BACKLOG.md and PROGRESS.md;
+  preserved pre-existing S32 progress. Implementation code remains in this
+  detached worktree.
+- **Next task in this directed goal:** BH17 — shape Thunder Mountains with
+  bounded amplification above the named high-terrain threshold.
 
 ### Monster population — S33 lifecycle and local-source coverage
 
@@ -12324,12 +16431,12 @@
   shared world/species/home-key limits; the Wolf reservation fixture covers
   all-or-none rollback and capacity release.
 - **Files changed:**
-  `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp`,
-  `BACKLOG.md`, and `PROGRESS.md`.
+  Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp,
+  BACKLOG.md, and PROGRESS.md.
 - **Lightweight checks:** Inspected the S02 unload/cooldown lifecycle, S26
   creation registration and defeat callbacks, S29 local/shared reservation path,
   and mapped the focused tests to the requested acceptance cases.
-  `git diff --check` passed. Automation and builds were not run.
+  git diff --check passed. Automation and builds were not run.
 - **Full verification:** Deferred to S35; S33 is not the final implementation
   task in the monster-population goal.
 - **Observable impact / authority:** Test coverage only; no runtime behavior,
@@ -12338,7 +16445,87 @@
   server-owned live registries, cooldown state, reservations and save claims.
 - **Known limitations:** The focused automation fixtures remain unrun. S34–S35
   still prepare and execute the milestone verification handoff.
-- **Next eligible task:** S35 — perform milestone-final verification.
+- **Next eligible task:** none — monster-population goal complete.
+
+## Run 2026-10-25 — Shape Mountains with highland amplification (BH17)
+
+- **Selected increment:** BH17, the next unchecked biome-height task. The
+  worktree was clean at `b16afd9e`; no other active run was changing this
+  checkout. A10 and monster-population work continued in separate worktrees.
+- **Work completed:** Replaced the Mountain candidate's broad uniform regional
+  offset with a smooth high-base gain. Source heights below 1,000 cm receive no
+  regional lift; the excess ramps across the next 1,000 cm and scales by the
+  existing continuous Mountain region factor, reaching 0.4 gain at full factor.
+  Detail now clamps to ±1 with a provisional 80 cm amplitude. Added bounded
+  commandlet-preview controls and focused source coverage for lowland
+  preservation, highland/region response, clipped detail, continuity at the
+  threshold, monotonic foothills and the fixed Tundra/Mountain transition.
+  Classifier inputs, distance bands, coast attenuation, river order, seeded
+  sampling and candidate blending remain unchanged. Checked BH17; BH26 retains
+  rendered Mountain/foothill acceptance.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected all Mountain candidate call sites,
+  the preview bounds, fixed-site transition and source regression assertions.
+  `git diff --check` passed. The new C++ automation assertions were not built or
+  run; no Unreal build or automation was run. Full verification remains deferred
+  to BH26.
+- **Observable impact:** Low-base Mountains keep their existing source
+  landform with bounded detail. Only higher terrain gains additional height,
+  smoothly and in proportion to the regional factor; no new noise sample or
+  classifier/weight change was introduced.
+- **Networking/authority:** All new values are fixed tuning or local
+  commandlet-preview controls. Height still derives from the existing seed and
+  server-owned fields; no RPC, replicated state or save data changed.
+- **Known limitations / remaining scope:** The 1,000 cm threshold, blend range,
+  gain and detail amplitude are provisional bounded settings. Fresh compiled
+  runtime and rendered/traversal Mountain acceptance remain BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving the existing Monster S33 updates. Implementation files remain in
+  this detached worktree.
+- **Next task in this directed goal:** BH18 — reapply priority river carving
+  after biome relief while preserving sea level, banks and shared consumers.
+
+## Run 2026-10-25 — Reapply priority river carving (BH18)
+
+- **Selected increment:** BH18, the first unchecked task after BH17. The
+  worktree was clean at `6a409971`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Inspected the regional sampler and confirmed its priority
+  river profile runs after biome-candidate relief, optional basin/stream stages
+  and the source-coast clamp. Existing high-ground and two-bank regressions
+  compare final output with a no-course sample that retains biome relief and
+  coast shaping; the profile uses the configured 80 cm bed and 1,800 cm bank
+  extent, with Z=0 water. Existing controls and seam coverage protect unchanged
+  source-coast behavior and shared samples. The analytic-basin policy remains
+  disabled. No relief-caused bank or coast defect was demonstrated, so no
+  runtime code change was needed. Checked BH18; rendered acceptance remains
+  BH26.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks/results:** Re-read the autonomous-run instructions,
+  backlog, progress and relevant terrain/hydrology documentation. Inspected
+  sampler ordering, tuning values and focused high-ground, bank, coast-control
+  and seam regression definitions. `git diff --check` passed. No automation
+  or build was run; full verification remains deferred to BH26.
+- **Observable impact:** No runtime behavior changed. The existing final
+  regional output continues to provide the carved river profile to terrain,
+  collision, water and map consumers after biome relief and coast shaping.
+- **Networking/authority:** No authority, replicated state, RPC or save data
+  changed; regional terrain continues to derive from the existing seeded
+  sampler.
+- **Known limitations / remaining scope:** Source inspection confirms the
+  intended ordering and existing regression coverage, but compiled behavior,
+  rendered terrain and traversal remain unverified until BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S33 progress and leaving other active work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH19 — add the independent seeded forest
+  factor while preserving candidate identity and random independence.
 
 ### Monster population — S34 verification handoff
 
@@ -12370,7 +16557,130 @@
   two-player neighborhood overlap, lifecycle and scheduler bounds; the existing
   SharedCombat peer runner covers replication, reward delivery and exact-ID
   restart. S35 must record actual results and not overstate this coverage.
-- **Next eligible task:** S35 — perform milestone-final verification.
+- **Next eligible task:** none — monster-population goal complete.
+
+## Run 2026-10-25 — Add independent forest factor (BH19)
+
+- **Selected increment:** BH19, the first unchecked task after BH18. The
+  worktree was clean at `b6217cee`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Added a normalized `ForestFactor` value to the shared
+  forest descriptor. It samples an independently salted Perlin domain at the
+  candidate's absolute world position, using a provisional 48,000 cm scale.
+  The value is not an ecological field or replicated map. It consumes no
+  candidate-stream draws and does not gate candidates, so current counts,
+  positions, original ordinals and persistent IDs remain unchanged. Meadows
+  suitability integration remains BH20.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  biome/Meadows plans, architecture and development setup. Static inspection
+  confirmed the new domain salt is separate from Flora and terrain detail, the
+  sample uses absolute XY, no random draws were added, and candidate counts and
+  the existing random-stream call order are unchanged. `git diff --check`
+  passed. No build or automation was run; full verification remains deferred to
+  BH26.
+- **Observable impact:** Existing shared descriptors now expose a stable
+  0-to-1 world-space forest placement signal. Current forest admission,
+  rendering and materialization behavior is unchanged.
+- **Networking/authority:** The value is a deterministic function of the
+  existing world seed and absolute position. No RPC, replicated field, save
+  data or server-authority behavior changed.
+- **Known limitations / remaining scope:** The 48,000 cm scale is provisional.
+  The factor does not yet affect density or biome suitability; Meadows gating
+  and its identity/lifecycle checks remain BH20, with integrated verification
+  deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S34 progress and leaving A10 work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20 — integrate Meadows forest
+  suitability through shared descriptors while preserving identity and lifecycle.
+
+## Run 2026-10-25 — Apply Meadows Flora suitability (BH20a)
+
+- **Selected increment:** Split BH20 into four ordered children, then selected
+  BH20a, the first unchecked child. The worktree was clean at `e3c06597`; A10
+  and monster-population work remains in separate worktrees, with no concurrent
+  run in this checkout.
+- **Work completed:** Added BH20a–BH20d in order: Meadows Flora admission,
+  forest-factor patchiness, final-slope gating, and dry-ground gating. Applied
+  the existing Elderwood Flora probability curve to Meadows candidates through
+  the shared layout used by decorative rendering and server materialization.
+  The new decision uses an independent world/patch/original-ordinal hash roll
+  after the current candidate geometry draws, so rejection cannot shift later
+  candidate randomness. Original indices/IDs and the 18-Meadows/72-total
+  candidate limits are preserved; Elderwood behavior is unchanged.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Meadows/forest plans, architecture and development setup. Inspected both
+  rendering and server-materialization consumers of `FKalmalaForestLayout::Generate`.
+  Static review confirmed the gate uses a separate deterministic domain and
+  adds no random-stream draws; `git diff --check` passed. No build or automation
+  was run; full verification remains deferred to BH26.
+- **Observable impact:** Meadow descriptors now become sparser where the
+  existing Flora probability is lower. Rendering and server materialization
+  consume the same filtered descriptors; candidate IDs remain tied to original
+  patch/index identity.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. The selection is deterministic from the existing world seed,
+  patch center and original candidate ordinal.
+- **Known limitations / remaining scope:** Forest-factor patchiness, final
+  slope and dry-ground gates remain BH20b–BH20d. The reused Flora probability
+  curve and rendered density are not yet compiled or visually validated; full
+  verification remains deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S34 progress and leaving A10 work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20b — apply forest-factor patchiness to
+  Meadows descriptor admission with stable per-ID thresholds.
+## Run 2026-10-25 — Apply forest-factor patchiness (BH20b)
+
+- **Selected increment:** BH20b, the next unchecked child after BH20a. The
+  worktree was clean at `244c9f2b`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Combined Meadow admission probability as the existing
+  Flora probability multiplied by the normalized `ForestFactor`. The shared
+  descriptor path compares that probability against the same stable
+  world/patch/original-ordinal threshold added in BH20a, retaining its strict
+  roll comparison and rejecting zero-probability candidates after existing
+  geometry draws. Higher factor values smoothly increase admission. Candidate
+  limits, IDs, random-stream order, patch-independent absolute-world sampling,
+  and Elderwood behavior stay unchanged. Checked BH20b; BH20c/d remain for
+  slope and dry-ground gates.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the forest-factor plan, Meadows plan, architecture and development setup.
+  Inspected the shared descriptor flow, separate factor domain, stable
+  threshold and unchanged random-stream calls. Added focused automation source
+  coverage for probability scaling, stable thresholds, normalized factor range
+  and patch-boundary factor
+  continuity; it was not built or run. `git diff --check` passed. Full
+  verification remains deferred to BH26.
+- **Observable impact:** Meadows density now follows both Flora suitability and
+  the smooth world-space forest factor; low-factor pockets form clearings.
+  Descriptor budgets and the shared rendering/server-materialization path stay
+  intact.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. Factor and candidate thresholds remain deterministic from
+  existing seed/world/patch/candidate identity.
+- **Known limitations / remaining scope:** The 48,000 cm factor scale remains
+  provisional. Final slope and dry-ground gating remain BH20c/d; rendered
+  density and compiled behavior are unverified until BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving the existing Monster S35 progress. A10 work remains in its
+  separate worktree. Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20c — gate Meadows descriptors by final
+  terrain slope through the shared descriptor path.
 
 ### Monster population — S35 milestone-final verification
 
@@ -12398,6 +16708,2060 @@
 - **Observable impact / networking:** The final fixes restore compilation and correct fixture assertions/lifecycle setup. No gameplay policy, saved-data schema, replication protocol or client authority changed. The live runner confirmed server-owned defeat/reward and replicated state.
 - **Known limitations:** Environmental source behavior remains a reusable dormant policy seam without configured world content; its native policy/admission tests passed. No verification blocker remains.
 - **Final milestone status:** Complete. S01–S35 and the parent goal are checked. No next task remains in this goal.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Garnet
+
+- **Selected increment and registration:** audited only `Garnet`, next in A9
+  backlog order. Schema-16 catalogue registration includes
+  `items/materials/gems.json`, `items/accessories.json`, and
+  `recipes/stations/a9-gear.json`. Garnet is a raw material (stack 20, 0.1 kg)
+  with no equipment, attack, upgrade, direct-craft recipe, or use effect. Its
+  sole recipe use is the enabled Forge `GarnetNecklace` recipe: 3 `Bronze` +
+  1 `Garnet` → 1 necklace, batch one. The necklace profile provides +20 maximum
+  health while equipped; the raw gem has no such effect.
+
+- **Accepted source and runtime route:** the server selects one Garnet on the
+  domain-separated 1-in-10 roll for existing canonical PointOfInterest
+  discovery descriptors in Elderwood or Shimmering Lakes. No node, enemy, or
+  other Garnet source is registered. Shimmering Lakes can independently roll
+  Aquamarine into the same treasure; the saved state and claim path support the
+  complete bundle.
+
+- **Authority and persistence:** `PrepareWorldTreasure` accepts only server-side,
+  canonical generated descriptors and stores each deterministic result,
+  including empty chests, in the world-population schema-2 ledger before actor
+  presentation. A saved result is returned unchanged on later initialization.
+  Claims validate server authority, same-world living interactor and range,
+  then build and capacity-check the complete inventory grant. The claim ledger
+  transition is saved before success is published; if saving fails after the
+  inventory commit, the server attempts to restore the prior inventory. Treasure
+  records allow only the fixed gem allowlist and one unclaimed-to-claimed
+  transition with unchanged contents. Ordinary Garnet inventory is session-only;
+  the restart record proves the chest stays claimed, not that the stack persists.
+
+- **Icon and mapping:** manifest row (image batch 81, import batch AL)
+  declares the raw Garnet
+  icon for PackInventory and ItemDetail. The original, prepared 64-pixel source,
+  and imported texture exist at
+  `Content/Kalmala/UI/Source/IconOriginals/Garnet.png`,
+  `Content/Kalmala/UI/Source/Icons/Garnet.png`, and
+  `Content/Kalmala/UI/Icons/Items/Garnet.uasset`. Runtime lookup maps Garnet to
+  Rock variant 2; `GarnetNecklace` maps to Necklace variant 1.
+
+- **Focused and acceptance evidence:** inspected the historical
+  `Kalmala.Gameplay.Inventory.A9GearRecipes` paid Forge exchange/crafted-GUID
+  equip case and `Kalmala.Gameplay.Status.AccessoryStats` +20 health, no-refill,
+  recovery-to-120 and full-health rejection coverage. Both are recorded as
+  passing in the final A9 187-case automation queue. `Kalmala.World.GemstoneContract`
+  also passed historically, but its current assertions do not check Garnet's
+  1-in-10 selector rate; its treasure persistence case saves an empty claimed
+  chest. The live `GemMiningTreasurePeer.ps1` acceptance does cover the Garnet
+  source-to-claim route: two owning remote clients target a canonical seeded
+  Garnet discovery, exactly one Garnet is granted and the saved chest is claimed.
+  A fresh host process restored the claimed world ledger. The scenario provisions
+  equipment/materials and therefore does not establish unassisted fresh-start
+  progression. Its full-pack rejection is observed on the mining path; it is not
+  evidence of a full-pack Garnet chest attempt. Final A9 inventory captures show
+  equipped Garnet Necklace, but no raw Garnet inventory/detail render is
+  recorded. These historical checks were inspected, not rerun.
+
+- **Cross-cutting documentation discrepancy:** the current save-version table in
+  `docs/02-technical-architecture.md` lists generated population deltas as
+  schema 1, while `UKalmalaWorldPopulationSaveGame` and the accepted A9 contract
+  use schema 2. This shared mismatch was not edited in the Garnet-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save source changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed icon mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id Garnet` passed for the 1254×1254 RGBA original and transparent
+  64×64 runtime texture. Focused PowerShell assertions passed for schema-16
+  registration, material bounds, exact Forge recipe/profile, source biome/rate,
+  save version, manifest coverage and runtime icon mapping. Static inspection
+  confirmed canonical server preparation, complete-grant/capacity checks and
+  save rollback order. No Unreal build, automation, live peer, or render was run
+  for this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns seeded treasure selection, canonical
+  descriptor validation, claim state, inventory capacity and saved transition;
+  client input supplies no item ID or quantity.
+- **Impact and remaining scope:** tracking-only; no within-item recipe, source,
+  profile, icon, authority, or persistence defect was found. The focused 1-in-10
+  selector assertion and raw-Garnet render remain unproven. Fresh-start
+  progression, broader A10 item/N/A coverage, the earlier Iron/Pick source
+  disposition and final A10 verification remain open.
+- **Next eligible A10 item audit:** Green Jade (`GreenJade`), next in A9 backlog
+  order.
+## Run 2026-10-25 — Gate Meadows trees by final terrain slope (BH20c)
+
+- **Selected increment:** BH20c, the first unchecked child after BH20b. The
+  worktree was clean at `71aa2116`; no other autonomous run is modifying this
+  checkout. A10 and monster-population work remains in separate worktrees.
+- **Work completed:** Added a named final-surface normal-Z floor of 0.88 for
+  Meadows trees, using the shared `SampleSurfaceNormal` from final regional
+  height. It runs after Flora, forest-factor and stable per-ID threshold gates
+  and after all candidate random draws. Rejected trees cannot shift later
+  candidate positions, dimensions, yaw, ordinals or IDs.
+  Accepted descriptors retain their existing `SampleHeight` root placement.
+  Elderwood remains ungated. Marked BH20c complete; BH20d still owns dry-ground
+  filtering.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestSlopeTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height and Meadows plans, forest contract, terrain-sampler and
+  collision docs. Inspected both descriptor consumers, the normal sampler and
+  mesh heights. Static review confirmed only Meadows candidates passing the
+  Flora, forest-factor and stable-threshold gates incur four neighboring
+  final-height samples. Accepted roots retain the same central final-height
+  sample. Added focused source coverage for the 0.88 boundary; it was not built
+  or run. `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Meadows trees are filtered off steeper final surfaces
+  in both decorative rendering and server materialization. Existing root
+  placement stays on the final sampled terrain; candidate identity and forest
+  budgets remain unchanged.
+- **Networking/authority:** The gate is deterministic from world seed and
+  absolute position; both server and cosmetic consumers use the shared layout.
+  No RPC, replicated state, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The 0.88 normal-Z floor reuses the
+  existing terrain-safe placement threshold. It is a finite-difference normal
+  of final regional heights, not a measured runtime collision-face slope.
+  Compiled and rendered/collision acceptance remains BH26; dry-ground filtering
+  remains BH20d.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving pre-existing Monster and A10 progress. Implementation files
+  remain in this detached worktree.
+- **Next task in this directed goal:** BH20d — reject Meadows trees on wet
+  ground using the shared final water and terrain samples.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Green Jade
+
+- **Selected increment and item registration:** audited only `GreenJade`, next
+  in A9 backlog order. Schema-16 catalogues register the raw material in
+  `items/materials/gems.json`, the Jade Ring profile in
+  `items/accessories.json`, and its Forge recipe in
+  `recipes/stations/a9-gear.json`. Green Jade is stackable to 20 at 0.1 kg and
+  has no equipment, attack, upgrade, direct-craft recipe, or use effect. Its
+  only recipe use is Jade Ring: 2 `Bronze` + 1 `GreenJade` → 1 ring, batch one.
+  The equipped ring grants a global -10% stamina-cost delta; that effect belongs
+  to the ring, not the raw gem. Neither the gem nor the ring has attack data or
+  an authored item upgrade path.
+
+- **Approved source and generation:** the shared contract makes one mutually
+  exclusive roll for existing `lakes-tin-shore-gravel` candidates in Shimmering
+  Lakes: 5% Quartz, the next 2% Green Jade, and 93% Tin. No other biome/source
+  can select Green Jade. Replacement occurs after ordinary and supplemental
+  population decisions and keeps the candidate count, exact location, seed and
+  persistent ID; it adds no node and does not co-drop with Tin. The source maps
+  `gem-jade-rock` to one GreenJade on extraction.
+
+- **Mining authority and save boundary:** the server reconstructs the seeded
+  source and owns each pick hit. It validates a live same-world attacker, 220 cm
+  range, the active server-held mining tool, source pick tier and condition. Each
+  of three accepted hits resolves the approved 10% smash chance using a stable
+  server-derived per-hit seed; condition and sparse gemstone state are saved
+  before hit presentation. A failed write restores condition/state where the
+  rollback write succeeds. The loose gem claim grants exactly one matching item
+  after complete capacity validation, persists the consumed node outcome before
+  replicated depletion, and rolls back the inventory commit on save failure.
+  The schema-2 world-population ledger stores only spawn ID, source, hit count
+  and outcome. Ordinary GreenJade inventory remains session-only and is not
+  restored on restart.
+
+- **Icon and runtime mapping:** manifest row (image batch 81, import batch AL)
+  covers PackInventory and ItemDetail for GreenJade. The original prompt in
+  `docs/icon-provenance.md` specifies the distinct green shard; the original,
+  prepared source and imported texture exist at
+  `Content/Kalmala/UI/Source/IconOriginals/GreenJade.png`,
+  `Content/Kalmala/UI/Source/Icons/GreenJade.png`, and
+  `Content/Kalmala/UI/Icons/Items/GreenJade.uasset`. Runtime mapping uses Rock
+  variant 3; JadeRing uses Ring variant 1. The world node also has a green jade
+  inclusion presentation.
+
+- **Focused and acceptance evidence:** inspected `Kalmala.World.GemstoneContract`
+  assertions over 10,000 seeds for repeatability, near-2% Jade frequency and
+  wrong-biome rejection, and `Kalmala.World.GemstoneGeneration` checks that
+  replacements add no candidates and preserve IDs/locations within approved
+  source/biome combinations. `Kalmala.Gameplay.Inventory.A9GearRecipes` covers
+  the paid Jade Ring exchange and crafted-GUID equip. `Kalmala.Gameplay.Status.AccessoryStats`
+  covers the global -10% cost, support inheritance, Wet/Meal stacking, immediate
+  removal and coexistence with Amethyst. These cases are recorded as passing in
+  the historical A9 187-case queue; they were inspected, not rerun. The live
+  `GemMiningTreasurePeer.ps1` scenario only materializes a canonical Quartz node
+  and a Garnet chest, so it provides no Green Jade delivery or competing Jade
+  claim evidence. Its fresh-process check restores the Quartz mining state and
+  Garnet treasure claim, not Green Jade. The final inventory renders show Opal
+  Helm, Garnet Necklace and Dusk Ring; no Jade Ring or raw Green Jade tile is
+  explicitly recorded. The peer fixture provisions gear/pick and does not prove
+  unassisted fresh-start progression.
+
+- **Cross-cutting documentation gaps:** `docs/02-technical-architecture.md`'s
+  current save-version table still lists generated population deltas as schema
+  1, while source and A9 use schema 2. `AGENTS.md` references
+  `docs/material-icons.md` and the A10 backlog link targets
+  `docs/alpha-item-details.md#a10`; neither file exists in the tracked checkout.
+  Icon provenance and approved Jade behavior are documented in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These shared gaps were
+  not repaired in this item-scoped increment.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save source changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed icon mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id GreenJade` passed for the 1254×1254 RGBA original and transparent
+  64×64 runtime texture. Focused PowerShell assertions passed for schema-16
+  registration, raw stack/weight, exact Jade Ring recipe/profile, 2% Lakes Tin
+  source, pick tier, source-test assertions, manifest and runtime mappings.
+  Static inspection confirmed post-generation replacement, server validation,
+  save rollback and session-only inventory. No Unreal build, automation, live
+  peer, or render was run for this audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns world-source replacement, mining roll,
+  pick condition, sparse hit/claim state and item grant/capacity validation;
+  client-selected source, item ID or quantity is not accepted.
+- **Impact and remaining scope:** tracking-only; no within-item data, source,
+  recipe, profile, icon, authority or persistence defect was found. Jade-specific
+  live claim/restart evidence, raw/ring render, unassisted fresh-start path,
+  broader A10 item/N/A coverage, the earlier Iron/Pick source disposition and
+  final A10 verification remain open.
+- **Next eligible A10 item audit:** Amethyst (`Amethyst`), next in A9 backlog
+  order.
+
+## Run 2026-10-25 — Gate Meadows trees off wet ground (BH20d)
+
+- **Selected increment:** BH20d, the first unchecked child under BH20. The
+  detached worktree was clean at `4061a237`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** The shared forest descriptor path now uses one final
+  regional sample for Meadows water state and root height, rejecting candidates
+  on regional water. Remaining Meadows candidates require a valid dry ocean
+  sample on the explicit 3 km patch triangle lattice. The ocean query is
+  skipped when regional water already rejects the candidate. Disabled analytic
+  basin policy remains owned by the regional sampler. Elderwood, candidate
+  random draws, ordinals, IDs and root alignment remain unchanged. Marked BH20d
+  and the BH20 implementation parent complete; integrated milestone acceptance
+  remains for BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestWetGroundTest.cpp`,
+  `docs/02-technical-architecture.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Meadows and biome-height plans, water/terrain architecture and forest
+  lifecycle setup. Static inspection confirmed the layout remains the common
+  input for cosmetics, server materialization and suppression; lifecycle tests
+  still key off original CandidateIndex/PersistentSpawnId for depletion, patch
+  reconstruction and restart. Added source coverage for regional wet, ocean wet,
+  invalid-sample rejection, dry placement and original-ordinal identity; it was
+  not built or run. Full build and automation remain deferred to BH26.
+- **Observable impact:** Meadows trees are omitted from wet/invalid ground in
+  both presentation and harvest materialization. Accepted roots use the same
+  final regional height already used by `SampleHeight`.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. Server and cosmetic consumers continue to derive descriptors
+  from the shared seeded layout; existing suppression and sparse depletion IDs
+  are unchanged.
+- **Known limitations / remaining scope:** Focused source coverage was not
+  compiled or executed. Full rendering, collision, hydrology and gameplay
+  lifecycle acceptance remains deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21 — add Tundra forest participation with reduced
+  density and explicit resource identity.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Amethyst
+
+- **Selected increment and item registration:** audited only `Amethyst`, next
+  in A9 backlog order. Schema-16 catalogue registration includes the raw gem
+  through `items/materials/gems.json`, its accessory profile in
+  `items/accessories.json`, and its Forge recipe in
+  `recipes/stations/a9-gear.json`. The raw gem stacks to 20 at 0.1 kg and has
+  no equipment profile, attack, upgrade, direct-craft recipe, or use effect.
+  Its only recipe use is 3 `Bronze` + 1 `Amethyst` → 1 `AmethystNecklace`,
+  output one, batch one. The necklace has no attack, durability, or authored
+  upgrade path; its equipped profile applies only the approved -15% support
+  spell stamina-cost modifier.
+
+- **Approved source and generation:** the source contract replaces existing
+  `mire-bog-iron` Iron Ore candidates in Mossy Mire only: 3% Amethyst and 97%
+  ordinary Iron Ore. No other biome/source selects the gem. Replacement runs
+  after ordinary and supplemental population decisions and keeps candidate
+  count, location, seed and persistent ID; the slot does not also yield Iron.
+  `gem-amethyst-rock` maps to exactly one `Amethyst` after successful
+  extraction. The source requires pick tier 2 or higher; three accepted hits
+  each use the approved 10% smash chance and spend one pick condition.
+
+- **Mining authority and save boundary:** server code validates authoritative
+  source/node state, a live same-world attacker, 220 cm range, the active
+  server-held mining pick, tier and condition. It derives each smash roll from
+  the server world seed, stable spawn identity and hit number. Player condition
+  and sparse gemstone hit/outcome state are persisted before hit presentation;
+  failed writes restore state where rollback succeeds. Extraction claim grants
+  one matching item only after full capacity validation, persists the consumed
+  outcome before replicated depletion, and rolls back inventory if that save
+  fails. World population save schema 2 stores sparse node identity/source/hit/
+  outcome state. Ordinary gem inventory and accessory gear remain session-only;
+  the gem inventory itself is not restored on restart.
+
+- **Icon and runtime mapping:** manifest row (image batch 81, import batch AL)
+  covers Amethyst in PackInventory/ItemDetail and AmethystNecklace in
+  PackInventory/ItemDetail/RecipeResult. Original, prepared and imported assets
+  exist for both items. The Amethyst provenance prompt specifies a violet
+  crystal cluster; runtime mapping uses Rock variant 4. The necklace uses
+  Necklace variant 2. Validators confirmed 1254×1254 RGBA sources and
+  transparent 64×64 runtime textures. The world node also renders a violet
+  Amethyst inclusion.
+
+- **Focused and acceptance evidence:** `Kalmala.World.GemstoneContract` covers
+  the common three-hit/smash rules and generic world-save serialization; its
+  current direct 10,000-seed selector assertions measure Quartz/Jade, not
+  Amethyst's 3% rate or wrong-biome rejection. `Kalmala.World.GemstoneGeneration`
+  confirms replacements add no candidates, preserve identity/location, and
+  restrict observed changes to approved source/biome pairs. `Kalmala.Gameplay.Inventory.A9GearRecipes`
+  covers the paid Forge exchange and crafted-GUID equip; `Kalmala.Gameplay.Status.AccessoryStats`
+  covers support-only Amethyst cost reduction, ordinary-cost exclusion, zero
+  cost and Jade/Wet/Meal combination. These cases are recorded as passing in
+  the historical A9 187/187 automation queue; they were inspected, not rerun.
+  The historical peer fixture grants/equips Amethyst Necklace to a remote
+  player, but its owner-stat assertion checks max health/stamina, not support
+  spell cost. Its mined gem and fresh-process claimed ledger are Quartz; the
+  restart also checks Garnet treasure, not Amethyst. The documented A9 render
+  fixture shows Opal Helm, Garnet Necklace and Dusk Ring, with no Amethyst item
+  render recorded. Peer test gear/pick are provisioned; no-grant fresh-start
+  progression remains unproven.
+
+- **Cross-cutting gaps:** `docs/02-technical-architecture.md` still lists
+  generated population deltas as schema 1 while source and the approved A9
+  contract use schema 2. `AGENTS.md` points to absent `docs/material-icons.md`
+  and the A10 backlog link targets absent `docs/alpha-item-details.md#a10`;
+  icon instructions and accepted source/effect decisions are present in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. The approved Bronze
+  Pick acquisition target also differs from its current Forge recipe, already
+  retained in A10 for final no-grant progression disposition. These shared
+  issues were not changed in this item-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay,
+  catalogue, icon, or save implementation changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed runtime mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id Amethyst` and the same validator for `AmethystNecklace` passed.
+  Static inspection confirmed schema registration, recipe/profile categories,
+  the 3% selector and pick tier, authoritative hit/claim saves, icon provenance
+  and mappings, and the specific limitations of historical tests/peer/render
+  evidence. No Unreal build, automation, live peer, restart, render or fresh-start
+  check was run for this A10 audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns source replacement, hit/smash result,
+  tool condition, sparse hit/claim state and capacity-validated item grant;
+  the client does not select the source, reward ID or quantity.
+- **Impact and remaining scope:** tracking-only; no within-item data, source,
+  recipe, profile, icon, authority or persistence defect was found. Amethyst-
+  specific source-rate, claim/restart, support-cost multiplayer and render
+  acceptance, no-grant fresh start, broader A10 item/N/A coverage and final A10
+  verification remain open.
+- **Next eligible A10 item audit:** Aquamarine (`Aquamarine`), next in A9
+  backlog order.
+
+## Run 2026-10-25 — Make forest tree kind explicit (BH21a)
+
+- **Selected increment:** BH21a, the first child after splitting the broad BH21
+  acceptance into explicit identity, Tundra admission and lifecycle proof. The
+  detached worktree was clean at `929ff985`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** Replaced the overlapping `bElderwood`/`bAspen` descriptor
+  flags with `EKalmalaForestTreeKind`. Existing Meadows birch, Meadows aspen and
+  Elderwood ironheart candidates retain their prior appearance and gathering
+  sources. Added an explicit Freezing Tundra birch kind that maps to the existing
+  Meadows birch source and presentation, adding no timber content or reward.
+  Updated cosmetic rendering, server source selection, delivery verification
+  and existing source/lifecycle coverage to consume the explicit kind. Tundra
+  candidate generation remains BH21b.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaForestResourceContract.h`,
+  `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestResourceContractTest.cpp`,
+  and `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the forest-factor and Tundra plan, forest architecture, harvest lifecycle and
+  Tundra verification setup. Static search found no remaining descriptor
+  consumers of the removed boolean flags. Source inspection confirmed existing
+  placement, dimensions, random draws, persistent IDs and Meadow/Elderwood
+  source choices remain unchanged. Added source assertions for every tree-kind
+  source/presentation mapping and unknown-kind rejection; they were not built
+  or run. `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Existing trees keep their current appearance and
+  harvesting source. Shared descriptors now carry an explicit type so later
+  Tundra placement cannot inherit Elderwood's ironheart source by height reuse.
+- **Networking/authority:** No RPC, replication, save schema or gameplay
+  authority changed. Server materialization and cosmetic rendering consume the
+  same descriptor kind; suppression and sparse persistence IDs are unchanged.
+- **Known limitations / remaining scope:** This increment defines the explicit
+  Tundra birch mapping but does not generate Tundra trees. Reduced-density
+  candidate admission and its identity/lifecycle proof remain BH21b–BH21c;
+  full build, automation and rendered acceptance remain deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21b — add reduced-density Tundra forest candidates
+  through the shared descriptor path without shifting existing candidate draws.
+
+## Run 2026-10-25 — Add reduced-density Tundra forest (BH21b)
+
+- **Selected increment:** BH21b, the first unchecked child after BH21a. The
+  detached worktree was clean at `6267f7cd`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** Existing Freezing Tundra-classified candidate positions
+  can now enter the shared forest layout when their existing Flora probability
+  multiplied by the absolute-world forest factor and provisional 0.85 density
+  passes the stable world/patch/original-ordinal threshold. Accepted descriptors
+  use `FreezingTundraBirch`, which maps to the existing Birch presentation and
+  source. Tundra appearance dimensions use a separate seed domain keyed by
+  world, patch and candidate; no Tundra eligibility, rejection or geometry draw
+  advances the existing Meadow/Elderwood candidate stream. The original 72
+  candidate budget, Meadows cap, Elderwood Flora gate, candidate positions,
+  resource IDs and persistent IDs remain unchanged. BH21b is complete; lifecycle
+  acceptance remains BH21c.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the Tundra/forest-factor plan, candidate identity and resource contracts, and
+  the Tundra verification setup. Static inspection confirmed only existing
+  Freezing Tundra labels enter the gate; accepted trees use the explicit Birch
+  kind and stable threshold. Reviewed the shared stream flow: candidate XY and
+  all current Meadow/Elderwood geometry draws are unchanged, while Tundra's five
+  dimensions/yaw draws use the independent geometry salt. Added source coverage
+  for factor/Flora composition and the 0.85 provisional multiplier; it was not
+  built or run. `git diff --check` passed. Full verification remains deferred
+  to BH26.
+- **Observable impact:** Freezing Tundra can now produce a lower-density,
+  factor-patched Birch forest using the existing resource and presentation.
+  Runtime counts and visuals were not measured.
+- **Networking/authority:** No RPC, replicated state, save schema or authority
+  changed. Cosmetic rendering and server materialization continue to consume
+  the same deterministic descriptors; candidate ID and suppression contracts
+  remain unchanged.
+- **Known limitations / remaining scope:** The 0.85 multiplier is provisional
+  pending BH25 tuning. Tundra depletion/suppression, late-join and restart
+  identity proof remain BH21c; full build and rendered acceptance remain BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21c — verify Tundra resource identity and forest
+  lifecycle behavior.
+
+
+## Run 2026-10-25 — A10 per-item audit: A9 Aquamarine
+
+- **Selected increment and item registration:** audited only `Aquamarine`, next
+  in A9 backlog order. Schema-16 catalogue registration includes the raw gem
+  in `items/materials/gems.json`, its profile in `items/accessories.json`, and
+  its Forge recipe in `recipes/stations/a9-gear.json`. The raw item stacks to
+  20 at 0.1 kg, has no equipment or attack profile, no upgrade entry, and no
+  use effect. Its only recipe use is 2 `Bronze` + 1 `Aquamarine` → 1
+  `AquamarineRing`, output one, batch one. The ring stacks to one at 1 kg, has
+  no durability, repair, attack or authored upgrade path, and grants the
+  approved +15% stamina-regeneration modifier while equipped.
+
+- **Approved source and generation:** only Shimmering Lakes world treasure
+  chests can yield Aquamarine. The deterministic per-chest roll is 1/20 and is
+  independent of the separate 1/10 Garnet roll, so a Lakes chest can contain
+  one of each. Other biomes have no Aquamarine treasure source; it is not
+  sourced from player storage or ordinary drops. The server derives the saved
+  treasure selection from the canonical discovery descriptor seed and world
+  seed, and retains that exact loot instead of rerolling on open/reload.
+
+- **Claim authority and save boundary:** `PrepareWorldTreasure` accepts only a
+  canonical server-generated point-of-interest descriptor in an approved
+  treasure biome and returns an existing saved state or persists the selected
+  contents before exposing it. Claims require server authority, a live
+  same-world player within 250 cm, an unclaimed treasure state and complete
+  inventory capacity for the entire saved bundle. The server grants from that
+  persisted bundle, writes the shared claimed flag before publishing success,
+  and rolls back the inventory update if the save fails. The world population
+  save schema is 2; the treasure record retains stable chest ID, item list and
+  claimed state, including empty results to prevent rerolls. Ordinary gem
+  inventory and ring equipment remain session-only; restarting restores chest
+  loot/claim state, not the player's Aquamarine stack or ring.
+
+- **Use/profile behavior:** `AquamarineRing` applies +15% to active stamina
+  recovery only, without changing recovery delay or conditions. The focused
+  status test exercises the exact 15% recovery gain,
+  confirms no recovery while sprint consumes stamina, excludes immediate draught
+  restoration, checks the maximum cap, and verifies that unequip restores base
+  recovery. The raw gem has no equip, use, attack or upgrade behavior beyond its
+  ring ingredient role.
+
+- **Icon and runtime mapping:** manifest row (image batch 81, import batch AL)
+  covers Aquamarine in PackInventory/ItemDetail and AquamarineRing in
+  PackInventory/ItemDetail/RecipeResult. The original provenance prompts describe
+  a blue-green crystal and a bronze ring with aquamarine; original, prepared
+  and imported files exist for both. Runtime mapping uses Rock variant 5 for
+  the gem and Ring variant 2 for the ring. Both icon validators confirmed
+  1254×1254 RGBA source images and transparent 64×64 runtime textures.
+
+- **Focused and acceptance evidence:** `Kalmala.Gameplay.Inventory.A9GearRecipes`
+  covers the one-gem paid Forge recipe path and crafted-GUID equip; the
+  `Kalmala.Gameplay.Status.AccessoryStats` case covers the +15% active recovery
+  effect and its sprint/draught/unequip boundaries. These cases are recorded as
+  passing in the historical A9 187/187 automation queue; they were inspected,
+  not rerun. No current automation directly exercises `SelectTreasure` for the
+  Aquamarine 1/20 frequency or biome exclusion, and generic treasure
+  persistence assertions do not serialize an Aquamarine-specific payload. The
+  documented peer fixture provisions an Aquamarine Ring to the host player, but
+  its owner-stat checks cover max health/stamina, not stamina regeneration. It
+  selects a chest containing Garnet; because Lakes rolls are independent that
+  chest could also contain Aquamarine, but the peer pass criteria assert only
+  one Garnet and generic saved claim state. The fresh-process step restores the
+  claimed chest record without asserting Aquamarine contents or delivery. The
+  A9 render fixture displays Opal Helm, Garnet Necklace and Dusk Ring; no
+  Aquamarine or Aquamarine Ring render is recorded. Test gear is provisioned,
+  so no-grant fresh-start progression remains unproven.
+
+- **Cross-cutting documentation gaps:** the current save table in
+  `docs/02-technical-architecture.md` still lists generated population deltas
+  as schema 1, while source and the accepted A9 contract use schema 2.
+  `AGENTS.md` references absent `docs/material-icons.md`, and the A10 backlog
+  link targets absent `docs/alpha-item-details.md#a10`; icon workflow and A9
+  source/effect decisions are recorded instead in `docs/icon-provenance.md` and
+  `docs/a9-acceptance.md`. The Bronze Pick approved acquisition target/current
+  Forge recipe mismatch remains open for final no-grant progression disposition.
+  These shared gaps were not changed in this item-scoped audit.
+
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay,
+  catalogue, icon or save implementation changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 777 resolved references,
+  152 ledger-backed runtime mappings). `Scripts/Validate-UIIcons.ps1 -Category
+  Catalogue -Id Aquamarine` and the same validator for `AquamarineRing` passed.
+  Narrow static assertions passed for schema-16 registration, stack/weight,
+  exact recipe/profile, Lakes 1/20 gate and runtime icon variants. Source/test
+  inspection confirmed canonical server selection, bundle save/claim rollback,
+  session-only player inventory, and the exact scope of historical peer/restart/
+  render evidence. No Unreal build, automation, live peer, restart, render or
+  fresh-start check was run for this A10 audit.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** server owns the descriptor validation, seeded loot
+  selection, persisted chest bundle/claim, capacity-checked item IDs/quantities
+  and ring effect state; clients cannot choose a treasure item or quantity.
+- **Impact and remaining scope:** tracking-only; no within-item data, recipe,
+  profile, source eligibility, authority, persistence or icon defect was found.
+  Aquamarine-specific 1/20 source-rate, treasure payload/restart, ring-regeneration
+  multiplayer and render acceptance, no-grant fresh start, broader A10 item/N/A
+  coverage and final A10 verification remain open.
+- **Next eligible A10 item audit:** Tourmaline (`Tourmaline`), next in A9
+  backlog order.
+
+### BH21c — Tundra forest identity and lifecycle source proof (2026-10-25)
+
+- **Work completed:** Added a deterministic Tundra-patch fixture that searches
+  classified Tundra positions for accepted `FreezingTundraBirch` descriptors.
+  The lifecycle fixture now reconstructs a Tundra candidate by its original
+  `CandidateIndex` and checks the stable `PersistentSpawnId` and existing Birch
+  source. The patch fixture traces that descriptor through server node
+  materialization, canonical cosmetic suppression, the production sparse
+  depletion callback, save snapshot reload and patch reactivation. The opt-in
+  process restart fixture now persists and reloads Tundra Birch identities.
+  The existing late-join verifier was inspected: it regenerates the same shared
+  descriptors and checks candidate suppression, persistent ID, source selected
+  by `TreeKind`, replicated transform and tree stage. BH21 is implementation
+  complete; the roadmap milestone remains open for BH22–BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestTundraTestSupport.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestRestartTest.cpp`, and
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h` (test-fixture friendship).
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome rework plan, architecture identity contract, and development setup
+  coverage for forest reconstruction, patch suppression, depletion, delivery and
+  process restart. Static inspection confirmed server materialization resolves
+  sources from the shared descriptor kind, and the late-join verifier checks
+  regenerated descriptors against replicated nodes. `git diff --check` passed.
+  Automation and builds were not run; full verification remains deferred to
+  BH26.
+- **Observable impact:** Focused source fixtures now exercise Tundra-specific
+  identities through the existing server materialization and persistence paths.
+  No runtime counts or peer behavior were measured.
+- **Networking/authority:** No production RPC, replicated state, save schema or
+  authority behavior changed. The test fixture calls the existing server-bound
+  depletion callback; late-join source/identity checks remain on the existing
+  shared descriptor verifier. Integrated peer verification remains deferred to
+  BH26.
+- **Known limitations / remaining scope:** Fixtures were inspected but not
+  compiled or executed. Rendered behavior, actual client late-join delivery,
+  measured Tundra density and final 0.85 multiplier tuning remain for BH25–BH26.
+- **Main-checkout handoff:** Synchronized only this run's `BACKLOG.md` and
+  `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
+  existing A10 and Monster progress was preserved.
+- **Next eligible task:** BH22 — add eligible Lakes forest shoulders.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Tourmaline
+
+- **Selected increment and registration:** audited only `Tourmaline` and its
+  directly applicable `TourmalineNecklace`; the A10 item-audit child remains
+  open. Schema-16 `GameCatalogues.json` registers the gem, accessory, and A9
+  Forge recipe files. `Tourmaline` is a raw 20-stack, 0.1 kg material with no
+  equipment, attack, upgrade, or repair profile. The necklace is a 1-stack,
+  1 kg Necklace-slot accessory whose only nonzero combat/status field is
+  `HealingReceivedMultiplier: 0.10`; armor, attacks, condition, upgrades, and
+  repairs are not applicable.
+- **Source, recipe, use, and persistence:** the seeded source contract replaces
+  only Thunder Mountains `mountains-slate-vein` descriptors when the stable
+  roll is below 2/100, mapping `gem-tourmaline-rock` to one Tourmaline. The
+  shared population pass applies replacements after ordinary and supplemental
+  source selection, retaining candidate count, location, seed, and persistent
+  identity; it adds no co-drop. Stone Pick or better is required. The shared
+  server mining path validates authority, same-world/living owner, range,
+  active pick tier and condition; it persists each accepted hit and deterministic
+  outcome before replication, then capacity-checks and persists the one-item
+  claim before depletion. Population save schema 2 stores sparse node/claim
+  state; ordinary inventory and equipped gear remain session-only. The exact
+  Forge recipe is 3 Bronze + 1 Tourmaline for one necklace, batch one. The
+  focused A9 gear automation contains the recipe case and checks Forge station,
+  single output, named gem cost, paid exchange, and GUID-based equip. Server
+  accessory tests cover +10% incoming Mending and periodic draught healing,
+  immediate removal for later ticks, full-health rejection/clamping, no outgoing
+  heal increase, no resurrection, and another pawn's neutral modifier.
+- **Icon and presentation:** both original icons are present in the generated,
+  prepared, imported catalogue pipeline and ledger manifest. Runtime mapping is
+  Tourmaline → Rock variant 6 and TourmalineNecklace → Necklace variant 3.
+  Focused icon validation passed for both. The item and necklace descriptions
+  and provenance prompts specify dark forest green, while the visible mining
+  inclusion uses a pink-red `FLinearColor(.9,.25,.45)`. A9 does not specify the
+  mining inclusion hue and there is no Tourmaline render acceptance; this is a
+  visual consistency gap to resolve during presentation acceptance, not a
+  source edit inferred in this audit.
+- **Focused checks and acceptance evidence:** `python
+  Scripts/Validate-CatalogueReferences.py` passed (61 registered JSON files,
+  152 definitions, 777 resolved references, 152 ledger-backed runtime icon
+  mappings). `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Tourmaline`
+  and the same validator for `TourmalineNecklace` passed; narrow assertions for
+  schema registration, item/profile data, exact recipe inputs, source roll/tier,
+  and icon variants passed. Source automation has shared three-hit/10%-per-hit
+  smash and save-round-trip cases; generation inspection verifies replacement
+  count/identity/location and restricts changed descriptors to approved source
+  and biome pairs. The seed-418 generation case does not directly assert
+  Tourmaline's 2% rate or biome exclusion, and no Unreal automation was run in
+  this A10 increment.
+- **Peer, restart, render, and fresh-start evidence:** the documented A9 peer
+  fixture provisions Quartz and Garnet source descriptors, not Tourmaline; its
+  owner gear set does not craft/equip Tourmaline Necklace. Its fresh reader
+  verifies Quartz and Garnet claim entries, not Tourmaline's source/claim or
+  necklace persistence. The render fixture covers Opal Helm, Garnet Necklace,
+  Dusk Ring, Star Opal, and Storm Sapphire, not Tourmaline. No Tourmaline
+  source-to-item/Forge-to-equip peer run, fresh-process Tourmaline claim check,
+  rendered acceptance, or A10 no-grant fresh-start run was performed here.
+  Full A9/I5 and A10 acceptance remain open.
+- **Shared documentation mismatches:** the architecture save table still lists
+  `UKalmalaWorldPopulationSaveGame` as schema 1 although source and A9 mining
+  documentation use schema 2. `AGENTS.md` points to absent
+  `docs/material-icons.md`, and the A10 backlog link targets absent
+  `docs/alpha-item-details.md#a10`; available icon and item contracts are in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These cross-cutting
+  issues were not changed in this item audit.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save implementation changed.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** source selection, hit rolls, pick wear, sparse
+  persistence, capacity validation, item grant, claim, and accessory stat
+  calculation remain server-authored. No client-selected gem, quantity, or
+  healing modifier was found.
+- **Impact and remaining scope:** tracking-only; no within-item data, recipe,
+  authority, persistence, or acquisition defect was established. Resolve the
+  Tourmaline world-node hue during rendered presentation acceptance, add direct
+  source-rate/biome acceptance if required, and retain Tourmaline peer/restart/
+  no-grant evidence along with the broader A10 list. Keep A10 and full
+  milestone verification open.
+- **Next eligible A10 item audit:** Star Opal (`StarOpal`), next in A9 backlog
+  order.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Star Opal
+
+- **Selected increment and registration:** audited only `StarOpal` and its
+  directly applicable `OpalHelm`; the A10 item-audit child remains open.
+  Schema-16 registration includes the gem item file, helmet catalogue, A9 Forge
+  recipes, helmet level-up costs, and shared stat rewards. `StarOpal` is a raw
+  20-stack, 0.1 kg material with no equipment, attack, upgrade, or repair
+  profile. `OpalHelm` is a stack-one, 5 kg Head-slot item with 150 starting
+  condition and 12 Armor; its attack behavior is not applicable.
+- **Source, item mapping, and save boundary:** generation adds at most one
+  supplemental safe Frost Salt deposit per 60 m spatial key after checking up
+  to 32 candidates and 250 cm separation; it retains ordinary candidates and
+  frostmoss. Only a Freezing Tundra `tundra-frost-salt-deposit` descriptor can
+  be replaced, at a stable 1/100 roll, with `gem-opal-rock`; other biomes and
+  `tundra-frostmoss` are excluded. The replacement retains the descriptor's
+  location and persistent seed identity, with no Frost Salt co-drop. Server
+  source mapping resolves `gem-opal-rock` to `StarOpal`, and Stone Pick or
+  better is required. Each of three accepted hits has a deterministic 10%
+  server-only smash roll; a successful extraction exposes exactly one matching
+  gem. Authority, same-world/living owner, range, active pick family/tier and
+  condition are checked. Accepted condition and hit/outcome state are persisted
+  before replication; claim capacity is checked and the claim is persisted
+  before depletion. Population deltas use schema 2. Gem inventory, Opal Helm
+  equipment, wear and item level remain session-only; no gear-save behavior is
+  implied.
+- **Recipe, profile, and upgrades:** the single-batch Forge recipe consumes
+  20 Iron, 5 Deer Hide and 1 Star Opal for one Opal Helm. Its registered level-one
+  Forge upgrade consumes 5 Iron and 2 Deer Hide; scaled costs double by current
+  level, while each level adds 1 Armor and 10 maximum condition. Server
+  maintenance requires the exact equipped Head-slot item GUID, living owning
+  character, visible same-world Forge within 2.5 m and the effective Forge level
+  for an upgrade. Repair is free at that Forge. The
+  `Kalmala.Gameplay.Inventory.OpalHelm` case covers payment, Forge-level
+  rejection/acceptance, armor, durability, physical damage/wear, repair and
+  same-pawn re-equip; it passed in the historical 187-case final automation
+  queue. Current station attachments reach Forge two;
+  higher authored upgrade levels retain that existing station prerequisite.
+  `Kalmala.Gameplay.Inventory.A9GearRecipes` includes Opal Helm's paid recipe
+  exchange and GUID-based equip case. No attack profile or raw-gem upgrade is
+  applicable.
+- **Icon and color:** original, prepared, and imported assets exist for both
+  `StarOpal` and `OpalHelm`; manifest rows and runtime mappings are present
+  (StarOpal → Rock variant 7; OpalHelm → Helmet variant 2). Focused icon checks
+  passed for both. The icon prompt describes a milky opal with subtle blue,
+  gold, and rose pinfire; the item description calls it pale, and the procedural
+  rock inclusion is pale cyan. A9 requires a visible inclusion but sets no exact
+  world-node hue, so no concrete color/data defect was established and no color
+  change was inferred.
+- **Focused test and acceptance evidence:** the shared gemstone tests cover
+  three-hit extraction, 10% smash behavior, save round-trip and replacement
+  identity/location/source restrictions. The biome-content check verifies
+  observed gem replacements against the approved selector and confirms salt
+  descriptors stay in Tundra. These checks do not directly assert Star Opal's
+  1% frequency, the supplemental one-deposit-per-key budget, or its restart
+  route. The A9 gear recipe and Opal Helm maintenance cases passed in the
+  historical 187-case final automation queue; they were inspected, not rerun.
+  `python Scripts/Validate-CatalogueReferences.py`, focused Star Opal and Opal
+  Helm icon validators, and narrow catalogue/source/upgrade/icon assertions
+  passed in this increment. No Unreal automation was run here.
+- **Peer, restart, render, and fresh-start evidence:** the documented A9 peer
+  run exercises Quartz mining and Garnet treasure; its accessory fixture does
+  not equip Opal Helm. Fresh-process restoration checks those Quartz/Garnet
+  claim records, not a Star Opal node. Historical final inventory renders
+  `gear720b.png` and `gear150b.png` were inspected with the Opal Helm and Star
+  Opal inventory icon fixture; this is menu-render evidence, not an in-world
+  Star Opal rock view or acquisition-through-equip playthrough. The peer and
+  render fixtures provision test items, so A10 no-grant fresh-start progression
+  remains open. Opal gear level/wear is intentionally session-only; no restart
+  persistence is expected for that equipment state.
+- **Shared documentation mismatches:** the architecture save table still lists
+  `UKalmalaWorldPopulationSaveGame` as schema 1 while source and A9 mining
+  documentation use schema 2. `AGENTS.md` references absent
+  `docs/material-icons.md`, and the A10 backlog link targets absent
+  `docs/alpha-item-details.md#a10`; the available icon/item contracts are in
+  `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These shared issues
+  were not changed in this item audit.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay, catalogue,
+  icon, or save implementation changed.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** generated source selection, gem mapping, hit rolls,
+  pick wear, sparse node/claim persistence, item grant, Forge payment, gear
+  upgrade/repair and damage resolution remain server-authored. Client input does
+  not choose the source, reward ID, quantity, damage, or upgrade cost.
+- **Impact and remaining scope:** tracking-only; no within-item source, data,
+  recipe, profile, authority, persistence or icon defect was established.
+  Add direct Star Opal source-rate/key-budget and source-to-item/recipe/equip
+  live evidence if required; retain Tourmaline's recorded hue question, the
+  remaining A9 items, no-grant progression, and broad A10 verification for the
+  final acceptance pass.
+- **Next eligible A10 item audit:** Storm Sapphire (`StormSapphire`), next in
+  A9 backlog order.
+
+### BH22 — Eligible Shimmering Lakes forest shoulders (2026-10-25)
+
+- **Work completed:** The shared layout now admits exact Shimmering Lakes
+  candidates from the existing 18 lowland ordinals, combining the Flora curve
+  with the absolute-world forest factor and stable original-ordinal threshold.
+  Lakes reuse the established Meadows Birch kind, source and presentation; no
+  Lakes-specific timber source, item or catalogue entry was introduced. Their
+  appearance uses a per-candidate geometry seed, leaving existing Meadow,
+  Elderwood and Tundra candidate positions and shared-stream draws unchanged.
+  The shared 0.88 final-slope gate and final regional plus collision-lattice
+  water checks reject unsuitable and wet ground. Rendering and server
+  materialization continue to consume the same descriptors.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestLakesTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestSlopeTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestWetGroundTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome rework forest plan, forest identity architecture, existing forest
+  materialization/rendering paths and water/slope contracts. Static inspection
+  confirmed both rendering and server activation call `FKalmalaForestLayout::Generate`,
+  and the new Lakes gate uses no shared-stream draws. `git diff --check` passed.
+  The focused source automation was added but not run; no build or full suite
+  was run. Full verification remains deferred to BH26.
+- **Observable impact:** Dry, gently sloped Lakes candidates can join the
+  existing Birch forest presentation while wet ground remains excluded.
+  Runtime counts and rendered results were not measured.
+- **Networking/authority:** No RPC, replicated state, save schema or catalogue
+  authority changed. Cosmetic patches and server harvest nodes continue to use
+  the same deterministic descriptors and existing server-side source mapping.
+- **Known limitations / remaining scope:** The 18-candidate cap and provisional
+  forest settings were not measured at runtime. The focused Lakes test was not
+  compiled or executed; full rendered, water, peer and performance acceptance
+  remains for BH26.
+- **Main-checkout handoff:** Synchronized only this run's `BACKLOG.md` and
+  `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
+  existing A10 and Monster progress was preserved.
+- **Next eligible task:** BH23 — add terrain-driven ground presentation.
+## Run 2026-10-25 — A10 per-item audit: A9 Storm Sapphire
+
+- **Selected increment and registration:** audited only `StormSapphire` and its
+  directly applicable `StormcutSword`; the A10 item-audit child remains open.
+  Schema-16 registration includes `items/materials/gems.json`, the weapon
+  profile file `items/equipment/weapons/swords.json`, A9 Forge recipes, sword
+  level-up costs, shared item-stat rewards, and attacks. `StormSapphire` is a
+  20-stack, 0.1 kg raw cobalt sapphire. It has no equipment, attack, upgrade,
+  repair, or raw-gem crafting profile. Its only approved source is Thunder
+  Mountains treasure; it has no enemy-drop or gemstone-rock source. The sword
+  is one-handed, combat-only, and uses its weapon profile and Basic attack.
+- **Source and authority:** `FKalmalaGemstoneContract::SelectTreasure` adds
+  Storm Sapphire only for Thunder Mountains and a deterministic 1/50
+  descriptor-seed/world-seed roll. `PrepareWorldTreasure` checks server
+  authority, world-population identity, POI type, biome, and exact canonical
+  generated descriptor before storing the generated loot, including empty
+  results, in population save schema 2. The claim path checks server authority,
+  same-world living interactor, 250 cm range, existing unclaimed canonical
+  treasure, and inventory capacity. It commits the server-selected items,
+  persists the claimed chest state before publishing success, and rolls back
+  the inventory transaction if persistence fails. Ordinary inventory materials
+  remain session-only. Carried sword state uses the separate authenticated
+  player save; current code schema 3 stores item ID, level, condition, and
+  instance GUID. The schema-2 record has no Stormcut-specific reconnect
+  evidence.
+- **Weapon, recipe, and upgrades:** the Forge level-one recipe consumes 20 Iron,
+  2 Densewood, 2 Deer Hide, and 1 Storm Sapphire for one Stormcut Sword. The
+  profile starts at 220 condition, weighs 2.5 kg, and authors 70 Slash. Basic
+  has no added style or elemental channels, including Lightning. Its level-one
+  Forge upgrade consumes 5 Iron and 1 Densewood; the shared reward adds 4 Slash
+  and 30 maximum condition. Current stations reach Forge level two; higher
+  authored tiers retain the existing station prerequisite. The specific
+  `Kalmala.Gameplay.Combat.StormcutSword` case checks sword lifecycle,
+  one-handed held silhouette, Slash-only damage, initial condition, client
+  craft rejection, paid Forge acquisition, upgrade cost/stats, GUID retention,
+  and free station repair. The A9 gear-recipe case is included in historical
+  acceptance for paid gear exchanges and equip behavior. No accessory applies.
+- **Condition contract assessment:** the shared `ApplyServerUse` path spends
+  one condition for validated tool-action uses. The melee combat path separately
+  revalidates a usable carried item and applies server-authored damage; it does
+  not call that action-use path or spend condition on accepted wildlife hits.
+  The Free Melee contract explicitly says misses cost no condition and
+  successful hits use authored damage, but does not state a hit-cost rule. The
+  architecture's Spear-only sentence may be a specific item exception or stale
+  legacy wording; it does not clearly establish a Stormcut hit-wear
+  requirement. No Stormcut source change was justified by this audit.
+- **Icon, provenance, and visual acceptance:** original, prepared, and imported
+  assets exist for both items. Provenance prompts describe a deep cobalt
+  sapphire and a plain iron blade with a sapphire pommel and no lightning
+  effect, consistent with the item text and Slash-only profile. Manifest and
+  runtime mappings are present (StormSapphire → Rock variant 0; StormcutSword
+  → Sword variant 3). Focused icon validation passed for both. The historical
+  A9 menu render fixture includes the raw Storm Sapphire icon but equips
+  Opal Helm, Garnet Necklace, and Dusk Ring; it does not render Stormcut Sword
+  in inventory or hand.
+- **Focused checks and acceptance gaps:** `python
+  Scripts/Validate-CatalogueReferences.py` passed for 61 registered JSON files,
+  777 references, and all 152 ledger-backed icon mappings.
+  `Validate-UIIcons.ps1 -Category Catalogue -Id StormSapphire` and the
+  corresponding StormcutSword check passed (both source PNGs are 1254×1254
+  RGBA; imported assets are 64×64 RGBA with transparency). No Unreal test,
+  build, peer runner, or render was run in this increment. Historical A9 docs
+  record the specific Stormcut automation in the 187-case passing queue.
+  Shared gemstone automation covers deterministic generic mining and treasure
+  persistence, but does not directly assert Storm Sapphire's 1/50 rate or a
+  Thunder Mountains claim. The documented two-client treasure/restart peer
+  covers Quartz and Garnet only, not Storm Sapphire. There is no
+  Storm-Sapphire-specific live claim/restart or fresh source-to-Forge-to-sword
+  progression. A10's no-grant fresh-start progression remains open.
+- **Shared documentation mismatches:** the architecture save table still lists
+  player discovery schema 2 and population schema 1; current code uses player
+  schema 3 and population schema 2. Architecture line 949 also describes the
+  current player-discovery save as schema 2. The generic `AGENTS.md` icon
+  reference `docs/material-icons.md` and A10 details link
+  `docs/alpha-item-details.md#a10` point to absent files; available contracts
+  are in `docs/icon-provenance.md` and `docs/a9-acceptance.md`. These shared
+  issues were left unchanged.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay,
+  catalogue, icon, or save implementation changed.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Networking/authority:** treasure source selection, canonical descriptor
+  validation, claim payment/persistence, carried-item crafting/upgrades, and
+  melee damage remain server-authored. The client does not choose the biome,
+  reward, quantity, damage, recipe cost, or upgrade cost.
+- **Impact and remaining scope:** tracking-only; no within-item source, data,
+  recipe, combat-profile, authority, persistence, or icon defect was
+  established. Item-specific Thunder Mountains claim/restart, sword render,
+  source-to-equip live progression, no-grant progression, and full A10
+  verification remain for later acceptance.
+- **Next eligible A10 item audit:** Dusk Diamond (`DuskDiamond`), next in
+  A9 backlog order.
+### BH23a — Fit decorative Meadow rocks to final terrain (2026-10-25)
+
+- **Selected increment:** BH23a, the first child after splitting BH23 into
+  decorative-rock alignment and terrain-material blending. The worktree was
+  clean at `62af48c9`; no other autonomous run is modifying this checkout.
+  A10 work remains in its separate worktree; Monster work is also separate.
+- **Work completed:** Existing procedural Meadow rock bases still use the
+  shared final `SampleHeight`, and their local ring, apex, normals and tangents
+  now align to `SampleSurfaceNormal` at the same candidate center. The existing
+  48-candidate budget, candidate positions, rock dimensions, yaw draws,
+  deterministic seed and collision-disabled presentation remain unchanged.
+  Marked BH23a complete and split BH23b for material blending. The material
+  source creates only constant-color `M_GeneratedTerrain` and `M_GeneratedRock`
+  assets; no distinct authored grass/soil ground materials or reed visual mesh
+  or material are present. BH23b remains open until suitable existing material
+  inputs are available; no palette or visual assets were invented.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height and Meadows decoration plans, terrain-material source,
+  runtime patch renderer and architecture/setup notes. Static inspection
+  confirmed the rock center continues to use the final height sampler and the
+  only placement change is normal-based mesh orientation; no random calls,
+  actor authority, collision or gameplay resources changed. Checked available
+  world assets and found no distinct ground grass/soil materials or reed visual
+  asset. `git diff --check` passed. No automation or build was run; full
+  rendered verification remains deferred to BH26.
+- **Observable impact:** Existing low-poly Meadow rocks now sit flush with the
+  local final-surface orientation on gentle terrain. Runtime appearance was not
+  measured.
+- **Networking/authority:** No networking, replication, save, harvest or
+  gameplay-authority path changed. Rocks remain cosmetic and collision-free;
+  terrain collision remains authoritative.
+- **Known limitations / remaining scope:** Alignment uses the final normal at
+  each rock center as a local tangent plane; rendered contact on curved or steep
+  surfaces remains for BH26. Ground material blending remains BH23b pending
+  suitable existing authored grass/soil/rock material inputs. No reed decoration
+  was added because matching original visual content is absent.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; existing A10 and
+  Monster progress was preserved.
+- **Next eligible task:** None while BH23b is blocked. BH23b is next in order
+  and awaits suitable existing authored ground-material inputs; BH24 remains
+  queued behind the incomplete BH23 parent.
+## Run 2026-10-25 — A10 per-item audit: A9 Dusk Diamond
+
+- **Selected increment and registration:** the selected item was only
+  `DuskDiamond`; `DuskRing` was inspected only as its direct output/use and
+  remains the next separate A9 item audit. The A10 item-audit child remains open.
+  Schema-16 registration includes raw gem items, `items/accessories.json`,
+  the A9 gear recipe file, and the creature profile file. `DuskDiamond` is a
+  20-stack, 0.1 kg dark-violet raw gem. It has no recipe of its own, equipment,
+  attack, upgrade, durability, or repair profile. Its only approved source is
+  a credited Mireling defeat in Mossy Mire. The ring is a one-stack,
+  1 kg Ring accessory with +10 maximum health, +10 maximum stamina, and +5
+  physical Armor; its attack, durability, repair, and upgrade categories are
+  not applicable.
+- **Source and server claim flow:** the creature catalogue records one
+  DuskDiamond at 1% for the Mossy Mire Mireling profile. Runtime source
+  selection is deterministic 1/100 and enabled by
+  `DuskDiamondSourceAccepted`. The server authenticates the stable generated
+  wildlife descriptor, biome, and actual Mireling archetype before selecting
+  the gem. On a credited defeat, `RecordMirelingDefeatReward` binds the
+  selected gem to the authenticated owner's pending wildlife payload and
+  persists the defeated identity before the actor publishes defeat. There is
+  no physical gem drop actor or treasure route. The server later delivers only
+  to the matching authenticated owner. If capacity is insufficient, the
+  pending payload remains; on a successful gem claim it removes and saves the
+  payload before inventory publication, restoring it if the grant commit
+  fails. The world population save is schema 2. Ordinary gem inventory and
+  equipped accessory state remain session-only; the pending source reward is
+  persisted but the acquired gem is not a player-save inventory entry.
+- **Recipe, effects, and N/A:** the registered Forge recipe consumes 5 Bronze
+  and 1 Dusk Diamond for one Dusk Ring. There is no Dusk Ring upgrade or repair
+  flow. The accessory stats test checks +10 health, +10 stamina, and +5 Armor
+  against physical damage; A9 explicitly says accessory Armor remains active
+  without wear. No elemental resistance, attack, or offensive behavior is
+  authored.
+- **Focused tests:** `Kalmala.World.EnemyGemPayload` samples 10,000 seeds for
+  the near-1% Dusk rate, checks wrong species/biome exclusions, rejects
+  unsupported or cross-species payloads, serializes the credited owner and
+  gem, and verifies durable claim removal. `Kalmala.Gameplay.Discovery.EnemyGemSources`
+  finds a canonical generated Mossy Mire Mireling success and rejects forged
+  identities and wrong-species reuse. `Kalmala.Gameplay.Inventory.A9GearRecipes`
+  checks the exact Forge exchange and equip transaction;
+  `Kalmala.Gameplay.Status.AccessoryStats` checks the hybrid ring bonuses and
+  physical mitigation. These cases passed in the historical integrated A9
+  queue; they were inspected, not rerun in this increment.
+- **Icon and rendering:** original, prepared, and imported assets exist for
+  DuskDiamond and DuskRing. Provenance describes a charcoal-black diamond with
+  violet/graphite facets and an aged bronze ring with a near-black stone,
+  consistent with catalogue descriptions. Manifest/runtime mappings are
+  present (DuskDiamond → Rock variant 1; DuskRing → Ring variant 3).
+  Catalogue-reference and focused icon validators passed, as did the creature
+  catalogue validator. The historical A9 gear menu render equips Dusk Ring
+  but grants only Star Opal and Storm Sapphire as raw gems; it does not show a
+  Dusk Diamond inventory icon. It is menu-render evidence, not item-acquisition
+  evidence.
+- **Live, restart, and no-grant evidence:** the historical Mireling peer
+  acceptance predates enabling the Dusk source and does not assert a
+  DuskDiamond reward. The later A9 two-client/restart peer covers Quartz
+  mining and Garnet treasure, not a credited Mireling gem claim. No
+  DuskDiamond-specific live defeat-to-claim, fresh-process reward restoration,
+  or no-grant source-to-ring progression is documented. A10 no-grant
+  fresh-start progression remains open.
+- **Condition contract follow-up found during this audit:** the A9 special
+  gear contract explicitly requires Stormcut Sword to spend one condition per
+  accepted hit. Current `KalmalaCombatComponent` applies accepted server
+  damage without consuming carried-tool condition. This supersedes the prior
+  Storm Sapphire audit's conclusion that hit wear was unspecified. The finding
+  is outside this Dusk-only increment; no Stormcut implementation was changed.
+  The next A10 run must add the server-authoritative accepted-hit wear and
+  focused authority/persistence regressions before final verification.
+- **Shared documentation mismatch:** the architecture save table still lists
+  player discovery schema 2 and population schema 1; current code uses player
+  schema 3 and population schema 2. This and the absent generic icon/A10
+  details references recorded in the previous item audit remain unchanged.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no gameplay,
+  catalogue, icon, or save implementation changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed for 61 registered JSON files, 777 references, and 152 ledger-backed
+  runtime icon mappings. `python Scripts/Validate-CreatureCatalogues.py`
+  passed for 17 unique species profiles, drop references, and biome identities.
+  Focused catalogue icon checks passed for DuskDiamond and DuskRing (1254×1254
+  RGBA source images; 64×64 RGBA imported assets with transparency). No Unreal
+  automation, build, live peer, restart, or render was run in this increment.
+- **Full verification:** deferred; this is not the final A10 verification.
+- **Networking/authority:** generated enemy identity, species/biome validation,
+  Dusk roll, owner-bound pending payload, save/removal transaction, inventory
+  grant, Forge payment, and accessory stat resolution remain server-owned.
+- **Impact and remaining scope:** tracking-only; no Dusk source, data, recipe,
+  accessory, authority, persistence, or icon defect was established. The
+  Stormcut accepted-hit wear defect is now a required follow-up. No Dusk-specific
+  live claim/restart or no-grant progression is claimed; Dusk Ring remains the
+  next A9 item audit.
+- **Next eligible A10 item audit:** Dusk Ring (`DuskRing`), next in A9 backlog
+  order. Repair Stormcut accepted-hit wear with focused authority/persistence
+  tests before final A10 verification.
+
+### BH23b — Blend ground materials by slope and moisture (2026-10-25)
+
+- **Selected increment:** BH23b, now unblocked by the user's authorization to
+  add an original soil material. The worktree was clean at `fcb37662`; no other
+  autonomous run is modifying this checkout. A10 and Monster work remains in
+  separate worktrees.
+- **Work completed:** Added `FKalmalaTerrainGroundBlend::SampleWeights`, which
+  produces normalized grass/soil/rock vertex weights from final surface-normal
+  Z, the existing world-humidity field and final regional water. `BuildVisualSurface`
+  reuses its height, normal and field samples, so this adds no world samples or
+  geometry budget; the `-KalmalaBiomeDebug` vertex colors remain unchanged. The
+  `CreateWorldMaterials` commandlet now generates a muted original
+  `M_GeneratedSoil` material and updates `M_GeneratedTerrain` with a
+  vertex-color weighted blend using the established grass and rock palette.
+  Added focused formula coverage and updated the material/ground presentation
+  contract. Marked BH23b and BH23 implementation complete; BH24 is next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaTerrainGroundBlendTest.cpp`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`,
+  `docs/meadows-plan.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  ground-presentation plans, generated-material commandlet, terrain patch mesh,
+  field and final-normal samplers, and material asset inventory. Static review
+  confirmed vertex weights use already-sampled humidity and final normals,
+  normalize to one, retain the debug-color override and do not alter terrain
+  collision or network state. Added focused automation source for dry/flat,
+  moist/flat, steep, mixed, monotonic and deterministic weights; it was not
+  compiled or run. `git diff --check` passed. No build, automation or material
+  commandlet was run; full verification remains deferred to BH26.
+- **Observable impact:** Generated terrain now receives grass on dry gentle
+  ground, more soil with humidity, and more rock on exposed slopes. The
+  rendered palette was not inspected.
+- **Networking/authority:** Ground colors are deterministic cosmetic vertex
+  data derived from shared world configuration. Server terrain collision,
+  client prediction, patch identity and gameplay authority remain unchanged.
+- **Known limitations / remaining scope:** The Editor-generated
+  `M_GeneratedSoil.uasset` still needs to be created and the existing
+  `M_GeneratedTerrain.uasset` regenerated by `CreateWorldMaterials` after the
+  Editor target is built. Material compilation, runtime appearance and traversal
+  remain for BH26. No grass or reed asset was added.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH24 — add cold-biome presentation.
+
+## Run 2026-10-25 — A10 per-item audit: A9 Dusk Ring
+
+- **Selected increment and registration:** audited only `DuskRing`, the final
+  remaining per-item A9 audit. Schema-16 `GameCatalogues.json` registers
+  `items/accessories.json`, `items/materials/gems.json`, and
+  `recipes/stations/a9-gear.json`. Dusk Ring is a one-stack, 1 kg Ring
+  accessory with +10 maximum health, +10 maximum stamina, and +5 integer
+  Armor. It has no durability, attack, upgrade, or repair profile; these
+  categories are explicitly N/A in the A9 accessory contract.
+- **Recipe and approved ingredient source:** the registered enabled Forge
+  recipe consumes 5 Bronze and 1 Dusk Diamond for one Dusk Ring (one
+  batch/output). Dusk Diamond is approved only from credited generated
+  Mireling defeats in Mossy Mire at 1/100. The server binds that reward to the
+  credited owner's persisted pending wildlife payload until claim; the
+  delivered gem and crafted ring then remain ordinary session-only
+  inventory/equipment. No Dusk Ring enemy drop or other direct acquisition
+  route is authored.
+- **Server authority and effect:** `EquipGearFromServer` requires authority
+  and passes the exact carried item GUID through
+  `BuildEquipGearTransaction`, which revalidates the catalogue slot,
+  uniqueness, pack capacity, and replacement return. Equipped gear replicates
+  owner-only. Accessory resolution applies one modifier per Necklace/Ring
+  slot; accepted equip/replace/unequip refreshes maximum health/stamina without
+  refill and clamps on removal. Server wildlife damage sums equipped Armor
+  against physical channels; Dusk's +5 remains active without wear because
+  accessories have no condition capacity. Elemental resistance is not added.
+- **Persistence boundary:** ordinary inventory and `EquippedGear` are not
+  serialized by the current player SaveGame. Dusk Ring and its carried Dusk
+  Diamond/Forge output therefore do not restore after process restart; only
+  the upstream pending Mireling reward is world-save escrow until
+  successfully claimed. No ring-specific save path or migration is present,
+  consistent with the documented session-only gear limit.
+- **Icon and presentation mapping:** original, prepared, and imported Dusk
+  Ring assets exist. The provenance prompt describes the aged bronze band and
+  near-black diamond with violet facets, consistent with the item. Runtime
+  mapping is `DuskRing` → Ring variant 3. The catalogue-reference validator
+  passed for 61 registered JSON files, 152 item/buildable definitions, 777
+  resolved references, and all ledger-backed mappings; focused
+  `Validate-UIIcons.ps1 -Category Catalogue -Id DuskRing` passed (1254×1254
+  RGBA source and transparent 64×64 RGBA imported asset).
+- **Focused tests and actual acceptance:**
+  `Kalmala.Gameplay.Inventory.A9GearRecipes` includes Dusk Ring's exact Forge
+  exchange and crafted-GUID equip.
+  `Kalmala.Gameplay.Status.AccessoryStats` replaces the necklace/ring fixture
+  with Dusk Ring, checks the +10/+10 maxima, and asserts a 20 Slash input
+  resolves to 15 health lost with no repeated-stat stacking. These assertions
+  were inspected, not rerun; both were part of the historical integrated A9
+  187-case passing queue. The successful historical A9 peer fixture
+  grants/equips Dusk Ring on its third owner and checks owner max-stat parity
+  and privacy generically; it does not assert Dusk-specific Armor against a
+  hit. The accepted `-A9Gear` render fixture equips Dusk Ring, and its
+  1280×720 and 1024×768 captures were inspected. No Dusk-specific
+  source-to-Forge peer progression or fresh-process ring restoration is
+  documented; the A9 peer restart checks gem/treasure claim state, not ring
+  persistence. No A10 no-grant progression is claimed.
+- **Stormcut follow-up:** the previously identified A9 contract defect remains
+  required and out of scope for this Dusk Ring increment: accepted Stormcut
+  Sword hits must spend one condition, but current combat damage does not. No
+  Stormcut implementation was changed; the next A10 increment is the
+  server-authoritative accepted-hit wear repair with focused
+  authority/persistence tests.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only; no catalogue,
+  gameplay, save, or icon files changed.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 JSON files, 152 definitions, 777 references, 152 icon mappings).
+  `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id DuskRing` passed. No
+  Unreal automation, build, live peer, restart, or render was run in this
+  increment; historical evidence above was inspected only.
+- **Full verification:** deferred; this is not A10 milestone-final
+  verification.
+- **Networking/authority:** Dusk Diamond reward selection/claim, Forge
+  payment, gear-slot transaction, accessory modifier resolution, and physical
+  damage remain server-authored; equipped gear is owner-only replicated and
+  current ring/inventory state is session-only.
+- **Impact and remaining scope:** tracking-only; no within-item data, recipe,
+  source, authority, persistence, or icon defect was established. Keep A10 and
+  its item-audit child open; no-grant fresh-start progression and final
+  integrated verification remain outstanding.
+- **Next eligible A10 increment:** repair Stormcut accepted-hit condition
+  wear and add focused server-authority/persistence tests before final A10
+  verification.
+
+### BH24a — Add Tundra snow coverage (2026-10-25)
+
+- **Selected increment:** BH24a, the first child after splitting cold-biome
+  presentation into Tundra snow, Mountain snow, and Mountain storm visuals. The
+  worktree was clean at `1b43ccb7`; no other autonomous run is modifying this
+  checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Extended terrain vertex alpha into a deterministic snow
+  mask: continuous Freezing Tundra biome weight multiplied by the final surface
+  normal Z. RGB grass/soil/rock weights remain unchanged. The existing
+  `M_GeneratedTerrain` material pipeline now lerps the established ground blend
+  toward a pale snow color using that alpha. Both ordinary and bounded-world
+  clipped mesh vertices derive the mask from the shared regional sample; no
+  extra world-field sample or geometry budget was added. Updated the acceptance
+  backlog split and material/weather docs. Marked BH24a complete; BH24b is next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`, and
+  `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height plan, terrain material contract, and server-owned weather
+  state/cycle. Static inspection confirmed alpha uses the already sampled
+  continuous Tundra weight and final normal, RGB layer weights are unchanged,
+  player clothing explicitly selects the grass channel with snow alpha zero,
+  and weather selection, replicated fields, terrain height/collision and
+  gameplay exposure remain unchanged. `git diff --check` passed. No build,
+  automation, material generation or rendering was run; full verification
+  remains deferred to BH26.
+- **Observable impact:** Tundra portions of the generated terrain receive a
+  pale snow overlay that decreases continuously on steep faces. The generated
+  material package and rendered appearance were not inspected.
+- **Networking/authority:** Snow is deterministic client cosmetic vertex data
+  from shared world configuration; no replicated weather or gameplay authority
+  path changed.
+- **Known limitations / remaining scope:** The Editor-generated
+  `M_GeneratedTerrain.uasset` must be updated after the Editor target is built.
+  Material compilation and rendered Tundra coverage remain for BH26. Mountain
+  snow remains BH24b and Mountain storm presentation remains BH24c.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; existing A10 and
+  Monster progress and unrelated main-checkout files were preserved.
+- **Next eligible task:** BH24b — add Mountain snow coverage.
+
+### BH24b — Add Mountain snow coverage (2026-10-25)
+
+- **Selected increment:** BH24b, the next cold-biome child after Tundra snow.
+  The worktree was clean at `3ebd60ce`; no other autonomous run is modifying
+  this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Extended the existing vertex-alpha snow mask with
+  continuous Thunder Mountains biome weight multiplied by a smooth final-height
+  transition from the existing 1,000 cm highland threshold through its
+  1,000 cm blend range and final surface normal Z. This leaves low foothills
+  without Mountain snow, reduces coverage on steep faces, preserves the prior
+  Tundra contribution and leaves RGB grass/soil/rock weights unchanged. Both
+  ordinary and bounded-world clipped mesh vertices use their existing final
+  regional sample. No terrain heights, player cloth, weather state or gameplay
+  path changed. Marked BH24b complete; BH24c remains next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Mountain height tuning, terrain material generation and weather authority
+  contracts. Static inspection confirmed continuous Mountain weight, final
+  height and slope drive only the snow alpha; RGB weights, Tundra coverage,
+  foothill height, player-cloth palette, replicated weather and gameplay
+  authority are unchanged. `git diff --check` passed. No build, automation,
+  material generation or rendering was run; full verification remains deferred
+  to BH26.
+- **Observable impact:** High Mountain terrain now shares the pale snow overlay;
+  the coverage fades in above the highland threshold and decreases on steep
+  faces. The generated material package and rendered appearance were not
+  inspected.
+- **Networking/authority:** Mountain snow is deterministic cosmetic vertex data
+  from the shared final terrain sample. No replicated weather or gameplay
+  authority path changed.
+- **Known limitations / remaining scope:** `M_GeneratedTerrain.uasset` must be
+  updated after the Editor target is built. Material compilation, rendered
+  peaks/foothills and traversal remain for BH26. Mountain storm visuals remain
+  BH24c.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH24c — add Mountain storm presentation.
+
+## Run 2026-10-25 — A10 Stormcut Sword accepted-hit wear repair
+
+- **Selected increment and contract:** repaired the required A9 Stormcut Sword
+  behavior. `docs/a9-acceptance.md` requires one condition per accepted hit;
+  `docs/01-game-design.md` also makes misses free and validated hits use
+  authored damage. The prior shared melee path never spent condition.
+- **Implementation and transaction:** the combat component uses the dedicated
+  Stormcut wildlife-hit route only while the server's current main-hand item is
+  `StormcutSword`, passing that active carried instance GUID. Wildlife keeps
+  all existing authority, defeated-state, damage, range, and resistance checks
+  ahead of the wear transaction. The character first ensures the canonical
+  player save is loaded, then revalidates authority, active item and exact GUID,
+  checks level-bounded condition, decrements once, and persists the carried-tool
+  save before wildlife health is mutated. Failed player save reacquires the
+  exact sword by GUID, restores condition, and rejects the hit. Existing generic
+  melee, arrow, poison, and tree routes remain unworn by this Stormcut-specific
+  change.
+- **Focused coverage added:**
+  `Kalmala.Gameplay.Combat.StormcutAcceptedHitWear` now exercises a target-free
+  miss, wrong GUID, non-authoritative attacker and target, depleted sword and
+  rejected combat request, actual combat rejection with an injected final
+  player-save failure after candidate preparation (no target damage and
+  condition rollback), one accepted 70-Slash hit spending
+  exactly one, the persisted tool record matching condition 219, and a
+  subsequent Stone Knife hit with no new wear. The existing Editor binary was
+  not used because it may not contain this source; automation execution is
+  deferred to A10 final verification.
+- **Files changed:** `KalmalaCharacter.{h,cpp}`, `KalmalaCombatComponent.cpp`,
+  `KalmalaWildlifeSpawn.{h,cpp}`, `KalmalaGameMode.{h,cpp}` (save-failure test
+  seam and test access),
+  `KalmalaStormcutSwordTest.cpp`, `BACKLOG.md`, and `PROGRESS.md`. No catalogue,
+  gameplay data, save schema, or icon changes.
+- **Lightweight checks:** `git diff --check` passed. Inspected the complete
+  server attack and wildlife validation order and all callers of
+  `ApplyValidatedDamageFromServer`; only the Stormcut-specific call supplies a
+  sword GUID. Manually reviewed the transaction rollback and focused test
+  fixture against the new final player-slot failure seam. No build or
+  automation was run; full verification remains deferred.
+- **Observable impact:** successful Stormcut wildlife hits reduce the exact
+  active sword condition by one and durably save it before target damage. Misses,
+  invalid GUIDs, depleted tools, non-authoritative requests, and player-save
+  failure do not damage the target or consume condition.
+- **Networking/authority:** active item identity, condition mutation, save,
+  damage validation, and health mutation are server-owned. No client damage or
+  item identity payload was added.
+- **Known limitations / remaining scope:** the focused automation has not yet
+  been compiled or executed. A10 no-grant fresh-start progression and required
+  integrated final verification, peer, restart, and render gates remain open.
+- **Next eligible A10 increment:** perform final acceptance and verification;
+  build the current Editor target and run
+  `Automation RunTests Kalmala.Gameplay.Combat.StormcutAcceptedHitWear`.
+
+### BH24c — Add Mountain storm presentation (2026-10-25)
+
+- **Selected increment:** BH24c, the final cold-biome presentation child. The
+  worktree was clean at `6f221be4`; no other autonomous run is modifying this
+  checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** The local weather presentation subsystem now samples
+  the existing server-selected, replicated weather interval and the local
+  pawn's continuous Thunder Mountains weight once per second. It fades a
+  client-local cool exponential-height fog effect by their product, and removes
+  the transient actor when the player leaves the Mountains or the storm eases.
+  The fog actor does not replicate. No weather RPC/field, authority, exposure,
+  damage, shelter rule, terrain snow mask, player-cloth palette or gameplay
+  state changed. Marked BH24c and BH24 implementation complete; rendered
+  acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  weather replication and activity presentation, local-player subsystem
+  lifetime, and Mountain coverage contracts. Static review confirmed the visual
+  reads the current valid server interval, uses continuous regional Mountain
+  weight, is local-only, samples at a bounded one-second cadence, and leaves
+  weather authority and gameplay unchanged. Confirmed the engine fog actor and
+  component setters in the installed Unreal 5.8 headers. No build, automation,
+  generated material, or render was run; full visual and integration
+  verification remains deferred to BH26.
+- **Observable impact:** During server-selected storms, the local view gains a
+  softly faded cool fog in Thunder Mountains; it fades out beyond the Mountain
+  transition and when storm intensity falls. No new authored asset is required.
+  Rendered intensity and visibility remain uninspected.
+- **Networking/authority:** Clients read the replicated `FKalmalaWeatherState`
+  and immutable world configuration. The transient fog actor does not replicate;
+  the server's weather selection and all gameplay paths remain unchanged.
+- **Known limitations / remaining scope:** Fog is a local atmosphere effect for
+  the owning player's view, not a replicated weather actor or terrain material
+  change. BH26 must inspect fade, visibility, storm transitions, snow coverage,
+  and traversal in rendered Mountain and foothill views.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH25a — run the Meadows hill sweep.
+
+## Run 2026-10-25 — A10 Bronze/Iron pick acquisition costs
+
+- **Selected increment and approved target:** corrected the two A1 pick
+  acquisition mismatches identified by the A10 audit. The technical
+  architecture and development setup specify Bronze Pick as 10 Wood + 10
+  Bronze and Iron Pick as 10 Wood + 10 Iron at the Forge.
+- **Work completed:** the registered level-one Forge recipes in
+  `Content/Data/GameCatalogues/recipes/stations/forge.json` now use those exact
+  ingredient sets. The separate entries in
+  `Content/Data/GameCatalogues/item-level-up/costs/weapons/pickaxes.json` were
+  not changed: Bronze Pick upgrade remains 4 Wood + 4 Bronze; Iron Pick
+  upgrade remains 4 Iron + 2 Wood + 2 Stone.
+- **Lightweight checks:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 unique item/buildable definitions,
+  776 resolved item/output/station references, 152 ledger-backed runtime icon
+  mappings). A focused Python JSON assertion passed for each level-one Forge
+  acquisition's exact ingredients and for both unchanged upgrade ingredient
+  sets. No direct no-debug fresh-start runner exists among the documented
+  `Scripts/Tests/Progression` runners; no Unreal automation or Editor run was
+  performed.
+- **Files changed:** `Content/Data/GameCatalogues/recipes/stations/forge.json`,
+  `BACKLOG.md`, and `PROGRESS.md`. No upgrade costs, source routes, gameplay
+  code, profiles, icons, or save data changed.
+- **Observable impact:** crafting a Bronze or Iron Pick at a Forge now consumes
+  the approved A1 materials and quantities. A fresh-start source-to-recipe run
+  without debug grants has not been observed.
+- **Networking/authority:** this is catalogue data only; the existing server
+  Forge transaction continues to validate station context, materials, and
+  capacity before committing a craft. No RPC or persistence behavior changed.
+- **Known limitations / remaining scope:** the no-debug fresh-start progression
+  gate remains open because no directly runnable route was available in this
+  increment. The approved farming, shelter, accessories, peer/restart gate and
+  A10 final verification also remain outstanding. Do not infer acceptance from
+  the static recipe checks.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Next eligible A10 gate:** run fresh-start progression through Bronze and
+  Iron without debug grants, then complete the separate approved farming,
+  shelter, accessories, peer/restart acceptance before full verification.
+
+### BH25a — Measure and select the Meadows hill amplitude (2026-10-25)
+
+- **Selected increment:** BH25a. The isolated worktree was clean at
+  `e8d458dc475ba45079b4e4877de967ec368d54dd`; no other autonomous run was
+  modifying this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Ran the fresh-source 4/6/8 m hill sweep and compared the
+  outputs with all 28 BH01 fixed-site coordinates. Selected the smallest
+  measured amplitude, 4 m, and changed `MeadowHillAmplitude` from 600 cm to
+  400 cm. Updated the tuning contract and recorded the measured profile data.
+  Fixed four goal-introduced test compilation issues: the new Lakes test now
+  compares double coordinates consistently; the regional preview test no
+  longer shadows Unity-global `Settings`; its Mire coast assertion now lives in
+  the Mire friend fixture; and the non-finite value uses the standard-library
+  quiet NaN API supported by UE 5.8.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestLakesTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Build and measurement results:** A fresh UE 5.8 Editor build in
+  `C:\Users\Ville\AppData\Local\Temp\kb25a` succeeded with the current
+  production sources and remaining tests. The unchanged pre-goal
+  `KalmalaWaterSurfaceMeshTest.cpp` translation unit was preserved outside the
+  temporary mirror's source scan because its old double/float `TestEqual` at
+  line 58 fails under UE 5.8 (C2666); the exact line is present at merge-base
+  `460339b3`. No repository copy of that test was changed. The selected-source
+  build command was:
+  `C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity -NoUBTMakefiles`.
+  `BiomeHillProfiles.ps1` then exported 88 samples for each 4/6/8 m trial and
+  accepted the exact fresh-build marker. Separate fresh commandlet runs
+  exported all 28 BH01 fixed points for each amplitude with the same marker.
+  Across the eight profiles, the minimum/mean/maximum height ranges were
+  2.61/5.36/12.01 m at 4 m, 2.68/5.75/12.83 m at 6 m, and 2.78/6.31/13.67 m
+  at 8 m. For 4 m, 90.9% of 88 collision-triangle slopes were below 15°,
+  4.5% were 15–25°, 4.5% exceeded 25°; p50/p90/p95/max were
+  2.38/13.08/16.73/30.40°. Seven of eight profiles varied by at least 3.48 m;
+  one outer north–south profile varied by 2.61 m. The 4 m trial was the
+  smallest that met the numeric profile target; larger amplitudes raised mean
+  range but did not lower the >25° slope share.
+- **BH01 fixed-site comparison:** At the four Starter/outer dry Meadows points,
+  4 m had a maximum absolute height delta of 111.7 cm (85.1 cm mean absolute)
+  and maximum absolute slope delta of 2.58°. Corresponding maxima were
+  188.5 cm / 2.78° at 6 m and 263.3 cm / 2.98° at 8 m. The 17 fixed rows with
+  zero Meadows weight were identical across all three overrides. The full
+  per-profile and baseline measurements are in `docs/meadows-plan.md`.
+- **Lightweight checks/results:** `git diff --check` passed. The targeted
+  Editor build and numeric commandlets passed with the noted baseline test
+  exclusion and exact trial markers. No automation suite, full unfiltered
+  Editor build, rendered view or gameplay traversal check was run.
+- **Full verification:** Deferred to BH26. The 4 m result is a numeric
+  selection only; rendered shoulders, gentler routes and gameplay traversal
+  remain unverified.
+- **Observable impact:** The production Meadows broad hill now uses a 4 m
+  amplitude at the existing 160 m scale. The change is deterministic and
+  affects only the existing continuous terrain-height candidate blend.
+- **Networking/authority:** No network state or gameplay authority changed;
+  peers continue to sample the same seed-derived regional height.
+- **Known limitations / remaining scope:** An unfiltered Editor build remains
+  blocked by the unchanged baseline water-mesh test compile error. The
+  temporary build excluded only that preserved test translation unit; all
+  current production sources and other test sources compiled. Rendered and
+  gameplay acceptance remains BH26. Rolling/Elderwood tuning is BH25b.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  after inspecting the main versions; existing A10/Monster edits and unrelated
+  main-checkout files were preserved.
+- **Next eligible task:** BH25b — run Meadows rolling and Elderwood trials.
+
+### BH25b1 — Select Meadows rolling relief (2026-10-25)
+
+- **Selected increment:** BH25b1. The isolated worktree was clean at
+  `09deb80d52cfe379aad8a3bd4f4457cb5b5f7169`; no other autonomous run was
+  modifying this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** The existing rolling runner incorrectly rejected all
+  wet samples and required every profile point to have Meadows weight above
+  0.5. A focused diagnostic confirmed four seed-419 Starter EW samples are
+  priority river controls (RiverWeight 0.1731/0.3293/1.0000/0.7202,
+  StreamWeight=0, OceanWeight=0, WaterLevel=0). The runner now requires those
+  exact points to remain wet at Z=0, rejects any other wet sample, keeps them in
+  raw CSVs, and excludes their channel beds from dry-land profile/slope metrics.
+  The outer seed-419 profiles have positive continuous Meadows influence down
+  to 0.4125, so the fixture now rejects zero weight while allowing the gradual
+  biome blend. Selected the smallest tested rolling amplitude, 0.6 m, and set
+  `MeadowRollingAmplitude` to 60 cm in the tuning header. Split BH25b into its
+  rolling-selection, Elderwood/Tundra-selection and aggregate-contract children.
+- **Freshness and measurements:** The existing `C:\Users\Ville\AppData\Local\Temp\kb25a`
+  mirror contained the BH25a-selected `MeadowHillAmplitude=400` cm and its
+  `build5.log` reports `Result: Succeeded`; the regional-generation and Lakes
+  test sources matched the worktree before this increment. The build had the
+  pre-selection rolling default of 120 cm, but every measurement explicitly
+  overrode it before sampling and confirmed the exact effective-value marker.
+  The profile command was
+  `BiomeRollingProfiles.ps1 -Project C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -TimeoutSeconds 900`.
+  Each 0.6/1.2/1.8 m run exported 264 rows across 24 profiles and eight seam
+  points. Separate `RenderWorldGenerationVisualization` commandlets sampled
+  all 28 BH01 fixed sites for the same three overrides; all six trial groups
+  had exact markers and expected row counts.
+- **Measured profile ranges:** The min/mean/max final-height ranges (cm) across
+  the eight profiles at each length were 42.4/176.2/767.8, 49.5/226.8/935.1
+  and 66.4/286.3/1,074.0 at 0.6 m; 50.4/179.8/744.1, 52.5/233.2/921.0 and
+  65.9/297.3/1,072.3 at 1.2 m; and 60.1/183.6/720.3, 68.0/242.1/906.7 and
+  74.9/310.8/1,070.6 at 1.8 m (30/45/70 m respectively). Across 260 dry
+  collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
+  at 0.6 m, 2.60/5.29/27.36/35.93 degrees at 1.2 m and
+  2.97/6.37/26.64/35.76 degrees at 1.8 m. Each trial had 22 samples at or
+  above 15 degrees and 16 at or above 25 degrees. All four river controls
+  stayed wet at Z=0; the other 260 samples remained dry.
+- **BH01 fixed-site comparison:** At the four Starter/outer Meadows sites,
+  maximum/mean absolute height deltas were 136.18/90.43 cm at 0.6 m,
+  111.75/85.13 cm at 1.2 m, and 130.93/79.78 cm at 1.8 m. Maximum absolute
+  collision-slope deltas were 2.04, 2.58 and 3.12 degrees. The 17 fixed rows
+  with zero Meadows weight were identical across all overrides. Maximum
+  terrain/collision seam deltas remained below 0.06 cm at each amplitude.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Scripts/Tests/World/BiomeRollingProfiles.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks/results:** The PowerShell parser check and
+  `BiomeRollingProfiles.ps1 -ValidateOnly` passed. All three profile trials
+  passed exact markers, 264-row checks, expected river controls and seam
+  limits. All three fixed-site commandlets passed their exact markers and
+  28-row checks. `git diff --check` passed.
+- **Full verification:** Deferred to BH26. No Editor build or automation suite
+  was run in this increment; BH25b1's exact commandlet overrides used the
+  successful current BH25a production build. Rendered readability and
+  connected-route traversal remain unverified.
+- **Observable impact:** The regional tuning source now selects 0.6 m at the
+  existing 45 m rolling scale. The signal remains deterministic and changes
+  only the existing continuous Meadows height candidate.
+- **Networking/authority:** No networking, gameplay authority, persistence or
+  save behavior changed; peers continue to sample the same seed-derived terrain.
+- **Known limitations / remaining scope:** This is numeric tuning only. The
+  four water controls and profile slopes are source-sampled, not rendered.
+  Elderwood/Tundra selection and BH25b aggregate cost/preview contracts remain
+  BH25b2 and BH25b3; final integrated verification remains BH26.
+- **Main-checkout handoff:** Main `BACKLOG.md` and `PROGRESS.md` were inspected
+  with their A10/Monster edits present. Only the Biome BH25b tracking section
+  and this progress entry were synchronized; unrelated content remains
+  preserved.
+- **Next eligible task:** BH25b2 — select shared Elderwood/Tundra relief.
+
+## Run 2026-10-25 — A10 no-debug Bronze/Iron progression harness
+
+- **Selected increment:** add the smallest executable source-to-Forge fresh-
+  start path after the A10 audit found no directly runnable progression
+  acceptance. The A10 gate remains open until this automation is compiled and
+  passes in the runner's compiled project mirror.
+- **Harness route:** normal Character `BeginPlay` initializes the authored
+  starter tools after a unique player identity is assigned. The test starts
+  with zero Wood, ore, Coal, bars, Bronze Pick or Iron Pick; then it uses the
+  server interaction trace to harvest 60 Wood, 21 Copper Ore, 12 Tin Ore and
+  12 Iron Ore. Test source actors use canonical gathering IDs and coordinates
+  classified in their matching generated biomes; Copper uses safe Elderwood
+  terrain and Tin uses safe Shimmering Lakes terrain. These are deterministic
+  placed fixtures, not procedural-world traversal. Each depletion uses the
+  same GameMode population-save callback as generated sources, and the test
+  reloads the world save to check every accepted fixture identity.
+- **Processing and crafting:** placed, persisted Charcoal Kiln, Smelter and
+  Forge fixtures are selected by ordinary server interaction. Normal server
+  requests load and collect Kiln/Smelter materials; production actors are
+  advanced with active-time ticks. The Forge crafts Bronze Alloy and creates
+  both level-one Picks with the approved Wood x10 + Bronze x10 and Wood x10 +
+  Iron x10 acquisition recipes. The test contains no direct material grant or
+  stack-commit call. It intentionally does not assert traversal, procedural
+  world availability, peer replication, restart, or rendered presentation.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/README.md`,
+  `Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaA10FreshStartBronzeAndIronTest.cpp`,
+  and `docs/07-development-setup.md`.
+- **Runner:** added
+  `Kalmala.Gameplay.Progression.FreshStartBronzeAndIron` and
+  `Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1`. The runner requires
+  a compiled mirror outside the source checkout, uses unique world/player
+  identities, and checks the longest population, construction and player save
+  paths against the 260-character limit. Updated `Scripts/Tests/README.md` and
+  `docs/07-development-setup.md`; added Dev Automation-only GameMode friend
+  access to bind and inspect the production depletion save callback. No
+  production gameplay behavior changed. `BACKLOG.md` and this progress record
+  keep the acceptance child unchecked until the harness passes.
+- **Lightweight checks:** PowerShell parser passed; `git diff --check` passed;
+  source searches confirmed the route uses `ServerRequestInteract`, Kiln and
+  Smelter load/collect requests, `ServerCraft`, and `ServerProgressTool`, with
+  no direct grant or stack-mutation calls. Reviewed exact Stone/Bronze Pick
+  source-tier gates, biome/safe-terrain placement, construction persistence and population-save
+  callback wiring. No build or Unreal automation was run because the test has
+  not been compiled; the existing Editor binary was not used as evidence.
+- **Observable impact:** provides repeatable, no-debug coverage for the
+  approved fresh-start harvest, processing and pick-acquisition route, including
+  persisted source depletion. It does not yet establish accepted progression
+  because it has not run.
+- **Networking/authority:** harvesting, station interactions, inventory
+  changes, processing, crafting, tool progression and population persistence
+  all execute through server-owned paths. No debug grant, client material
+  payload or production authority change was added.
+- **Known limitations / remaining scope:** deterministic fixture actors are
+  used instead of a procedural-world route; the automation and runner remain
+  uncompiled and unexecuted. The approved farming, shelter, cargo, accessories,
+  peer/restart gate and A10 final verification also remain open.
+- **Full verification:** deferred; this is not the final A10 increment.
+- **Next eligible A10 work:** run the new fresh-start automation in a compiled
+  mirror after the remaining approved farming/shelter/accessory/peer/restart
+  gate is ready for final acceptance, then perform the required integrated
+  A10 verification. Keep the Bronze/Iron backlog item unchecked until the
+  automation actually passes.
+
+## Run 2026-10-25 — Select shared Elderwood/Tundra relief (BH25b2)
+
+- **Selected increment:** BH25b2. The detached goal worktree had no concurrent
+  writer; only this run modified it. The worktree was at `5d517e38` before the
+  increment. A10 and Monster work remained in their separate worktrees.
+- **Work completed:** Rebuilt the current source in the established temporary
+  UE 5.8 mirror, then ran all nine one-layer-at-a-time low/nominal/high trials:
+  broad 4/9/16 m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m. The first trial
+  audit found that seed-418 `WoodedElderwood` at `(207132.4,-325940.4)` had
+  changed from the BH01 `+15.1726685 cm`, dry control to `-45.3237 cm`, wet
+  terrain with zero narrow river/stream/ocean/basin support. The wide bank
+  envelope was targeting the full -80 cm bed even where narrow `RiverWeight`
+  was zero. River carving now smoothly shares from the positive land bank floor
+  to the bed using `smoothstep(0,1,RiverWeight)`. The profile matrix also
+  exposed an exact 1 cm shelf on every broad16 sample at seed-419
+  `WoodedElderwood`. Replaced the fixed source-land minimum with a strictly
+  monotonic softplus floor whose maximum 300 cm scale shrinks with source
+  clearance and reaches zero at the coast. Selected the smallest accepted
+  measured defaults: broad/middle/local 4 / 0.6 / 0.1 m.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Fresh build and trial results:** The disposable `C:\Users\Ville\AppData\Local\Temp\kb25a`
+  mirror included BH25a's 400 cm hill default and BH25b1's 60 cm rolling
+  default. It excluded only the unchanged pre-goal
+  `KalmalaWaterSurfaceMeshTest.cpp` translation unit; the repository test was
+  not edited. The UE 5.8 Editor build succeeded twice with 24 actions, first
+  with the nominal 900/240/40 cm Elderwood controls for the matrix and again
+  after updating the selected 400/60/10 cm defaults; a final four-action
+  incremental rebuild compiled the corrected coast-transition assertion. Build
+  command: Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity -NoUBTMakefiles.
+  The sweep command was  `Scripts/Tests/World/BiomeWoodProfiles.ps1 -Project C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -TimeoutSeconds 900`.
+  All nine fresh runs exported 66 rows with exact override markers. The full
+  measured ranges, slopes and BH01 comparisons are recorded in
+  `docs/biome-height-rework.md`; raw CSV/logs were retained under
+  `C:\Users\Ville\AppData\Local\Temp\bh25b2x\bew76a7ac04`.
+- **Acceptance evidence:** All 594 Elderwood/Tundra candidate pairs matched
+  exactly. Every trial had zero basin support and only the two confirmed
+  seed-418/419 sea-level river controls wet; all other rows remained dry, and
+  each of the six BH01 center water states matched. The minimum dry sample
+  height was `+16.9858 cm`. Each trial had 64 dry collision samples, three
+  slopes at or above 15 degrees, and none at or above 25 degrees. The selected
+  broad4 / middle0.6 / local0.1 m fixed-center maximum absolute height/slope
+  deltas were 174.17 cm / 7.42 degrees, 180.05 cm / 9.60 degrees, and
+  252.80 cm / 10.14 degrees respectively. These changes preserve positive
+  source-land sign, do not enable basin water, and keep the two confirmed river
+  beds at Z=0.
+- **Lightweight checks/results:** PowerShell parsing and the 66-sample
+  `BiomeWoodProfiles.ps1 -ValidateOnly` passed. `git diff --check` and changed
+  path-length checks passed. A focused source automation test for monotonic
+  positive coast transition compiled in the Editor build; automation was not
+  executed.
+- **Full verification:** Deferred to BH26. No full automation suite, render,
+  gameplay traversal, or broad cost measurement was run. The nine numeric
+  commandlets are BH25b2's required measurements, not milestone-final
+  acceptance.
+- **Observable impact:** The source now uses 4 / 0.6 / 0.1 m shared
+  Elderwood/Tundra amplitudes. The repaired bank envelope cannot create
+  sea-level water where narrow channel weight is zero, and source-land relief
+  no longer collapses to a fixed 1 cm shelf. All generation remains deterministic.
+- **Networking/authority:** No network state, authority, persistence, resource
+  identity or save behavior changed. Host and clients still sample the same
+  seed-derived regional terrain.
+- **Known limitations / remaining scope:** The coast transition is numeric and
+  its rendered shoreline remains uninspected. The old unrelated water-mesh test
+  compile issue remains excluded only from the disposable mirror. Rendered
+  relief, connected traversal and integrated generation costs remain pending.
+- **Main-checkout handoff:** Main `BACKLOG.md` and `PROGRESS.md` contain
+  concurrent A10/Monster edits and were inspected before synchronization. Only
+  the Biome goal paragraphs and this BH25b2 progress entry were synchronized;
+  those edits and the unrelated untracked lighting-plan document were preserved.
+- **Next eligible task:** BH25b3 — aggregate terrain tuning and cost contracts.
+
+## Run 2026-10-25 — Aggregate relief tuning and cost contracts (BH25b3)
+
+- **Selected increment:** BH25b3. The detached worktree was clean at
+  `177bc6ca`; no other autonomous run was modifying this checkout. A10 and
+  Monster work remained in separate worktrees.
+- **Work completed:** Aggregated the BH25b1 rolling and BH25b2
+  Elderwood/Tundra raw profile ranges into the architecture, setup and biome-
+  height preview documentation. Closed BH25b after both tuning children passed
+  their fixed-site/profile, water, parity and seam criteria. BH25 remains open.
+- **Cost comparison:** The retained BH01 CSV contains 28 fixed coordinates,
+  final/collision heights and slopes, water state, and per-site containing-patch
+  descriptor counts; it has no sampler, map, patch-generation or collision-build
+  timings. The closest retained pre-height minimap benchmark (2026-10-18,
+  `C:/Users/Ville/AppData/Local/Temp/krfinal/perf.log`) measured 68.326 / 90.594 /
+  145.952 ms at 25 / 50 / 100 m radii. The same focused automation passed on
+  2026-10-25 against the current BH25b2 mirror at 55.395 / 70.863 / 116.175 ms
+  (`C:/Users/Ville/AppData/Local/Temp/bh25b3/minimap.log`). These local readings
+  are about 19% / 22% / 20% lower, but are not a controlled paired benchmark and
+  do not attribute the difference to biome relief.
+- **Map and geometry costs:** `Kalmala.UI.WorldMap.PerformanceBudget` passed in
+  `C:/Users/Ville/AppData/Local/Temp/bh25b3/worldmap.log`: a 33x33 tile took
+  19.211 ms, a 129x129 minimap while four tile workers ran took 54.613 ms, and
+  the bounded terrain/fog cache remained 5,341,696 bytes. These are below the
+  existing 250 ms / 1.50 s limits; BH01 did not retain a comparable tile-time
+  result. The BH01 and current source retain a 30 m patch, 24x24 collision cells,
+  625 terrain vertices, 1,152 triangles and the 25 active-patch cap. No map or
+  collision payload grew. Per-patch generation and collision-build wall times
+  were not retained and remain for BH26.
+- **Decoration comparison:** A current-source `RenderWorldGenerationVisualization`
+  numeric export at the exact 28 BH01 coordinates completed and wrote
+  `C:/Users/Ville/AppData/Local/Temp/bh25b3/current.csv`. Per-site containing-
+  patch descriptor counts remained 0–32; their observations summed to 213,
+  versus 243 in BH01, with 12 of 28 site observations changed as the Meadows,
+  Lakes and Tundra suitability gates were integrated. These repeated-site sums
+  are not global tree totals or timings. The unchanged per-patch candidate loops
+  are 72 for broad forest biomes and 18 for Meadows/Lakes.
+- **Lightweight checks/results:** The checked sampler/layout/map/performance
+  source files in the disposable UE 5.8 mirror hash-matched this worktree. Its
+  recorded BH25b2 build had succeeded (24 actions). The two focused performance
+  automations both explicitly reported `Result={Success}`; the 28-row current
+  numeric export reported success. Unreal logged two startup `Condition failed`
+  diagnostics in each automation log before the selected test; both requested
+  tests then completed successfully. `git diff --check`, source review and
+  changed-path length review passed.
+- **Full verification:** Deferred to BH26. No full build, full automation suite,
+  material generation, rendered preview, traversal or peer run was performed
+  in this documentation-and-cost-contract increment.
+- **Observable impact:** Documentation now records selected rolling and
+  Elderwood/Tundra raw ranges and measured local sampler/map costs. Fixed patch,
+  cache, collision-lattice, active-patch and candidate-loop budgets remain
+  unchanged; sampled descriptor counts reflect intended biome suitability.
+- **Networking/authority:** No runtime source, networking, gameplay authority,
+  persistence, resource identity or save behavior changed.
+- **Known limitations / remaining scope:** The stored BH01 artifact did not
+  include generation/collision wall times or expanded-map tile timings. The
+  historical minimap comparison is unpaired and local; representative runtime
+  generation, collision, traversal and rendered acceptance remain BH26.
+- **Main-checkout handoff:** Main files were inspected before sync; only this BH25b tracking update and progress entry were synchronized. Concurrent A10/Monster edits and unrelated content were preserved.
+- **Next eligible task:** BH25c — measure the Meadows floor-detail profile matrix.
+## Run 2026-10-25 — Select Meadows floor detail (BH25c)
+
+- **Selected increment:** BH25c, the next unchecked child under BH25. The
+  detached worktree was at `418c5d7e`; no other autonomous run was modifying
+  this checkout. A10 and Monster work continued in separate worktrees.
+- **Work completed:** Ran the fresh-source 8/12/20 m by 0.1/0.2/0.3 m floor
+  matrix and selected 8 m / 0.1 m, the smallest tested scale and amplitude
+  that retained a resolved floor signal on the fixed collision lattice. Updated
+  the compiled defaults and focused source expectation. The raw nine-trial
+  ranges and fixed-site comparisons are in `docs/meadows-plan.md`.
+- **Fixture and guard repair:** The BH12b floor CSV had quoted fields, unlike
+  the existing simple fixtures; the commandlet's comma parser rejected the
+  literal quotes. Normalized this fixture to the established unquoted format.
+  Trial 1 then identified five exact seed-419 river-control points and twelve
+  dry outer-profile rows with positive Meadows weight below 0.5. The runner now
+  retains and validates only those five known river controls separately, keeps
+  blended dry rows in the profile metrics, and requires all other rows dry with
+  positive Meadows influence. Fixed anchors still require weight above 0.5.
+- **Measurements:** All nine exact override markers and fixture checks passed;
+  each output contains 400 rows, with 387 dry profile points, five fixed wet
+  river controls and eight patch-side controls. The selected floor input ranges
+  from −6.726 to +6.497 cm (13.223 cm peak-to-peak) and changes by at most
+  2.765 cm per 125 cm sample. The 60 m profile spans, including existing relief,
+  range from 43.036 cm to 1,143.148 cm across sites; selected collision-slope
+  p50/p95/max is 1.751 / 28.043 / 34.523 degrees. Maximum final/collision seam
+  deltas are 0.026 / 0.028 cm. No scale-linked slope spike or lattice seam
+  defect appeared. Rendered readability is not claimed.
+- **Fixed sites:** A selected-setting export at all 28 BH01 coordinates matched
+  the retained pre-selection current-source export on water and biome state.
+  Height deltas versus that current-source control were −4.105 to +4.799 cm,
+  maximum collision-height delta was 4.661 cm and maximum slope delta was
+  0.942 degrees. Two water flags differ from BH01, but were already dry in the
+  current-source control before floor selection. The separate river diagnostic
+  confirmed the five controls have water level 0, no basin/stream weight and
+  RiverWeight 0.720–1.000; all remained submerged through the matrix.
+- **Source/build freshness:** Before changing the defaults, all tracked runtime
+  inputs were compared with the documented UE 5.8 mirror. It had 1,071 raw
+  matches, one line-ending-only source difference, and the one unchanged
+  pre-goal `KalmalaWaterSurfaceMeshTest.cpp` excluded. The two current changes
+  (tuning header and regional test source) were copied and hash-verified in the
+  mirror. The incremental `KalmalaEditor Win64 Development` build succeeded in
+  24 actions with normal UnrealBuildTool cache access; the nine trials and the
+  28-site export were rerun on that binary.
+- **Checks:** `BiomeFloorProfiles.ps1 -ValidateOnly` passed for 400 rows, eight
+  profiles, 125 cm spacing and eight patch-side controls. PowerShell parsing of
+  the runner passed. The Editor build and all numeric commandlets passed. No
+  automation suite or rendered preview was run.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeFloorProfiles.csv`,
+  `Scripts/Tests/World/BiomeFloorProfiles.ps1`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Full verification:** Deferred to BH26. Under-vegetation readability, rendered
+  aliasing, gameplay traversal and the full required automation suite remain
+  unchecked. No generated assets or gameplay/network behavior changed.
+- **Observable impact:** Runtime Meadows floor detail now uses a deterministic
+  8 m / 0.1 m signal. The fixed 125 cm terrain lattice, biome weights, water
+  state and sampled fixed-site biome labels remain unchanged by this selection.
+- **Networking/authority:** No network fields, RPCs, authority or persistence
+  behavior changed.
+- **Known limitations / remaining scope:** Numeric sampling cannot establish
+  visual readability beneath trees. The unchanged pre-goal water-mesh test
+  translation unit remains excluded only from the disposable build mirror.
+- **Main-checkout handoff:** Main files were inspected before sync; only the
+  BH25c backlog block and this progress entry were synchronized. Active A10/Monster content was preserved.
+- **Next eligible task:** BH25d — run Shimmering Lakes profile trials.
+
+
+## Run 2026-10-25 — Select Shimmering Lakes controls (BH25d)
+
+- **Selected increment:** BH25d, the first unchecked child under BH25. The
+  worktree was clean at `99c8db0a`; no other run was modifying this checkout.
+  A10 and Monster work remained in separate worktrees.
+- **Work completed:** Ran all 12 BH14b one-control-at-a-time profile trials
+  across four fixed 100 m transects (44 samples per trial). Retained the
+  measured combined center settings: Meadow share 0.50, lowland floor 200 cm,
+  ceiling 1,200 cm and compression 0.20. Full raw ranges and the selection
+  rationale are recorded in `docs/biome-height-rework.md`.
+- **Source freshness:** The BH25c Editor mirror matched 1,071 of 1,073 tracked
+  runtime input hashes exactly. The one other test source was byte-different
+  only by line endings; the single unchanged pre-goal water-mesh test
+  translation unit was absent as documented. The mirror binary therefore
+  included the current source and selected Meadows 8 m / 0.1 m defaults; no
+  rebuild was needed. All 12 commandlets returned the exact effective-control
+  marker and 44 fixed rows.
+- **Measurements and checks:** All 12 settings passed finite-output, normalized
+  biome-weight, disabled-basin, lowland formula/bounds, candidate-composition
+  and fixed-site checks. A numeric lowland-curve sweep passed 144,000 adjacent
+  source-height comparisons across the 12 control settings and both humidity
+  weight endpoints. Each trial retained four sea-level wet river-channel rows
+  with positive river weight and zero basin weight; the other 40 rows remained
+  dry. Compared with the combined nominal trial, water level, `HasWater`,
+  river/stream/ocean weights, biome labels and biome weights changed at zero of
+  44 coordinates. The four nominal trial CSVs were byte-identical. Nominal
+  profile spans min/mean/max were 24.651 / 334.335 / 550.026 cm; nearest-rank
+  collision slope p50/p90/p95/max across all 44 samples was 0.907 / 13.286 /
+  18.073 / 23.543 degrees. The maximum source-to-lowland reduction was
+  48.031 cm. `BiomeLakesProfiles.ps1 -ValidateOnly` and its PowerShell parser
+  check passed.
+- **BH01 comparison:** BH01 records only the two Lakes center samples, not the
+  full 44-point profiles. At the seed-418 former-basin center, BH01 measured
+  307.496 / 307.512 cm final/collision height, 2.297 degrees, and basin water
+  at 356.951 cm; current nominal measures 25.399 / 24.792 cm, 12.421 degrees
+  and dry sea-level status under the basin-disabled policy introduced by BH03.
+  The Lakes biome label remains. The seed-419 center changed from
+  383.552 / 383.572 cm and 0.095 degrees to 441.498 / 441.548 cm and 0.793
+  degrees; it remained dry and retained its label. These BH01-to-current
+  differences predate BH25d. All profile variants matched current nominal
+  water and biome state.
+- **Selection:** Kept the measured center combination because it was directly
+  exercised together, preserves the four river controls and basin-disabled
+  behavior, and avoids combining one-factor alternatives whose joint response
+  was not measured. Rendered shoreline and traversal acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`. No gameplay source or generated asset changed.
+- **Full verification:** Deferred to BH26. No new Editor build, automation
+  suite, rendered preview or traversal inspection was run in this increment.
+- **Observable impact:** The selected Lakes controls are now documented and
+  tracked; their compiled values remain the measured center defaults already
+  present in source.
+- **Networking/authority:** No network, authority, persistence, or gameplay
+  behavior changed.
+- **Known limitations / remaining scope:** Numeric profiles do not establish
+  rendered shoreline readability. The BH01 wet-to-dry former-basin change is
+  the expected BH03 basin-policy effect, not a BH25d trial change.
+- **Main-checkout handoff:** Main `BACKLOG.md` has a genuine BH25 scope conflict:
+  it ends BH25 at BH25d, while this worktree has BH25e. Per the handoff rules,
+  main backlog remains untouched. Only this BH25d entry was appended to main
+  `PROGRESS.md`; A10/Monster content is preserved.
+- **Next eligible task:** BH25e — run Mossy Mire profile trials.
+
+## Biome height rework — BH25e Mossy Mire trial selection
+
+- **Selected increment:** BH25e, the first remaining child under BH25 in the isolated biome-height worktree. The checkout was clean at start commit `9312c594`; no concurrent writer was active.
+- **Work completed:** Ran all nine fresh-source one-control Mossy Mire trials over 252 points: target 200/300/500 cm, compression scale 300/700/1,200 cm, and residual detail 10/25/60 cm. Retained the measured nominal combination of 300/700/25 cm because the sweeps do not establish the joint response of an off-center combination and there is no rendered evidence for another choice. Updated the stale coast fixture to identify the seed-418 positive-source land-side center, require it dry, and preserve submerged negative-source ocean neighbors. Water-level sentinels are compared only where a surface or channel is active.
+- **Source freshness/build:** Compared 1,073 tracked runtime input files with the disposable `kb25a` mirror: 1,071 matched exactly; the only source difference normalized to identical content after line-ending normalization; the unchanged pre-goal water-mesh test TU was absent from the mirror. The current regional-generation source hash matched, and its compiled unity object was newer than the source. No rebuild was needed. Trial outputs and exact control markers are under `C:\Users\Ville\AppData\Local\Temp\bm655e5ef5`.
+- **Measurements/checks:** All nine variants preserved the same 50/252 wet samples as nominal; no new wet samples and no basin, river, stream, or active surface-level changes occurred. The four fixed river centers remained at Z=0 with RiverWeight=1, BasinWeight=0 and an -80 cm bed. The numerical sweep produced 180,009 finite/bounded values and passed 180,000 monotonic adjacent comparisons across all target/scale pairings. The selected nominal dry interior spans min/mean/max were 18.443/117.023/247.873 cm; nearest-rank collision-slope p50/p90/p95/max were 0.708/2.994/3.244/3.861 degrees. Full per-control ranges, fixed-site BH01 comparisons and source-coast attribution are recorded in `docs/biome-height-rework.md`. `BiomeMireProfiles.ps1 -ValidateOnly`, its PowerShell parser, and `git diff --check` passed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Scripts/Tests/World/BiomeMireProfiles.ps1`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and `docs/biome-height-rework.md`.
+- **Full verification:** Deferred to BH26. No Editor rebuild, automation suite, rendered preview, shoreline inspection, or traversal run was performed.
+- **Observable impact:** Mire tuning and numeric profile contract now record the tested nominal values and their measured ranges. Runtime defaults were already at those values; this increment changed the fixture and documents.
+- **Networking/authority:** No gameplay, network authority, persistence, or replication behavior changed.
+- **Known limitations / remaining scope:** One-factor trials do not establish off-center joint behavior. The BH01 seed-418 coast wet-to-dry change is the positive source-land sign correction from BH25b2, not a BH25e trial result. Rendered shore readability, vegetation interaction and traversal remain for BH26.
+- **Main-checkout handoff:** Main `BACKLOG.md` has a genuine BH25 parent-scope conflict and no BH25e block, so it remains unchanged. Only this nonconflicting progress entry was appended; A10/Monster content is preserved.
+- **Next eligible task:** BH26 — final integrated verification and repair.
+
+## Run 2026-10-25 — A10 milestone-final verification
+
+- **Selected task:** complete the final A10 acceptance and verification gates.
+  Re-read the current A10 checklist and the milestone-final instructions in
+  `docs/07-development-setup.md`; built and tested only in the short disposable
+  mirror `C:\Users\Ville\AppData\Local\Temp\a10v\Kalmala.uproject`. No
+  repository `Binaries`, `Intermediate`, `Saved`, or
+  `DerivedDataCache` directories were used for build/test output. UnrealBuildTool
+  had ordinary access to `%LOCALAPPDATA%\UnrealBuildTool`.
+- **Builds:**
+  `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' KalmalaEditor Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject' -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`
+  passed 55 actions; log
+  `C:\Users\Ville\AppData\Local\Temp\a10v\build-editor.log`.
+  `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/Build.bat' Kalmala Win64 Development '-Project=C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject' -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`
+  passed 25 actions; log
+  `C:\Users\Ville\AppData\Local\Temp\a10v\build-game.log`.
+- **Full automation:** ran the complete `Automation RunTests Kalmala; Quit`
+  queue against the current compiled mirror with this command:
+  `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC-ForceMemoryCache -stdout -FullStdOutLogOutput '-UserDir=C:/Users/Ville/AppData/Local/Temp/a10auto4/User' '-abslog=C:/Users/Ville/AppData/Local/Temp/a10auto4/queue.log' '-ExecCmds=Automation RunTests Kalmala; Quit' '-TestExit=Automation Test Queue Empty'`.
+  Exit was 0 and all 209/209 tests reported Success, with zero failures and
+  zero not-run tests. The 8 tests with warning events
+  were `Kalmala.Gameplay.Harvest.ForestPatchLifecycle`,
+  `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`,
+  `Kalmala.Gameplay.Harvest.ForestReconstructionLifecycle`,
+  `Kalmala.Gameplay.Construction.GeometryAlignment`,
+  `Kalmala.Gameplay.Population.SphericalCampSuppression`,
+  `Kalmala.UI.Theme.LocalPresentation`,
+  `Kalmala.Gameplay.Population.CreationLifecycle`, and
+  `Kalmala.Gameplay.Population.StationCylinder`. These forwarded
+  `UWorld::DestroyActor: World has no context!` teardown warnings did not fail
+  tests. Queue log: `C:\Users\Ville\AppData\Local\Temp\a10auto4\queue.log`.
+  Startup also printed ZenLocal unavailable, the existing default Skiff
+  `HullMesh` invalid-material warning, and two generic automation self-test
+  `Condition failed` lines; no A10 test failed.
+- **A10 fresh-start progression:**
+  `Scripts/Tests/Progression/FreshStartBronzeAndIron.ps1 -ProjectPath
+  C:\Users\Ville\AppData\Local\Temp\a10v\Kalmala.uproject
+  -OutputDirectory C:\Users\Ville\AppData\Local\Temp\a10fresh2` passed
+  (seed `389677532032488492`). With no debug grants, the fresh character
+  harvested source nodes, processed materials through Kiln and Smelter, and
+  acquired Bronze and Iron Picks through Forge server transactions. Reload
+  retained all 75/75 source depletion identities. The sources and stations are
+  deterministic placed fixtures at valid biome coordinates; this proves the
+  normal transaction chain, not traversal of procedural world generation.
+  Evidence: `C:\Users\Ville\AppData\Local\Temp\a10fresh2\automation.log`.
+- **Required acceptance:**
+  - `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Construction\GardenPlot.ps1
+    -Project C:\Users\Ville\AppData\Local\Temp\a10f1\Kalmala.uproject
+    -Port 19417 -Rendered -Width 1280 -Height 720` passed the host/client rendered growth and payment gate, including
+    Trowel wear, 600 active seconds and no portable kit; evidence directory
+    `C:\Users\Ville\AppData\Local\Temp\KGP-a3a98c0e7bd54946a07245aea30d7231`.
+  - `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Survival\PersistedCampRestart.ps1
+    -Port 19418` passed with schema 7, save/restore and owner isolation;
+    `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Construction\ConstructionPersistence.ps1
+    -Port 19420` passed with exact restored construction IDs, replicated state and two fresh paid
+    placements. Evidence directories:
+    `C:\Users\Ville\AppData\Local\Temp\KalmalaPersistedCampRestart-4f40cc6bef8c43129597c0112647cd9a`
+    and
+    `C:\Users\Ville\AppData\Local\Temp\KalmalaConstructionRestore-5312ec675acc4e74820429f74dec1545`.
+  - `C:\Users\Ville\AppData\Local\Temp\a10f1\Scripts\Tests\Progression\Schema2CandidateReconnect.ps1
+    -Port 19424 -ProjectPath C:\Users\Ville\AppData\Local\Temp\a10f1\Kalmala.uproject`
+    passed Seed and
+    Resume: construction schema 7, player discovery schema 3, six canonical
+    owner starter tools, three earned candidate tools, observer privacy,
+    persisted claim and replay rejection. Evidence:
+    `C:\Users\Ville\AppData\Local\Temp\KalmalaM9Schema2Reconnect-f6bd3e095166477f90a00f4a6baff81e`.
+  - `C:\Users\Ville\AppData\Local\Temp\a10v\Scripts\Tests\Progression\GemMiningTreasurePeer.ps1
+    -Port 19431 -OutputDirectory C:\Users\Ville\AppData\Local\Temp\a10g3`
+    passed with owner-only
+    accessory stats, shared peer hit progress, gem/treasure claim behavior and
+    both claims retained after fresh-process restart. Evidence:
+    `C:\Users\Ville\AppData\Local\Temp\a10g3`.
+  - `& 'C:/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' C:/Users/Ville/AppData/Local/Temp/a10v/Kalmala.uproject -run=RenderMenu
+    -Menu=inventory -Output=C:\Users\Ville\AppData\Local\Temp\a10i-verify\inventory.png
+    -A9Gear -AllowCommandletRendering -RenderOffscreen -sm6 -Width=1280
+    -Height=720 -UserDir=C:\Users\Ville\AppData\Local\Temp\a10i-verify\user
+    -abslog=C:\Users\Ville\AppData\Local\Temp\a10i-verify\render.log
+    -unattended -nop4 -nosplash -nosound -DDC-ForceMemoryCache` passed the equipped-inventory render
+    (`Saved=1`, no errors); inspected output shows the equipped Opal Helm,
+    Garnet Necklace and Dusk Ring, icons, maintenance controls and expanded
+    inventory backplate. The only render warning was the existing default Skiff
+    `HullMesh` invalid material. Evidence:
+    `C:\Users\Ville\AppData\Local\Temp\a10i-verify\render.log` and
+    `C:\Users\Ville\AppData\Local\Temp\a10i-verify\inventory.png`.
+  - Cargo is explicitly excluded/N/A by the accepted A9 scope; no cargo route
+    was added or required for acceptance.
+- **Validators and contracts:** `python Scripts/Validate-CatalogueReferences.py`
+  passed (61 registered JSON files, 152 definitions, 776 resolved references,
+  152 ledger-backed runtime icon mappings); `Scripts/Validate-UIIcons.ps1
+  -Category Catalogue` passed all 152; `python
+  Scripts/Validate-CreatureCatalogues.py` passed 17 unique profiles/stats/
+  attacks/drop references/biome IDs; and
+  `Scripts/Tests/Acceptance/DocumentationContracts.ps1` passed all five
+  no-build contracts. PowerShell parsing passed for the changed construction,
+  schema-reconnect and fresh-start runners. The final C++ assertions include
+  Stormcut accepted-hit wear and rejection/persistence behavior, current save
+  schemas and the fresh-start fixture. Stale schema expectations were corrected
+  to construction schema 7/player schema 3 and current six starter tools. The
+  obsolete generated-snake-descriptor search assertion was removed; archetype
+  slot/profile/behavior and reward-claim serialization checks remain.
+- **Failures and repairs:** the first full queue exposed a Stormcut identity
+  fixture in `Kalmala.Gameplay.Combat.AllItemSwings`, the stale item-icon asset
+  paths in `Kalmala.UI.CatalogueIcons.CompleteCoverage`, and the obsolete
+  generated shoreline descriptor search in
+  `Kalmala.Gameplay.Wildlife.GiantSnake.ShoreLungeAndRewardClaim`; targeted tests
+  also exposed old save-schema/starter-tool-count expectations. The combat
+  fixture now gives Stormcut an authenticated player identity and reports
+  per-item assertions; the icon expectation uses the current catalogue item
+  texture mapping; only the unsupported generated-descriptor search was
+  removed, retaining archetype slot/profile/behavior and reward-claim
+  serialization coverage. Save runner/tests now expect construction schema 7,
+  player-discovery schema 3, and six canonical starter tools. Those
+  expectations/fixtures were corrected;
+  temporary per-interaction diagnostic output was removed while retaining
+  concise stage/failure evidence. The current-source rebuild, complete queue,
+  reconnect, peer/restart, render and fresh-start run above passed after repairs.
+  No unresolved A10 failure remains.
+- **Changed files:** final run repairs are in
+  `Scripts/Tests/Construction/ConstructionPersistence.ps1`,
+  `Scripts/Tests/Progression/Schema2CandidateReconnect.ps1`, the relevant
+  gameplay/UI/world test and fixture sources, `docs/02-technical-architecture.md`,
+  and `docs/07-development-setup.md`; this final record and the A10 checklist
+  are in `PROGRESS.md` and `BACKLOG.md`.
+- **Impact and authority:** test/runner/schema-contract expectation repairs and
+  verification records only; production server authority and save formats were
+  not changed in this final verification run. The earlier A10 Stormcut change
+  remains server-authored and is covered by the passing current-source suite.
+- **Path and diff checks:** all build/evidence paths are below 260 characters
+  and outside the source checkouts. `git diff --check` passed before final
+  handoff edits; it is rerun before commit. No output was written to repository
+  generated directories.
+- **A10 status:** milestone-final verification passed; all A10 children and
+  the A10 parent are complete. Cargo remains excluded/N/A. Remaining limit is
+  that the fresh-start route uses deterministic source/station fixtures rather
+  than proving a fully procedural-world run; no further required A10 gate is
+  outstanding. The A10 checklist's legacy link to `docs/alpha-item-details.md`
+  is unresolved because that file is absent; this run used the checklist text
+  itself and the current setup/acceptance documentation.
+- **Next eligible task:** the separate biome-height-rework goal continues at
+  its own next backlog item; this A10 milestone has no remaining child.
+
+
+## BH26 merged-master integration follow-up — 2026-10-26
+
+- **Work completed:** Merged `codex/biome-height-rework` into `master`. The integrated surface-water probes now recognize generated ocean water as well as active Shimmering Lakes water, preserving coastal exposure, camp water-distance sampling, and dry Lakes-biome shore resources while analytic lake basins remain disabled. Updated related biome-content, former-basin, and movement assertions.
+- **Files changed by integration repair:** `Source/KalmalaWorld/Public/KalmalaEnvironmentalExposureSampler.h`, `Source/KalmalaWorld/Public/KalmalaCampConditionSampler.h`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`, `Source/KalmalaWorld/Private/Tests/KalmalaBiomeContentContractTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp`, and `docs/02-technical-architecture.md`. The BH26 implementation and original generated soil material are included in the merged feature changes.
+- **Milestone-final verification:** The merged snapshot Editor build succeeded (330 actions). Follow-up Editor builds after integration repairs succeeded (98 actions, then two 4-action incremental builds). The full merged automation queue passed on the final run: 228 tests passed, 0 failed, exit code 0. Command forms used:
+  `Build.bat KalmalaEditor Win64 Development -Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4`
+  and `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject -unattended -nop4 -nosplash -NullRHI -UserDir=<mirror>/User-rerun3 -abslog=<mirror>/automation-rerun3.log "-ExecCmds=Automation RunTests Kalmala; Quit" "-TestExit=Automation Test Queue Empty"`.
+- **Failures and repairs:** The first merged automation run passed 225/228. It found that the local trade-off sampler returned no coastal water distance, the exposure terrain sweep saw no shoreline, and Lakes-biome content had no eligible Rutabaga/Tin shore descriptors. These shared consumers sampled only disabled analytic-lake water. They now recognize generated ocean water as well as active lake water. The next run passed 227/228 and found that the movement test incorrectly required zero shoreline exposure at a dry former-basin sample even though ocean water was within the 400 cm exposure probe. The revised contract separates exact Wet-status refresh from nearby shoreline exposure. Final rerun passed all 228 tests.
+- **Observable impact and authority:** Coastline exposure, camp water-distance, and shoreline resource eligibility work with generated ocean water. No new replicated state or client-authoritative gameplay behavior was added; the probes consume the existing world configuration and positions. The user's rendered terrain inspection worked; the user confirmed they had closed the Editor.
+- **Known limitations / pre-existing output:** Analytic inland lake basins remain disabled under the existing project policy. Unreal startup logged the existing invalid Skiff HullMesh material-index warning and two unnamed engine automation condition messages; neither failed the merged build or final test queue. No terrain screenshot was retained.
+- **Final milestone status:** BH26 and the biome-height/Meadows goal are complete on merged `master`; the merged build and all 228 automation tests passed. No verification remains deferred.
+- **Next eligible task on merged master:** S03 — add named monster-population tuning constants.
+- **Main-checkout handoff:** The progress record is appended without replacing local edits. `E:\dev\Kalmala\BACKLOG.md` was left unchanged because its BH25 checklist ends at BH25d, while merged master includes BH25e and BH26; the scope conflict remains for review.
 
 ## Run 2026-10-24 — BH01a seed overviews and site selection
 
