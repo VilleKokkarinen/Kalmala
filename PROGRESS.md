@@ -1,3 +1,41 @@
+## L01c1 capture-only weather and fire controls — 2026-10-26
+
+- **Selected task:** L01c1, the first implementation subtask under the
+  seed-418 weather/fire capture increment.
+- **Work completed:** Added `Default`, `OvercastRain`, and `FireDusk` condition
+  options to the baseline capture runner. The Development-only fixture moves
+  the local pawn to the fixed site for local storm-fog sampling, applies a
+  deterministic storm input and muted sun for the Thunder Mountains view, and
+  prepares a transient lit hearth with a darkened sky for the Meadows night
+  view. Screenshot requests wait for storm-fog settling. Default captures and
+  ordinary gameplay do not use these overrides.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`,
+  `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCampfire.h`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** The PowerShell parser passed; `git diff --check`
+  passed after the bookkeeping changes; the C++ changes received focused source
+  review only.
+  A fresh mirror build planned 330 actions; the cached mirror build planned 301
+  and was stopped after 23 unrelated world-module actions, before compiling the
+  changed gameplay module. Neither attempt is a successful build result.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The command-line capture harness can now request fixed
+  storm and fire-dusk conditions in Development. No rendered output was
+  produced in this increment, and ordinary gameplay visuals are unchanged.
+- **Networking/authority:** The fixture is non-Shipping and capture-flag-only.
+  It uses the existing authoritative weather setter and a transient server-side
+  hearth; no RPC, save, gameplay, or network contract changed.
+- **Known limitations / remaining scope:** The source changes remain uncompiled.
+  No rain particles or flame mesh exist in the current project; effective
+  exposure compensation and EV bounds remain unknown. L01c2 must compile the
+  fixture, render and review both images, update the manifest, and confirm all
+  five seed-418 scenes.
+- **Next eligible task:** L01c2 — render and review the seed-418 weather and
+  fire frames.
+
 ## L01b seed-418 baseline captures — 2026-10-26
 
 - **Selected task:** L01b, the first unchecked child under lighting milestone L01.

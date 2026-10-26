@@ -66,11 +66,11 @@ Before selecting values, inspect the actual prototype map's lights, sky, fog,
 exposure, and any level post-process settings in Unreal Editor. The project
 defaults alone do not define a complete scene lighting rig.
 
-### L01a source audit — 2026-10-26 (Editor inspection pending)
+### L01a source audit — 2026-10-26
 
-Everything below is derived from tracked configuration or source. It has not
-been verified against the loaded level, resolved runtime renderer, or a rendered
-capture.
+The table below records source-derived facts and limits. Live map and renderer
+observations follow in the L01a Editor inspection section.
+This is an L01a snapshot; later capture-only changes are recorded separately.
 
 | Area | Source-derived facts and limits |
 | --- | --- |
@@ -136,10 +136,10 @@ frames or scene conditions have passed visual acceptance.
 | Fire-lit dusk / night | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Shares the daylight anchor; the point at `(-781.6,-781.6,528.9)` cm is the intended hearth center. The map has no placed hearth, and the helper cannot spawn/light one or select dusk/night. |
 
 L01a's map, renderer, light, exposure, fog, material-assignment, capture-input,
-and five-anchor audit is recorded. L01b has reviewed the daylight, forest, and
-water framing. L01c still needs to provide the missing weather, time, exposure,
-and hearth capture controls before all five baseline images can be treated as
-accepted references.
+and five-anchor audit is recorded. L01b reviewed the daylight, forest, and water
+framing. L01c1 adds capture-only weather and hearth controls; L01c2 still needs
+to render those scenes and check the full five-scene set. Exposure remains
+automatic with unknown effective EV bounds.
 
 ### L01b seed-418 capture set — 2026-10-26
 
@@ -168,6 +168,33 @@ not retained because its image did not provide a clearer water/shore distinction
 L01b's seed-418 daylight, forest, and water images are captured and recorded.
 The source-coast framing and dark forest condition remain limitations for later
 scene review; this capture increment does not tune lighting or materials.
+
+### L01c1 capture-only condition controls — 2026-10-26
+
+`BiomeBaselineCapture.ps1` accepts `-Condition Default`, `OvercastRain`, or
+`FireDusk` and passes the value to the Development-only baseline capture path.
+The selected seed-418 Thunder Mountains view sets precipitation and fog to 0.8,
+wind to 0.75, reduces sun intensity to 2.0, retains sky intensity 1.0, moves
+the local pawn to the fixed sample site for the existing storm-fog probe, and
+delays the screenshot three seconds for its one-second probe and fade. The
+Meadows dusk view clears weather, turns the sun off at rotation `(8,-35,0)`,
+sets sky intensity to 0.12, and spawns a transient lit hearth at the fixed
+anchor. Both use the existing 65-degree camera and automatic exposure CVars.
+
+These branches run only with the non-Shipping `-KalmalaBiomeBaselineCapture`
+fixture. The hearth state is initialized by a server-checked Development-only
+method; the weather override uses the existing authoritative world-generation
+game state. No map is saved, and no ordinary gameplay session or Shipping build
+uses these test overrides. The existing project has no visible rain particle
+system or flame mesh; the planned captures show storm-state fog and the hearth's
+warm point-light response, not precipitation particles or a modeled flame.
+Exposure compensation and EV bounds remain unknown.
+
+L01c1 passed PowerShell parsing and diff whitespace checks, but the source has
+not compiled or rendered. Fresh and cached short-mirror builds each planned
+hundreds of actions and were stopped before the changed gameplay module compiled.
+L01c2 owns compiling the fixture, capturing/reviewing both images, updating the
+manifest, and verifying the five-scene seed-418 set.
 
 ## Proposed implementation stages
 
