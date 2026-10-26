@@ -1,3 +1,14 @@
+## L01a source controls audit — 2026-10-26
+
+- **Selected task:** L01a remains incomplete; this source-only increment checks existing time, weather, and campfire capture controls.
+- **Work completed:** Recorded that the server seeds weather cycle 0 from world identity, while the baseline runner cannot select a weather cycle or dusk/night state. The setup script gives the sun one fixed rotation and no tracked production time-of-day driver was found. The campfire uses a procedural stone ring and a warm point light that is off until gameplay lights the hearth; the baseline helper neither spawns nor ignites one. Serialized map placement remains unknown.
+- **Files changed:** BACKLOG.md; docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Inspected weather-cycle, GameMode, campfire, environment setup, and baseline-runner sources. `git diff --check` passed. No Editor, build, or automation was run; full verification remains deferred.
+- **Observable impact:** The plan now distinguishes deterministic simulation inputs from capture controls and records the actual campfire presentation source. No runtime or asset changes.
+- **Networking/authority:** No gameplay behavior changed. Weather remains server-owned and replicated; storm fog remains client-local presentation.
+- **Known limitations / remaining scope:** Renderer and serialized actors remain uninspected. The helper cannot target the rain or fire conditions as requested, and prior scene screenshots are not retained here.
+- **Next eligible task:** L01a remains first: inspect the active map and renderer and visually confirm or replace the five provisional views, then proceed to L01b.
+
 ## L01a provisional camera candidates — 2026-10-26
 
 - **Selected task:** L01a remains incomplete; this source-only increment records candidates from the existing seed-418/419 world-generation baseline.

@@ -1072,7 +1072,8 @@ do not mark the lighting milestone complete before it passes.
     post-process volumes, generated material assignments, and capture settings
     in the existing lighting plan. Select and record fixed camera positions for
     all five baseline scenes. Do not change project behavior in this audit.
-    Source-only audit notes are recorded in `docs/valheim-like-lighting-plan.md`;
+    Source-only audit notes and provisional view candidates are recorded in
+    `docs/valheim-like-lighting-plan.md`;
     live map/renderer state and accepted camera positions remain unverified.
   - [ ] **L01b — Capture seed-418 daylight, forest, and water.** Use the fixed
     camera poses for Meadows daylight, forest shade, and coast/water. Preserve
