@@ -1,0 +1,146 @@
+{
+  "captureExecutable": "UnrealEditor-Cmd.exe",
+  "captureArguments": [
+    "-game",
+    "-windowed",
+    "-RenderOffscreen",
+    "-ForceRes",
+    "-ResX=1024",
+    "-ResY=768"
+  ],
+  "captureRunner": "Scripts/Tests/World/BiomeBaselineCapture.ps1",
+  "projectMap": "/Game/Kalmala/Maps/Prototype/L_Prototype",
+  "additionalProbe": "Shimmering Lakes candidate was also captured for review but did not provide a clearer water/shore distinction; source log retained in the temporary capture folder only.",
+  "worldSeed": 418,
+  "engine": "Unreal Engine 5.8",
+  "render": {
+    "featureLevel": "SM5",
+    "weather": "not pinned",
+    "autoExposure": "enabled (r.DefaultFeature.AutoExposure=1)",
+    "exposureCompensation": "not overridden",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "dynamicGlobalIllumination": "None (r.DynamicGlobalIlluminationMethod=0)",
+    "hardwareRayTracing": "off (r.RayTracing=0)",
+    "evRange": "not established by map/volume",
+    "rhi": "D3D12",
+    "eyeAdaptationQuality": 2,
+    "timeOfDay": "not pinned",
+    "reflections": "Lumen (r.ReflectionMethod=2)"
+  },
+  "validation": "The capture helper passed PNG signature, 1024x768 dimensions, nonblank-sample, and requested seed/site log checks for every listed image.",
+  "captures": [
+    {
+      "role": "primary",
+      "bytes": 887481,
+      "height": 768,
+      "site": "MeadowsDaylight",
+      "sampleCm": {
+        "x": -781.6,
+        "viewZ": 528.94458,
+        "y": -781.6
+      },
+      "scene": "Meadows daylight",
+      "aimCm": [
+        -781.6,
+        -781.6,
+        678.94458
+      ],
+      "fovDegrees": 65,
+      "review": "Open daylight view with generated terrain, sparse triangular trees and rocks, and long directional shadows.",
+      "sha256": "fd6ccb098ccc6b71fa01e56ef943edb1dcca4174d2e8b9e3c60e3a4454da6650",
+      "seed": 418,
+      "cameraCm": [
+        -781.6,
+        -3181.6,
+        1728.94458
+      ],
+      "width": 1024,
+      "file": "Seed418_MeadowsDaylight.png"
+    },
+    {
+      "role": "primary",
+      "bytes": 902500,
+      "height": 768,
+      "site": "ForestShade",
+      "sampleCm": {
+        "x": 207132.4,
+        "viewZ": 15.1806488,
+        "y": -325940.4
+      },
+      "scene": "Forest shade",
+      "aimCm": [
+        207132.4,
+        -325940.4,
+        165.1806488
+      ],
+      "fovDegrees": 65,
+      "review": "Dense tree view; the foliage and ground are very bright neutral gray, so this records the current baseline rather than an accepted look.",
+      "sha256": "6ed40c7e6ac912d4a7a8eb221e028f8a8cefc3362c10fd351a51cff11e3b259f",
+      "seed": 418,
+      "cameraCm": [
+        207132.4,
+        -328340.4,
+        1215.1806488
+      ],
+      "width": 1024,
+      "file": "Seed418_ForestShade.png"
+    },
+    {
+      "role": "primary-water-view",
+      "bytes": 773402,
+      "height": 768,
+      "site": "OceanWater",
+      "sampleCm": {
+        "x": 970004.9,
+        "viewZ": 0,
+        "y": -243087.4
+      },
+      "scene": "Water",
+      "aimCm": [
+        970004.9,
+        -243087.4,
+        150
+      ],
+      "fovDegrees": 65,
+      "review": "Open-water sample with a broad flat gray surface; no land/shoreline is in frame.",
+      "sha256": "53ba17d0dc1473348a5eeada20b967bad618a05cfdecc646fe7bd7b11182b707",
+      "seed": 418,
+      "cameraCm": [
+        970004.9,
+        -245487.4,
+        1200
+      ],
+      "width": 1024,
+      "file": "Seed418_OpenWater.png"
+    },
+    {
+      "role": "supplemental-candidate",
+      "bytes": 818547,
+      "height": 768,
+      "site": "CoastWater",
+      "sampleCm": {
+        "x": 691744.0,
+        "viewZ": 0,
+        "y": -107083.5
+      },
+      "scene": "Coast framing probe",
+      "aimCm": [
+        691744.0,
+        -107083.5,
+        150
+      ],
+      "fovDegrees": 65,
+      "review": "The fixed source-coast pose does not show a distinct water surface; retain as a framing diagnostic, not as an accepted coast image.",
+      "sha256": "0eccf8a7d25fa560f6b6577398df1d14f2658e440df73d0c7374df615b6d07b0",
+      "seed": 418,
+      "cameraCm": [
+        691744.0,
+        -109483.5,
+        1200
+      ],
+      "width": 1024,
+      "file": "Seed418_CoastCandidate.png"
+    }
+  ],
+  "manifestGeneratedAtUtc": "2026-10-26T12:37:04Z"
+}

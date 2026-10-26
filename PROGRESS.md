@@ -1,3 +1,15 @@
+## L01b seed-418 baseline captures — 2026-10-26
+
+- **Selected task:** L01b, the first unchecked child under lighting milestone L01.
+- **Work completed:** Captured seed-418 Meadows daylight and Wooded Elderwood views, an open-water view at the ocean sample, and a supplemental source-coast framing probe. Switched the runner to `UnrealEditor-Cmd.exe` because the default `UnrealEditor.exe` exited before writing a log/image. Reviewed all captures and recorded renderer, exposure, fixed camera inputs, image hashes, and review notes in the lighting plan and manifest.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `docs/valheim-like-lighting-plan.md`; four PNG captures and `manifest.json` under `TestResults/LightingBaseline/`.
+- **Lightweight checks:** The capture helper passed its PNG signature, 1024x768 dimensions, nonblank-sample, and seed/site log checks for each retained image. Independently parsed the manifest and checked all four image dimensions, byte counts, and SHA-256 hashes; `git diff --check` passed. No full test suite or project build was run.
+- **Full verification:** Deferred to the integrated lighting gate; this is not the final implementation task in L01.
+- **Observable impact:** The project now has repeatable seed-418 daylight, forest, and water reference images plus a supplemental coast probe. The captures expose the current pale gray material response, patch lines, sparse meadow props, bright forest foliage, and flat water surface.
+- **Networking/authority:** No runtime or network behavior changed. Captures use the existing deterministic world seed and transient camera fixture.
+- **Known limitations / remaining scope:** The source-coast view has no distinct water surface; the open-water image has no shoreline. Forest shade is brighter than intended. Exposure limits are not pinned, and time/weather remain outside this increment. The default `UnrealEditor.exe` runner mode exited without logs; `UnrealEditor-Cmd.exe` works through the existing override.
+- **Next eligible task:** L01c — capture seed-418 overcast/rain and fire-lit dusk/night scenes using L01a's camera and exposure records, then verify all five seed-418 baseline scenes are represented.
+
 ## L01a live map and renderer audit — 2026-10-26
 
 - **Selected task:** L01a, the first unchecked child under lighting milestone L01.

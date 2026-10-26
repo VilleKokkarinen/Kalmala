@@ -83,7 +83,7 @@ capture.
 | Time and weather controls | `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1014-1045` initializes weather cycle 0 from the world seed and current game elapsed time; `Source/KalmalaWorld/Public/KalmalaWeatherCycle.h:10-54` derives each interval deterministically from the seed and cycle index. The baseline runner supplies the seed but has no weather-cycle or time-of-day selector. The environment setup script sets one fixed sun rotation; no tracked production time-of-day driver was found. |
 | Generated material assignments | Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp:180-264 assigns M_GeneratedTerrain to terrain (or M_GeneratedTerrainBiomeDebug in debug mode), M_GeneratedWater to ocean and lake water, M_GeneratedLakeShore to lake shore, M_GeneratedRock to Meadow rocks, M_GeneratedBark to Meadow trunks, and M_GeneratedCanopy to Meadow canopies. M_GeneratedSoil is not among this constructor's assignments. Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp:18-190, 257-264 builds M_GeneratedTerrain from vertex-color R/G/B weights for grass/soil/rock plus alpha snow and roughness 0.92; its generic creator defines constant-color/roughness materials, while its debug material feeds vertex color to base and emissive. The generic creator returns early for an existing package. These are source-generation and constructor facts; package graphs and any map overrides were not inspected. |
 | Campfire baseline support | `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp:20-67,263-268` builds an original procedural stone ring using `M_GeneratedRock` and an orange point light with 600 cm radius; the light is off until the hearth is lit, then scales to 2500 × effective warmth. The baseline capture helper does not spawn or light a hearth, and the setup script does not place one. Whether the serialized map contains a placed hearth remains unknown. |
-| Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. During this audit the helper exited with code 0 before creating either its requested log or image, so its rendered output remains unavailable. |
+| Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. An earlier launch through UnrealEditor.exe returned exit code 0 without a log or image; L01b succeeded when the runner's `-Editor` parameter selected UnrealEditor-Cmd.exe. |
 
 Existing world-generation records provide provisional camera poses for three
 lighting-scene classes. They use the same 65-degree, +Y-facing camera convention
@@ -119,7 +119,7 @@ changes were saved.
 | Atmosphere | `KalmalaEnvironmentAtmosphere`: movable, planet top at absolute world origin, ground radius 6360 km, atmosphere height 60 km, multiscattering 1.0. |
 | Fog, exposure and post process | No fog or post-process volume actor appeared in the loaded map. The meadow PIE view had no visible storm fog. Tracked runtime source creates transient client-local exponential fog only for storm activity weighted by Thunder Mountains. Auto exposure is enabled and eye-adaptation quality is 2, but no active volume or tracked runtime writer establishes compensation or min/max EV; those effective exposure bounds remain unknown. |
 | Generated materials | PIE Details verified `M_GeneratedTerrain` in a generated patch terrain slot and `M_GeneratedWater` in its surface-water slot. The source-derived constructor assignments for lake shore, rock, bark, and canopy remain listed above; their loaded runtime slots and material graphs were not individually inspected. `M_GeneratedSoil` remains unassigned by that constructor. |
-| Capture settings | The existing helper uses seed 418 or 419, caller-supplied site/coordinates, `-game -windowed -RenderOffscreen -ForceRes`, 1024x768, a separate log/UserDir, a 65-degree transient camera, and one screenshot. It does not pin time, weather, or exposure, nor spawn/light a hearth. The user-requested isolated `KalmalaEditor` build completed 55/55 actions. The helper then exited 0 without producing a log or PNG, so no image from this run is claimed. |
+| Capture settings | The existing helper uses seed 418 or 419, caller-supplied site/coordinates, `-game -windowed -RenderOffscreen -ForceRes`, 1024x768, a separate log/UserDir, a 65-degree transient camera, and one screenshot. It does not pin time, weather, or exposure, nor spawn/light a hearth. The user-requested isolated `KalmalaEditor` build completed 55/55 actions. Its default UnrealEditor.exe launch failed to create a log or PNG; the L01b run succeeded with `-Editor UnrealEditor-Cmd.exe`. |
 
 The following five seed-418 camera anchors are selected as repeatable inputs to
 the next baseline captures. Camera position and aim use the helper's existing
@@ -136,9 +136,38 @@ frames or scene conditions have passed visual acceptance.
 | Fire-lit dusk / night | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Shares the daylight anchor; the point at `(-781.6,-781.6,528.9)` cm is the intended hearth center. The map has no placed hearth, and the helper cannot spawn/light one or select dusk/night. |
 
 L01a's map, renderer, light, exposure, fog, material-assignment, capture-input,
-and five-anchor audit is recorded. L01b and L01c must validate these frames and
-provide the missing weather, time, exposure, and hearth capture controls before
-the baseline images can be treated as accepted references.
+and five-anchor audit is recorded. L01b has reviewed the daylight, forest, and
+water framing. L01c still needs to provide the missing weather, time, exposure,
+and hearth capture controls before all five baseline images can be treated as
+accepted references.
+
+### L01b seed-418 capture set — 2026-10-26
+
+Used the already-built UE 5.8 mirror and
+`Scripts/Tests/World/BiomeBaselineCapture.ps1` with
+`-Editor C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe`.
+The runner passed its PNG signature, 1024x768 dimensions, nonblank-sample, and
+seed/site log checks for the retained images. The default `UnrealEditor.exe`
+launch had exited before logging; the command-line Editor override was needed.
+
+| Capture | Site and camera inputs | Review |
+| --- | --- | --- |
+| `Seed418_MeadowsDaylight.png` | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; FOV 65. | Generated ground is pale neutral gray with visible patch lines; sparse triangular rocks/trees cast long cool shadows. Daylight is visible, but this is an ungraded baseline. |
+| `Seed418_ForestShade.png` | Wooded Elderwood `(207132.4,-325940.4)`, `ViewZ=15.1806488`; FOV 65. | Dense tree silhouettes are present, but foliage and ground are bright neutral gray. The fixed view does not read as dark forest shade. |
+| `Seed418_OpenWater.png` | Ocean sample `(970004.9,-243087.4)`, `ViewZ=0`; FOV 65. | A broad flat gray water surface fills the frame; no shoreline is visible. Use this as the water reference, not as a combined coast-and-water frame. |
+| `Seed418_CoastCandidate.png` (supplemental) | Source-coast land-side `(691744.0,-107083.5)`, `ViewZ=0`; FOV 65. | The selected coast pose shows terrain but no distinct water surface. Retained as a framing diagnostic; the ocean pose supplies the water image for this set. |
+
+Capture files and `manifest.json` are under
+`TestResults/LightingBaseline/`. The manifest records exact camera and aim,
+resolution, renderer, GPU, exposure CVars/limits, per-image byte count, SHA-256,
+and the runner's checks. D3D12/SM5 on an RTX 5090 was resolved in the capture
+logs. Auto exposure remains enabled with eye-adaptation quality 2; compensation
+and EV bounds were not pinned. The Shimmering Lakes candidate was reviewed but
+not retained because its image did not provide a clearer water/shore distinction.
+
+L01b's seed-418 daylight, forest, and water images are captured and recorded.
+The source-coast framing and dark forest condition remain limitations for later
+scene review; this capture increment does not tune lighting or materials.
 
 ## Proposed implementation stages
 
