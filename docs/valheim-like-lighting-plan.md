@@ -82,13 +82,25 @@ capture.
 | Generated material assignments | Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp:180-264 assigns M_GeneratedTerrain to terrain (or M_GeneratedTerrainBiomeDebug in debug mode), M_GeneratedWater to ocean and lake water, M_GeneratedLakeShore to lake shore, M_GeneratedRock to Meadow rocks, M_GeneratedBark to Meadow trunks, and M_GeneratedCanopy to Meadow canopies. M_GeneratedSoil is not among this constructor's assignments. Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp:18-190, 257-264 builds M_GeneratedTerrain from vertex-color R/G/B weights for grass/soil/rock plus alpha snow and roughness 0.92; its generic creator defines constant-color/roughness materials, while its debug material feeds vertex color to base and emissive. The generic creator returns early for an existing package. These are source-generation and constructor facts; package graphs and any map overrides were not inspected. |
 | Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. |
 
-No fixed scene-specific camera positions are selected. The capture helper has
-no source-defined seed-418 coordinate anchors for Meadows daylight, forest
-shade, coast/water, weather, or fire. A nonempty Site label does not choose a
-location. Keep L01a and L01 unchecked until a usable Editor view confirms the
-map, serialized actors, resolved renderer, and five visually suitable fixed
-views; do not promote the helper's caller-supplied coordinates to accepted
-camera positions without that review.
+Existing world-generation records provide provisional camera poses for three
+lighting-scene classes. They use the same 65-degree, +Y-facing camera convention
+and seed-418 generator sites, but the old captures did not lock time, weather,
+or exposure. The screenshots were for terrain review, are not present in this
+checkout, and do not establish lighting/material acceptance.
+
+| Scene candidate | Seed-418 site and pose | Source evidence and limit |
+| --- | --- | --- |
+| Meadows daylight | Starter Meadows at `(-781.6, -781.6)` cm; `ViewZ=528.94458`; camera `(-781.6, -3181.6, 1728.94458)`; aim `(-781.6, -781.6, 678.94458)`; FOV 65 degrees. | `docs/biome-height-rework.md` records a prior smoke capture and visual review of terrain, trees, shadows, and sky. It does not establish daylight time or exposure. Provisional only. |
+| Forest shade | Wooded Elderwood at `(207132.4, -325940.4)` cm; `ViewZ=15.1806488`; camera `(207132.4, -328340.4, 1215.1806488)`; aim `(207132.4, -325940.4, 165.1806488)`; FOV 65 degrees. | `Scripts/Tests/World/BiomeBaseline418419.csv` records 26 forest descriptors at this site, and the prior terrain capture was visually reviewed. Actual shade in this fixed view is unverified. Provisional only. |
+| Water | Shimmering Lakes at `(100830.5, -143038.6)` cm; water-level `ViewZ=356.950745`; camera `(100830.5, -145438.6, 1556.950745)`; aim `(100830.5, -143038.6, 506.950745)`; FOV 65 degrees. | The numeric baseline records water at this site. This is an inland-lake view, not a coast view; water/material appearance is not accepted. Provisional only. |
+| Coast | Source-coast land-side site `(691744.0, -107083.5)` cm. | The numeric baseline marks the sample wet, but the prior rendered source-coast frame did not show a separate water surface. Do not use this pose as the coast/water view without a better framing. |
+| Overcast/rain and fire-lit dusk/night | No accepted fixed poses. | The capture helper has no named-scene-to-coordinate map and does not control time or weather. Select locations and conditions only after live scene review. |
+
+These candidates narrow the later Editor review but do not complete L01a.
+The loaded map, serialized actors, resolved renderer, current exposure/fog,
+and visually suitable five fixed views remain unverified. Keep L01a and L01
+unchecked; do not promote provisional coordinates to accepted camera positions
+without that review.
 
 ## Proposed implementation stages
 

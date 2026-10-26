@@ -1,3 +1,14 @@
+## L01a provisional camera candidates — 2026-10-26
+
+- **Selected task:** L01a remains incomplete; this source-only increment records candidates from the existing seed-418/419 world-generation baseline.
+- **Work completed:** Added provisional seed-418 poses for Starter Meadows, Wooded Elderwood, and Shimmering Lakes using the tracked numeric baseline and prior render records. Recorded the source-coast pose as unsuitable at its existing framing because the earlier capture did not show a separate water surface. No positions are accepted for the weather/fire scenes.
+- **Files changed:** docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Cross-checked pose values against `Scripts/Tests/World/BiomeBaseline418419.csv` and `docs/biome-height-rework.md`. `git diff --check` passed. No Editor, build, or automation was run; full verification remains deferred.
+- **Observable impact:** The later Editor review has three reproducible candidate views and an explicit coast-view rejection to confirm or replace. No runtime or asset changes.
+- **Networking/authority:** No code or network behavior changed.
+- **Known limitations / remaining scope:** Prior world-generation captures are not retained in this checkout and did not control time/weather/exposure. Map actor state, renderer, scene suitability, and weather/fire locations remain unverified.
+- **Next eligible task:** L01a remains first: inspect the active map and renderer, visually confirm or replace all five poses, then proceed to L01b.
+
 ## L01a source-only audit follow-up — 2026-10-26
 
 - **Selected task:** L01a, still incomplete pending live map/renderer inspection and selection of five visually verified fixed views.
