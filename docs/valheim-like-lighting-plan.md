@@ -52,10 +52,14 @@ cases that need them. ([UE 5.8 shading models](https://dev.epicgames.com/documen
 
 Kalmala uses Unreal Engine 5.8. Generated terrain, water, shore, rock, bark, and
 canopy components currently resolve project-owned materials under
-`Content/Kalmala/World/Materials/`. `CreateWorldMaterialsCommandlet` creates a
-simple constant base-color/roughness material for those surfaces and a separate
-vertex-color biome-debug material. The runtime terrain patch assigns those
-materials to its procedural mesh components. The project brief's established
+`Content/Kalmala/World/Materials/`. The commandlet source builds M_GeneratedTerrain as a vertex-color blend of
+grass, soil, rock, and snow; other generated surfaces use the simple
+constant-color/roughness creation path, and the separate biome-debug material
+passes vertex color to base and emissive. M_GeneratedSoil is generated as an
+asset but is not assigned by the terrain-patch constructor. Existing generic
+material packages are left untouched by the creator, so these are source
+generation facts rather than confirmed loaded asset graphs. See the source
+audit below for assignments and limits. The project brief's established
 mood is a northern wilderness shaped by forests, lakes, and long twilight.
 
 Before selecting values, inspect the actual prototype map's lights, sky, fog,
@@ -64,16 +68,27 @@ defaults alone do not define a complete scene lighting rig.
 
 ### L01a source audit — 2026-10-26 (Editor inspection pending)
 
-| Area | Source-verified facts and limits |
-| --- | --- |
-| Active prototype map | `Config/DefaultEngine.ini` sets both `EditorStartupMap` and `GameDefaultMap` to `/Game/Kalmala/Maps/Prototype/L_Prototype`; `Content/Kalmala/Maps/Prototype/L_Prototype.umap` exists. `Kalmala.uproject` associates the project with Unreal Engine 5.8. |
-| Renderer | No explicit RHI, Lumen GI/reflection, exposure, or post-process overrides were found under tracked `Config/`. The active RHI and resolved GI/reflection methods remain unverified. |
-| Environment actors | `Scripts/Setup-PrototypeEnvironment.py` describes the project setup action: a movable `KalmalaEnvironmentSun` at rotation `(-40, -35, 0)` with atmosphere-sun enabled and intensity `10.0`; a `KalmalaEnvironmentAtmosphere`; and a movable `KalmalaEnvironmentSkyLight` with real-time capture and intensity `1.0`. The script saves `L_Prototype` when executed, but the serialized level actors were not inspected, so these are setup-script values rather than verified current map values. |
-| Fog, exposure, post-process | The setup script does not set these. The current level and effective runtime values were not inspected; their absence is not established. |
-| Generated materials | `AKalmalaGeneratedTerrainPatch` source assigns `M_GeneratedTerrain` (or the debug-only `M_GeneratedTerrainBiomeDebug`) to terrain; `M_GeneratedWater` to ocean and lake water; `M_GeneratedLakeShore` to lake shore; `M_GeneratedRock` to rocks; `M_GeneratedBark` to trunks; and `M_GeneratedCanopy` to canopies. The commandlet creates these assets plus `M_GeneratedSoil`; actual loaded package state was not inspected. |
-| Capture helper | `Scripts/Tests/World/BiomeBaselineCapture.ps1` uses the prototype map, `-game -windowed -RenderOffscreen -ForceRes -ResX=1024 -ResY=768`, and a separate `UserDir`/log path. `AKalmalaGameMode::TryCaptureBiomeBaselineView` uses FOV 65° and camera `(X, Y−2400, ViewZ+1200)` aimed at `(X, Y, ViewZ+150)`. This is the helper contract, not a verified active editor viewport setting. |
+Everything below is derived from tracked configuration or source. It has not
+been verified against the loaded level, resolved runtime renderer, or a rendered
+capture.
 
-Fixed scene-specific camera positions are not selected. The Unreal Editor was not present in the live app inventory, so the map view, current actor state, actual renderer values, and whether the existing seed-418 terrain anchors show the intended scenes could not be confirmed. Leave L01a unchecked until a usable project Editor window is available; do not use the source anchors as accepted visual positions without inspection.
+| Area | Source-derived facts and limits |
+| --- | --- |
+| Active prototype map | Config/DefaultEngine.ini:3-4 sets both EditorStartupMap and GameDefaultMap to /Game/Kalmala/Maps/Prototype/L_Prototype; Content/Kalmala/Maps/Prototype/L_Prototype.umap is tracked. Kalmala.uproject:3 associates the project with Unreal Engine 5.8. This establishes project defaults, not the current Editor session's loaded map. |
+| Renderer | The tracked Config/*.ini files contain no explicit RHI, Lumen GI/reflection, exposure, or post-process selection. Kalmala.uproject records the engine association and plugins, not the resolved renderer. Active RHI and effective GI/reflection methods remain unknown. |
+| Environment actor setup | Scripts/Setup-PrototypeEnvironment.py:8-39 finds actors by tag or spawns them, then sets the tagged directional light to rotation (-40, -35, 0), movable, atmosphere-sun enabled, intensity 10.0; it ensures a SkyAtmosphere without setting its properties; and sets a tagged SkyLight to movable, real-time capture, intensity 1.0. Other light, atmosphere, and sky properties are not set by this script. Because tagged existing actors are reused and the script's save action was not run for this audit, serialized actor values remain unknown. |
+| Runtime weather fog | Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp:17-110 creates a transient, nonreplicated ExponentialHeightFog only in a game world with a local player, not on a dedicated server. It probes every 1 second and scales coverage by storm intensity times Thunder Mountains biome weight, fades at speed 1.5, and scales density to 0.005 and max opacity to 0.24; start distance is 2500 and the color shifts from white toward (0.32, 0.34, 0.41). This client presentation effect is not a serialized map actor; whether it is active at any baseline view is unverified. The code does not set volumetric fog or other component properties. |
+| Fog, exposure, post-process | The setup script does not configure fog, exposure, or post-process. A search of tracked configuration and production C++ found no explicit post-process volume/settings or auto-exposure writer. The runtime storm fog above is the source-level exception for fog. Serialized level volumes, effective exposure, and other fog actors remain uninspected. |
+| Generated material assignments | Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp:180-264 assigns M_GeneratedTerrain to terrain (or M_GeneratedTerrainBiomeDebug in debug mode), M_GeneratedWater to ocean and lake water, M_GeneratedLakeShore to lake shore, M_GeneratedRock to Meadow rocks, M_GeneratedBark to Meadow trunks, and M_GeneratedCanopy to Meadow canopies. M_GeneratedSoil is not among this constructor's assignments. Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp:18-190, 257-264 builds M_GeneratedTerrain from vertex-color R/G/B weights for grass/soil/rock plus alpha snow and roughness 0.92; its generic creator defines constant-color/roughness materials, while its debug material feeds vertex color to base and emissive. The generic creator returns early for an existing package. These are source-generation and constructor facts; package graphs and any map overrides were not inspected. |
+| Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. |
+
+No fixed scene-specific camera positions are selected. The capture helper has
+no source-defined seed-418 coordinate anchors for Meadows daylight, forest
+shade, coast/water, weather, or fire. A nonempty Site label does not choose a
+location. Keep L01a and L01 unchecked until a usable Editor view confirms the
+map, serialized actors, resolved renderer, and five visually suitable fixed
+views; do not promote the helper's caller-supplied coordinates to accepted
+camera positions without that review.
 
 ## Proposed implementation stages
 

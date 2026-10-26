@@ -1,3 +1,14 @@
+## L01a source-only audit follow-up — 2026-10-26
+
+- **Selected task:** L01a, still incomplete pending live map/renderer inspection and selection of five visually verified fixed views.
+- **Work completed:** Rechecked tracked map/renderer configuration, environment setup, runtime weather fog, generated-material assignments and generation logic, and the seed-418 capture helper. Refined the lighting plan with source paths and limits: a client-local storm fog effect exists; M_GeneratedTerrain is a vertex-color ground blend; M_GeneratedSoil is not assigned by the terrain-patch constructor; and the capture helper requires caller-supplied coordinates without controlling time, weather, or exposure. No source-defined mapping from the five scene labels to capture coordinates was found. L01a and L01 remain unchecked.
+- **Files changed:** docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Carefully inspected the cited tracked source and config. No build or automation was run. Full verification remains deferred to the integrated lighting gate.
+- **Observable impact:** Documentation now separates source-level setup and capture behavior from unverified map, package, and rendered state. No runtime or asset changes.
+- **Networking/authority:** No code or network behavior changed. The documented storm fog is transient, client-local presentation and does not replicate.
+- **Known limitations / remaining scope:** No usable Unreal Editor view was available. The serialized L_Prototype actors, active RHI, resolved GI/reflection, effective map fog/exposure/post-process, loaded material graphs, and visually suitable five scene views remain unverified.
+- **Next eligible task:** L01a remains first: inspect the active map and renderer in a usable Editor window, confirm the five scene anchors visually, then proceed to L01b.
+
 ## Lighting plan bootstrap and L01a source audit — 2026-10-26
 
 - **Work completed:** Added the user-provided L01–L06 lighting queue and plan to the master-based feature branch, updated their worktree wording for the per-worktree concurrency rule, and recorded source-verifiable map, environment setup, generated-material, and capture-helper facts. L01a remains unchecked because the live level and renderer state are not observable without Unreal Editor.
