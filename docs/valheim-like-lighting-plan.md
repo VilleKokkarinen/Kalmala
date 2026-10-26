@@ -220,6 +220,28 @@ remain unknown, and FireDusk's +1.5 EV override is capture-only. The lack of
 visible rain particles, a modeled flame, and readable firelight at the fixed
 wide shot remain for later lighting work.
 
+### L01d seed-419 daylight, forest and water captures — 2026-10-26
+
+Reused the seed-418 fixed sample points, camera offsets and 65-degree FOV for
+seed 419. The headless UE 5.8 runner produced 1024x768 images under
+`TestResults/LightingBaseline/`; the manifest records coordinates, aims, byte
+counts, hashes and per-frame review. Logs resolve D3D12/SM5 on an RTX 5090.
+These default-condition captures used sun intensity 10, sky intensity 1,
+automatic exposure at adaptation quality 2 and 0 EV capture-camera compensation.
+
+| Capture | Site and camera inputs | Visual review |
+| --- | --- | --- |
+| `Seed419_MeadowsDaylight.png` | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Pale generated ground with patch seams, scattered rocks and sparse stylized tree geometry. A wide black horizon band remains; this is an ungraded baseline. |
+| `Seed419_ForestShade.png` | Wooded Elderwood `(207132.4,-325940.4)`, `ViewZ=15.1806488`; camera `(207132.4,-328340.4,1215.1806488)`, aim `(207132.4,-325940.4,165.1806488)`. | The fixed frame shows a checkerboard-like gray surface and black horizon, with no visible forest silhouette. It does not read as forest shade. |
+| `Seed419_OpenWater.png` | Ocean sample `(970004.9,-243087.4)`, `ViewZ=0`; camera `(970004.9,-245487.4,1200)`, aim `(970004.9,-243087.4,150)`. | A broad checkerboard-like gray water surface sits below a blue-gray sky and black horizon; no shoreline is visible. This does not establish an accepted water look. |
+
+All three frames passed the runner's PNG signature, 1024x768 dimensions,
+nonblank-sample and seed/site/condition log checks. The manifest now records
+primary daylight, forest and open-water captures for both seeds. The fixed
+seed-418 poses were retained as required, so the seed-419 forest and water
+content differences remain visible baseline limitations for L01e/L01f review;
+L01d does not retune scene anchors, lighting or materials.
+
 ## Proposed implementation stages
 
 ### 1. Capture a lighting baseline

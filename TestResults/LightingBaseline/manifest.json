@@ -11,7 +11,6 @@
   "captureRunner": "Scripts/Tests/World/BiomeBaselineCapture.ps1",
   "projectMap": "/Game/Kalmala/Maps/Prototype/L_Prototype",
   "additionalProbe": "Shimmering Lakes candidate was also captured for review but did not provide a clearer water/shore distinction; source log retained in the temporary capture folder only.",
-  "worldSeed": 418,
   "engine": "Unreal Engine 5.8",
   "render": {
     "featureLevel": "SM5",
@@ -27,7 +26,7 @@
     "timeOfDay": "No runtime day/night controller; FireDusk is a capture-only lighting condition, not a time-of-day simulation.",
     "reflections": "Lumen (r.ReflectionMethod=2)"
   },
-  "validation": "All listed images are 1024x768 PNGs and passed the runner's nonblank-sample check. New condition captures also passed requested seed/site/condition log checks.",
+  "validation": "All listed primary images are 1024x768 PNGs and passed the runner nonblank-sample check. Seed-419 images also passed their requested seed/site/condition log checks.",
   "captures": [
     {
       "role": "primary",
@@ -229,7 +228,95 @@
       ],
       "width": 1024,
       "file": "Seed418_FireDusk.png"
+    },
+    {
+      "role": "primary",
+      "bytes": 884057,
+      "height": 768,
+      "site": "MeadowsDaylight",
+      "sampleCm": {
+        "x": -781.6,
+        "viewZ": 528.94458,
+        "y": -781.6
+      },
+      "scene": "Meadows daylight",
+      "aimCm": [
+        -781.6,
+        -781.6,
+        678.94458
+      ],
+      "fovDegrees": 65,
+      "review": "Pale generated terrain with visible patch seams, scattered rocks and one sparse stylized tree. A broad black horizon band remains; this is an ungraded fixed-pose baseline.",
+      "sha256": "f8047ef0452b6bdc3e06b55ce02b09ee18e6cd4f3b99ae9c604cc914a7469634",
+      "seed": 419,
+      "cameraCm": [
+        -781.6,
+        -3181.6,
+        1728.94458
+      ],
+      "width": 1024,
+      "file": "Seed419_MeadowsDaylight.png"
+    },
+    {
+      "role": "primary",
+      "bytes": 787925,
+      "height": 768,
+      "site": "ForestShade",
+      "sampleCm": {
+        "x": 207132.4,
+        "viewZ": 15.1806488,
+        "y": -325940.4
+      },
+      "scene": "Forest shade",
+      "aimCm": [
+        207132.4,
+        -325940.4,
+        165.1806488
+      ],
+      "fovDegrees": 65,
+      "review": "The reused fixed view renders a checkerboard-like gray surface and black horizon with no visible forest silhouette. This seed-specific frame does not read as forest shade and is retained as baseline evidence only.",
+      "sha256": "9c45b3e2f3279ec032ffadd0e13e4b85064dbbaff0629e287a983621eece27e0",
+      "seed": 419,
+      "cameraCm": [
+        207132.4,
+        -328340.4,
+        1215.1806488
+      ],
+      "width": 1024,
+      "file": "Seed419_ForestShade.png"
+    },
+    {
+      "role": "primary-water-view",
+      "bytes": 795674,
+      "height": 768,
+      "site": "OceanWater",
+      "sampleCm": {
+        "x": 970004.9,
+        "viewZ": 0,
+        "y": -243087.4
+      },
+      "scene": "Water",
+      "aimCm": [
+        970004.9,
+        -243087.4,
+        150
+      ],
+      "fovDegrees": 65,
+      "review": "The fixed view shows a broad checkerboard-like gray water surface under a blue-gray sky and black horizon; no shoreline is visible. The surface is not a visually accepted water look.",
+      "sha256": "b4b989ebdc7a91bff812449db1c28756112be95a7384d0ff7ca2457bf7cc082b",
+      "seed": 419,
+      "cameraCm": [
+        970004.9,
+        -245487.4,
+        1200
+      ],
+      "width": 1024,
+      "file": "Seed419_OpenWater.png"
     }
   ],
-  "manifestGeneratedAtUtc": "2026-10-26T13:47:06Z"
+  "manifestGeneratedAtUtc": "2026-10-26T13:54:18Z",
+  "worldSeeds": [
+    418,
+    419
+  ]
 }

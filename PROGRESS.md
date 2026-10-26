@@ -1,3 +1,41 @@
+## L01d seed-419 daylight, forest and water captures — 2026-10-26
+
+- **Selected task:** L01d, capture seed-419 daylight, forest and water using
+  the fixed L01a views and the existing seed-418 baseline manifest.
+- **Work completed:** Rendered Meadows daylight, Wooded Elderwood and open
+  water with the headless UE 5.8 capture runner at the same coordinates, camera
+  offsets, FOV, default condition and 1024x768 resolution as seed 418. Reviewed
+  all three images, added their camera/aim, file size and SHA-256 records, and
+  changed the manifest seed list to 418 and 419.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`,
+  `TestResults/LightingBaseline/Seed419_MeadowsDaylight.png`,
+  `TestResults/LightingBaseline/Seed419_ForestShade.png`,
+  `TestResults/LightingBaseline/Seed419_OpenWater.png`, and
+  `TestResults/LightingBaseline/manifest.json`.
+- **Lightweight checks:** The runner validated each PNG signature, 1024x768
+  dimensions, nonblank samples and requested seed/site/condition log marker.
+  The logs resolve D3D12/SM5 on the RTX 5090; each capture used automatic
+  exposure at adaptation quality 2 and default 0 EV camera compensation. All
+  three images were visually reviewed; manifest JSON parsing, file hashes and
+  `git diff --check` are recorded for this increment. No project build was
+  needed because no source changed.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The manifest now has primary daylight, forest and
+  water evidence for both seeds. The seed-419 Meadows image shows pale ground,
+  patch seams, scattered rocks and sparse tree geometry. At the reused forest
+  anchor no forest silhouette appears; the water image shows a checkerboard-like
+  surface without a shoreline. Those seed-specific frames are documented as
+  baseline limitations, not accepted scene looks.
+- **Networking/authority:** Capture evidence only; no gameplay, networking,
+  server authority or save behavior changed.
+- **Known limitations / remaining scope:** The fixed seed-419 forest anchor
+  does not read as forest shade and the water surface does not read as finished
+  water. Captures preserve the requested seed-418 poses for comparison; no
+  anchor retuning or rig/material changes were part of L01d.
+- **Next eligible task:** L01e — capture the matching seed-419 overcast/rain and
+  fire-lit dusk/night views, then verify the full two-seed baseline.
+
 ## L01c2 seed-418 weather and fire captures — 2026-10-26
 
 - **Selected task:** L01c2, render/review the weather and fire scenes and verify

@@ -1094,9 +1094,11 @@ do not mark the lighting milestone complete before it passes.
       and manifest entries, and verified all five seed-418 scenes. Recorded no
       rain particles or modeled flame, the unreadable wide fire-light view, and
       unknown effective EV bounds in the lighting plan.
-  - [ ] **L01d — Capture seed-419 daylight, forest, and water.** Reuse L01a's
+  - [x] **L01d — Capture seed-419 daylight, forest, and water.** Reused L01a's
     fixed views and the seed-418 manifest for Meadows daylight, forest shade,
-    and coast/water.
+    and open water. Recorded that the forest anchor has no visible forest and
+    the water frame shows a checkerboard surface; these remain baseline
+    limitations, not accepted scene looks.
   - [ ] **L01e — Capture seed-419 weather and fire scenes.** Capture the
     matching overcast/rain and fire-lit dusk/night views; verify the full
     two-seed baseline set before changing the rig.
