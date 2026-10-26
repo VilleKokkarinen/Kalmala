@@ -1,3 +1,18 @@
+## Planning 2026-10-26 - GPS developer-console command
+
+- **Scope/completed:** Planning only. Added gps search/off/status, whole-world
+  nearest extant object/creature/feature lookup, a top-centre 3D directional
+  arrow and question-mark No match state. Added DC18a-DC18c implementation tasks.
+- **Files:** `BACKLOG.md`, `PROGRESS.md`; existing edits preserved.
+- **Authority/impact:** No runtime changes. Plan uses debug-authorized server
+  lookup and owner-only results, bounded incremental indexing and no new actor
+  spawning. Pending/unloaded searches cannot falsely report nonexistence.
+- **Checks:** Reviewed matching, distance/tie rules, moving/deleted targets,
+  lifecycle, HUD placement, task order, staged whitespace and MAX_PATH lengths.
+  No builds/tests; full verification remains deferred to DC21.
+- **Remaining/next:** All GPS implementation unchecked; existing priority remains
+  unchanged, DC01 first when eligible. Session concurrency override applies.
+
 ## Planning 2026-10-26 - Add Fly and Noclip console settings
 
 - **Scope/completed:** Planning only; expanded DC movement commands with separate

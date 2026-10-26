@@ -791,6 +791,41 @@ milestone-final verification/repair run and can exceed a normal turn.
     existing data/debug drawing, no hidden inventory disclosure. `perf`:
     toggle local FPS/frame-time display using existing counters. Require debug
     authorization for these diagnostics too; clear overlays on revocation.
+  - `gps <query>` enables one tracked search; `gps off` clears it, and
+    `gps` shows the current query/result. Accept quoted multiword names or
+    catalogue/type IDs (1-64 characters), case-insensitive; prefer exact IDs,
+    otherwise match display-name substrings across existing objects, creatures,
+    resources, placed structures and named world features. Show the resolved
+    target name and distance in metres. No private inventory/account searches.
+    Unknown/no-match queries remain enabled and display a question mark.
+  - GPS searches the entire current playable world, not just visible/loaded
+    actors. Use authoritative live/persisted entity indexes and deterministic
+    world-feature descriptors without spawning actors or loading every region.
+    Count only extant entities/features: exclude dead/despawned creatures,
+    collected/depleted resources and removed structures; potential creature
+    spawn sites do not count as living creatures. Include occluded targets.
+    Select the smallest 3D straight-line distance from the caller, with stable
+    entity ID as the tie-breaker; no maximum distance inside the world bounds.
+    Live transforms override descriptor locations for moving entities.
+  - Render an original shaded 3D arrow at the top middle of the gameplay HUD,
+    centred horizontally, 64 logical pixels below the safe-area top, within a
+    96 x 96 logical-pixel area; reserve space so it does not obscure existing
+    HUD controls. Rotate its 3D direction relative to camera yaw/pitch/roll
+    towards the selected world position, including behind/above/below targets.
+    When within 1 metre inclusive, retain the arrow with an arrived indicator.
+    When a completed search proves no extant match, replace the arrow with a
+    question mark in exactly the same anchor and label it No match.
+  - Re-evaluate nearest-target selection every 1 second and on query changes;
+    interpolate orientation each frame with a 0.1-second smoothing time.
+    On target removal, stop pointing to stale data and reacquire. Incremental
+    indexing/search gets at most 2 ms per server frame across all GPS users;
+    retain a Searching state until coverage is complete, never report absent
+    merely because an area is unloaded or work is pending. Track world-index
+    revisions and discard stale query replies. Return only the selected target
+    ID/type/name/position to the authorized owner, at most once per second.
+    GPS is debug-authorized, default off, unsaved and cleared on logout/expiry,
+    disconnect or world change; respawn rebinds a valid connection's search.
+    This grants directional debug discovery only, not permanent map reveal.
   - Arbitrary progression editing, free construction/material-payment bypass,
     map reveal, world reset, natural-entity mass deletion, save editing,
     remote-player control and general server administration are out of scope.
@@ -846,6 +881,16 @@ milestone-final verification/repair run and can exceed a normal turn.
     Verify preset allowlist, single-owner conflict and simulation restoration.
   - [ ] **DC18 — Add inspect and local diagnostic/performance displays.**
     Verify range/privacy limits, public data only and revocation cleanup.
+  - [ ] **DC18a - Add GPS world-target indexing and matching.** Implement
+    authoritative live/persisted/descriptor lookup, invalidation and full-world
+    coverage within the shared frame budget; verify unloaded features, depleted
+    resources and actual living creatures without materializing new actors.
+  - [ ] **DC18b - Add GPS command, nearest selection and owner-only replies.**
+    Verify names/IDs, 3D distances/ties, moving/deleted targets, stale results,
+    incremental Searching/No match distinction and authorization cleanup.
+  - [ ] **DC18c - Add the top-centre 3D GPS arrow and question-mark state.**
+    Verify camera-relative front/back/vertical directions, nearest changes,
+    arrival, no-match replacement, UI scaling and existing HUD clearance.
   - [ ] **DC19 — Add focused authorization/lifecycle regression coverage.**
     Cover direct RPC bypass, concurrent authorized users, secret redaction,
     logout/expiry/disconnect, respawn, flight/noclip cleanup and debug-entity
@@ -858,9 +903,11 @@ milestone-final verification/repair run and can exceed a normal turn.
     solo/listen/dedicated peer checks from `docs/07-development-setup.md`,
     including unauthorized and authorized remote peers, unsafe input, restart,
     ordinary gameplay after logout, flight/noclip peer movement and safe
-    collision restoration, and secret-free logs/history. Verify build
-    configurations fail closed without opt-in, commands affect only permitted
-    targets, normal construction still pays materials, and no debug creatures
+    collision restoration, and secret-free logs/history. Verify that
+    GPS finds the closest extant match across loaded/unloaded world areas,
+    the arrow follows camera/target movement, and a completed absent search
+    shows a question mark. Verify build configurations fail closed without
+    opt-in, commands affect only permitted targets, normal construction still pays materials, and no debug creatures
     or privileges survive restart. Repair milestone defects and rerun required
     verification; record actual commands/results/limits in `PROGRESS.md`.
     Mark the parent complete only after required verification passes.
