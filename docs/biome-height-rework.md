@@ -1,9 +1,21 @@
 # Biome height rework plan
 
-Status: user-requested design direction, 2026-10-24. Planning only; no terrain,
-forest, water or weather changes are implemented by this document. Execution is
-queued in `BACKLOG.md` after A10 acceptance and before Monster Population; this
-plan supersedes Meadows-specific height details where they differ.
+Status: implementation and BH26 integrated acceptance passed 2026-10-26; see
+[`PROGRESS.md`](../PROGRESS.md). The user confirmed the editor terrain/traversal
+inspection worked and had closed the editor before the final headless checks.
+Implementation is tracked in `BACKLOG.md` after A10 acceptance and before
+Monster Population.
+The fixed baselines, basin policy, shared sampler, preview controls and Meadows
+hill/rolling/floor layers and the Shimmering Lakes blend are
+implemented incrementally. BH25b2 selected 4 / 0.6 / 0.1 m shared
+Elderwood/Tundra relief amplitudes after repairing a bank-caused new-water
+regression and a fixed 1 cm source-land shelf; BH25b3 consolidated the selected
+profile ranges and measured cost guardrails. BH25c selected 8 m / 0.1 m Meadows
+floor detail, BH25d retained measured Shimmering Lakes center controls, and
+BH25e retained the measured Mossy Mire center settings. BH15a integrates the
+Mire lowland candidate and BH15b supplies its profile harness. Rendered terrain,
+under-vegetation and traversal acceptance passed in BH26. This plan supersedes
+Meadows-specific height details where they differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
 they differ, this plan takes precedence: broad relief becomes a shared stack,
@@ -66,8 +78,10 @@ height and forest character, not those placement bands or biome names.
 5. Keep biome labels selected by the existing classifier. A label boundary
    must not hard-switch geometry. Ocean keeps its master-constrained seabed
    treatment and transitions continuously into land.
-6. Apply the existing priority river channel after biome relief and the coast
-   clamp. Preserve sea-level water, depth and bank behavior initially. Check
+6. Apply the existing priority river channel after biome relief and the smooth
+   source-land sign transition. Preserve sea-level water and channel depth;
+   confirm the bank envelope does not create wet samples outside narrow-channel
+   support. Check
    higher surrounding land does not produce unacceptable bank slopes before
    considering a separately documented bank adjustment.
 
@@ -82,9 +96,14 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   compression curve. Preserve lower hollows and broad hills; do not clamp all
   high ground onto a flat shelf. Threshold and compression strength remain
   tunable and must be inspected in cross-section.
-- **Elderwood:** Use the same base and a bounded detail layer without the
-  Meadows compression curve. Establish this function as the reference for
-  Tundra so the two cannot silently diverge into unrelated terrain styles.
+- **Elderwood:** Use the shared broad/middle/local world-space relief base and
+  bounded existing detail without the Meadows compression curve. The first
+  amplitude trial is 9 / 2.4 / 0.4 m at the shared 1,000 / 150 / 30 m scales;
+  trial ranges to validate are 4–16 / 0.6–4 / 0.1–1 m. These are provisional only.
+  `ShapeTundra` directly calls the Elderwood candidate, so the two cannot
+  silently diverge into unrelated terrain styles. BH25b sweeps each layer one
+  at a time against fixed numeric profiles and selects measured values; BH26
+  remains the rendered/parity acceptance gate.
 - **Shimmering Lakes:** Interpret the requested similarity as a continuous
   mixture: Meadows-style rounded upper shoulders, Elderwood-style undulation,
   and Mire-style compressed lower pockets. Derive the lowland blend from base
@@ -95,20 +114,47 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   residual detail. Choose a coastal target near sea level, but retain positive
   source-land clearance outside river corridors. Do not convert the entire
   biome into ocean, erase banks or introduce an elevated flat water plane.
-  Keep the compression curve monotonic to avoid inverted ridges and pits.
+  Keep the compression curve monotonic to avoid inverted ridges and pits. BH15a
+  uses `target + (source-target)/(1+abs(source-target)/scale) +
+  clamp(detail,-1,1)*residual`; BH25e retained the measured center settings of
+  300 / 700 / 25 cm inside preview ranges of 200–500 / 300–1200 / 10–60 cm.
+  The rational curve is monotonic and bounded without a hard shelf; all nine
+  tested settings kept positive-source worst-case clearance above zero.
+  `Scripts/Tests/World/BiomeMireProfiles.ps1`
+  exports 100 m profiles at 5 m spacing on both axes around the seed-418/419
+  Mire interiors, source coasts and Highland river sites from BH01. Each trial
+  varies one control at a time across its minimum, provisional center and
+  maximum; CSV rows include source/detail inputs, the Mire candidate, effective
+  controls, final/collision heights, slopes, hydrology and a worst-case
+  source-land clearance. The runner checks the fixed coordinates, compression
+  formula, water/basin behavior and an exact effective-control log marker so a
+  stale binary is rejected. Run `-ValidateOnly` for fixture checks; run the
+  full script with a project path after source freshness is confirmed. BH25e
+  records the one-factor results; river carving remains the final corridor
+  override, and basin
+  generation stays disabled.
 - **Freezing Tundra:** Reuse Elderwood height treatment and the existing outer
   eligibility. Reuse its forest-factor pattern with a slightly lower acceptance
   probability; a 0.8–0.9 density multiplier is an initial experiment, not a final
   value. Apply snow through biome/slope presentation, not height offsets. Reuse
   original tree presentation where suitable; do not introduce new timber items,
   rewards or harvesting tiers as part of this terrain work.
-- **Thunder Mountains:** Smoothly increase gain above a named high-base-height
-  threshold, retaining the foothill connection. Amplify existing high relief
-  rather than raising every mountain-labelled pixel equally. Bound fine detail
-  to avoid spikes. Add snow coverage and storm presentation using existing
-  original materials and weather paths. Weather selection remains server-owned;
-  no new damage, exposure penalty, shelter requirement or survival mechanic is
-  implied by the requested snowy/stormy touch.
+- **Thunder Mountains:** `ShapeMountains` preserves source height below a named
+  high-base threshold, then smoothly increases gain above it using the continuous
+  Mountain region field. Provisional settings are a 1,000 cm threshold, a
+  1,000 cm smooth blend range, 0.4 gain, and 80 cm fine detail clamped to a
+  ±1 input; bounded preview ranges are 500–2,000 cm, 500–2,000 cm, 0.1–0.8,
+  and 40–160 cm respectively. The candidate is
+  `source + max(source-threshold, 0) * smoothstep(threshold, threshold+range, source) * region * gain + clamp(detail,-1,1) * detailAmplitude`.
+  This amplifies existing high base terrain without lifting every Mountain-
+  labelled sample, and keeps the foothill curve monotonic through the threshold.
+  Focused source checks cover clipped fine detail, no sub-threshold regional
+  lift, gain scaling, threshold continuity, a monotonic height profile and the
+  fixed Tundra/Mountain transition. Settings remain provisional; BH26 owns
+  rendered Mountain/foothill acceptance. Snow coverage and storm presentation
+  remain visual-only BH24 work, using existing materials and server-owned
+  weather without new damage, exposure penalty, shelter requirement or survival
+  mechanic.
 
 ## Forest-factor distribution
 
@@ -184,6 +230,372 @@ and follow the one-increment-per-run protocol when this work is scheduled.
 14. Finalize tuning, update architecture/setup documentation, and complete the
     applicable combined verification before declaring the rework accepted.
 
+## BH01a map overview exports and capture sites
+
+The existing `RenderWorldGenerationVisualization` commandlet was run against
+baseline commit `460339b3` for each fixed seed, with `-Size=2048`
+(2048×2048 pixels), `-Extent=3200000` cm (32 km full width, centered on the
+world origin), and `-SkipSplineOverlay`. Outputs are in the ignored temporary
+folders `.tmp/bh01/seed418` and `.tmp/bh01/seed419`; each contains the commandlet
+PPMs and `Tuning.txt`. Each P6 PPM is 12,582,929 bytes. The full-world crop
+radius is 1,600,000 cm (16 km).
+The world coordinate of a pixel center is
+`X=(pixelX/2047−0.5)×3,200,000 cm` and likewise for Y. Pixel spacing is
+1,563.263 cm (15.63 m); each selected point is a map-pixel candidate with up
+to 781.6 cm uncertainty per axis (not yet an exact sampler validation).
+
+The exports were visually inspected as composite biome, height, hydrology and
+land/water views. `BiomeClassification.ppm` uses the commandlet palette and
+`Weight0..Weight6.ppm` map byte-scaled weights in this order: Meadows,
+Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains,
+Ocean. `ShapedHeight.ppm` is a diagnostic grayscale, clamped from
+`(Region.Height + 500) / 2500`; it is not a raw height measurement. The
+hydrology image stores river, stream and basin weights in R/G/B. Consequently
+these overview images select sites but do not establish final height, slope,
+water levels or tree counts; BH01b will measure those at the fixed coordinates.
+
+| Representative condition | Seed 418 X,Y (cm) | Seed 419 X,Y (cm) | Map selection |
+| --- | --- | --- | --- |
+| Starter Meadows | (-781.6, -781.6) | (-781.6, -781.6) | Nearest pixel center to origin, inside the 350 m starter band |
+| Outer dry Meadows | (208695.7, -293111.9) | (-355642.4, 55495.8) | Meadow class and source-land pixel near 3.6 km, below the 4 km eligibility edge |
+| Shimmering Lakes | (100830.5, -143038.6) | (-166487.5, 53932.6) | Classified pixel near 1.75 km |
+| Elderwood interior | (91450.9, -205569.1) | (-205569.1, 91450.9) | Classified pixel near 2.25 km |
+| Wooded Elderwood | (207132.4, -325940.4) | (294675.1, 171177.3) | High-Flora Elderwood pixels; map Flora shades 252 and 236 |
+| Mossy Mire | (-669858.3, -601074.7) | (-78944.8, 896531.5) | Classified pixels near 9 km |
+| Freezing Tundra | (-243087.4, -970004.9) | (-243087.4, 970004.9) | Classified pixels near 10 km |
+| Thunder Mountains | (-970004.9, -243087.4) | (-970004.9, 243087.4) | Classified pixels near 10 km |
+| Ocean | (970004.9, -243087.4) | (-243087.4, -970004.9) | Ocean-class pixels near 10 km |
+| Meadows/Elderwood transition | (-182120.2, 171177.3) | (-193063.0, 158671.2) | Weight0/Weight2 ≈ 0.502/0.498 and 0.498/0.502 |
+| Elderwood/Tundra transition | (-191499.8, -773033.7) | (314997.6, 735515.4) | Near-equal Weight2/Weight4 land pixels |
+| Tundra/Mountains transition | (-268099.7, 963751.8) | (1001270.2, 7034.7) | Weight4/Weight5 ≈ 0.498/0.502 and 0.502/0.498 |
+| Source coast, land side | (691744.0, -107083.5) | (-71128.5, -696433.8) | Source-land pixels adjacent to ocean pixels |
+| Highland river | (679237.9, -16414.3) | (1145090.4, -66438.7) | River weight byte 255 and height-map shade 172 in each seed |
+
+BH01c uses the same relative camera pose at every site: for land, anchor at the
+BH01b final collision height; for visible water, anchor at its measured water
+surface (ocean uses Z=0). Put the camera at `(X, Y−2400, Z+1200)` cm, aim at
+`(X, Y, Z+150)` cm, and use a 65° horizontal field of view. This is a fixed
++Y-facing view with about 23.6° downward pitch. The BH01b numeric CSV resolves each per-site anchor: Ocean uses Z=0,
+water-present non-ocean samples use WaterLevelCm, and dry land uses the collision-triangle height.
+
+SHA-256 checksums of the principal source PPMs (the temporary exports are not
+committed):
+
+| Export | Seed 418 SHA-256 | Seed 419 SHA-256 |
+| --- | --- | --- |
+| `BiomeClassification.ppm` | `EB8D2BD4CF360095C452033DBF9DDAAF9665C9F71D59C4665D58E79D4B4D7072` | `7AF9963F490D0067AAD9A0DFF4E60327A439ADA8EDA96F5E4866863FE1746B7D` |
+| `ShapedHeight.ppm` | `D4E7A9AA5D5099D8221C862FED0F4F80B17ABF5CC3CA9F34328615CE1DE18F54` | `9DA6668112DDD0A3625F5502B7422BF94685D14AA3C0981BA372E13878B1BD2C` |
+| `Hydrology.ppm` | `2775ADD4C62014D81D8452F3D4FD145BD6A4867F52023DE68DCEDD5A48B743F7` | `FC82D5E76BCA8E3AA30E4D49528CD6DC23A9BC09BB11A63E3FE6F9ED1F894AC4` |
+| `LandWaterCrop.ppm` | `B18F15BED3A9B904A433281DDF4DBDDA76D829946BF41B3C5376A0E659B9C82D` | `B8CEBA0E7DEFDCC7C4472A8CD645FE04C86B0539A170CDA7071E7349B6631CAB` |
+
+Both commandlet exports completed successfully with zero logged errors. Each
+logged the same pre-existing warning: `Default__KalmalaOceanSkiff:HullMesh:
+Material index 0 is invalid`. No generation code was changed for these captures.
+
+## BH01b1 scalar sample export
+
+`RenderWorldGenerationVisualization` now accepts optional
+`-SampleInput=<csv> -SampleOutput=<csv>` arguments. Supplying `SampleInput`
+selects a sample-only path before map allocation; invocations without it retain
+the ordinary overview behavior. Input has the header `Seed,Site,Xcm,Ycm`, then
+one fixed coordinate per row. The output includes the same seed/site/coordinates,
+`BiomeIndex`, `FinalHeightCm`, all seven normalized biome weights,
+`WaterLevelCm`, and `HasWater`. Biome indices follow the `Weight0..Weight6` order
+above. Height, water level and coordinates are in centimetres; weights are
+unit fractions. Malformed rows or non-finite sample values fail the commandlet.
+
+This scalar output reads `FKalmalaWorldFieldSampler` and
+`FKalmalaRegionalGeneration` only; it does not alter generation. Exact
+piecewise-collision triangle height/slope and deterministic forest-descriptor
+counts remain in BH01b2. BH01c will record the resulting numeric table and
+rendered views.
+
+## BH01b2a collision and forest output fields
+
+The optional sample CSV now appends the piecewise terrain mesh height and
+slope at each requested coordinate, plus its containing patch metadata and
+deterministic forest descriptor count. Runtime patch origin is the seed-derived
+player-start XY. PatchX/PatchY use the existing floor-based
+FKalmalaTerrainPatchLayout rule; PatchCenterXcm/PatchCenterYcm identify
+the selected patch center.
+
+The terrain uses the runtime 3,000 cm square patch and its 24x24 cell grid
+(125 cm per cell). Each vertex is sampled with
+FKalmalaTerrainHeightSampler::SampleHeight, matching the generated mesh.
+PatchCellX/PatchCellY are zero-based coordinates in that patch grid.
+PatchTriangle is 0 for the first emitted triangle
+(BottomLeft, TopLeft, BottomRight) when local U+V <= 1, or 1 for the second
+(BottomRight, TopLeft, TopRight). The recorded height is barycentric
+interpolation on that exact triangle. Slope is the magnitude of that triangle
+plane's XY height gradient converted to degrees; grade percent is the same
+gradient magnitude multiplied by 100. At the shared diagonal, triangle 0 is
+reported consistently.
+
+ForestDescriptorCount is FKalmalaForestLayout::Generate's deterministic
+descriptor count for the containing patch and seed. It is measured before
+saved harvest suppression and actor/materialization state; it does not claim
+that every descriptor currently renders. This diagnostic is output-only and
+does not change generation. BH01b2b below records its 28-row run and
+validation; the numeric measurements were produced in that increment, not by
+BH01b2a.
+
+## BH01b2b fixed-site numeric baseline
+
+Built the Editor target in the disposable source-matched project
+.tmp/bh01/m/Kalmala.uproject; 55 UnrealBuildTool actions succeeded. The
+project mirror kept build outputs under .tmp/bh01/m, leaving the repository
+Binaries, Intermediate, Saved and DerivedDataCache directories untouched.
+UnrealBuildTool had normal LOCALAPPDATA access.
+
+The updated RenderWorldGenerationVisualization commandlet ran in null-RHI mode
+with the 28-row input .tmp/bh01/samples.csv. It wrote 28 data rows and 28
+columns to the ignored temporary output .tmp/bh01/numeric.csv (5,563 bytes).
+Its SHA-256 is
+48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf.
+A second commandlet invocation wrote a byte-identical CSV with the same hash.
+The output and logs remain under .tmp/bh01/ for BH01c; they are not committed.
+
+Validation matched every seed, site and input coordinate: 14 sites each for
+seeds 418 and 419. All 28 numeric rows are finite; the seven weights are within
+[0,1] and sum to 1 within 0.000002. BiomeIndex follows the regional sampler's
+land-weight maximum among indices 0-5 with its existing tie order; Ocean index
+6 is selected by the sampler's explicit sea-elevation branch. Water presence
+matches WaterLevelCm > FinalHeightCm. Patch centers match the 3,000 cm patch
+layout relative to the seed-derived player start; all containing-patch,
+24x24-cell and triangle indices are consistent. Slope is in [0,90), grade is
+nonnegative, and the slope/grade formula agrees in every row. Forest descriptor
+counts are integers in 0-72, range from 0 to 32 in these samples, and repeat
+identically.
+
+Fixed-site ranges are: final sample height -149.225 to 1,448.65 cm; water level
+-29.3773 to 356.951 cm; collision-triangle height -149.224 to 1,448.74 cm;
+slope 0 to 29.3808 degrees; grade 0 to 56.3029 percent. Seven rows report
+water. The mesh-triangle height minus the continuous sampler height ranges from
+-1.237548 to +1.237548 cm. BiomeIndex counts for 0 through 6 are 5, 2, 8, 3, 3,
+5, 2.
+
+Ten additional probes in continuity_input.csv/continuity_output.csv test both
+triangle sides and the exact diagonal, plus the +X patch seam for each seed.
+Triangle 0/1 heights meet within a slope-based displacement bound. Across the
+seam from patch X=0 to X=1, the height deltas over 2 cm are 0.152771 cm
+(seed 418; bound 0.305343 cm) and 0.053220 cm (seed 419; bound 0.070244 cm).
+The commandlet logs report zero errors and the same OceanSkiff hull-material
+warning recorded during BH01a: Default__KalmalaOceanSkiff:HullMesh: Material
+index 0 is invalid.
+
+This increment adds baseline evidence only; generation is unchanged. BH01c
+still needs rendered fixed-camera views and the consolidated camera/numeric
+record before BH01 can close.
+
+## BH01c1 runtime rendered capture fixture
+
+Added the development-only `-KalmalaBiomeBaselineCapture` path in
+`AKalmalaGameMode` and the one-site runner
+`Scripts/Tests/World/BiomeBaselineCapture.ps1`. The runner launches the actual
+`-game -RenderOffscreen` viewport from a supplied project mirror, sets the
+requested fixed site pose, then requires the matching seed/site runtime log and
+a 1024x768 PNG with varied sampled pixels. It rejects missing, malformed,
+wrong-size, or blank output. The null-RHI visualization commandlet is not used
+for these images.
+
+The seed-418 Starter Meadows smoke view is
+`.tmp/bh01/captures/418/StarterMeadows-camera-only.png` (921,694 bytes; SHA-256
+`25c17c4f8bdd07b71513891202209a84d8cfec717db6c181810a8564bc5e5912`). The
+runtime log confirms world seed 418, coordinate (-781.6, -781.6) cm, camera
+(-781.6, -3181.6, 1728.94) cm, aim (-781.6, -781.6, 678.94) cm, and 65-degree
+horizontal FOV. ViewZ 528.94458 cm is the fixed site's measured collision
+triangle height. Visual inspection confirms rendered terrain, tree geometry,
+shadows and sky; this smoke capture does not claim the other 27 views.
+
+The capture fixture runs only in non-shipping builds with the explicit flag and
+waits until `BeginPlay` has copied the initialized world configuration. It
+changes the standalone capture camera and explicitly activated terrain patches;
+it does not alter ordinary gameplay behavior, save data, RPCs or networking
+code. BH01c2a and BH01c2b now preserve the full numeric CSV and all 14
+seed-418 live views; c2c and c2d now complete all 14 seed-419 views
+and the final manifest.
+
+## BH01c2a durable numeric baseline and first seven seed-418 captures
+
+The validated 28-site numeric output is tracked as
+Scripts/Tests/World/BiomeBaseline418419.csv (28 data rows, 28 columns,
+5,563 bytes; SHA-256
+48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf). It is
+byte-identical to the BH01b2b commandlet output, so all measured rows remain
+reviewable after ignored .tmp outputs are removed. The c2a recheck matched all
+28 seeds/sites/coordinates, found only finite numeric values, confirmed seven
+biome weights in [0,1] summing within 0.000002 of one, and matched each water
+flag against WaterLevelCm > FinalHeightCm. The previous BH01b2b checks on biome
+identity, triangle continuity, slope/grade, and deterministic forest counts
+remain applicable because the file hash is unchanged.
+
+Across the 28 fixed samples, final sampled height ranges from -149.225281 to
+1,448.64868 cm; collision-triangle height ranges from -149.223587 to
+1,448.74426 cm; water level ranges from -29.377294 to 356.950745 cm; slope
+ranges from 0 to 29.380751 degrees; and grade ranges from 0 to 56.302853
+percent. Seven rows have water; forest descriptor counts range from 0 to 32.
+Biome index counts 0 through 6 are 5, 2, 8, 3, 3, 5, 2. These are
+current-generator measurements, not trial terrain settings.
+
+Camera anchors follow the fixed BH01a rule: Ocean uses Z=0; a water-present
+non-ocean sample uses its measured WaterLevelCm; otherwise use
+CollisionTriangleHeightCm. At each anchor Z, place the camera at
+(X, Y−2400, Z+1200) cm, aim at (X, Y, Z+150) cm, and use 65° horizontal
+FOV. From all 28 numeric rows, the planned camera bounds are X
+-970,004.9..1,145,090.4 cm, Y -972,404.9..967,604.9 cm, and Z
+1,200..2,648.74426 cm; aim Z ranges 150..1,598.74426 cm. These bounds are
+derived from all 28 numeric rows; the validated live captures across
+c2a–c2d match these camera and aim bounds.
+
+The first seven seed-418 rows were captured by the live -game -RenderOffscreen
+runner. Each runtime log matched seed, site, XY, chosen anchor, camera, aim, FOV,
+and output path within 0.2 cm for Unreal's float-rounded coordinates. Every PNG
+is 1024×768, passed the sampled-pixel nonblank check (at least eight distinct
+sampled colors and 40 non-black samples), and was visually reviewed. Screenshots
+and logs remain ignored under .tmp/bh01/captures; no generated image is
+committed.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Output file | PNG bytes | SHA-256 |
+| --- | --- | --- | --- | --- | ---: | --- |
+| Starter Meadows | Collision triangle / 528.94458 | (-781.6, -781.6) | (-781.6, -3181.6, 1728.94458) | StarterMeadows-c2a.png | 921694 | 25c17c4f8bdd07b71513891202209a84d8cfec717db6c181810a8564bc5e5912 |
+| Outer dry Meadows | Collision triangle / 662.1427 | (208695.7, -293111.9) | (208695.7, -295511.9, 1862.1427) | OuterdryMeadows-c2a.png | 952607 | 7fa19c4a238cc86ce6cbbc4dcc16012065a82034f507f152018e394073754ba7 |
+| Shimmering Lakes | Water level / 356.950745 | (100830.5, -143038.6) | (100830.5, -145438.6, 1556.950745) | ShimmeringLakes-c2a-water.png | 797043 | d9453364e88b4d66b88134db455e687656432df5462976b78f0caa9aba4958c8 |
+| Elderwood interior | Water level / 0 | (91450.9, -205569.1) | (91450.9, -207969.1, 1200) | Elderwoodinterior-c2a-water.png | 976670 | e46b74324ab84747afb3ce36116e37356194414843c6cce37f27cf227e71412a |
+| Wooded Elderwood | Collision triangle / 15.1806488 | (207132.4, -325940.4) | (207132.4, -328340.4, 1215.1806488) | WoodedElderwood-c2a.png | 895744 | 98406f6afdaa0e5c8412820e900150dcd8d4da9c251ffcd7aade6a97c401ea5c |
+| Mossy Mire | Collision triangle / 399.156616 | (-669858.3, -601074.7) | (-669858.3, -603474.7, 1599.156616) | MossyMire-c2a.png | 874637 | 9bcf6b05a7ffc6e5796ed1be4cdc250df99ba8aea1d38b94a16e0f10eceb0343 |
+| Freezing Tundra | Collision triangle / 824.412842 | (-243087.4, -970004.9) | (-243087.4, -972404.9, 2024.412842) | FreezingTundra-c2a.png | 854300 | 3946011d7db9ceda319b69e53ac4de05cf814068f986d6af0a70cc5ce5f105bd |
+
+The first Shimmering Lakes and Elderwood interior attempts used the dry-land
+anchor; those PNGs are marked invalid-triangle-anchor in .tmp and are not
+listed above. Their replacements use the measured water surface. The images
+record current prototype rendering and are not visual water/material acceptance;
+c2d has completed the final seven seed-419 views and the complete image manifest.
+
+## BH01c2b remaining seven seed-418 rendered captures
+
+Captured the other seven seed-418 fixed sites: Thunder Mountains, Ocean,
+Meadows/Elderwood transition, Elderwood/Tundra transition, Tundra/Mountains
+transition, source coast land side, and highland river. Anchors use the
+collision-triangle height on dry land, measured WaterLevelCm for wet non-ocean
+samples, and Z=0 for Ocean. These images complete the 14 seed-418 views; all
+14 seed-418 poses now have live-render captures.
+
+Each of the seven runtime logs matched seed, site, fixed XY, anchor height,
+camera, aim, FOV and output filename within 0.2 cm for Unreal float rounding.
+Every PNG passed the runner's PNG-signature check, is 1024×768, and passed the
+sampled-pixel diversity/nonblank check. All seven images were visually
+inspected. Capture files and logs remain under ignored
+.tmp/bh01/captures/418 and are not committed.
+
+Across these 14 fixed seed-418 sites, camera bounds are X
+-970,004.9..970,004.9 cm, Y -972,404.9..961,351.8 cm, and Z
+1,200..2,573.79517 cm; aim Z ranges 150..1,523.79517 cm. The shared horizontal
+FOV is 65°. The images document current prototype rendering, not water/material
+acceptance. In the Ocean, source-coast and highland-river frames, no separate
+water surface is visually distinguishable.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Output file | PNG bytes | Sampled colors | SHA-256 |
+| --- | --- | --- | --- | --- | ---: | ---: | --- |
+| Thunder Mountains | Collision triangle / 767.497437 | (-970004.9, -243087.4) | (-970004.9, -245487.4, 1967.497437) | ThunderMountains-c2b.png | 786797 | 408 | 65bd9b3c5a17b02486996b4e720aad1b3d9f388ad9d3a0a539bc002343c2f406 |
+| Ocean | Ocean level / 0 | (970004.9, -243087.4) | (970004.9, -245487.4, 1200) | Ocean-c2b-water.png | 773402 | 418 | 53ba17d0dc1473348a5eeada20b967bad618a05cfdecc646fe7bd7b11182b707 |
+| Meadows/Elderwood transition | Collision triangle / 302.549988 | (-182120.2, 171177.3) | (-182120.2, 168777.3, 1502.549988) | MeadowsElderwoodtransition-c2b.png | 947508 | 472 | a26f8e5e30efdd48e888557ebc7f772ca0235223fdf5c4c743999efbd52cf799 |
+| Elderwood/Tundra transition | Collision triangle / 1373.79517 | (-191499.8, -773033.7) | (-191499.8, -775433.7, 2573.79517) | ElderwoodTundratransition-c2b.png | 825175 | 492 | bcdb7fb48bfde5f2ae4d7196aa15befbd30dc8dfc0eb33a96c2b0caef167ed99 |
+| Tundra/Mountains transition | Collision triangle / 960.330872 | (-268099.7, 963751.8) | (-268099.7, 961351.8, 2160.330872) | TundraMountainstransition-c2b.png | 831080 | 397 | 3e29bb7059cc5b069d12cc5716c5675efd54cb4aace9dbd6decbae0f7a880d38 |
+| Source coast land side | Water level / 0 | (691744.0, -107083.5) | (691744.0, -109483.5, 1200) | Sourcecoastlandside-c2b-water.png | 809491 | 419 | fc5cb1dfdb6a8ab04a103fae9b2340bf1bc4afa8f67d4fc9f265562e6b746b20 |
+| Highland river | Water level / 0 | (679237.9, -16414.3) | (679237.9, -18814.3, 1200) | Highlandriver-c2b-water.png | 953864 | 505 | ad8584b626ac0fa05bd4c93154544a8f7e75cf02fc08735a6c2e90bed6211757 |
+
+BH01c2c and c2d together captured all 14 seed-419 sites; c2d validates
+the complete 28-image manifest.
+
+## BH01c2c first seven seed-419 rendered captures
+
+Captured the first seven seed-419 fixed sites: Starter Meadows, Outer dry
+Meadows, Shimmering Lakes, Elderwood interior, Wooded Elderwood, Mossy Mire,
+and Freezing Tundra. All seven numeric rows report HasWater=0, so the fixed
+view anchor is the measured collision-triangle height, including Mossy Mire
+where the measured water level is below the sampled surface. Cameras use
+(X, Y−2400, AnchorZ+1200) cm, aim at (X, Y, AnchorZ+150) cm, and use a
+65° horizontal field of view.
+
+Each saved runtime log matched seed 419, site, fixed XY, anchor/ViewZ, camera,
+aim, FOV and output path within 0.2 cm for Unreal float rounding. Every PNG
+passed the signature check, measured 1024×768, and passed the sampled-pixel
+nonblank check. All seven frames were visually inspected; they show the current
+neutral prototype terrain/tree geometry, lighting and sky. These baseline
+images are not art or terrain acceptance. Images and logs remain ignored under
+.tmp/bh01/captures/419 and are not committed.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Aim Z (cm) | Output file | PNG bytes | Sampled colors | SHA-256 |
+| --- | --- | --- | --- | ---: | --- | ---: | ---: | --- |
+| Starter Meadows | Collision triangle / 895.446655 | (-781.6, -781.6) | (-781.6, -3181.6, 2095.446655) | 1045.446655 | StarterMeadows-c2c.png | 915101 | 515 | b0f2dcf360d69f230c99279185068154800d52cca6a791f9576878ec67cd81a0 |
+| Outer dry Meadows | Collision triangle / 662.852478 | (-355642.4, 55495.8) | (-355642.4, 53095.8, 1862.852478) | 812.852478 | OuterdryMeadows-c2c.png | 962176 | 472 | ba46985e10a6007ae4ecb1b3931fa7805f7464016aadecb1b5492fd1ffb4e6df |
+| Shimmering Lakes | Collision triangle / 383.571716 | (-166487.5, 53932.6) | (-166487.5, 51532.6, 1583.571716) | 533.571716 | ShimmeringLakes-c2c.png | 838228 | 408 | 8d9988905562f5724cfeb372fd03755c5fd0ae22b9ef69baf8695d3aa8fc1486 |
+| Elderwood interior | Collision triangle / 761.341431 | (-205569.1, 91450.9) | (-205569.1, 89050.9, 1961.341431) | 911.341431 | Elderwoodinterior-c2c.png | 915693 | 543 | 482cd8664439287d49a752fd98ac76d03a15373a04f8dfe88e24581df4473b63 |
+| Wooded Elderwood | Collision triangle / 321.026794 | (294675.1, 171177.3) | (294675.1, 168777.3, 1521.026794) | 471.026794 | WoodedElderwood-c2c.png | 881027 | 512 | 3df61a0a4951e49e233eb341cd238f2734497a4cbff18d3cee4199d7fbf8cb8b |
+| Mossy Mire | Collision triangle / 1 | (-78944.8, 896531.5) | (-78944.8, 894131.5, 1201) | 151 | MossyMire-c2c.png | 840682 | 430 | dc7dc3605dadc7db308387908da4e0fff1ac5322317a5c9cf85fd603d1f0de7e |
+| Freezing Tundra | Collision triangle / 1041.27319 | (-243087.4, 970004.9) | (-243087.4, 967604.9, 2241.27319) | 1191.27319 | FreezingTundra-c2c.png | 898746 | 440 | 74eac6577d25247404db8e1b191496295012e581485b8a44154d0f767e4cb6c0 |
+
+The first seven seed-419 camera bounds are X -355,642.4..294,675.1 cm,
+Y -3,181.6..967,604.9 cm and Z 1,201..2,241.27319 cm; aim Z ranges
+151..1,191.27319 cm. c2d captured the remaining seven seed-419 live views
+and records the completed 28-row/28-image validation below.
+
+## BH01c2d final seven seed-419 captures and complete manifest
+
+Captured the remaining fixed seed-419 sites: Thunder Mountains, Ocean,
+Meadows/Elderwood, Elderwood/Tundra and Tundra/Mountains transitions, source
+coast land side, and highland river. Anchors follow the shared rule: Ocean at
+Z=0; a wet non-ocean sample at WaterLevelCm; otherwise the final collision-
+triangle height. Source coast is dry in seed 419 and uses its collision height;
+Highland river is wet and uses its visible water level. Cameras use
+(X, Y−2400, AnchorZ+1200) cm, aim at (X, Y, AnchorZ+150) cm, and use 65°
+horizontal FOV.
+
+Each runtime log matched seed, site, fixed XY, chosen anchor, camera, aim, FOV
+and output path within 0.2 cm for Unreal float rounding. All seven images passed
+the PNG signature check, measured 1024×768, and passed sampled-pixel diversity
+and nonblank checks; each was visually inspected. The Ocean image shows the
+prototype checker-grid surface rather than identifiable water, and the source-
+coast and highland-river frames do not show a distinct water surface. The
+images use current neutral prototype materials/tree meshes and are baseline
+evidence, not terrain-art or water acceptance. Images and logs remain ignored
+under .tmp/bh01/captures/419 and are not committed.
+
+| Site | Anchor source / ViewZ (cm) | Fixed XY (cm) | Camera (X,Y,Z cm) | Aim Z (cm) | Output file | PNG bytes | Sampled colors | SHA-256 |
+| --- | --- | --- | --- | ---: | --- | ---: | ---: | --- |
+| Thunder Mountains | Collision triangle / 1448.74426 | (-970004.9, 243087.4) | (-970004.9, 240687.4, 2648.74426) | 1598.74426 | ThunderMountains-c2d.png | 928987 | 449 | 0083abee3f0f648e4e0d59497da83ff773284596b7bc05a9f9f6f951c62eaee6 |
+| Ocean | Ocean level / 0 | (-243087.4, -970004.9) | (-243087.4, -972404.9, 1200) | 150 | Ocean-c2d-water.png | 783739 | 409 | ab0d88bdb8ccb49c7b0b5bd9d7f1c5ac0fe336ad84af1e612402667fc3891e1f |
+| Meadows/Elderwood transition | Collision triangle / 755.517883 | (-193063.0, 158671.2) | (-193063.0, 156271.2, 1955.517883) | 905.517883 | MeadowsElderwoodtransition-c2d.png | 815631 | 480 | 77f7715d309da12126491f2d1df89c6ca49dfd6d1107560aa425b8caaec6f1c8 |
+| Elderwood/Tundra transition | Collision triangle / 821.890747 | (314997.6, 735515.4) | (314997.6, 733115.4, 2021.890747) | 971.890747 | ElderwoodTundratransition-c2d.png | 884867 | 511 | a63cab0e050ed06e8d2b74ef439411b1fb8bdd71582a2806e51c6f171b9a5baa |
+| Tundra/Mountains transition | Collision triangle / 296.832581 | (1001270.2, 7034.7) | (1001270.2, 4634.7, 1496.832581) | 446.832581 | TundraMountainstransition-c2d.png | 864211 | 501 | fa0e90e10888bd76ac6de0cde3556b75fb15816aa29f7cad7b4103164e8a05bb |
+| Source coast land side | Collision triangle / 0.926416874 | (-71128.5, -696433.8) | (-71128.5, -698833.8, 1200.926416874) | 150.926416874 | Sourcecoastlandside-c2d.png | 793924 | 399 | e32324d04d86cc71078c178b5bcf6d763a230dc6161ee7652bf586d5ae104007 |
+| Highland river | Water level / 0 | (1145090.4, -66438.7) | (1145090.4, -68838.7, 1200) | 150 | Highlandriver-c2d-water.png | 480880 | 267 | 0f031de1adad26f58050a80ff14a379a29f3ca8c61c5c3cd29c0054c4452888f |
+
+The seven c2d camera bounds are X -970,004.9..1,145,090.4 cm,
+Y -972,404.9..733,115.4 cm, Z 1,200..2,648.74426 cm, and aim Z
+150..1,598.74426 cm. Across all 28 live views, camera bounds are X
+-970,004.9..1,145,090.4 cm, Y -972,404.9..967,604.9 cm, Z
+1,200..2,648.74426 cm, and aim Z 150..1,598.74426 cm, all matching the
+numeric rows and fixed camera rule.
+
+The final validation covered the tracked 28-row, 28-column
+Scripts/Tests/World/BiomeBaseline418419.csv (SHA-256
+48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf), with 14
+sites per seed. It checked finite numeric fields, normalized seven biome
+weights, biome identity, water-state agreement, slopes, grades and deterministic
+forest counts. All 28 table entries matched their image bytes and hashes; each
+runtime log matched seed/site/XY/anchor/camera/aim/FOV/output path. Every live
+capture is a -game -RenderOffscreen image; null-RHI overview images are not
+counted. Sampled final height ranges -149.225281..1448.64868 cm, collision
+height -149.223587..1448.74426 cm, water level -29.377294..356.950745 cm,
+slope 0..29.380751 degrees, and grade 0..56.302853 percent. Seven rows have
+water; forest descriptor counts range 0..32; biome index counts 0..6 are
+5, 2, 8, 3, 3, 5, 2.
+
+This closes BH01 baseline capture only. It makes no generator, gameplay,
+networking or save changes. Full terrain and gameplay acceptance remains in the
+later BH26 verification increment.
+
 ## Verification and completion
 
 During normal increments use narrow checks and careful source inspection.
@@ -220,3 +632,538 @@ generated terrain materials, lake/basin/water/map consumers, and focused tests.
 The server retains all gameplay authority. Clients derive matching geometry
 from the existing server-owned seed and current build; this plan adds no RPC,
 client-selected height, replicated parameter map, dependency or save migration.
+
+## BH02 integration map
+
+Reviewed the current production and test paths before changing generation. This
+is a source map for BH03 onward; it records no runtime behavior change.
+
+| Concern | Production touchpoints | Integration contract to preserve |
+| --- | --- | --- |
+| Fields, labels and regional height | `Source/KalmalaWorld/Public/KalmalaWorldFieldSampler.h` (`FKalmalaWorldFieldSampler::Sample`), `KalmalaBiomeClassifier.h`, `KalmalaRegionalTuning.h`, `KalmalaRegionalGeneration.h`, `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp` (`SampleInternal`, `SampleBiome`) | Keep the four ecological fields, biome labels/weights, distance bands and master-map coastline stable while deriving terrain height separately. Regional sampling currently combines biome height, basin support, water level, coast constraint and priority river data; it is the central height/hydrology integration point. |
+| Rendered and colliding terrain | `KalmalaTerrainHeightSampler.h`, `KalmalaTerrainPatchLayout.h`, `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp` | `SampleHeight` delegates to regional sampling. The generated patch uses it for terrain vertices, finite-difference normals, collision, Meadow rocks and forest root heights. Render and collision share the same 30 m patch lattice and 125 cm cells. |
+| Rivers, basins and water meshes | `KalmalaLakeBasin.h/.cpp`, `KalmalaShimmeringLakeSampler.h`, `KalmalaWaterSurfaceMesh.h/.cpp`, `KalmalaOceanSampler.h/.cpp`, and `KalmalaGeneratedTerrainPatch.cpp` | Basin support is consumed after generation by containment/visible-water queries; the water mesh clips regional terrain triangles at sampled water levels, while ocean depth uses the shared collision-triangle surface and sea level. Disabling basins therefore needs both generation policy and consumer gates; ocean and Z=0 river behavior remain separate controls. |
+| Maps, wetness and nearby-water consumers | `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`, `KalmalaWorldMapSubsystem.cpp`, `Source/KalmalaWorld/Public/KalmalaEnvironmentalExposureSampler.h`, `KalmalaCampConditionSampler.h`, `KalmalaBiomeExpansionContract.h`, `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `KalmalaGameMode.cpp`, and `KalmalaOceanSkiff.cpp` | Minimap raster vertices sample regional outputs and classify wet cells as water; world-map tiles derive biome/water presentation from the same world config. Exposure, camp conditions, biome shore candidates and gameplay water checks use the lake/water samplers. Audit these together so removed basin-only water cannot persist as wetness, map color, audio proximity, or gameplay eligibility. |
+| Forest and harvest identity | `Source/KalmalaWorld/Public/KalmalaForestLayout.h`, `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`, `KalmalaGeneratedTerrainPatch.cpp`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `KalmalaHarvestNode.cpp`, and `KalmalaForestDeliveryVerification.cpp` | `FKalmalaForestLayout::Generate` is shared by decorative patch trees and server materialization. Harvest nodes resolve the stable candidate index from the same descriptors; suppression, depletion, late join and restart depend on preserving descriptor identity when placement filters change. |
+| Preview and terrain materials | `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`, `Source/KalmalaWorld/Private/KalmalaGenerationPreview.cpp`, `Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp`, `RenderWorldGenerationVisualizationCommandlet.cpp`, `Scripts/WorldMapPreview.params`, and `KalmalaGeneratedTerrainPatch.cpp` | The fast PNG exporter previews master/biome classification and does not show final height or hydrology. The full visualization commandlet samples final shaped height, hydrology and weights and owns the BH01 CSV diagnostics. Runtime patch materials include the existing `M_GeneratedTerrain`, `M_GeneratedTerrainBiomeDebug`, `M_GeneratedWater`, `M_GeneratedLakeShore`, `M_GeneratedRock`, `M_GeneratedBark` and `M_GeneratedCanopy` assets plus the BH23 `M_GeneratedSoil` output under `Content/Kalmala/World/Materials`. The terrain material blends grass, soil and rock colors from deterministic vertex weights computed from final surface slope, humidity and regional water state; vertex alpha carries Tundra weight times final normal Z plus continuous Mountain weight times final-height and slope coverage above the highland threshold. BH24c adds client-local exponential fog scaled by the existing replicated server storm intensity and continuous Mountain weight at the local pawn; it adds no gameplay or network state. |
+
+Focused source coverage is in `Source/KalmalaWorld/Private/Tests/`:
+`KalmalaRegionalGenerationTest.cpp`, `KalmalaBiomeClassifierTest.cpp`,
+`KalmalaMasterMapTest.cpp`, `KalmalaFiniteWorldTest.cpp`,
+`KalmalaWaterSurfaceMeshTest.cpp`, `KalmalaOceanSamplerTest.cpp` and
+`KalmalaWorldPlayerStartResolverTest.cpp`. Forest descriptor, lifecycle and
+restart contracts are in `Source/KalmalaGameplay/Private/Tests/`:
+`KalmalaForestPatchTest.cpp`, `KalmalaForestLifecycleTest.cpp` and
+`KalmalaForestRestartTest.cpp`. Map agreement/performance coverage is in
+`Source/KalmalaUI/Private/Tests/`: `KalmalaGenerationPerformanceTest.cpp`,
+`KalmalaMinimapViewModelTest.cpp`, `KalmalaMinimapAsyncTest.cpp`,
+`KalmalaWorldMapWidgetTest.cpp` and `KalmalaWorldMapPerformanceTest.cpp`.
+
+The development runners tied to these paths are
+`Scripts/Tests/World/RegionalGeneration.ps1` (preview determinism and regional
+host/client agreement), `Minimap.ps1` (81-position terrain/weight/water/river
+peer agreement), `WorldMapExport.ps1` and `WorldMap.ps1` (map preview and
+presentation), and `BiomeExpansion.ps1` (biome peer integration plus forest
+delivery/lifecycle options). The applicable automation names and full final
+verification procedure remain in [development setup](07-development-setup.md).
+The fast map exporter is not a substitute for final-height diagnostics or live
+terrain traversal.
+
+Implementation dependencies from this map: BH03–BH05 disable analytic-basin
+generation and close all water/map/wetness consumers while retaining ocean and
+rivers; BH06–BH18 modify the shared regional height before terrain mesh,
+collision, map and placement consumers observe it; BH19–BH23 must use the
+shared forest descriptors and existing materials; BH25–BH26 add raw-range,
+cost, rendered traversal and integrated peer acceptance. Server-owned gameplay
+selection stays authoritative throughout.
+
+## BH10a Meadows hill layer and shoulder curve
+
+The Meadows candidate now adds an independent, seed-derived hill signal in
+absolute world XY. `MeadowHillScale=16000 cm` was held fixed while BH25a
+selected `MeadowHillAmplitude=400 cm` from fresh-source 4/6/8 m trials. The
+signal uses a salt distinct from the shared relief stack. The broad hill signal
+replaces the previous 40 cm Meadows detail term, then the
+candidate applies a smooth exponential upper-shoulder compression above `MeadowShoulderHeight=1000
+cm` with `MeadowShoulderCompressionScale=3000 cm`. The curve is monotonic, is
+bounded by the finite asymptote at threshold plus scale, and leaves lower candidates
+unchanged. The existing continuous biome/coast blend and later coast/river
+passes remain in place. The selected hill amplitude is numerical only;
+rendered traversal acceptance remains BH26.
+
+Focused source coverage now checks candidate output, lower-pocket preservation,
+monotonic bounded compression, and positive/negative hill signal across a 500 m
+neighborhood around the seed-418 outer dry Meadows baseline. The BH01 numeric
+artifact contains fixed-site points, not 100–250 m Meadow transects. BH10b1
+adds fixed seed-418/419 transects and a numeric amplitude sweep runner. BH25a
+ran the 4/6/8 m trials with freshly compiled code, compared eight profiles and
+all BH01 fixed sites, and selected 4 m; measurements are recorded in
+[`meadows-plan.md`](meadows-plan.md). A pre-BH10a binary cannot measure these
+trials; the runner detects missing trial logs instead of accepting stale
+output. Numeric build and commandlet results do not replace BH26 rendered
+traversal acceptance.
+
+### BH10b1 reproducible profile sweep harness
+
+`Scripts/Tests/World/BiomeHillTransects.csv` contains 88 numeric sample points:
+seed 418/419 Starter Meadows and outer dry Meadows, east-west and north-south
+transects, each 25,000 cm long at 2,500 cm intervals. The existing numeric
+sampler exports final height and the matching runtime collision-triangle slope
+for every point. `Scripts/Tests/World/BiomeHillProfiles.ps1` runs separate
+4/6/8 m amplitude trials and records eight per-transect height ranges and
+maximum triangle slopes for each trial. Its required effective-amplitude log
+marker rejects binaries predating the sampler override. It performs no build
+and selects no production tuning. BH25a ran it with a fresh Editor build,
+compared to the fixed-site `BiomeBaseline418419.csv`, and selected the measured
+4 m hill amplitude.
+
+## BH07 staged preview controls
+
+`FKalmalaRegionalTuning` now names the initial shared scales and documented
+Meadows trial controls in centimetres. The commandlet parameter names expose
+kilometres for shared scales and metres for Meadow values; the parser rejects
+non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
+
+| Preview controls | Default | Accepted range |
+| --- | ---: | ---: |
+| `ReliefBroadScaleKm` | 1.0 km | 0.5–1.5 km |
+| `ReliefMiddleScaleKm` | 0.15 km | 0.08–0.25 km |
+| `ReliefLocalScaleKm` | 0.03 km | 0.01–0.05 km |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 4 m selected in BH25a | 100–250 m / 4–10 m |
+| `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 m / 30 m | 6–16 m / 10–60 m |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 0.6 m selected in BH25b1 | 30–70 m / 0.6–2 m |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 8 m / 0.1 m selected in BH25c | 8–20 m / 0.1–0.35 m |
+
+Custom settings are accepted only by the headless preview route and reported in
+`LastRender.txt`; normal gameplay uses the compiled defaults. The fast
+classification PNGs do not display height and
+changing terrain controls leaves their pixels unchanged. BH10a now consumes the
+Meadow hill scale/amplitude and shoulder controls in regional height sampling.
+BH11a consumes the independent Meadows rolling scale/amplitude, and BH12a
+consumes the local Meadows floor scale/amplitude; the shared broad/middle/local
+stack remains staged for the later land-biome candidates. BH10b1 supplies fixed
+transects and a validated hill-amplitude override; BH25a runs the fresh-source
+hill comparison and selects its setting. BH11b adds the rolling-profile sweep
+harness; BH25b1 runs fresh-source 0.6/1.2/1.8 m trials and selects the rolling
+setting. BH12b adds the floor-detail profile harness; BH25c ran the fresh-source
+8/12/20 m by 0.1/0.2/0.3 m matrix and selected 8 m / 0.1 m. Rendered route and
+under-vegetation inspection remain BH26.
+
+## BH08 shared relief sampler
+
+Added `FKalmalaRegionalGeneration::SampleSharedRelief` as a pure, output-only
+stack of three signed normalized Perlin samples at the supplied absolute world
+XY. It uses the staged scales in `FKalmalaGenerationPreviewSettings` (defaults
+100,000 / 15,000 / 3,000 cm) and stable independent domains:
+
+| Layer | Domain salt |
+| --- | --- |
+| Broad | `0x4B414C4D414C4101` |
+| Middle | `0x4B414C4D414C4102` |
+| Local | `0x4B414C4D414C4103` |
+
+This stack does not modify the four ecological fields or current regional
+height; biome shaping consumes it only in later increments. No relief cache is
+introduced. Focused sampler coverage checks domain separation, seed/query-order
+repeatability across hydrology-cache clearing, negative positions, unchanged
+production height, and continuity on both axes of the 3,000 cm terrain patch.
+The automation has been added and awaits the BH26 build and integrated run.
+
+## BH11a Meadows rolling relief
+
+The Meadows height candidate adds a second, independently seeded signal at the
+45 m scale and BH25b1-selected 0.6 m amplitude, before applying the existing
+smooth upper-shoulder compression. It uses absolute world coordinates and a dedicated
+domain salt; it does not consume or alter the ecological Elevation, biome
+weights, or the shared 150 m relief sample. The rolling layer can therefore
+shape 30–70 m walk profiles without changing biome identity or floor-detail
+frequency. BH25a selected the 4 m broad-hill amplitude and BH25b1 selected
+0.6 m rolling amplitude.
+
+Focused source automation covers signed rolling contribution, lower-pocket
+preservation, repeatable fixed seed-418/419 30/45/70 m profile samples, finite
+slope calculations, and sub-centimetre probes on both terrain-patch axes. The
+source automation remains for BH26. BH11b adds the reusable rolling amplitude
+sweep harness; BH25b1 ran it with fresh source and selected the smallest
+accepted trial. Rendered traversal and connected-gentle-route inspection remain
+for BH26.
+
+### BH11b rolling profile sweep harness
+
+`Scripts/Tests/World/BiomeRollingTransects.csv` contains 264 fixed sample rows:
+24 profile groups spanning seed-418/419 Starter and outer Meadows along both
+axes, at 30/45/70 m lengths and 5 m spacing, plus four X/Y patch-seam pairs
+derived from the BH01 start-relative collision-patch origins. The numeric
+commandlet accepts a finite commandlet-only `MeadowRollingAmplitudeM` override
+from 0.6 to 1.8 m and resets it after sampling; an absent override leaves the
+current preview defaults unchanged. `Scripts/Tests/World/BiomeRollingProfiles.ps1`
+runs separate 0.6/1.2/1.8 m CSV trials, validates the fixed fixture, finite
+height/slope outputs, positive continuous Meadows influence and adjacent-patch
+seams, and requires a per-trial log marker so a stale binary is rejected. Four
+confirmed seed-419 river controls remain wet at Z=0, are retained in raw CSVs,
+and are excluded from dry-land summaries; any other wet sample fails the run.
+BH25b1 ran the fresh-source sweep and selected 0.6 m. Measured ranges, slopes,
+and BH01 fixed-site deltas are recorded in the Meadows plan. Rendered traversal
+and connected-gentle-route inspection remain for BH26.
+
+## BH12a Meadows floor-detail integration
+
+The Meadows candidate adds an independently seeded local floor signal at the
+BH25c-selected 8 m scale and 0.1 m amplitude. The term is sampled in absolute
+world coordinates, added after hill and rolling contributions, and passes
+through the existing monotonic shoulder compression. It is applied only through
+the existing continuous Meadows/coast candidate weights and does not change
+ecological fields, biome labels, other biome candidates, or the terrain mesh
+lattice. At the selected 8 m scale, the 125 cm mesh spacing gives 6.4 samples
+per scale length. The fresh-source matrix measured a maximum 2.765 cm floor
+input step over 125 cm at the selected setting, with no scale-linked slope or
+seam spike. Numeric acceptance does not prove rendered aliasing or readability;
+inspection beneath vegetation remains BH26.
+
+### BH12b floor-detail profile sweep harness
+
+`Scripts/Tests/World/BiomeFloorProfiles.csv` fixes 400 sample points: eight
+seed-418/419 starter/outer profiles, each 60 m long with 49 points at 125 cm
+spacing, plus eight outer patch-side controls. Five exact seed-419 river rows
+are retained as fixed wet controls and excluded from dry-floor metrics. Profile
+rows with any positive Meadows blend remain eligible; the fixed anchors still
+require Meadows weight above 0.5. The commandlet-only sweep
+exports raw floor noise and the pre-blend floor contribution alongside final
+height, biome weight, water state, collision-triangle height/slope/grade,
+patch/cell coordinates and per-patch forest descriptor counts. Its nine trials
+cover 8/12/20 m scales and 0.1/0.2/0.3 m amplitudes. It checks finite samples,
+dry status outside fixed river controls, positive Meadows influence, signal-to-
+input amplitude, collision-cell progression, forested patch coverage and patch
+seam continuity. A required effective scale/amplitude log marker rejects stale
+binaries. The runner has a fixture-only `-ValidateOnly` mode and does not
+build or select final tuning. BH25c ran all nine combinations with freshly
+compiled source and selected 8 m / 0.1 m; raw measurements are in the Meadows
+plan. The
+descriptor count is a fixed-patch proxy for under-vegetation sampling, not a
+rendered foliage acceptance result; BH26 inspects aliasing and floor readability
+beneath vegetation. BH12b itself did not run a build, sweep, or rendered check.
+
+### BH25c fresh-source floor-detail selection
+
+The current-source Editor rebuilt successfully in the documented disposable
+mirror, excluding only the unchanged pre-goal water-mesh test translation unit.
+All nine explicit trials returned 400 rows with their exact parameter markers;
+387 profile rows were dry, five fixed river controls stayed submerged at Z=0,
+all 125 cm lattice steps were sequential, and the four patch seams stayed below
+0.04 cm. At 8 m / 0.1 m, dry floor contribution ranged from −6.726 to +6.497
+cm, with a maximum 2.765 cm adjacent step and a 13.223 cm peak-to-peak range.
+At the same 28 sites as BH01, the selected setting matched the retained
+pre-selection current-source water and biome state; height deltas ranged
+−4.105 to +4.799 cm, maximum collision-height delta was 4.661 cm, and maximum
+slope delta was 0.942 degrees. BH01-to-current water differences at two sites
+already existed in that control. The full nine-row matrix and four fixed Meadow
+anchor comparisons are in [the Meadows plan](meadows-plan.md). Rendered
+readability remains for BH26.
+
+### BH13b Elderwood/Tundra profile sweep harness
+
+`Scripts/Tests/World/BiomeWoodProfiles.csv` fixes 66 samples across six 100 m
+transects: a seed-419 Elderwood interior, seed-418/419 wooded Elderwood,
+seed-418/419 Elderwood/Tundra transitions, and a seed-419 Tundra interior. The
+centers are taken from the BH01 fixed-site baseline and each transect samples
+both sides of its center at 10 m intervals. The numeric commandlet accepts one
+Elderwood amplitude override at a time: broad 4–16 m, middle 0.6–4 m, or local
+0.1–1 m. It records the three relief signals and contributions, both candidate
+heights, final regional height/weights/water and collision-triangle slope.
+`BiomeWoodProfiles.ps1` validates the fixed sites, bounds, numeric rows and exact
+Elderwood/Tundra candidate parity, then requires an effective-trial marker so a
+stale binary fails visibly. `-ValidateOnly` validates the fixture without an
+Editor launch. BH25b2 ran each low/nominal/high layer matrix using a freshly
+compiled Editor mirror, recorded the measurements below and selected the
+smallest accepted amplitudes. The six exact center water states matched BH01,
+the only two wet profile rows were confirmed Z=0 river controls, all dry rows
+remained above sea level, and all 594 Elderwood/Tundra candidate pairs matched
+exactly. Rendered biome-transition and terrain acceptance remains in BH26.
+
+### BH25b2 fresh-source Elderwood/Tundra measurements
+
+The Editor mirror included BH25a's selected 400 cm hill default and BH25b1's
+selected 60 cm rolling default before the matrix. Nine separate commandlets
+exported 66 rows apiece with exact low/nominal/high trial markers: broad 4/9/16
+m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m. Each trial changed one layer only.
+Candidate parity was exact at all 594 points. Every run reported zero basin
+weight and exactly two wet samples: the confirmed seed-419 interior and
+seed-418 wooded river controls at Z=0. No other point became wet, including
+the seed-418 WoodedElderwood BH01 center that the initial bank profile had
+changed from +15.17 cm dry to -45.32 cm wet. All dry samples remained positive;
+the lowest was 16.99 cm. The broad16 WoodedElderwood419 line no longer sat on
+the old exact 1 cm shelf.
+
+Final-height ranges below exclude the two confirmed channel controls. Each
+range column is the minimum / mean / maximum among the six 100 m profile ranges;
+slopes are p50 / p90 / p95 / maximum across the 64 dry collision samples.
+
+| Layer | Amplitude | Candidate range min / mean / max (cm) | Dry final range min / mean / max (cm) | Dry slope p50 / p90 / p95 / max (degrees) | Samples ≥15° / ≥25° |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Broad | 4 m | 59.37 / 104.95 / 165.21 | 62.59 / 212.16 / 561.43 | 1.36 / 4.17 / 10.60 / 23.52 | 3 / 0 |
+| Broad | 9 m | 17.65 / 91.90 / 171.55 | 23.72 / 177.19 / 524.07 | 1.13 / 3.03 / 9.47 / 21.86 | 3 / 0 |
+| Broad | 16 m | 36.18 / 106.38 / 235.55 | 17.03 / 151.54 / 472.99 | 0.91 / 3.07 / 8.13 / 19.55 | 3 / 0 |
+| Middle | 0.6 m | 31.92 / 89.72 / 184.31 | 33.58 / 194.91 / 557.29 | 1.00 / 2.99 / 9.86 / 21.71 | 3 / 0 |
+| Middle | 2.4 m | 17.65 / 91.90 / 171.55 | 23.72 / 177.19 / 524.07 | 1.13 / 3.03 / 9.47 / 21.86 | 3 / 0 |
+| Middle | 4 m | 38.56 / 115.28 / 177.77 | 41.94 / 170.45 / 501.78 | 1.42 / 3.60 / 9.14 / 21.99 | 3 / 0 |
+| Local | 0.1 m | 28.62 / 91.58 / 160.00 | 33.77 / 176.00 / 519.75 | 1.27 / 2.96 / 9.51 / 22.06 | 3 / 0 |
+| Local | 0.4 m | 17.65 / 91.90 / 171.55 | 23.72 / 177.19 / 524.07 | 1.13 / 3.03 / 9.47 / 21.86 | 3 / 0 |
+| Local | 1 m | 51.24 / 118.11 / 194.64 | 49.85 / 189.16 / 537.81 | 1.35 / 4.22 / 9.42 / 21.46 | 3 / 0 |
+
+Every trial had the same three samples at or above 15 degrees and none at or
+above 25 degrees. The selected minimum amplitudes (4 / 0.6 / 0.1 m) retained
+positive variation across all six transects and had the lowest median of the
+six per-profile maximum slopes within their respective layers. They remain
+numeric selections; rendered landform and travel acceptance stays in BH26.
+
+At the six BH01 fixed centers, water state matched in all nine trials. Maximum
+/ mean absolute final-height differences and maximum absolute collision-slope
+differences were: broad 4 m, 174.17 / 70.04 cm and 7.42 degrees; broad 9 m,
+237.59 / 96.43 cm and 10.25 degrees; broad 16 m, 325.83 / 143.67 cm and
+12.90 degrees; middle 0.6 m, 180.05 / 97.18 cm and 9.60 degrees; middle
+2.4 m, 237.59 / 96.43 cm and 10.25 degrees; middle 4 m, 288.52 / 101.38 cm
+and 10.79 degrees; local 0.1 m, 252.80 / 96.18 cm and 10.14 degrees; local
+0.4 m, 237.59 / 96.43 cm and 10.25 degrees; local 1 m, 207.11 / 96.86 cm
+and 10.47 degrees. These center deltas include all active biome relief and
+the coast transition; they are not isolated candidate amplitudes. The repaired
+seed-418 bank point retains its +15.17 cm BH01 dry state.
+
+### BH25b3 aggregate profile and cost comparison
+
+The selected profile ranges above are the raw numeric acceptance reference for
+the current rolling and Elderwood/Tundra defaults. BH01's retained
+`BiomeBaseline418419.csv` has 28 fixed points with final/collision heights,
+slopes, water and per-site containing-patch descriptor counts; it does not
+contain elapsed sampler, patch-generation or collision-build timings.
+
+| Cost area | BH01 reference | Current measured/contract value | Comparison |
+| --- | --- | --- | --- |
+| Sampler/minimap refresh | No timing in the BH01 CSV. The closest retained pre-height `Kalmala.UI.Minimap.GenerationPerformance` run (2026-10-18, `PROGRESS.md`) measured 68.326 / 90.594 / 145.952 ms at 25 / 50 / 100 m radii. | Same focused automation against the fresh BH25b2 Editor mirror on 2026-10-25: 55.395 / 70.863 / 116.175 ms. It passed. | The recorded current run was about 19% / 22% / 20% lower than the historical pre-height readings. This local, unpaired timing comparison does not attribute the difference to terrain work or promise hardware-independent performance. |
+| Expanded map | No BH01 wall-time result retained; the bounded cache and tile/sample layout predate this goal. | `Kalmala.UI.WorldMap.PerformanceBudget`: one 33x33 tile 19.211 ms; a 129x129 minimap while four tile workers ran 54.613 ms; cached terrain/fog payload 5,341,696 bytes. | Passed unchanged 250 ms tile and 1.50 s minimap limits. There is no direct BH01 timing delta. |
+| Patch generation and active streaming | BH01 fixed-site samples identify patch coordinates but do not time patch construction. | Patch remains 30 m, with a 24x24 cell lattice (625 vertices, 1,152 triangles); server active terrain remains capped at 25 patches. | Geometry/sample payload and streaming cap are unchanged. Per-patch generation wall time was not retained or measured here; BH26 must verify integrated generation cost. |
+| Collision | The 28-point BH01 output records exact collision-triangle heights/slopes, not collision-build time. | Same 125 cm grid, vertices and triangles as patch rendering; final Z values come from the shared sampler. | No collision resolution or triangle-count increase. Collision-build wall time has no comparable BH01 metric and remains for BH26. |
+| Decoration | BH01 fixed-site descriptor counts ranged 0–32; the sum of the 28 site observations was 243 (sites can share a containing patch). | Current-source numeric export at the same 28 points ranged 0–32, with a sum of 213; 12 site observations changed as Meadows/Lakes/Tundra suitability was integrated. The candidate loops remain 72 per patch for broad forest biomes and 18 for Meadows/Lakes. | The sampled descriptor range and candidate-loop bounds did not grow. The sums are per-site observations, not global tree totals or a placement-time benchmark. |
+
+Current narrow-run logs and output remain untracked in
+`C:\Users\Ville\AppData\Local\Temp\bh25b3\`. The Editor mirror's sampler,
+terrain patch, forest, map and performance-test sources matched the selected
+BH25b2 worktree before those measurements. BH25b is complete: both fresh-source
+tuning children selected their smallest accepted amplitudes, numeric water and
+profile constraints passed, and fixed terrain/map budgets did not grow. Full
+generation/collision timing under representative streaming and rendered
+acceptance remain part of BH26.
+
+### BH14a Shimmering Lakes source integration
+
+The Lakes height candidate continuously mixes the existing rounded Meadows
+candidate and shared-relief Elderwood candidate. It then adds a humidity-
+weighted, smooth compression offset derived from the existing source height;
+it uses no independent basin cells, bowl support, or water level. For source
+height `H`, floor `F`, ceiling `C`, humidity `U`, and blend share `M`, the
+lowland transform is:
+
+```text
+band = smoothstep(F, F + 0.25 * (C - F), H)
+     * (1 - smoothstep(C - 0.25 * (C - F), C, H))
+strength = compression * smoothstep(humidityMinimum, humidityFull, U) * band
+compressed = H - max(0, H - F) * strength
+lakes = lerp(elderwoodCandidate, meadowsCandidate, M) + compressed - H
+```
+
+The commandlet preview bounds are Meadow share 0.35–0.65, floor 100–500 cm,
+ceiling 500–2,000 cm (above the floor), and compression 0.05–0.35. BH25d ran
+the one-factor profile trials and retained the measured center controls: share
+0.50, floor 200 cm, ceiling 1,200 cm, and compression 0.20. The lowland factor
+is continuous through both height-band edges and humidity, is monotonic and
+never lowers the source below the configured floor. The shared compiled
+basin-disabled policy remains
+unchanged; no inland water is created. Focused source tests cover those
+properties, neighboring Meadows/Lakes weights and the fixed former-basin site.
+No build or automation was run for BH14a. BH14b adds stale-safe fixed profile
+trials; BH25d measured and selected controls from those profiles. Rendered
+profile acceptance remains BH26.
+
+### BH14b Shimmering Lakes profile sweep
+
+`Scripts/Tests/World/BiomeLakesProfiles.csv` fixes four 100 m transects with
+10 m spacing (44 samples total): the seed-418 former-basin Meadows/Lakes/
+Elderwood blend and the seed-419 Lakes interior, each sampled along X and Y.
+The numeric commandlet accepts one Lakes control override per invocation:
+Meadow share 0.35–0.65, lowland floor 100–500 cm, ceiling 500–2,000 cm with
+ceiling greater than floor, or compression 0.05–0.35. Each trial resets its
+preview settings after sampling. The exported rows include all three candidate
+heights, compressed lowland, source height, humidity thresholds and effective
+controls, plus basin/course weights, final terrain, water state and collision
+triangle slopes.
+
+Run `Scripts/Tests/World/BiomeLakesProfiles.ps1 -ValidateOnly` to validate the
+fixed fixture without Unreal. After compiling BH14b source, run the script with
+`-Project <project-path>` to run 12 one-control-at-a-time values around the
+measured center. It checks the effective-control log marker and output
+shape, so a stale binary cannot produce accepted rows. The runner checks
+normalized biome weights, disabled basin support, lowland bounds/formula,
+candidate composition and fixed-site Lakes controls, then writes raw CSVs and a
+summary under a short temporary directory. It neither builds nor selects
+production controls. BH14b itself ran no build or trial; BH25d used a
+source-hash-verified BH25c Editor mirror, excluding only the unchanged pre-goal
+water-mesh test translation unit. The 12 trial outputs and selection are
+recorded below. Rendered shoreline/traversal acceptance remains BH26.
+
+### BH25d fresh-source Shimmering Lakes selection
+
+The BH14b runner completed 12 exact-marker trials, varying one control at a
+time over the four fixed 100 m profiles (44 samples per trial). The current
+BH25c Editor mirror matched 1,071 tracked runtime input hashes exactly; one
+unchanged test source differed only in line endings, and the unchanged pre-goal
+water-mesh test translation unit was absent as documented. The binary therefore
+included the selected Meadows 8 m / 0.1 m defaults. No rebuild was needed
+because the mirror matched current source; no automation suite was run.
+
+All trials satisfied the runner's finite-value, normalized-weight, lowland
+formula/bounds, candidate-composition, and fixed-site checks. A numeric sweep of
+the lowland function at both humidity-weight endpoints checked 144,000 adjacent
+source-height comparisons across the 12 settings; every curve remained
+monotonic. Every trial retained four sea-level wet river-channel rows with
+positive river weight and zero basin weight; the other 40 rows stayed dry.
+Water level, HasWater, river/stream/ocean weights, biome labels and biome
+weights were identical to the combined nominal output for all 44 coordinates.
+The four measured nominal trial files were byte-identical, confirming the
+combined selected center state was exercised. Profile spans and slope
+percentiles below include the four expected wet river samples.
+
+| One varied control | Value | Four profile height spans: min / mean / max (cm) | Collision slope nearest-rank p50 / p90 / p95 / max (degrees) | Lowland candidate min–max (cm) | Max source reduction (cm) | Max final / collision height change vs nominal (cm) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Meadow share | 0.35 | 21.512 / 325.849 / 534.155 | 0.818 / 12.943 / 18.015 / 23.469 | 292.980–393.027 | 48.031 | 15.937 / 15.895 |
+| Meadow share | 0.50 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Meadow share | 0.65 | 27.850 / 342.939 / 566.115 | 0.997 / 13.633 / 18.132 / 23.619 | 292.980–393.027 | 48.031 | 16.155 / 16.112 |
+| Lowland floor (cm) | 100 | 22.819 / 327.062 / 538.937 | 0.864 / 12.947 / 17.935 / 23.441 | 267.319–372.846 | 68.212 | 13.616 / 13.614 |
+| Lowland floor (cm) | 200 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Lowland floor (cm) | 500 | 20.728 / 342.715 / 575.312 | 0.963 / 13.497 / 18.126 / 23.599 | 300.024–441.058 | 0 | 26.061 / 26.060 |
+| Lowland ceiling (cm) | 500 | 21.674 / 332.364 / 550.647 | 0.898 / 13.159 / 18.009 / 23.502 | 280.019–398.530 | 45.020 | 3.884 / 3.884 |
+| Lowland ceiling (cm) | 1,200 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Lowland ceiling (cm) | 2,000 | 24.201 / 338.930 / 561.707 | 0.936 / 13.414 / 18.107 / 23.578 | 297.499–414.376 | 26.682 | 11.762 / 11.761 |
+| Compression | 0.05 | 21.729 / 340.610 / 568.943 | 0.942 / 13.444 / 18.113 / 23.585 | 298.263–429.050 | 12.008 | 19.494 / 19.493 |
+| Compression | 0.20 | 24.651 / 334.335 / 550.026 | 0.907 / 13.286 / 18.073 / 23.543 | 292.980–393.027 | 48.031 | 0 / 0 |
+| Compression | 0.35 | 27.444 / 328.121 / 531.410 | 0.873 / 13.128 / 18.033 / 23.502 | 287.696–357.004 | 84.054 | 19.169 / 19.168 |
+
+The selected controls remain the measured nominal combination: 0.50 Meadow
+share, 200 cm floor, 1,200 cm ceiling, and 0.20 compression. It yields up to
+48.031 cm of source-height compression while keeping all four channel controls
+and their water states unchanged. The low/high trials trade lowland depth and
+profile ranges without a consistent collision-slope or water-state advantage;
+the one-control trials do not establish the response of a combined off-center
+set. BH01 supplies only fixed center samples for direct comparison: the seed-418
+former-basin center changed from 307.496 / 307.512 cm final/collision height,
+2.297 degrees and basin water at 356.951 cm to current nominal 25.399 / 24.792
+cm, 12.421 degrees and dry sea-level status under the already-disabled basin
+policy from BH03; its biome label remained Lakes. The seed-419 center changed
+from 383.552 / 383.572 cm and 0.095 degrees to 441.498 / 441.548 cm and 0.793
+degrees; it remained dry and retained the Lakes label. These baseline-to-current
+differences predate BH25d; all BH25d trial variants match the current nominal
+water and biome state. Rendered shoreline and traversal acceptance remains
+BH26.
+
+### BH25e fresh-source Mossy Mire selection
+
+The BH15b runner completed all nine exact-marker, one-control trials against
+252 samples on twelve 100 m transects. The `kb25a` Editor mirror matched 1,071
+of 1,073 tracked runtime inputs exactly; the only differing source was
+line-ending-only and normalized to identical content, and the unchanged
+pre-goal water-mesh test source was absent as documented. The current regional
+source hash matched the mirror, and its compiled world unity object was newer
+than that source, so no rebuild was needed. Raw outputs and the runner summary
+remain under `C:\Users\Ville\AppData\Local\Temp\bm655e5ef5`.
+
+The initial runner expected the seed-418 source-coast center to remain
+submerged as in BH01. At the exact center `(691744, -107083.5)`, BH01 measured
+final/collision height -9.279 / -9.313 cm at water level 0. The current source
+height is +2.396 cm and the nominal final/collision heights are +0.845 / +0.879
+cm, with `OceanWeight=0.999334`, `MossyMireWeight=0`, and dry water status. The
+source sign is on land; the adjacent negative-source coast samples remain
+submerged. The water mesh clips at `WaterLevel - TerrainHeight`, leaving the
+positive center above the Z=0 surface. This is the BH25b2 source-coast-sign
+repair, not an ocean control or a Mire-trial effect. The runner now checks a
+positive dry coast-land center and submerged ocean-side neighbors.
+
+Across all nine variants, the same 50 of 252 samples remained wet, with zero
+water-coverage changes or new wet points. Basin, river and stream weights and
+water levels on wet/course-supported samples were unchanged; all four fixed
+river centers remain at Z=0 with `RiverWeight=1`, `BasinWeight=0` and a -80 cm
+bed. Some dry, no-course rows have a stored below-ground `WaterLevel` sentinel
+derived from terrain height; it changed by at most 4.847 cm at target 500 cm,
+without creating a surface or changing `HasWater`. The runner checks coverage
+exactly and compares water levels where a water surface or course is active.
+
+The rational compression function was checked at both domain extremes for
+each of the nine target/scale pairings: 180,009 finite, bounded outputs and
+180,000 strictly monotonic adjacent comparisons passed over source heights
+-100,000 to 100,000 cm. The runner also checked every candidate against its
+formula and confirmed positive-source worst-case clearance at all 100
+source-land/Mire-weighted rows in each trial. The smallest measured clearance
+was 19.538 cm at target 200 cm, scale 700 cm and residual 25 cm.
+
+The table reports `MireCandidateCm` ranges across the 84 fixed interior
+samples; the four dry interior profile spans exclude wet or river/stream rows.
+Collision-slope percentiles are nearest-rank values over the 76 dry interior
+samples. The clearance column is the minimum across all positive-source,
+Mire-weighted rows in the full 252-sample fixture.
+
+| One varied control | Value | Mire candidate min–max (cm) | Four dry profile height spans: min / mean / max (cm) | Collision slope p50 / p90 / p95 / max (degrees) | Minimum source-land clearance (cm) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Target height (cm) | 200 | 29.724–404.872 | 17.702 / 110.190 / 243.398 | 0.624 / 2.844 / 3.224 / 3.986 | 19.538 |
+| Target height (cm) | 300 | 77.245–447.897 | 18.443 / 117.023 / 247.873 | 0.708 / 2.994 / 3.244 / 3.861 | 65.076 |
+| Target height (cm) | 500 | 198.147–484.876 | 18.600 / 128.654 / 269.058 | 0.760 / 3.519 / 3.565 / 3.692 | 183.386 |
+| Compression scale (cm) | 300 | 141.439–417.523 | 17.319 / 115.209 / 252.338 | 0.617 / 3.163 / 3.233 / 3.728 | 125.039 |
+| Compression scale (cm) | 700 | 77.245–447.897 | 18.443 / 117.023 / 247.873 | 0.708 / 2.994 / 3.244 / 3.861 | 65.076 |
+| Compression scale (cm) | 1,200 | 44.590–461.080 | 18.948 / 117.864 / 246.092 | 0.735 / 2.925 / 3.256 / 3.920 | 35.099 |
+| Residual detail (cm) | 10 | 79.820–444.584 | 15.503 / 115.877 / 247.136 | 0.679 / 3.027 / 3.202 / 3.810 | 80.076 |
+| Residual detail (cm) | 25 | 77.245–447.897 | 18.443 / 117.023 / 247.873 | 0.708 / 2.994 / 3.244 / 3.861 | 65.076 |
+| Residual detail (cm) | 60 | 71.236–455.628 | 25.324 / 119.707 / 249.598 | 0.793 / 2.936 / 3.340 / 3.981 | 30.076 |
+
+The retained combined settings are the measured nominal 300 / 700 / 25 cm.
+Lower targets and scales reduce the sampled lowland ranges; residual detail
+changes the local range and slopes. These are one-control trials, so they do
+not establish the response of a combined off-center set, and no rendered view
+supports a different combination. The nominal dry interior spans average
+117.023 cm, with collision slope p50/p90/p95/max of 0.708 / 2.994 / 3.244 /
+3.861 degrees; the profile is not a uniform Z=0 water plane. Full rendered
+shoreline, under-vegetation and traversal acceptance remains BH26.
+
+BH01 fixed-center comparisons against the current nominal output (300 / 700 /
+25 cm) are below. Heights are final / collision centimeters and slopes are
+degrees. The seed-418 coast wet-to-dry change is the BH25b2 source-land-sign
+repair described above; all BH25e variants match the current nominal coverage.
+
+| Seed / fixed site | BH01 final / collision / slope; water level and state | Current nominal final / collision / slope; water level and state |
+| --- | --- | --- |
+| 418 Mire interior | 399.146 / 399.157 / 0.858; Z=0, dry | 475.019 / 475.024 / 0.567; Z=0, dry |
+| 419 Mire interior | 1.000 / 1.000 / 0.000; Z=-12.332, dry | 19.891 / 19.922 / 1.822; Z=-13.635, dry |
+| 418 source-coast land side | -9.279 / -9.313 / 2.071; Z=0, wet | 0.845 / 0.879 / 0.423; Z=0, dry |
+| 419 source-coast land side | 1.000 / 0.926 / 0.144; Z=-29.377, dry | 0 / 0 / 0; Z=-29.367, dry |
+| 418 Highland river | -80 / -80 / 0; Z=0, wet | -80 / -80 / 0; Z=0, wet |
+| 419 Highland river | -80 / -79.237 / 0.571; Z=0, wet | -80 / -79.219 / 0.584; Z=0, wet |
+
+The current Mire-center weights are 0.510667 for seed 418 and 0.031964 for
+seed 419; the 419 center is a shallow Mire blend. Neither center nor any river
+control changed water state across the matrix. BH25e changes the measured
+documentation and stale coast fixture only; numeric defaults remain the
+selected nominal values already in source. No Editor build, automation suite,
+rendered preview or traversal run was performed; these remain BH26 work.
+
+### BH17 Thunder Mountains high-base shaping
+
+The Mountain candidate now adds bounded detail to the unchanged source height,
+then applies broad amplification only above a 1,000 cm source-height threshold.
+The excess height ramps smoothly over 1,000 cm and scales with the existing
+continuous Mountain region signal. Provisional gain is 0.4; the detail input is
+clamped to ±1 at an 80 cm amplitude. Preview controls are bounded to a 500–2,000
+cm threshold, 500–2,000 cm blend range, 0.1–0.8 gain and 40–160 cm detail. The
+shape adds no new noise sample and leaves classification, distance eligibility,
+coast shaping, river priority and map/collision sampling order intact.
+
+`Kalmala.World.Regional.HeightFunctionBaselines` now covers low and high source
+profiles, regional-gain scaling, bounded detail, threshold continuity and
+monotonic foothills. The regional transition regression checks a fixed
+seed-418 Tundra/Mountain boundary. These source assertions were added but not
+built or executed by BH17; rendered, traversal and integrated acceptance remain
+BH26.

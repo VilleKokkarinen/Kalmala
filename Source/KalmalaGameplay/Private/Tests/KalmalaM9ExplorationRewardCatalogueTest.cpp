@@ -3,6 +3,7 @@
 #include "KalmalaM9ExplorationRewardCatalogue.h"
 
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaBiomeExpansionContract.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaM7PersistenceContract.h"
@@ -70,10 +71,18 @@ bool FKalmalaM9ExplorationRewardCatalogueTest::RunTest(const FString& Parameters
 
     FKalmalaWorldGenerationConfig World;
     World.WorldSeed = 418;
-    TMap<FName, FKalmalaM9ExplorationRewardDescriptor> FoundByCandidate;
-    for (int32 Y = -160; Y <= 160 && FoundByCandidate.Num() < Definitions.Num(); ++Y)
+    const int32 ExpectedCandidateCount = FKalmalaShimmeringLakeSampler::bEnabled
+        ? Definitions.Num() : FMath::Max(0, Definitions.Num() - 1);
+    if (!FKalmalaShimmeringLakeSampler::bEnabled)
     {
-        for (int32 X = -160; X <= 160 && FoundByCandidate.Num() < Definitions.Num(); ++X)
+        FKalmalaBiomeDiscoveryCandidate DisabledLakeDiscovery;
+        TestFalse(TEXT("The Rillstone remains unavailable without analytic lake water"),
+            FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(World, FIntPoint(-29, 14), DisabledLakeDiscovery));
+    }
+    TMap<FName, FKalmalaM9ExplorationRewardDescriptor> FoundByCandidate;
+    for (int32 Y = -160; Y <= 160 && FoundByCandidate.Num() < ExpectedCandidateCount; ++Y)
+    {
+        for (int32 X = -160; X <= 160 && FoundByCandidate.Num() < ExpectedCandidateCount; ++X)
         {
             const FIntPoint SpatialKey(X, Y);
             const FVector2D KeyCenter = (FVector2D(SpatialKey) + FVector2D(0.5f, 0.5f))
@@ -134,7 +143,9 @@ bool FKalmalaM9ExplorationRewardCatalogueTest::RunTest(const FString& Parameters
             FoundByCandidate.Add(Descriptor.CandidateId, Descriptor);
         }
     }
-    TestEqual(TEXT("The deterministic bounded scan reaches both approved candidates"), FoundByCandidate.Num(), Definitions.Num());
+    TestEqual(TEXT("The deterministic bounded scan reaches only candidates supported by active terrain"), FoundByCandidate.Num(), ExpectedCandidateCount);
+    TestEqual(TEXT("The Rillstone follows the compiled analytic-basin policy"),
+        FoundByCandidate.Contains(TEXT("lakes-rillworn-marker")), FKalmalaShimmeringLakeSampler::bEnabled);
 
     for (const FKalmalaM9ExplorationRewardDefinition& Definition : Definitions)
     {

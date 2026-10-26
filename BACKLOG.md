@@ -516,14 +516,16 @@ sites, new gameplay effects, new ground-cover assets, network fields/RPCs, or
 save migrations as part of this goal.
 
 **Implementation trial defaults selected for this plan:** Shared relief scales
-start at 1,000 m / 150 m / 30 m (broad / middle / local). Meadows starts at
-160 m / 6 m hills, 45 m / 1.2 m rolling relief, and 12 m / 0.2 m floor detail.
-Tundra forest density starts at 0.85 of comparable Elderwood density. These are
-agent-selected experiment settings, not prior user-approved production values;
-compare low / nominal / high documented amplitudes one layer at a time (Meadows
-hills: 4 / 6 / 8 m; rolling relief: 0.6 / 1.2 / 1.8 m; floor detail: 0.1 / 0.2 /
-0.3 m), then retain the smallest values that satisfy measured acceptance. Do
-not maximize layers together or leave tuning as a later user decision.
+start at 1,000 m / 150 m / 30 m (broad / middle / local). Meadows uses the
+BH25a-selected 160 m / 4 m broad hills and BH25b1-selected 45 m / 0.6 m rolling
+relief, and BH25b2-selected 1,000 m / 4 m, 150 m / 0.6 m, and 30 m / 0.1 m
+shared Elderwood/Tundra relief layers. BH25c selected Meadows floor detail at
+8 m / 0.1 m. Tundra forest density starts at 0.85 of comparable Elderwood
+density. Remaining experiment settings are agent-selected, not prior
+user-approved production values; compare low / nominal / high documented
+amplitudes one layer at a time, then retain the smallest values that satisfy
+measured acceptance. Do not maximize layers together or leave tuning as a later
+user decision.
 
 **Acceptance direction:** Candidate heights blend through existing continuous
 biome weights; labels and ecological fields do not move. Meadows should show
@@ -543,93 +545,318 @@ for BH26. Update `BACKLOG.md` and `PROGRESS.md`, commit only run-owned changes,
 and stop after the increment. BH26 is the final integrated verification/repair
 run for this goal and may exceed one turn.
 
-- [ ] **Implement biome height rework and Meadows terrain dressing.**
-  - [ ] **BH01 — Capture baselines.** For seeds 418 and 419, record coordinates,
-    bounds, vertical scale, final height/slope, biome weights, water levels,
-    and tree counts at starter/outer Meadows, wooded ground, each biome,
-    transitions, coast, and a high-land river; capture fixed-camera views.
-  - [ ] **BH02 — Map integration points.** Recheck the current height, lake,
+- [x] **Implement biome height rework and Meadows terrain dressing.** BH01–BH26
+  completed 2026-10-26; final acceptance is recorded in `PROGRESS.md`.
+  - [x] **BH01 — Capture fixed-seed baselines.** Keep this parent open until
+    BH01a–BH01c are complete.
+    - [x] **BH01a — Export seed overviews and choose sites.** Render full-world
+      seed 418 and 419 diagnostic overviews with the existing visualization
+      commandlet. Inspect the outputs, record their configuration and hashes,
+      and select representative coordinates plus fixed camera poses for the
+      requested biomes, transitions, coast, and high-land river.
+    - [x] **BH01b — Add quantitative sampler diagnostics.** Keep open until
+      BH01b1–BH01b2 are complete.
+      - [x] **BH01b1 — Export scalar sample data.** Add an optional CSV-driven,
+        output-only commandlet path for final sampled height, biome identity and
+        seven weights, water level, and water presence at BH01a's seed 418/419
+        coordinates. Keep ordinary map exports and generation behavior intact.
+      - [x] **BH01b2 — Add collision slope and forest counts.** Keep open until
+        BH01b2a–BH01b2b are complete.
+        - [x] **BH01b2a — Add mesh and forest output fields.** Match the exact
+          piecewise terrain-triangle surface height/slope on the runtime
+          start-relative collision grid, and count deterministic forest
+          descriptors in each sample's containing patch. Do not change generation.
+        - [x] **BH01b2b — Produce and validate fixed-site output.** Run the
+          diagnostic for all BH01a coordinates and both seeds; validate every
+          scalar, mesh, water, weight, and forest-count row and retain the output
+          for BH01c. No terrain behavior changes.
+    - [x] **BH01c — Capture rendered views and consolidate baselines.** Keep
+      this parent open until BH01c1–BH01c2 are complete.
+      - [x] **BH01c1 — Add and smoke-test actual runtime capture.** Add a
+        development-only one-shot fixed-camera path and runner; build the mirror
+        and capture a nonblank live-render seed-418 Starter Meadows view at its
+        recorded pose. Null-RHI maps do not count as rendered captures.
+      - [x] **BH01c2 — Capture and consolidate all baselines.** Keep open
+        until BH01c2a–BH01c2d are complete.
+        - [x] **BH01c2a — Preserve numeric baseline and capture first seven
+          seed-418 views.** Add the validated 28-row numeric CSV under
+          Scripts/Tests and capture/validate the first seven fixed sites for
+          seed 418, recording image hashes and camera poses.
+        - [x] **BH01c2b — Capture remaining seed-418 views.** Capture and
+          validate the other seven fixed seed-418 sites; record hashes and poses.
+        - [x] **BH01c2c — Capture first seven seed-419 views.** Capture and
+          validate the first seven fixed sites for seed 419; record hashes and
+          poses.
+        - [x] **BH01c2d — Complete seed-419 views and manifest.** Capture the
+          final seven views and verify all 28 image/numeric rows, range summary,
+          camera poses and vertical bounds; distinguish live captures from
+          null-RHI overviews.
+  - [x] **BH02 — Map integration points.** Recheck the current height, lake,
     river, map/wetness, forest-layout, harvest, preview, material, and test
     consumers; record the exact source/test touchpoints in the plan docs.
-  - [ ] **BH03 — Disable analytic basin generation.** Add one compiled shared
+  - [x] **BH03 — Disable analytic basin generation.** Add one compiled shared
     policy, default disabled, and bypass basin bowl/rim shaping, water-level
     assignment, and positive basin weights without changing biome identity.
-  - [ ] **BH04 — Prevent basin resurrection.** Apply the policy to lake samplers,
+  - [x] **BH04 — Prevent basin resurrection.** Apply the policy to lake samplers,
     shoreline/water meshes, maps, and gameplay wetness; invalidate derived basin
     caches when policy changes. Retain reusable disabled-feature tests.
-  - [ ] **BH05 — Protect ocean and rivers.** Add focused controls proving ocean,
+  - [x] **BH05 — Protect ocean and rivers.** Add focused controls proving ocean,
     source-coast sign, sea-level rivers, swimming/wetness, and water/map
     classification still agree while basin-only water stays absent.
-  - [ ] **BH06 — Extract biome height functions.** Add named candidate functions
+  - [x] **BH06 — Extract biome height functions.** Add named candidate functions
     for Meadows, Elderwood, Shimmering Lakes, Mire, Tundra, and Mountains with
     output-preserving defaults and focused sampler coverage.
-  - [ ] **BH07 — Add validated preview controls.** Name and bound shared relief
+  - [x] **BH07 — Add validated preview controls.** Name and bound shared relief
     and biome controls in the regional tuning/preview path; keep production
     output unchanged until the corresponding shaping increment is integrated.
-  - [ ] **BH08 — Add the shared relief stack.** Sample broad, middle, and local
+  - [x] **BH08 — Add the shared relief stack.** Sample broad, middle, and local
     noise in absolute world coordinates with stable independent salts; keep
     climate/ecological Elevation separate and preserve deterministic cache and
     patch-edge behavior.
-  - [ ] **BH09 — Blend candidate heights continuously.** Use normalized existing
+  - [x] **BH09 — Blend candidate heights continuously.** Use normalized existing
     land-biome weights and continuous coast attenuation; avoid hard label
     switches, double-applied detail, and changes to classifier inputs/bands.
-  - [ ] **BH10 — Shape Meadows hills.** Add broad hills and hollows with the
-    bounded smooth upper-shoulder compression; compare trial settings against
-    the recorded profiles and preserve lower terrain and camp pockets.
-  - [ ] **BH11 — Add Meadows rolling relief.** Integrate the middle-scale layer
-    separately; inspect 30–70 m profiles, traversal slopes, patch seams, and
-    connected gentler routes.
-  - [ ] **BH12 — Add Meadows floor detail.** Integrate the local layer separately;
-    confirm it reads beneath vegetation without corrugation or lattice aliasing.
-  - [ ] **BH13 — Shape Elderwood.** Use the shared base plus bounded detail
-    without Meadows' compression curve; keep its stronger slopes/hollows and
-    expose this function as the Tundra reference.
-  - [ ] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
+  - [x] **BH10 — Shape Meadows hills.** Hill source behavior, sweep harness,
+    and fresh-source 4 m amplitude selection are complete; rendered acceptance
+    remains in BH26.
+    - [x] **BH10a — Integrate the hill layer and shoulder curve.** Add bounded,
+      deterministic broad Meadows hills with smooth upper-height compression;
+      retain the lower source shape and continuous biome/coast blend.
+    - [x] **BH10b1 — Add a reproducible Meadows hill profile sweep harness.**
+      Add fixed seed-418/419 100–250 m transects and a validated commandlet-only
+      hill-amplitude override to the numeric final-height/collision-slope
+      sampler; preserve default sampling when the override is absent. Provide a
+      runner that exports distinct 4/6/8 m trial CSVs and records the effective
+      trial so a stale binary fails visibly. Do not select final tuning here.
+  - [x] **BH11 — Add Meadows rolling relief.** Implementation, sweep harness and
+    fresh numeric 0.6 m amplitude selection are complete; rendered connected-
+    route acceptance remains in BH26.
+    - [x] **BH11a — Integrate the rolling layer.** Add the independently seeded
+      30–70 m Meadows noise to its candidate before shoulder compression; retain
+      continuous biome/coast blending and preserve lower pockets.
+    - [x] **BH11b — Add rolling profile acceptance harness.** Add fixed-seed
+      30–70 m height/slope transects, amplitude trials and patch-seam controls;
+      retain confirmed Z=0 river controls separately from dry-land metrics,
+      reject stale binaries, and defer numeric selection to BH25b1.
+  - [x] **BH12 — Add Meadows floor detail.** The integrated layer and
+    reproducible profile sweep harness are complete. BH25c selected the
+    measured 8 m / 0.1 m default; rendered under-vegetation acceptance remains BH26.
+    - [x] **BH12a — Integrate local Meadows floor detail.** Add the separately
+      seeded local signal at the BH25c-selected 8 m / 0.1 m settings, within the
+      documented 8–20 m / 0.1–0.35 m bounds, before shoulder compression.
+      Preserve continuous biome/coast blending, broad hills and rolling relief.
+    - [x] **BH12b — Add floor-detail profile harness.** Add fixed-seed local
+      profiles, lattice/aliasing metrics and validated commandlet-only scale /
+      amplitude overrides. Sweep 8/12/20 m by 0.1/0.2/0.3 m and reject stale
+      binaries; numeric selection is in BH25c and rendered acceptance is BH26.
+  - [x] **BH13 — Shape Elderwood.** The shared uncompressed candidate and its
+    profile sweep harness are complete. BH25b2 selected measured
+    broad/middle/local amplitudes of 4 / 0.6 / 0.1 m within trial ranges of
+    4–16 / 0.6–4 / 0.1–1 m; rendered profile acceptance remains BH26.
+    - [x] **BH13a — Integrate shared Elderwood relief.** Blend the shared
+      absolute-world stack plus bounded detail into Elderwood without applying
+      Meadows shoulder compression. Make Tundra call the Elderwood function
+      directly; preserve classifier inputs, distance bands and coast blending.
+      Add source-level parity, bounds, negative-coordinate and transition tests.
+    - [x] **BH13b — Add Elderwood/Tundra profile sweep harness.** Provide fixed
+      Elderwood and Tundra profile samples plus validated commandlet-only
+      broad/middle/local amplitude overrides. Reject stale binaries; BH25b2
+      selected measured defaults and rendered profile acceptance remains BH26.
+  - [x] **BH14 — Shape Shimmering Lakes.** Blend Meadows-like rounded shoulders,
     Elderwood relief, and compressed low pockets continuously, with no basin
     bowl or new perched water surface.
-  - [ ] **BH15 — Shape Mossy Mire.** Compress the shared base into a smooth narrow
-    lowland band with residual detail; retain positive source-land clearance
-    outside river corridors and avoid inverted ridges or an ocean-like flat.
-  - [ ] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
+    - [x] **BH14a — Integrate the Lakes terrain blend.** Mix existing Meadows
+      and Elderwood candidates, and add a smooth humidity/base-height lowland
+      compression independent of basin support. Add focused formula, weight-
+      continuity and disabled-basin tests; keep coefficients provisional.
+    - [x] **BH14b — Add the Lakes numeric profile harness.** Provide fixed
+      Lakes profiles and bounded commandlet-only overrides for blend share and
+      lowland controls. Reject stale binaries; leave measurement and numeric
+      selection to BH25d and rendered acceptance to BH26.
+  - [x] **BH15 — Shape Mossy Mire.** The source integration and stale-safe
+    numeric profile harness are complete with provisional bounded controls.
+    Numeric selection remains BH25e and rendered acceptance remains BH26.
+    - [x] **BH15a — Integrate the monotonic lowland candidate.** Soft-compress
+      shared source height toward a bounded lowland band with clipped residual
+      detail. Preserve positive source-land clearance outside river corridors,
+      continuous biome blending, river-last priority and disabled-basin behavior.
+      Add focused formula, deterministic blend, river override and dry former-
+      basin tests; keep all coefficients provisional.
+    - [x] **BH15b — Add the Mire numeric profile harness.** Add fixed seed-418/419
+      Mire transects, bounded commandlet-only controls and per-run effective
+      tuning logs that reject stale binaries. Export raw heights/slopes and
+      candidate diagnostics; do not select values here. Leave fresh-source
+      trials to BH25e and rendered acceptance to BH26.
+  - [x] **BH16 — Shape Freezing Tundra.** Reuse the Elderwood height function
     inside the existing outer eligibility band; confirm profile parity and
-    keep snow as presentation rather than a height offset.
-  - [ ] **BH17 — Shape Thunder Mountains.** Smoothly amplify only high base
-    terrain above a named threshold; bound fine detail and verify continuous
-    foothills instead of uniformly raising every mountain-labelled sample.
-  - [ ] **BH18 — Reapply priority river carving.** Run the existing channel after
-    biome relief and coast shaping; preserve Z=0 water, 80 cm bed depth,
-    1,800 cm bank extent, lake-disabled behavior, and shared render/collision/map
-    samples. Fix only demonstrated relief-caused bank/coast defects.
-  - [ ] **BH19 — Add independent forest factor.** Add a seeded world-space
-    placement signal separate from terrain detail and Flora; preserve candidate
-    ordinals/IDs and random independence across rejection and patch boundaries.
-  - [ ] **BH20 — Integrate Meadows forest suitability.** Use the shared descriptor
-    path for decorative and harvestable trees; gate by Flora, final slope, and
-    dry-ground suitability, preserving roots on collision and depletion,
-    suppression, late-join, and restart identity.
-  - [ ] **BH21 — Add Tundra forest participation.** Reuse the forest factor with
-    the planned reduced density; keep resource identity explicit and consistent
-    across rendering, harvesting, suppression, and persistence.
-  - [ ] **BH22 — Add eligible Lakes forest shoulders.** Reuse shared forest
-    placement only on suitable dry shoulders; reject wet ground and retain
-    existing resource/catalogue rules and bounded counts.
-  - [ ] **BH23 — Add terrain-driven ground presentation.** Blend existing
-    grass/soil/rock materials and fit existing decorative rocks using final
-    slope/moisture; add reeds only if matching original content already exists.
-  - [ ] **BH24 — Add cold-biome presentation.** Apply Tundra snow and Mountain
-    snow/storm visuals through existing materials/weather paths; retain
-    server-owned weather selection and add no damage, exposure, or shelter rule.
-  - [ ] **BH25 — Finalize tuning and contracts.** Select measured values, update
-    architecture/setup instructions and height previews with raw ranges, and
-    compare sampler, map, generation, active-patch, collision, and decoration
-    costs with BH01 baselines.
-  - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
-    combined change; run the applicable Editor build, regional/master-map/
-    finite-world/integrated/water checks, RegionalGeneration and Minimap peers,
-    forest/harvest lifecycle, and rendered traversal/start/build checks from
-    `docs/07-development-setup.md`. Repair regressions and rerun affected plus
-    required full checks; mark this goal complete only after required results
-    pass and all remaining limitations are recorded.
+    keep snow as presentation rather than a height offset. Source-level
+    parity coverage is in BH13a; numeric profile confirmation was measured in BH25b2,
+    snow presentation remains BH24, and rendered acceptance remains BH26.
+  - [x] **BH17 — Shape Thunder Mountains.** `ShapeMountains` now amplifies only
+    source height above a 1,000 cm threshold, ramps gain smoothly over 1,000 cm,
+    and scales the added gain by the continuous Mountain region field. Fine
+    detail is clamped to ±1 at a provisional 80 cm amplitude; validated preview
+    ranges bound the threshold, blend distance, gain and detail. Focused source
+    coverage checks sub-threshold preservation, bounded detail, threshold
+    continuity, monotonic foothills and the fixed Tundra/Mountain transition.
+    Rendered acceptance remains BH26.
+  - [x] **BH18 — Reapply priority river carving.** Confirmed the existing
+    channel runs after biome candidate relief and source-coast shaping. Focused
+    high-ground and two-bank regressions compare the final sample with its
+    post-relief no-course baseline; profile assertions preserve Z=0 water, the
+    80 cm bed and 1,800 cm bank extent. Coast controls and seam coverage protect
+    shared consumers. BH25b2 later found and repaired a relief-caused bank
+    water regression at a fixed source-land control; rendered acceptance
+    remains BH26.
+  - [x] **BH19 — Add independent forest factor.** Shared forest descriptors now
+    carry a normalized absolute-world noise sample from a separate seed domain
+    at a provisional 48,000 cm scale. It is independent of terrain detail and
+    Flora and consumes no candidate-stream draws. Candidate counts, positions,
+    ordinals and IDs remain unchanged; suitability gating remains BH20.
+  - [x] **BH20 — Integrate Meadows forest suitability.** Use the shared descriptor
+    path for decorative and harvestable trees; gate by Flora, forest factor,
+    final slope, and dry-ground suitability while preserving collision and
+    harvest lifecycle identity.
+    - [x] **BH20a — Apply Meadows Flora suitability.** The shared layout now
+      uses the existing Flora probability curve for Meadow candidates with a
+      stable patch/ordinal roll after existing candidate draws. Both decorative
+      and harvestable paths see the same filtering; later draws, original
+      ordinals and IDs are preserved.
+    - [x] **BH20b — Apply forest-factor patchiness.** Meadow admission
+      probability now multiplies the existing Flora probability by the
+      independent absolute-world factor and compares a stable world/patch/
+      original-ordinal threshold. Low-factor areas become clearings; candidate
+      limits, patch continuity and Elderwood behavior remain unchanged.
+    - [x] **BH20c — Gate on final terrain slope.** Meadows descriptors now pass
+      the shared final-surface normal-Z floor of 0.88 before admission. The gate
+      affects both decorative and harvestable trees while retaining final-height
+      roots, Elderwood behavior and stable candidate identity.
+    - [x] **BH20d — Gate on dry-ground suitability.** Meadows descriptors now
+      reject final regional water and wet/invalid ocean samples on the explicit
+      patch collision lattice. The final regional sample also supplies root
+      height; original ordinals, IDs, basin policy and lifecycle consumers stay
+      unchanged. Focused helper and identity coverage was added; full integrated
+      acceptance remains in BH26.
+  - [x] **BH21 — Add Tundra forest participation.** Reuse the forest factor
+    with reduced density; keep resource identity explicit and consistent across
+    rendering, harvesting, suppression, and persistence. BH21a–BH21c are complete.
+    - [x] **BH21a — Make forest tree kind explicit.** Shared descriptors now
+      use explicit Meadows birch, Meadows aspen, Elderwood ironheart and
+      Freezing Tundra birch kinds. Existing renderer and harvest consumers use
+      the kind contract; Tundra birch maps to the existing Meadows birch source
+      and presentation. Current placements, appearance, sources and random
+      draws are unchanged.
+    - [x] **BH21b — Add reduced-density Tundra forest candidates.** Existing
+      Tundra-classified candidates use the Flora curve, absolute-world factor
+      and stable patch/ordinal threshold with provisional 0.85 density. They
+      use the explicit Tundra Birch kind and existing Birch source/presentation.
+      Tundra appearance draws use a separate patch/candidate stream, preserving
+      the Meadow/Elderwood candidate stream, counts and IDs; BH25 finalizes the
+      multiplier and BH21c proves lifecycle behavior.
+    - [x] **BH21c — Verify Tundra forest identity and lifecycle.** Focused
+      Tundra Birch fixtures now trace the shared descriptor kind and persistent
+      candidate ID through server materialization, original-ordinal cosmetic
+      suppression, sparse depletion and patch reconstruction. The process
+      restart fixture now persists and reloads Tundra identities. Late-join
+      delivery uses the same descriptors and checks source, ID, suppression,
+      replicated transform and stage; integrated peer acceptance remains BH26.
+  - [x] **BH22 — Add eligible Lakes forest shoulders.** Shared forest placement
+    now admits only Shimmering Lakes-classified Birch candidates, reuses the
+    existing 18-ordinal lowland cap and resource/presentation, and applies the
+    stable Flora/forest-factor roll. Final slope and regional/collision-lattice
+    water checks restrict placement to suitable dry shoulders without changing
+    candidate positions, existing identities or the shared descriptor path.
+  - [x] **BH23 — Add terrain-driven ground presentation.** Slope/moisture
+    vertex weights now drive the grass/soil/rock terrain material blend, and
+    decorative Meadow rocks fit the final surface. Material package generation
+    and rendered acceptance remain in BH26. No cosmetic reeds are planned
+    without a matching original visual asset.
+    - [x] **BH23a — Fit decorative Meadow rocks to final terrain.** Keep the
+      existing 48 deterministic patch candidates, positions, dimensions and
+      random draws; place rock bases at the shared final height and align them
+      to the final sampled surface normal. Rocks remain cosmetic and
+      collision-free.
+    - [x] **BH23b — Blend terrain ground materials by slope and moisture.**
+      Terrain vertex colors carry normalized grass, soil and rock weights from
+      final surface slope, world humidity and final regional water state. The
+      existing material generator now updates `M_GeneratedTerrain` to blend the
+      established grass and rock colors with a new original muted
+      `M_GeneratedSoil` material; it adds no grass or reed asset. The Editor-
+      generated material packages and rendered result remain for BH26.
+  - [x] **BH24 — Add cold-biome presentation.** BH24a–BH24c are complete;
+    rendered acceptance remains BH26.
+    - [x] **BH24a — Add Tundra snow coverage.** Use continuous Tundra biome
+      weight and the final terrain slope in the snow mask of the existing
+      generated terrain material. Preserve RGB grass/soil/rock weights and the
+      existing player-cloth palette; do not change terrain height, weather
+      authority or gameplay behavior.
+    - [x] **BH24b — Add Mountain snow coverage.** Extend the existing snow
+      mask with continuous Mountain weight, final terrain height and slope;
+      snow fades in above the named highland threshold. Preserve foothill
+      height, Tundra coverage, RGB ground weights and player-cloth palette.
+    - [x] **BH24c — Add Mountain storm presentation.** Fade a client-local cool
+      fog visual from replicated storm intensity multiplied by the continuous
+      Mountain weight at the local player; do not add exposure, damage, shelter
+      mechanics, RPCs or replicated fields.
+  - [x] **BH25 — Finalize tuning and contracts.** Fresh-source numeric
+    selections and cost contracts BH25a–BH25e are complete; rendered
+    acceptance remains in BH26.
+    - [x] **BH25a — Run BH10b1 Meadows hill sweep.** Fresh-source 4/6/8 m
+      trials were compared with all 28 BH01 fixed sites and eight 100–250 m
+      transects; 4 m was selected and measured ranges/slopes were recorded.
+    - [x] **BH25b — Finalize rolling/Elderwood relief tuning and contracts.**
+      BH25b1–BH25b3 are complete: selected numeric defaults, raw profile ranges,
+      fixed-site comparisons and cost/budget evidence are recorded. Integrated
+      generation/collision timing and rendered acceptance remain in BH26.
+      - [x] **BH25b1 — Select Meadows rolling relief.** Run fresh-source
+        0.6/1.2/1.8 m trials and all 28 BH01 fixed sites, select the smallest
+        accepted amplitude and record 30/45/70 m ranges, slopes, river controls
+        and patch-seam results. The 0.6 m setting is selected.
+      - [x] **BH25b2 — Select shared Elderwood/Tundra relief.** Ran fresh-source
+        low/nominal/high broad, middle and local amplitudes one layer at a time,
+        exercised each trial bound, compared BH01 profiles/slopes, confirmed
+        exact Tundra candidate parity, and selected the smallest accepted
+        measured defaults: 4 / 0.6 / 0.1 m. The sweep caught and repaired a
+        relief-caused wet river-bank sample and the fixed 1 cm coast shelf;
+        numeric measurements and remaining render limits are recorded in the
+        biome-height plan.
+      - [x] **BH25b3 — Aggregate terrain tuning and cost contracts.** Updated
+        architecture/setup and height-preview documentation with raw ranges;
+        compared current sampler/map timings and fixed patch, active-streaming,
+        collision and decoration budgets with BH01 evidence. No fixed mesh/map
+        payload or candidate-loop budget grew; unavailable BH01 generation and
+        collision timings remain explicitly assigned to BH26. BH25b is closed.
+    - [x] **BH25c — Run Meadows floor-detail trials.** Freshly rebuilt the
+      current-source Editor and ran all nine 8/12/20 m by 0.1/0.2/0.3 m trials.
+      The smallest numerically resolved setting, 8 m / 0.1 m, sampled at 6.4
+      points per 125 cm lattice interval; its maximum adjacent floor input step
+      was 2.765 cm, fixed-site water/biome state matched current source, and
+      maximum final/collision seam deltas were 0.026 / 0.028 cm. Raw profiles
+      and comparisons are in `docs/meadows-plan.md`. Rendered readability and
+      under-vegetation acceptance remain BH26.
+    - [x] **BH25d — Run Shimmering Lakes profile trials.** The current-source
+      BH14b mirror ran all 12 one-control trials against the fixed 44 samples.
+      The measured center settings remain selected: Meadow share 0.50, floor
+      200 cm, ceiling 1,200 cm and compression 0.20. All trials preserved
+      water/course state, biome labels and weights, with zero basin weight; the
+      nominal output's 44-sample nearest-rank slope p50/p90/p95/max was
+      0.907/13.286/18.073/23.543 degrees. Raw profile ranges, monotonic checks,
+      and BH01 center comparisons are recorded in
+      `docs/biome-height-rework.md`. Rendered
+      shoreline/traversal acceptance remains BH26.
+    - [x] **BH25e — Run Mossy Mire profile trials.** The source-matched BH15b
+      mirror ran all nine one-control trials over 252 samples. Retained the
+      measured nominal settings: 300 cm target, 700 cm compression scale and
+      25 cm residual detail. All variants preserved the nominal 50 wet samples,
+      water coverage and active river/basin fields; none added wet terrain. The
+      minimum positive source-land clearance was 19.538 cm, and the lowland
+      curve passed 180,000 monotonic comparisons across every target/scale
+      pairing. Raw ranges and BH01 comparisons are in
+      `docs/biome-height-rework.md`; rendered acceptance remains BH26.
+  - [x] **BH26 — Run final integrated verification and repair.** The Editor
+    build, world and water automation, RegionalGeneration/Minimap peers, forest
+    lifecycle/restart, material generation, and rendered traversal acceptance
+    passed 2026-10-26. Results and remaining limits are in `PROGRESS.md`.
 
 ### Monster population and camp spawn suppression — user request, 2026-10-22
 

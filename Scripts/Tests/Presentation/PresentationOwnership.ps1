@@ -33,6 +33,7 @@ $requiredAssets = @(
     'Content\Kalmala\World\Materials\M_GeneratedCanopy.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedLakeShore.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedRock.uasset',
+    'Content\Kalmala\World\Materials\M_GeneratedSoil.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedTerrain.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedTerrainBiomeDebug.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedWater.uasset'
@@ -52,7 +53,8 @@ $sourceContracts = @(
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },
     @{ Label = 'player'; Path = 'Source\KalmalaGameplay\Private\KalmalaPlayerModelComponent.cpp'; Patterns = @('M_GeneratedTerrain', 'bTapered', 'CreateMeshSection_LinearColor') },
     @{ Label = 'wildlife'; Path = 'Source\KalmalaGameplay\Private\KalmalaWildlifeSpawn.cpp'; Patterns = @('BuildArchetypePresentation', 'Original low-poly silhouettes', 'CreateMeshSection_LinearColor') },
-    @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'M_GeneratedTerrain', 'M_GeneratedWater', 'M_GeneratedCanopy') },
+    @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'M_GeneratedTerrain', 'FKalmalaTerrainGroundBlend::SampleWeights', 'M_GeneratedWater', 'M_GeneratedCanopy') },
+    @{ Label = 'terrain-ground-materials'; Path = 'Source\KalmalaEditor\Private\CreateWorldMaterialsCommandlet.cpp'; Patterns = @('CreateTerrainGroundBlendMaterial', 'M_GeneratedSoil', 'TerrainSoilColor', 'UMaterialExpressionVertexColor') },
     @{ Label = 'hearth'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('Original low polygon stone ring', 'M_GeneratedRock', 'CreateMeshSection_LinearColor') },
     @{ Label = 'campfire-refuel-interaction'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, Costs, Reason)', 'FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem', 'TryRefuelFromServer(Interactor)', 'bool AKalmalaCampfire::TryLightFromServer') },
     @{ Label = 'campfire-refuel-prompt'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('OutDescription.ActionName = TEXT("Add fuel")', 'TEXT("Fuel full")', 'TEXT("No raw fuel")', 'FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, FuelCost, FuelReason)') },

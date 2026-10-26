@@ -5,7 +5,9 @@
 #include "KalmalaBiomeClassifier.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaRegionalGeneration.h"
 #include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaTerrainGroundBlend.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaWorldBounds.h"
@@ -58,25 +60,35 @@ namespace KalmalaGeneratedTerrainPatch
     }
     static void AppendLowPolyRock(
         TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FLinearColor>& VertexColors, TArray<FProcMeshTangent>& Tangents,
-        const FVector Center, const float Radius, const float Height, const float YawDegrees)
+        const FVector Center, const float Radius, const float Height, const float YawDegrees, const FVector& SurfaceNormal)
     {
         constexpr int32 SideCount = 6;
+        const FVector Up = FVector::UpVector;
+        const FVector Normal = SurfaceNormal.GetSafeNormal(SMALL_NUMBER, Up);
+        const FQuat AlignToSurface = FQuat::FindBetweenNormals(Up, Normal);
+        const FQuat RockRotation = FQuat(Normal, FMath::DegreesToRadians(YawDegrees)) * AlignToSurface;
         const int32 FirstVertex = Vertices.Num();
         for (int32 SideIndex = 0; SideIndex < SideCount; ++SideIndex)
         {
-            const float Angle = FMath::DegreesToRadians(YawDegrees + 360.0f * SideIndex / SideCount);
+            const float Angle = FMath::DegreesToRadians(360.0f * SideIndex / SideCount);
             const float RadiusScale = SideIndex % 2 == 0 ? 1.0f : 0.76f;
-            Vertices.Add(Center + FVector(FMath::Cos(Angle) * Radius * RadiusScale, FMath::Sin(Angle) * Radius * RadiusScale, 0.0f));
-            Normals.Add(FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.45f).GetSafeNormal());
+            const FVector RingOffset(FMath::Cos(Angle) * Radius * RadiusScale,
+                FMath::Sin(Angle) * Radius * RadiusScale, 0.0f);
+            Vertices.Add(Center + RockRotation.RotateVector(RingOffset));
+            Normals.Add(RockRotation.RotateVector(
+                FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.45f).GetSafeNormal()).GetSafeNormal());
             UVs.Add(FVector2D(static_cast<float>(SideIndex) / SideCount, 0.0f));
             VertexColors.Add(FLinearColor(0.26f, 0.29f, 0.25f));
-            Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+            const FVector Tangent = AlignToSurface.RotateVector(FVector(1.0f, 0.0f, 0.0f));
+            Tangents.Add(FProcMeshTangent(Tangent.X, Tangent.Y, Tangent.Z));
         }
-        const int32 ApexVertex = Vertices.Add(Center + FVector(Radius * 0.12f, -Radius * 0.08f, Height));
-        Normals.Add(FVector::UpVector);
+        const FVector ApexOffset(Radius * 0.12f, -Radius * 0.08f, Height);
+        const int32 ApexVertex = Vertices.Add(Center + AlignToSurface.RotateVector(ApexOffset));
+        Normals.Add(AlignToSurface.RotateVector(Up));
         UVs.Add(FVector2D(0.5f, 1.0f));
         VertexColors.Add(FLinearColor(0.30f, 0.33f, 0.28f));
-        Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+        const FVector ApexTangent = AlignToSurface.RotateVector(FVector(1.0f, 0.0f, 0.0f));
+        Tangents.Add(FProcMeshTangent(ApexTangent.X, ApexTangent.Y, ApexTangent.Z));
         for (int32 SideIndex = 0; SideIndex < SideCount; ++SideIndex)
         {
             const int32 NextIndex = (SideIndex + 1) % SideCount;
@@ -86,12 +98,13 @@ namespace KalmalaGeneratedTerrainPatch
 
     static void AppendTaperedTree(
         TArray<FVector>& Vertices, TArray<int32>& Triangles, TArray<FVector>& Normals, TArray<FVector2D>& UVs, TArray<FLinearColor>& VertexColors, TArray<FProcMeshTangent>& Tangents,
-        const FVector BaseCenter, const float TrunkRadius, const float TrunkHeight, const float CanopyRadius, const float CanopyHeight, const float YawDegrees, const bool bAspen,
+        const FVector BaseCenter, const float TrunkRadius, const float TrunkHeight, const float CanopyRadius, const float CanopyHeight, const float YawDegrees, const EKalmalaForestTreeKind TreeKind,
         TArray<FVector>& CanopyVertices, TArray<int32>& CanopyTriangles, TArray<FVector>& CanopyNormals, TArray<FVector2D>& CanopyUVs, TArray<FLinearColor>& CanopyColors, TArray<FProcMeshTangent>& CanopyTangents)
     {
         constexpr int32 SideCount = 6;
         const int32 TrunkFirstVertex = Vertices.Num();
         const int32 CanopyFirstVertex = CanopyVertices.Num();
+        const bool bAspen = TreeKind == EKalmalaForestTreeKind::MeadowsAspen;
         const FLinearColor BarkBase = bAspen ? FLinearColor(0.58f, 0.55f, 0.48f) : FLinearColor(0.18f, 0.12f, 0.08f);
         const FLinearColor BarkTop = bAspen ? FLinearColor(0.68f, 0.64f, 0.56f) : FLinearColor(0.22f, 0.15f, 0.10f);
         const FLinearColor LeafSide = bAspen ? FLinearColor(0.35f, 0.48f, 0.19f) : FLinearColor(0.16f, 0.31f, 0.17f);
@@ -283,7 +296,7 @@ void AKalmalaGeneratedTerrainPatch::Initialize(const FKalmalaWorldGenerationConf
     }
     if (BuildMeadowTrees())
     {
-        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic Meadow/Elderwood trees and roots."), MeadowTreeCount);
+        UE_LOG(LogTemp, Display, TEXT("Server built %d deterministic forest trees and roots."), MeadowTreeCount);
     }
     ForceNetUpdate();
 }
@@ -341,7 +354,7 @@ void AKalmalaGeneratedTerrainPatch::OnRep_GenerationData()
         }
         if (BuildMeadowTrees())
         {
-            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic Meadow/Elderwood trees and roots from the replicated patch descriptor."), MeadowTreeCount);
+            UE_LOG(LogTemp, Display, TEXT("Client built %d deterministic forest trees and roots from the replicated patch descriptor."), MeadowTreeCount);
         }
     }
 }
@@ -370,6 +383,7 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
     VertexColors.Reserve(VerticesPerSide * VerticesPerSide);
     Tangents.Reserve(VerticesPerSide * VerticesPerSide);
     Triangles.Reserve(KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide * 6);
+    const bool bBiomeDebug = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug"));
 
     for (int32 GridY = 0; GridY < VerticesPerSide; ++GridY)
     {
@@ -378,13 +392,20 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
         {
             const float X = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide);
             const FVector2D SamplePosition = PatchCenter + FVector2D(X, Y);
-            const float Height = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition);
+            const FKalmalaRegionalSample FinalSurface = FKalmalaRegionalGeneration::Sample(WorldGenerationConfig, SamplePosition);
+            const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition);
 
-            Vertices.Add(FVector(X, Y, Height));
-            Normals.Add(FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition));
+            Vertices.Add(FVector(X, Y, FinalSurface.Height));
+            Normals.Add(SurfaceNormal);
             UVs.Add(FVector2D(static_cast<float>(GridX) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide, static_cast<float>(GridY) / KalmalaGeneratedTerrainPatch::SurfaceCellsPerSide));
-            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, SamplePosition));
-            VertexColors.Add(FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug")) ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome) : FLinearColor::White);
+            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(Fields);
+            VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
+                : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z,
+                    FinalSurface.bHasWater ? 1.0f : Fields.Humidity,
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)],
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::ThunderMountains)],
+                    FinalSurface.Height));
             Tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
         }
     }
@@ -409,10 +430,17 @@ bool AKalmalaGeneratedTerrainPatch::BuildVisualSurface()
         for (const FVector& V : Vertices)
         {
             const FVector2D P = PatchCenter + FVector2D(V);
-            Normals.Add(FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, P));
+            const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, P);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, P);
+            const FKalmalaRegionalSample FinalSurface = FKalmalaRegionalGeneration::Sample(Fields);
+            Normals.Add(SurfaceNormal);
             UVs.Add((FVector2D(V) + FVector2D(HalfSurfaceSize)) / (HalfSurfaceSize * 2));
-            const auto Biome = FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, P));
-            VertexColors.Add(FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeDebug")) ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome) : FLinearColor::White);
+            const auto Biome = FKalmalaBiomeClassifier::Classify(Fields);
+            VertexColors.Add(bBiomeDebug ? KalmalaGeneratedTerrainPatch::GetBiomeDebugColor(Biome)
+                : FKalmalaTerrainGroundBlend::SampleWeights(SurfaceNormal.Z, Fields.Humidity,
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::FreezingTundra)],
+                    FinalSurface.Weights[static_cast<uint8>(EKalmalaBiome::ThunderMountains)],
+                    FinalSurface.Height));
             Tangents.Add(FProcMeshTangent(1, 0, 0));
         }
     }
@@ -481,7 +509,8 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowRocks()
         KalmalaGeneratedTerrainPatch::AppendLowPolyRock(
             Vertices, Triangles, Normals, UVs, VertexColors, Tangents,
             FVector(LocalPosition.X, LocalPosition.Y, FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, SamplePosition)),
-            RockRadius, RockHeight, RandomStream.FRandRange(0.0f, 360.0f));
+            RockRadius, RockHeight, RandomStream.FRandRange(0.0f, 360.0f),
+            FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, SamplePosition));
         ++MeadowRockCount;
     }
 
@@ -521,9 +550,9 @@ bool AKalmalaGeneratedTerrainPatch::BuildMeadowTrees()
         KalmalaGeneratedTerrainPatch::AppendTaperedTree(
             TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents,
             LocalPosition, Tree.TrunkRadius, Tree.TrunkHeight, Tree.CanopyRadius, Tree.CanopyHeight, Tree.Yaw,
-            Tree.bAspen,
+            Tree.TreeKind,
             CanopyVertices, CanopyTriangles, CanopyNormals, CanopyUVs, CanopyColors, CanopyTangents);
-        if (Tree.bElderwood)
+        if (Tree.TreeKind == EKalmalaForestTreeKind::ElderwoodIronheart)
         {
             KalmalaGeneratedTerrainPatch::AppendRootButtresses(TrunkVertices, TrunkTriangles, TrunkNormals, TrunkUVs, TrunkColors, TrunkTangents, LocalPosition, Tree.TrunkRadius, Tree.Yaw);
         }

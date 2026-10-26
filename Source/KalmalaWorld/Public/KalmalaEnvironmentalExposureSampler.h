@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaOceanSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 
 /** Continuous, server-consumed environmental inputs for pawn exposure. */
@@ -22,6 +23,12 @@ struct KALMALAWORLD_API FKalmalaEnvironmentalExposureSampler
 {
     static constexpr float ShorelineProbeDistance = 400.0f;
 
+    static bool IsSurfaceWaterAt(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
+    {
+        return FKalmalaOceanSampler::Sample(Config, Position).IsWater()
+            || FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+    }
+
     static FKalmalaEnvironmentalExposureSample Sample(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
     {
         const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
@@ -34,12 +41,12 @@ struct KALMALAWORLD_API FKalmalaEnvironmentalExposureSampler
         Result.RidgeExposure = FMath::SmoothStep(0.54f, 0.84f, Fields.Elevation);
         const float LowGroundWetness = FMath::SmoothStep(700.0f, -200.0f, TerrainHeight);
 
-        const bool bWaterAtPosition = FKalmalaShimmeringLakeSampler::IsWater(Config, Position);
+        const bool bWaterAtPosition = IsSurfaceWaterAt(Config, Position);
         const bool bWaterNearby = bWaterAtPosition
-            || FKalmalaShimmeringLakeSampler::IsWater(Config, Position + FVector2D(ShorelineProbeDistance, 0.0f))
-            || FKalmalaShimmeringLakeSampler::IsWater(Config, Position - FVector2D(ShorelineProbeDistance, 0.0f))
-            || FKalmalaShimmeringLakeSampler::IsWater(Config, Position + FVector2D(0.0f, ShorelineProbeDistance))
-            || FKalmalaShimmeringLakeSampler::IsWater(Config, Position - FVector2D(0.0f, ShorelineProbeDistance));
+            || IsSurfaceWaterAt(Config, Position + FVector2D(ShorelineProbeDistance, 0.0f))
+            || IsSurfaceWaterAt(Config, Position - FVector2D(ShorelineProbeDistance, 0.0f))
+            || IsSurfaceWaterAt(Config, Position + FVector2D(0.0f, ShorelineProbeDistance))
+            || IsSurfaceWaterAt(Config, Position - FVector2D(0.0f, ShorelineProbeDistance));
 
         Result.bIsShoreline = bWaterNearby;
         Result.ShorelineWetness = bWaterAtPosition ? 1.0f : (bWaterNearby ? 0.65f : 0.0f);

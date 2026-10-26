@@ -6,6 +6,55 @@
 struct FKalmalaRegionalTuning
 {
     static constexpr double BiomeScale = 60000.0;
+    // Biome-height experiments in centimetres. Shared relief scales and salts
+    // feed derived terrain candidates; Meadows controls feed their wired layers.
+    static constexpr double ReliefBroadScale = 100000.0;
+    static constexpr double ReliefMiddleScale = 15000.0;
+    static constexpr double ReliefLocalScale = 3000.0;
+    // Stable, independent domains for the derived terrain-relief stack.
+    static constexpr uint64 ReliefBroadSalt = 0x4B414C4D414C4101ull;
+    static constexpr uint64 ReliefMiddleSalt = 0x4B414C4D414C4102ull;
+    static constexpr uint64 ReliefLocalSalt = 0x4B414C4D414C4103ull;
+    static constexpr uint64 MeadowHillSalt = 0x4B414C4D414C4104ull;
+    static constexpr uint64 MeadowRollingSalt = 0x4B414C4D414C4105ull;
+    static constexpr uint64 MeadowFloorSalt = 0x4B414C4D414C4106ull;
+    static constexpr double MeadowHillScale = 16000.0;
+    static constexpr double MeadowHillAmplitude = 400.0;
+    static constexpr double MeadowShoulderHeight = 1000.0;
+    static constexpr double MeadowShoulderCompressionScale = 3000.0;
+    static constexpr double MeadowRollingScale = 4500.0;
+    static constexpr double MeadowRollingAmplitude = 60.0;
+    static constexpr double MeadowFloorScale = 800.0;
+    static constexpr double MeadowFloorAmplitude = 10.0;
+    // Separate world-space forest placement domain; suitability remains a later gate.
+    static constexpr uint64 ForestFactorSalt = 0x4B414C4D414C4107ull;
+    static constexpr double ForestFactorScale = 48000.0;
+    // Independent stable threshold domain for forest candidate acceptance.
+    static constexpr uint64 ForestCandidateGateSalt = 0x4B414C4D414C4108ull;
+    // Independent per-patch/candidate stream for Tundra tree appearance; never advances candidate positions.
+    static constexpr uint64 ForestCandidateGeometrySalt = 0x4B414C4D414C4109ull;
+    // Provisional density relative to the existing forest Flora curve; BH25 finalizes this trial.
+    static constexpr float FreezingTundraForestDensityMultiplier = 0.85f;
+    // BH25b2-selected shared Elderwood/Tundra relief amplitudes, centimetres.
+    static constexpr double ElderwoodBroadAmplitude = 400.0;
+    static constexpr double ElderwoodMiddleAmplitude = 60.0;
+    static constexpr double ElderwoodLocalAmplitude = 10.0;
+    // Provisional Shimmering Lakes shoulder/low-pocket trials, centimetres
+    // except for the unitless blend share and compression fraction.
+    static constexpr double ShimmeringLakesMeadowShare = 0.50;
+    static constexpr double ShimmeringLakesLowlandFloor = 200.0;
+    static constexpr double ShimmeringLakesLowlandCeiling = 1200.0;
+    static constexpr double ShimmeringLakesLowlandCompression = 0.20;
+    // Provisional Mossy Mire soft-compression trials, centimetres. These
+    // retain a positive coast floor while reducing source-height variation.
+    static constexpr double MireTargetHeight = 300.0;
+    static constexpr double MireCompressionScale = 700.0;
+    static constexpr double MireResidualDetailAmplitude = 25.0;
+    // Provisional Thunder Mountains highland shaping, centimetres except gain.
+    static constexpr double MountainHighlandThreshold = 1000.0;
+    static constexpr double MountainHighlandBlendRange = 1000.0;
+    static constexpr double MountainHighlandGain = 0.4;
+    static constexpr double MountainDetailAmplitude = 80.0;
     static constexpr double ElevationFrequency = 1.0 / 100000.0;
     static constexpr double ClimateFrequency = 1.0 / 150000.0;
     static constexpr double LocalReliefFrequency = 0.00035;
@@ -23,12 +72,15 @@ struct FKalmalaRegionalTuning
     static constexpr double RiverRange = 28000.0;
     static constexpr double RiverBedDepth = 80.0; // Positive depth below water, cm.
     static constexpr double RiverBankExtent = 1800.0; // Bank shoulder beyond channel width, cm.
+    // Smooth source-land sign transition, centimetres; shrinks to zero at the coast.
+    static constexpr double CoastSignTransitionScale = 300.0;
     static constexpr double SplineAmplitude = 1200.0;
     static constexpr double SplineWavelength = 10000.0;
     static constexpr double SplineStep = 250.0;
     static constexpr double GridCell = 6000.0;
     static constexpr int32 HydrologyCacheCells = 256;
     static constexpr double BasinSpacing = 40000.0;
+    static constexpr bool bEnableAnalyticBasins = false;
     static constexpr float SeaElevation = 0.22f;
     static constexpr float MountainElevation = 0.78f;
     // Hard eligibility distances from world zero, centimetres.

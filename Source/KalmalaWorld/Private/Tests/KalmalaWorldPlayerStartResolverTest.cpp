@@ -6,6 +6,7 @@
 #include "KalmalaEnvironmentalExposureSampler.h"
 #include "KalmalaShelterSampler.h"
 #include "KalmalaShimmeringLakeSampler.h"
+#include "KalmalaOceanSampler.h"
 #include "KalmalaShelterSampler.h"
 #include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaTerrainPatchLayout.h"
@@ -97,6 +98,7 @@ bool FKalmalaShimmeringLakeCoverageTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;
+    TestFalse(TEXT("Compiled analytic-basin policy is disabled"), FKalmalaShimmeringLakeSampler::bEnabled);
     int32 LakeWaterSampleCount = 0;
     for (int32 Y = -800000; Y <= 800000; Y += 8000)
     {
@@ -106,7 +108,21 @@ bool FKalmalaShimmeringLakeCoverageTest::RunTest(const FString& Parameters)
         }
     }
 
-    TestTrue(TEXT("The shared fields contain deterministic Shimmering Lakes water samples"), LakeWaterSampleCount > 0);
+    TestEqual(TEXT("Disabled analytic basins produce no Shimmering Lakes water samples"), LakeWaterSampleCount, 0);
+    const FVector2D FormerBasinSample(100830.5f, -143038.6f);
+    TestFalse(TEXT("Disabled analytic basins do not remain active at a former basin"), FKalmalaShimmeringLakeSampler::IsWater(Config, FormerBasinSample));
+    const bool bOceanWaterAtPosition = FKalmalaOceanSampler::Sample(Config, FormerBasinSample).IsWater();
+    const bool bOceanWaterNearby = bOceanWaterAtPosition
+        || FKalmalaOceanSampler::Sample(Config, FormerBasinSample + FVector2D(400.0f, 0.0f)).IsWater()
+        || FKalmalaOceanSampler::Sample(Config, FormerBasinSample - FVector2D(400.0f, 0.0f)).IsWater()
+        || FKalmalaOceanSampler::Sample(Config, FormerBasinSample + FVector2D(0.0f, 400.0f)).IsWater()
+        || FKalmalaOceanSampler::Sample(Config, FormerBasinSample - FVector2D(0.0f, 400.0f)).IsWater();
+    const FKalmalaEnvironmentalExposureSample Exposure = FKalmalaEnvironmentalExposureSampler::Sample(Config, FormerBasinSample);
+    TestEqual(TEXT("Former basin shoreline status follows active ocean water only"), Exposure.bIsShoreline, bOceanWaterNearby);
+    TestEqual(
+        TEXT("Disabled analytic basins add no shoreline wetness beyond active ocean water"),
+        Exposure.ShorelineWetness,
+        bOceanWaterAtPosition ? 1.0f : (bOceanWaterNearby ? 0.65f : 0.0f));
     return true;
 }
 
@@ -352,7 +368,7 @@ bool FKalmalaEnvironmentalExposureSamplerTest::RunTest(const FString& Parameters
     }
 
     TestTrue(TEXT("Continuous terrain supplies low humid ground with increased wetness"), bFoundLowWetGround);
-    TestTrue(TEXT("Lake adjacency supplies shoreline wetness without a biome zone"), bFoundShoreline);
+    TestTrue(TEXT("Ocean or active lake adjacency supplies shoreline wetness without a biome zone"), bFoundShoreline);
     TestTrue(TEXT("Exposed ridges can produce substantial wind exposure"), HighestRidgeWind >= 0.45f);
     TestTrue(TEXT("Dense natural cover reduces wind exposure compared with open ground"), LowestCoveredWind < HighestOpenWind);
     return true;
@@ -408,7 +424,7 @@ bool FKalmalaCampConditionSamplerTest::RunTest(const FString& Parameters)
         LowestWetness, HighestWetness, LowestCover, HighestCover, NearestWater, FarthestWater, LowestResources, HighestResources));
     TestTrue(TEXT("Freely sampled camp ground has meaningful wetness variation"), HighestWetness - LowestWetness >= 0.30f);
     TestTrue(TEXT("Freely sampled camp ground has meaningful natural-cover variation"), HighestCover - LowestCover >= 0.30f);
-    TestTrue(TEXT("Freely sampled camp ground has both near and distant water"), NearestWater < FarthestWater);
+    TestTrue(TEXT("Freely sampled camp ground has both near and distant surface water"), NearestWater < FarthestWater);
     TestTrue(TEXT("Freely sampled camp ground has different nearby harvest-resource availability"), LowestResources < HighestResources);
     return true;
 }
@@ -442,6 +458,14 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaShimmeringLakesSliceTest, "Kalmala.Worl
 bool FKalmalaShimmeringLakesSliceTest::RunTest(const FString& Parameters)
 {
     const FKalmalaWorldGenerationConfig Config{418ull};
+    if (!FKalmalaShimmeringLakeSampler::bEnabled)
+    {
+        FKalmalaBiomeDiscoveryCandidate Discovery;
+        TestFalse(TEXT("Disabled analytic basins do not create a water-adjacent lake discovery"),
+            FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(Config, FIntPoint(-29, 14), Discovery));
+        TestTrue(TEXT("Disabled lake discovery leaves its output empty"), Discovery.StableId.IsEmpty());
+        return true;
+    }
     bool bFoundLakeEdgeDiscovery = false;
     for (int32 Y = -160; Y <= 160 && !bFoundLakeEdgeDiscovery; ++Y)
     {
@@ -610,6 +634,15 @@ bool FKalmalaBiomeExpansionIntegratedScenarioTest::RunTest(const FString& Parame
         TestTrue(TEXT("Different seed produces visible field variation"), bFoundDifferentSeedVariation);
         for (const EKalmalaBiome Biome : LandBiomes)
         {
+            if (Biome == EKalmalaBiome::ShimmeringLakes && !FKalmalaShimmeringLakeSampler::bEnabled)
+            {
+                FKalmalaBiomeDiscoveryCandidate HostDiscovery, ClientDiscovery;
+                TestFalse(TEXT("Disabled basins suppress host lake shoreline discoveries"),
+                    FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(HostConfig, FIntPoint(-29, 14), HostDiscovery));
+                TestFalse(TEXT("Disabled basins suppress matching client lake shoreline discoveries"),
+                    FKalmalaBiomeExpansionContract::TryBuildShimmeringLakeDiscovery(ClientConfig, FIntPoint(-29, 14), ClientDiscovery));
+                continue;
+            }
             bool bFoundDiscovery = false;
             for (int32 Y = -160; Y <= 160 && !bFoundDiscovery; ++Y) for (int32 X = -160; X <= 160 && !bFoundDiscovery; ++X)
             {

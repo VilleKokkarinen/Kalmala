@@ -2,6 +2,8 @@
 
 #include "KalmalaGameMode.h"
 #include "KalmalaForestLayout.h"
+#include "KalmalaForestResourceContract.h"
+#include "KalmalaForestTundraTestSupport.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/World.h"
@@ -47,13 +49,8 @@ bool FKalmalaForestRestartTest::RunTest(const FString& Parameters)
         IFileManager::Get().DirectoryExists(*(Saved / TEXT("SaveGames"))))) return false;
     FVector2D Center = FVector2D::ZeroVector;
     TArray<FKalmalaForestTreeDescriptor> Trees;
-    for (int32 Y = -8; Y <= 8 && Trees.Num() < 3; ++Y)
-        for (int32 X = -8; X <= 8 && Trees.Num() < 3; ++X)
-        {
-            Center = FVector2D(X * 10000.0, Y * 10000.0);
-            Trees = FKalmalaForestLayout::Generate(Config, Center);
-        }
-    if (!TestTrue(TEXT("Stable patch has collected and uncollected candidates"), Trees.Num() >= 3)) return false;
+    if (!TestTrue(TEXT("Stable Tundra patch has collected and uncollected Birch candidates"),
+        KalmalaForestTundraTestSupport::FindPatch(Config, 3, Center, Trees))) return false;
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (!TestNotNull(TEXT("Restart fixture world created"), World)) return false;
     ON_SCOPE_EXIT { World->DestroyWorld(false); };
@@ -71,11 +68,18 @@ bool FKalmalaForestRestartTest::RunTest(const FString& Parameters)
     for (int32 Index = 0; Index < Trees.Num(); ++Index)
     {
         const FString& Id = Trees[Index].PersistentSpawnId;
+        TestEqual(TEXT("Tundra persistent identity keeps its original candidate ordinal"), Id,
+            FKalmalaForestLayout::GetPersistentSpawnId(Config, Center, Trees[Index].CandidateIndex));
         AKalmalaHarvestNode* Live = nullptr;
         for (const auto& Node : *Nodes)
             if (Node.IsValid() && Node->GetPersistentSpawnId() == Id) Live = Node.Get();
         TestEqual(TEXT("Exact candidate presence matches saved collection"), Live != nullptr, bWrite || Index >= 2);
         TestEqual(TEXT("Exact sparse ID survives process restart"), Mode->PopulationSaveGame->IsHarvested(Id), !bWrite && Index < 2);
+        if (Live)
+        {
+            TestEqual(TEXT("Restarted Tundra Birch keeps the descriptor resource source"),
+                Live->GetGatheringSourceId(), FKalmalaForestResourceContract::GetSourceId(Trees[Index].TreeKind));
+        }
         TestFalse(TEXT("Forest collection never records creature defeat"), Mode->PopulationSaveGame->IsDefeated(Id));
         if (bWrite && Index < 2)
         {

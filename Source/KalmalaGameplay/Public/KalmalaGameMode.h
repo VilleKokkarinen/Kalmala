@@ -90,6 +90,9 @@ class KALMALAGAMEPLAY_API AKalmalaGameMode : public AGameModeBase
     GENERATED_BODY()
 
 public:
+    static constexpr int32 TraversalTestTargetSearchExtentCm = 1200000;
+    static constexpr int32 TraversalTestTargetSearchStepCm = 25000;
+
     AKalmalaGameMode();
 
     virtual void BeginPlay() override;
@@ -148,6 +151,7 @@ public:
 private:
     friend class AKalmalaCharacter;
     friend class FKalmalaForestPatchLifecycleTest;
+    friend class FKalmalaTundraForestPatchLifecycleTest;
     friend class FKalmalaForestRestartTest;
     friend class FKalmalaM9SourceAcceptanceTest;
     friend class FKalmalaStormcutAcceptedHitWearTest;
@@ -531,6 +535,7 @@ private:
     void InitializeWeatherCycle();
     void AdvanceWeatherCycleIfNeeded();
     void PlacePawnAtGeneratedStart(class APlayerController* PlayerController);
+    void TryCaptureBiomeBaselineView(class APlayerController* LocalController);
     void SpawnOceanTravelTestFixture();
     void LoadOceanTravelWorldSave();
     void RestorePersistedOceanSkiff();
@@ -542,6 +547,10 @@ private:
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;
+#if !UE_BUILD_SHIPPING
+    bool bWorldGenerationConfigInitialized = false;
+    bool bBiomeBaselineCaptureRequested = false;
+#endif
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TSet<FString> SessionM9ResourceDepletionIds;
@@ -603,6 +612,7 @@ private:
     int32 M9Schema2CandidatePeerLoginCount = 0;
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
+    float TraversalTestNextProgressReportTime = 0.0f;
     TSet<TWeakObjectPtr<APawn>> TraversalTestCompletedPawns;
     TSet<TWeakObjectPtr<APawn>> TraversalTestStartedPawns;
 };

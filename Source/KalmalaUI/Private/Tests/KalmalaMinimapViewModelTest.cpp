@@ -7,6 +7,8 @@
 #include "Blueprint/GameViewportSubsystem.h"
 
 #include "KalmalaWorldGenerationConfig.h"
+#include "KalmalaRegionalGeneration.h"
+#include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaWorldMapWidget.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
@@ -41,6 +43,30 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Host view remains centred on its owning player"), HostSamples[40].MapPosition.IsNearlyZero());
     TestTrue(TEXT("Client view remains centred on its owning player"), ClientSamples[40].MapPosition.IsNearlyZero());
     TestNotEqual(TEXT("Separated players derive distinct local surrounding terrain samples"), HostSamples[0].TerrainHeight, ClientSamples[0].TerrainHeight);
+
+    const FVector2D FormerBasinSample(100830.5f, -143038.6f);
+    const auto FormerLakeMap = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, FormerBasinSample, 125.0f, 3);
+    const FKalmalaRegionalSample FormerBasinRegion = FKalmalaRegionalGeneration::Sample(Config, FormerBasinSample);
+    TestEqual(TEXT("Former basin map fixture has a centre sample"), FormerLakeMap.Num(), 9);
+    if (FormerLakeMap.Num() == 9)
+    {
+        TestFalse(TEXT("Regional sample has no former basin water"), FormerBasinRegion.bHasWater);
+        TestEqual(TEXT("Regional former basin has no basin support"), FormerBasinRegion.BasinWeight, 0.0f);
+        TestFalse(TEXT("Minimap keeps the fixed former basin dry under the disabled policy"), FormerLakeMap[4].bIsWater);
+        TestEqual(TEXT("Former basin map water agrees with regional output"), FormerLakeMap[4].bIsWater, FormerBasinRegion.bHasWater);
+    }
+    const FVector2D HighlandRiverSample(679237.9f, -16414.3f);
+    const auto RiverMap = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, HighlandRiverSample, 125.0f, 3);
+    const FKalmalaRegionalSample RiverRegion = FKalmalaRegionalGeneration::Sample(Config, HighlandRiverSample);
+    TestEqual(TEXT("Highland river map fixture has a centre sample"), RiverMap.Num(), 9);
+    if (RiverMap.Num() == 9)
+    {
+        TestEqual(TEXT("Highland river remains at sea level"), RiverRegion.WaterLevel, 0.0f);
+        TestTrue(TEXT("Highland river remains submerged without basin support"), RiverRegion.BasinWeight == 0.0f
+            && RiverRegion.bHasWater && RiverRegion.Height < RiverRegion.WaterLevel);
+        TestTrue(TEXT("Minimap still classifies a carved sea-level river as water"), RiverMap[4].bIsWater);
+        TestEqual(TEXT("River map classification agrees with regional output"), RiverMap[4].bIsWater, RiverRegion.bHasWater);
+    }
 
     TestEqual(TEXT("Invalid local presentation input produces no samples"), UKalmalaMinimapViewModel::BuildTerrainSamples(Config, FVector2D::ZeroVector, 0.0f, 5).Num(), 0);
     TestTrue(TEXT("Circular minimap includes its centred player marker"), UKalmalaMinimapWidget::IsInsideCircularMap(FVector2D::ZeroVector));
@@ -111,7 +137,11 @@ bool FKalmalaMinimapViewModelTest::RunTest(const FString& Parameters)
             if (FKalmalaWorldFieldSampler::Sample(Config, Position).Elevation < 0.22f)
             {
                 const auto Ocean = UKalmalaMinimapViewModel::BuildTerrainSamples(Config, Position, 100.0f, 3);
-                TestTrue(TEXT("Sea-level ocean is drawn as water as well as inland lakes"), Ocean[4].bIsWater);
+                const FKalmalaRegionalSample OceanRegion = FKalmalaRegionalGeneration::Sample(Config, Position);
+                TestTrue(TEXT("Ocean regional output remains wet at the sea plane"), OceanRegion.bHasWater
+                    && OceanRegion.WaterLevel == 0.0f && OceanRegion.BasinWeight == 0.0f);
+                TestTrue(TEXT("Sea-level ocean is drawn as water"), Ocean[4].bIsWater);
+                TestEqual(TEXT("Ocean map classification agrees with regional output"), Ocean[4].bIsWater, OceanRegion.bHasWater);
                 bFoundOcean = true;
             }
         }

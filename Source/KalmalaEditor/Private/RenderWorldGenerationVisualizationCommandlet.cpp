@@ -2,10 +2,18 @@
 
 #include "HAL/FileManager.h"
 #include "KalmalaBiomeClassifier.h"
+#include "KalmalaForestLayout.h"
+#include "KalmalaGenerationPreview.h"
+#include "KalmalaRegionalGeneration.h"
+#include "KalmalaTerrainHeightSampler.h"
+#include "KalmalaTerrainPatchLayout.h"
+#include "KalmalaWaterSurfaceMesh.h"
 #include "KalmalaWorldFieldSampler.h"
+#include "KalmalaWorldPlayerStartResolver.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Misc/FileHelper.h"
+#include "Misc/ScopeExit.h"
 
 namespace KalmalaWorldGenerationVisualization
 {
@@ -47,6 +55,257 @@ namespace KalmalaWorldGenerationVisualization
         Writer->Serialize(const_cast<FVisualizationPixel*>(Pixels.GetData()), Pixels.Num() * sizeof(FVisualizationPixel));
         return !Writer->IsError();
     }
+
+    struct FCollisionTriangleSample
+    {
+        float Height = 0.0f;
+        float SlopeDegrees = 0.0f;
+        float GradePercent = 0.0f;
+        int32 CellX = INDEX_NONE;
+        int32 CellY = INDEX_NONE;
+        uint8 TriangleIndex = 0;
+    };
+
+    bool TrySampleCollisionTriangle(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position,
+        const FVector2D PatchCenter, FCollisionTriangleSample& OutSample)
+    {
+        constexpr int32 CellsPerSide = FKalmalaWaterSurfaceMesh::CellsPerSide;
+        constexpr float SurfaceSize = FKalmalaTerrainPatchLayout::PatchSize;
+        constexpr float HalfSurfaceSize = SurfaceSize * 0.5f;
+        constexpr float CellSize = SurfaceSize / CellsPerSide;
+        static_assert(CellsPerSide > 0 && CellSize > 0.0f, "Collision triangle sampling requires a positive grid.");
+
+        const float GridX = (Position.X - PatchCenter.X + HalfSurfaceSize) / CellSize;
+        const float GridY = (Position.Y - PatchCenter.Y + HalfSurfaceSize) / CellSize;
+        if (!FMath::IsFinite(GridX) || !FMath::IsFinite(GridY))
+        {
+            return false;
+        }
+
+        const int32 CellX = FMath::Clamp(FMath::FloorToInt(GridX), 0, CellsPerSide - 1);
+        const int32 CellY = FMath::Clamp(FMath::FloorToInt(GridY), 0, CellsPerSide - 1);
+        const float U = FMath::Clamp(GridX - CellX, 0.0f, 1.0f);
+        const float V = FMath::Clamp(GridY - CellY, 0.0f, 1.0f);
+        const float X0 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellX) / CellsPerSide);
+        const float X1 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellX + 1) / CellsPerSide);
+        const float Y0 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellY) / CellsPerSide);
+        const float Y1 = FMath::Lerp(-HalfSurfaceSize, HalfSurfaceSize, static_cast<float>(CellY + 1) / CellsPerSide);
+        const FVector2D BottomLeftPosition = PatchCenter + FVector2D(X0, Y0);
+        const FVector2D BottomRightPosition = PatchCenter + FVector2D(X1, Y0);
+        const FVector2D TopLeftPosition = PatchCenter + FVector2D(X0, Y1);
+        const FVector2D TopRightPosition = PatchCenter + FVector2D(X1, Y1);
+        const float BottomLeft = FKalmalaTerrainHeightSampler::SampleHeight(Config, BottomLeftPosition);
+        const float BottomRight = FKalmalaTerrainHeightSampler::SampleHeight(Config, BottomRightPosition);
+        const float TopLeft = FKalmalaTerrainHeightSampler::SampleHeight(Config, TopLeftPosition);
+        const float TopRight = FKalmalaTerrainHeightSampler::SampleHeight(Config, TopRightPosition);
+        const float CellWidth = X1 - X0;
+        const float CellHeight = Y1 - Y0;
+        if (!FMath::IsFinite(BottomLeft) || !FMath::IsFinite(BottomRight)
+            || !FMath::IsFinite(TopLeft) || !FMath::IsFinite(TopRight)
+            || CellWidth <= 0.0f || CellHeight <= 0.0f)
+        {
+            return false;
+        }
+
+        const bool bFirstTriangle = U + V <= 1.0f;
+        float HeightGradientX = 0.0f;
+        float HeightGradientY = 0.0f;
+        if (bFirstTriangle)
+        {
+            OutSample.Height = BottomLeft * (1.0f - U - V) + BottomRight * U + TopLeft * V;
+            HeightGradientX = (BottomRight - BottomLeft) / CellWidth;
+            HeightGradientY = (TopLeft - BottomLeft) / CellHeight;
+        }
+        else
+        {
+            OutSample.Height = BottomRight * (1.0f - V) + TopLeft * (1.0f - U) + TopRight * (U + V - 1.0f);
+            HeightGradientX = (TopRight - TopLeft) / CellWidth;
+            HeightGradientY = (TopRight - BottomRight) / CellHeight;
+        }
+
+        const float GradientMagnitude = FMath::Sqrt(HeightGradientX * HeightGradientX + HeightGradientY * HeightGradientY);
+        OutSample.SlopeDegrees = FMath::RadiansToDegrees(FMath::Atan(GradientMagnitude));
+        OutSample.GradePercent = GradientMagnitude * 100.0f;
+        OutSample.CellX = CellX;
+        OutSample.CellY = CellY;
+        OutSample.TriangleIndex = bFirstTriangle ? 0 : 1;
+        return FMath::IsFinite(OutSample.Height) && FMath::IsFinite(OutSample.SlopeDegrees)
+            && FMath::IsFinite(OutSample.GradePercent);
+    }
+
+    bool ExportNumericSamples(const FString& InputPath, const FString& OutputPath,
+        const bool bIncludeMeadowFloorDiagnostics, const bool bIncludeElderwoodDiagnostics,
+        const bool bIncludeShimmeringLakesDiagnostics, const bool bIncludeMireDiagnostics)
+    {
+        TArray<FString> Lines;
+        if (!FFileHelper::LoadFileToStringArray(Lines, *InputPath) || Lines.Num() < 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not load numeric sample rows from %s."), *InputPath);
+            return false;
+        }
+
+        Lines[0].TrimStartAndEndInline();
+        if (!Lines[0].Equals(TEXT("Seed,Site,Xcm,Ycm"), ESearchCase::IgnoreCase))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Sample input must start with Seed,Site,Xcm,Ycm."));
+            return false;
+        }
+
+        FString Csv = TEXT("Seed,Site,Xcm,Ycm,BiomeIndex,FinalHeightCm,MeadowsWeight,ShimmeringLakesWeight,ElderwoodWeight,MossyMireWeight,FreezingTundraWeight,ThunderMountainsWeight,OceanWeight,WaterLevelCm,HasWater,CollisionTriangleHeightCm,CollisionTriangleSlopeDegrees,CollisionTriangleGradePercent,PatchOriginXcm,PatchOriginYcm,PatchX,PatchY,PatchCenterXcm,PatchCenterYcm,PatchCellX,PatchCellY,PatchTriangle,ForestDescriptorCount");
+        if (bIncludeMeadowFloorDiagnostics)
+        {
+            Csv += TEXT(",MeadowFloorNoise,MeadowFloorInputCm");
+        }
+        if (bIncludeElderwoodDiagnostics)
+        {
+            Csv += TEXT(",ElderwoodCandidateCm,TundraCandidateCm,ReliefBroad,ReliefMiddle,ReliefLocal,ElderwoodBroadInputCm,ElderwoodMiddleInputCm,ElderwoodLocalInputCm,BasinWeight,RiverWeight,StreamWeight");
+        }
+        if (bIncludeShimmeringLakesDiagnostics)
+        {
+            Csv += TEXT(",ShimmeringLakesCandidateCm,MeadowCandidateCm,ElderwoodCandidateCm,LowlandCandidateCm,SourceHeightCm,Humidity,WetlandHumidityMinimum,WetlandHumidityFull,MeadowShare,LowlandFloorCm,LowlandCeilingCm,LowlandCompression,BasinWeight,RiverWeight,StreamWeight");
+        }
+        if (bIncludeMireDiagnostics)
+        {
+            Csv += TEXT(",MireCandidateCm,SourceHeightCm,MireDetail,MireTargetHeightCm,MireCompressionScaleCm,MireResidualDetailAmplitudeCm,MireWorstCaseClearanceCm,BasinWeight,RiverWeight,StreamWeight");
+        }
+        Csv += TEXT("\n");
+        int32 SampleCount = 0;
+        for (int32 LineIndex = 1; LineIndex < Lines.Num(); ++LineIndex)
+        {
+            FString Line = Lines[LineIndex];
+            Line.TrimStartAndEndInline();
+            if (Line.IsEmpty())
+            {
+                continue;
+            }
+
+            TArray<FString> Columns;
+            Line.ParseIntoArray(Columns, TEXT(","), false);
+            if (Columns.Num() != 4)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d must have Seed,Site,Xcm,Ycm."), LineIndex + 1);
+                return false;
+            }
+            for (FString& Column : Columns)
+            {
+                Column.TrimStartAndEndInline();
+            }
+
+            uint64 Seed = 0;
+            float X = 0.0f;
+            float Y = 0.0f;
+            if (Columns[1].IsEmpty() || Columns[0].StartsWith(TEXT("-"))
+                || !LexTryParseString(Seed, *Columns[0])
+                || !LexTryParseString(X, *Columns[2])
+                || !LexTryParseString(Y, *Columns[3])
+                || !FMath::IsFinite(X) || !FMath::IsFinite(Y))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d has an invalid seed, site, or coordinate."), LineIndex + 1);
+                return false;
+            }
+
+            FKalmalaWorldGenerationConfig Config;
+            Config.WorldSeed = Seed;
+            const FVector StartLocation = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation();
+            const FVector2D PatchOrigin(StartLocation.X, StartLocation.Y);
+            const FVector2D Position(X, Y);
+            const FIntPoint PatchCoordinate = FKalmalaTerrainPatchLayout::GetPatchCoordinate(PatchOrigin, Position);
+            const FVector2D PatchCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(PatchOrigin, PatchCoordinate.X, PatchCoordinate.Y);
+            FCollisionTriangleSample TriangleSample;
+            if (!TrySampleCollisionTriangle(Config, Position, PatchCenter, TriangleSample))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d could not resolve its collision triangle."), LineIndex + 1);
+                return false;
+            }
+            const int32 ForestDescriptorCount = FKalmalaForestLayout::Generate(Config, PatchCenter).Num();
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Position);
+            const FKalmalaRegionalSample Region = FKalmalaRegionalGeneration::Sample(Fields);
+            if (!FMath::IsFinite(Region.Height) || !FMath::IsFinite(Region.WaterLevel))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Sample input row %d produced a non-finite height or water level."), LineIndex + 1);
+                return false;
+            }
+            for (float Weight : Region.Weights)
+            {
+                if (!FMath::IsFinite(Weight))
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Sample input row %d produced a non-finite biome weight."), LineIndex + 1);
+                    return false;
+                }
+            }
+
+            Csv += FString::Printf(TEXT("%llu,%s,%.1f,%.1f,%u,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%d,%.9g,%.9g,%.9g,%.3f,%.3f,%d,%d,%.3f,%.3f,%d,%d,%u,%d"),
+                static_cast<unsigned long long>(Seed), *Columns[1], X, Y, static_cast<unsigned int>(Region.Biome), Region.Height,
+                Region.Weights[0], Region.Weights[1], Region.Weights[2], Region.Weights[3],
+                Region.Weights[4], Region.Weights[5], Region.Weights[6], Region.WaterLevel, Region.bHasWater ? 1 : 0,
+                TriangleSample.Height, TriangleSample.SlopeDegrees, TriangleSample.GradePercent,
+                PatchOrigin.X, PatchOrigin.Y, PatchCoordinate.X, PatchCoordinate.Y, PatchCenter.X, PatchCenter.Y,
+                TriangleSample.CellX, TriangleSample.CellY, static_cast<unsigned int>(TriangleSample.TriangleIndex), ForestDescriptorCount);
+            if (bIncludeMeadowFloorDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const double FloorNoise = FKalmalaRegionalGeneration::Noise(
+                    Config, FKalmalaRegionalTuning::MeadowFloorSalt, Position, 1.0 / Preview.MeadowFloorScale);
+                const double FloorInputCm = double(float(FloorNoise * Preview.MeadowFloorAmplitude));
+                Csv += FString::Printf(TEXT(",%.9g,%.9g"), FloorNoise, FloorInputCm);
+            }
+            if (bIncludeElderwoodDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const FKalmalaTerrainCandidateDiagnostics Diagnostics =
+                    FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(Config, Fields);
+                const FKalmalaTerrainReliefSample& SharedRelief = Diagnostics.SharedRelief;
+                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
+                    Diagnostics.ElderwoodCandidate, Diagnostics.TundraCandidate, SharedRelief.Broad, SharedRelief.Middle,
+                    SharedRelief.Local, SharedRelief.Broad * Preview.ElderwoodBroadAmplitude,
+                    SharedRelief.Middle * Preview.ElderwoodMiddleAmplitude,
+                    SharedRelief.Local * Preview.ElderwoodLocalAmplitude,
+                    Region.BasinWeight, Region.RiverWeight, Region.StreamWeight);
+            }
+            if (bIncludeShimmeringLakesDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const FKalmalaTerrainCandidateDiagnostics Diagnostics =
+                    FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(Config, Fields);
+                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
+                    Diagnostics.ShimmeringLakesCandidate, Diagnostics.MeadowCandidate,
+                    Diagnostics.ElderwoodCandidate, Diagnostics.ShimmeringLakesLowlandCandidate, Diagnostics.SourceHeight,
+                    Fields.Humidity, Diagnostics.WetlandHumidityMinimum, Diagnostics.WetlandHumidityFull,
+                    Preview.ShimmeringLakesMeadowShare,
+                    Preview.ShimmeringLakesLowlandFloor, Preview.ShimmeringLakesLowlandCeiling,
+                    Preview.ShimmeringLakesLowlandCompression, Region.BasinWeight, Region.RiverWeight, Region.StreamWeight);
+            }
+            if (bIncludeMireDiagnostics)
+            {
+                const auto& Preview = FKalmalaGenerationPreview::Get();
+                const FKalmalaTerrainCandidateDiagnostics Diagnostics =
+                    FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(Config, Fields);
+                const double MireDetail = FKalmalaRegionalGeneration::Noise(Config, 250, Position, 0.00015);
+                const double MireWorstCaseClearance = Diagnostics.MireCandidate
+                    - FMath::Clamp(MireDetail, -1.0, 1.0) * Preview.MireResidualDetailAmplitude
+                    - Preview.MireResidualDetailAmplitude;
+                Csv += FString::Printf(TEXT(",%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g,%.9g"),
+                    Diagnostics.MireCandidate, Diagnostics.SourceHeight, MireDetail,
+                    Preview.MireTargetHeight, Preview.MireCompressionScale,
+                    Preview.MireResidualDetailAmplitude, MireWorstCaseClearance,
+                    Region.BasinWeight, Region.RiverWeight, Region.StreamWeight);
+            }
+            Csv += TEXT("\n");
+            ++SampleCount;
+        }
+
+        const FString OutputDirectory = FPaths::GetPath(OutputPath);
+        if (SampleCount == 0
+            || (!OutputDirectory.IsEmpty() && !IFileManager::Get().MakeDirectory(*OutputDirectory, true))
+            || !FFileHelper::SaveStringToFile(Csv, *OutputPath))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not write numeric samples to %s."), *OutputPath);
+            return false;
+        }
+
+        UE_LOG(LogTemp, Display, TEXT("Exported %d numeric world-generation samples to %s."), SampleCount, *OutputPath);
+        return true;
+    }
 }
 
 URenderWorldGenerationVisualizationCommandlet::URenderWorldGenerationVisualizationCommandlet()
@@ -74,6 +333,241 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
     {
         UE_LOG(LogTemp, Error, TEXT("Invalid visualization parameters. Size must be 16-2048, and Extent must be positive."));
         return 1;
+    }
+
+    FString HillAmplitudeText;
+    FString RollingAmplitudeText;
+    FString FloorScaleText;
+    FString FloorAmplitudeText;
+    FString ElderwoodBroadAmplitudeText;
+    FString ElderwoodMiddleAmplitudeText;
+    FString ElderwoodLocalAmplitudeText;
+    FString ShimmeringLakesMeadowShareText;
+    FString ShimmeringLakesLowlandFloorCmText;
+    FString ShimmeringLakesLowlandCeilingCmText;
+    FString ShimmeringLakesLowlandCompressionText;
+    FString MireTargetHeightCmText;
+    FString MireCompressionScaleCmText;
+    FString MireResidualDetailAmplitudeCmText;
+    const bool bHasHillAmplitude = FParse::Value(*Params, TEXT("MeadowHillAmplitudeM="), HillAmplitudeText);
+    const bool bHasRollingAmplitude = FParse::Value(*Params, TEXT("MeadowRollingAmplitudeM="), RollingAmplitudeText);
+    const bool bHasFloorScale = FParse::Value(*Params, TEXT("MeadowFloorScaleM="), FloorScaleText);
+    const bool bHasFloorAmplitude = FParse::Value(*Params, TEXT("MeadowFloorAmplitudeM="), FloorAmplitudeText);
+    const bool bHasElderwoodBroadAmplitude = FParse::Value(*Params, TEXT("ElderwoodBroadAmplitudeM="), ElderwoodBroadAmplitudeText);
+    const bool bHasElderwoodMiddleAmplitude = FParse::Value(*Params, TEXT("ElderwoodMiddleAmplitudeM="), ElderwoodMiddleAmplitudeText);
+    const bool bHasElderwoodLocalAmplitude = FParse::Value(*Params, TEXT("ElderwoodLocalAmplitudeM="), ElderwoodLocalAmplitudeText);
+    const bool bHasShimmeringLakesMeadowShare = FParse::Value(*Params, TEXT("ShimmeringLakesMeadowShare="), ShimmeringLakesMeadowShareText);
+    const bool bHasShimmeringLakesLowlandFloorCm = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandFloorCm="), ShimmeringLakesLowlandFloorCmText);
+    const bool bHasShimmeringLakesLowlandCeilingCm = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandCeilingCm="), ShimmeringLakesLowlandCeilingCmText);
+    const bool bHasShimmeringLakesLowlandCompression = FParse::Value(*Params, TEXT("ShimmeringLakesLowlandCompression="), ShimmeringLakesLowlandCompressionText);
+    const bool bHasMireTargetHeightCm = FParse::Value(*Params, TEXT("MireTargetHeightCm="), MireTargetHeightCmText);
+    const bool bHasMireCompressionScaleCm = FParse::Value(*Params, TEXT("MireCompressionScaleCm="), MireCompressionScaleCmText);
+    const bool bHasMireResidualDetailAmplitudeCm = FParse::Value(*Params, TEXT("MireResidualDetailAmplitudeCm="), MireResidualDetailAmplitudeCmText);
+    if (bHasFloorScale != bHasFloorAmplitude)
+    {
+        UE_LOG(LogTemp, Error, TEXT("MeadowFloorScaleM and MeadowFloorAmplitudeM must be provided together."));
+        return 1;
+    }
+    const bool bHasFloorTrial = bHasFloorScale && bHasFloorAmplitude;
+    const int32 ElderwoodOverrideCount = int32(bHasElderwoodBroadAmplitude)
+        + int32(bHasElderwoodMiddleAmplitude) + int32(bHasElderwoodLocalAmplitude);
+    if (ElderwoodOverrideCount > 1)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Override only one Elderwood amplitude per profile trial."));
+        return 1;
+    }
+    const bool bHasElderwoodTrial = ElderwoodOverrideCount == 1;
+    const int32 ShimmeringLakesOverrideCount = int32(bHasShimmeringLakesMeadowShare)
+        + int32(bHasShimmeringLakesLowlandFloorCm) + int32(bHasShimmeringLakesLowlandCeilingCm)
+        + int32(bHasShimmeringLakesLowlandCompression);
+    if (ShimmeringLakesOverrideCount > 1)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Override only one Shimmering Lakes control per profile trial."));
+        return 1;
+    }
+    const bool bHasShimmeringLakesTrial = ShimmeringLakesOverrideCount == 1;
+    const int32 MireOverrideCount = int32(bHasMireTargetHeightCm)
+        + int32(bHasMireCompressionScaleCm) + int32(bHasMireResidualDetailAmplitudeCm);
+    if (MireOverrideCount > 1)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Override only one Mossy Mire control per profile trial."));
+        return 1;
+    }
+    const bool bHasMireTrial = MireOverrideCount == 1;
+    if (bHasShimmeringLakesTrial && (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Run Shimmering Lakes trials independently from Meadows and Elderwood controls."));
+        return 1;
+    }
+    if (bHasMireTrial && (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial
+        || bHasElderwoodTrial || bHasShimmeringLakesTrial))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Run Mossy Mire trials independently from other terrain controls."));
+        return 1;
+    }
+    if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial
+        || bHasShimmeringLakesTrial || bHasMireTrial)
+    {
+        FKalmalaGenerationPreviewSettings Trial = FKalmalaGenerationPreview::Get();
+        double HillAmplitudeM = 0.0;
+        double RollingAmplitudeM = 0.0;
+        double FloorScaleM = 0.0;
+        double FloorAmplitudeM = 0.0;
+        double ElderwoodAmplitudeM = 0.0;
+        double ShimmeringLakesControl = 0.0;
+        double MireControlCm = 0.0;
+        if (bHasHillAmplitude)
+        {
+            if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
+                || HillAmplitudeM < 4.0 || HillAmplitudeM > 10.0)
+            {
+                UE_LOG(LogTemp, Error, TEXT("MeadowHillAmplitudeM must be finite and between 4 and 10 metres."));
+                return 1;
+            }
+
+            Trial.MeadowHillAmplitude = HillAmplitudeM * 100.0;
+        }
+
+        if (bHasRollingAmplitude)
+        {
+            if (!LexTryParseString(RollingAmplitudeM, *RollingAmplitudeText) || !FMath::IsFinite(RollingAmplitudeM)
+                || RollingAmplitudeM < 0.6 || RollingAmplitudeM > 1.8)
+            {
+                UE_LOG(LogTemp, Error, TEXT("MeadowRollingAmplitudeM must be finite and between 0.6 and 1.8 metres."));
+                return 1;
+            }
+
+            Trial.MeadowRollingAmplitude = RollingAmplitudeM * 100.0;
+        }
+
+        if (bHasFloorTrial)
+        {
+            if (!LexTryParseString(FloorScaleM, *FloorScaleText) || !FMath::IsFinite(FloorScaleM)
+                || FloorScaleM < 8.0 || FloorScaleM > 20.0
+                || !LexTryParseString(FloorAmplitudeM, *FloorAmplitudeText) || !FMath::IsFinite(FloorAmplitudeM)
+                || FloorAmplitudeM < 0.1 || FloorAmplitudeM > 0.35)
+            {
+                UE_LOG(LogTemp, Error, TEXT("MeadowFloorScaleM must be 8-20 m and MeadowFloorAmplitudeM must be 0.1-0.35 m."));
+                return 1;
+            }
+
+            Trial.MeadowFloorScale = FloorScaleM * 100.0;
+            Trial.MeadowFloorAmplitude = FloorAmplitudeM * 100.0;
+        }
+
+        if (bHasElderwoodTrial)
+        {
+            FString* AmplitudeText = bHasElderwoodBroadAmplitude ? &ElderwoodBroadAmplitudeText
+                : bHasElderwoodMiddleAmplitude ? &ElderwoodMiddleAmplitudeText : &ElderwoodLocalAmplitudeText;
+            const double MinimumM = bHasElderwoodBroadAmplitude ? 4.0
+                : bHasElderwoodMiddleAmplitude ? 0.6 : 0.1;
+            const double MaximumM = bHasElderwoodBroadAmplitude ? 16.0
+                : bHasElderwoodMiddleAmplitude ? 4.0 : 1.0;
+            if (!LexTryParseString(ElderwoodAmplitudeM, **AmplitudeText) || !FMath::IsFinite(ElderwoodAmplitudeM)
+                || ElderwoodAmplitudeM < MinimumM || ElderwoodAmplitudeM > MaximumM)
+            {
+                UE_LOG(LogTemp, Error, TEXT("The selected Elderwood amplitude must be finite and within its documented trial range."));
+                return 1;
+            }
+
+            if (bHasElderwoodBroadAmplitude) Trial.ElderwoodBroadAmplitude = ElderwoodAmplitudeM * 100.0;
+            else if (bHasElderwoodMiddleAmplitude) Trial.ElderwoodMiddleAmplitude = ElderwoodAmplitudeM * 100.0;
+            else Trial.ElderwoodLocalAmplitude = ElderwoodAmplitudeM * 100.0;
+        }
+
+        if (bHasShimmeringLakesTrial)
+        {
+            FString* ControlText = bHasShimmeringLakesMeadowShare ? &ShimmeringLakesMeadowShareText
+                : bHasShimmeringLakesLowlandFloorCm ? &ShimmeringLakesLowlandFloorCmText
+                : bHasShimmeringLakesLowlandCeilingCm ? &ShimmeringLakesLowlandCeilingCmText
+                : &ShimmeringLakesLowlandCompressionText;
+            if (!LexTryParseString(ShimmeringLakesControl, **ControlText) || !FMath::IsFinite(ShimmeringLakesControl))
+            {
+                UE_LOG(LogTemp, Error, TEXT("The selected Shimmering Lakes control must be finite."));
+                return 1;
+            }
+            if (bHasShimmeringLakesMeadowShare) Trial.ShimmeringLakesMeadowShare = ShimmeringLakesControl;
+            else if (bHasShimmeringLakesLowlandFloorCm) Trial.ShimmeringLakesLowlandFloor = ShimmeringLakesControl;
+            else if (bHasShimmeringLakesLowlandCeilingCm) Trial.ShimmeringLakesLowlandCeiling = ShimmeringLakesControl;
+            else Trial.ShimmeringLakesLowlandCompression = ShimmeringLakesControl;
+            if (!Trial.HasValidReliefControls())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Shimmering Lakes control is outside its documented bounds or violates ceiling > floor."));
+                return 1;
+            }
+        }
+
+        if (bHasMireTrial)
+        {
+            FString* ControlText = bHasMireTargetHeightCm ? &MireTargetHeightCmText
+                : bHasMireCompressionScaleCm ? &MireCompressionScaleCmText
+                : &MireResidualDetailAmplitudeCmText;
+            if (!LexTryParseString(MireControlCm, **ControlText) || !FMath::IsFinite(MireControlCm))
+            {
+                UE_LOG(LogTemp, Error, TEXT("The selected Mossy Mire control must be finite."));
+                return 1;
+            }
+            if (bHasMireTargetHeightCm) Trial.MireTargetHeight = MireControlCm;
+            else if (bHasMireCompressionScaleCm) Trial.MireCompressionScale = MireControlCm;
+            else Trial.MireResidualDetailAmplitude = MireControlCm;
+            if (!Trial.HasValidReliefControls())
+            {
+                UE_LOG(LogTemp, Error, TEXT("Mossy Mire control is outside its documented bounds or violates positive coast clearance."));
+                return 1;
+            }
+        }
+
+        if (!Trial.HasValidReliefControls() || !FKalmalaGenerationPreview::Set(Trial))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not install the commandlet-only terrain profile trial."));
+            return 1;
+        }
+        if (bHasHillAmplitude)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Meadow hill sample trial accepted: AmplitudeM=%.3f"), HillAmplitudeM);
+        }
+        if (bHasRollingAmplitude)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Meadow rolling sample trial accepted: AmplitudeM=%.3f"), RollingAmplitudeM);
+        }
+        if (bHasFloorTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Meadow floor sample trial accepted: ScaleM=%.3f AmplitudeM=%.3f"),
+                FloorScaleM, FloorAmplitudeM);
+        }
+        if (bHasElderwoodTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Elderwood profile trial accepted: BroadAmplitudeM=%.3f MiddleAmplitudeM=%.3f LocalAmplitudeM=%.3f"),
+                Trial.ElderwoodBroadAmplitude / 100.0,
+                Trial.ElderwoodMiddleAmplitude / 100.0,
+                Trial.ElderwoodLocalAmplitude / 100.0);
+        }
+        if (bHasShimmeringLakesTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Shimmering Lakes profile trial accepted: MeadowShare=%.3f LowlandFloorCm=%.1f LowlandCeilingCm=%.1f LowlandCompression=%.3f"),
+                Trial.ShimmeringLakesMeadowShare, Trial.ShimmeringLakesLowlandFloor,
+                Trial.ShimmeringLakesLowlandCeiling, Trial.ShimmeringLakesLowlandCompression);
+        }
+        if (bHasMireTrial)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Mossy Mire profile trial accepted: TargetHeightCm=%.1f CompressionScaleCm=%.1f ResidualDetailAmplitudeCm=%.1f"),
+                Trial.MireTargetHeight, Trial.MireCompressionScale, Trial.MireResidualDetailAmplitude);
+        }
+    }
+    ON_SCOPE_EXIT { if (bHasHillAmplitude || bHasRollingAmplitude || bHasFloorTrial || bHasElderwoodTrial
+        || bHasShimmeringLakesTrial || bHasMireTrial) FKalmalaGenerationPreview::Reset(); };
+
+    FString SampleInputPath;
+    FString SampleOutputPath;
+    if (FParse::Value(*Params, TEXT("SampleInput="), SampleInputPath))
+    {
+        if (!FParse::Value(*Params, TEXT("SampleOutput="), SampleOutputPath) || SampleOutputPath.IsEmpty())
+        {
+            UE_LOG(LogTemp, Error, TEXT("SampleInput requires SampleOutput."));
+            return 1;
+        }
+        return ExportNumericSamples(SampleInputPath, SampleOutputPath, bHasFloorTrial,
+            bHasElderwoodTrial, bHasShimmeringLakesTrial, bHasMireTrial) ? 0 : 1;
     }
 
     FString OutputDirectory = FPaths::ProjectContentDir() / TEXT("Kalmala/Developer/WorldGeneration");

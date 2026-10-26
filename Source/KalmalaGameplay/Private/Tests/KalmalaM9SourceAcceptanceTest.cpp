@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaForestLayout.h"
+#include "KalmalaForestResourceContract.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9SourceLootContract.h"
@@ -200,8 +201,6 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         if (Source.bGeneratedForest)
         {
             bool bInitialized = false;
-            const bool bElderwood = Source.SourceId == TEXT("elderwood-ironheart-trunk");
-            const bool bAspen = Source.SourceId == TEXT("meadows-aspen-trunk");
             for (int32 Y = -16; Y <= 16 && !bInitialized; ++Y)
             {
                 for (int32 X = -16; X <= 16 && !bInitialized; ++X)
@@ -211,7 +210,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                     if (Candidates.Num() < 2) continue;
                     for (const auto& Tree : Candidates)
                     {
-                        if (Tree.bElderwood != bElderwood || Tree.bAspen != bAspen) continue;
+                        if (FKalmalaForestResourceContract::GetSourceId(Tree.TreeKind) != Source.SourceId) continue;
                         bInitialized = Node->InitializeForestServer(WorldState->GetWorldGenerationConfig(), Center, Tree.CandidateIndex);
                         if (bInitialized)
                         {

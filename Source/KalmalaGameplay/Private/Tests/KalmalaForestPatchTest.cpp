@@ -2,6 +2,8 @@
 
 #include "KalmalaGameMode.h"
 #include "KalmalaForestLayout.h"
+#include "KalmalaForestResourceContract.h"
+#include "KalmalaForestTundraTestSupport.h"
 #include "KalmalaTerrainPatchLayout.h"
 #include "KalmalaGeneratedTerrainPatch.h"
 #include "KalmalaHarvestNode.h"
@@ -384,6 +386,145 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         Mode->RefreshTerrainPatchNeighborhoods();
         TestEqual(TEXT("Production snapshot reload and eviction add no writes"), WriteCalls, 1);
     }
+    Mode->PopulationSaveWriterForTests = {};
+    World->DestroyWorld(false);
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaTundraForestPatchLifecycleTest,
+    "Kalmala.Gameplay.Harvest.TundraForestIdentityLifecycle",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaTundraForestPatchLifecycleTest::RunTest(const FString& Parameters)
+{
+    const FKalmalaWorldGenerationConfig Config{418ull};
+    FVector2D Center = FVector2D::ZeroVector;
+    TArray<FKalmalaForestTreeDescriptor> TundraTrees;
+    if (!TestTrue(TEXT("Fixture finds multiple accepted Tundra Birch ordinals"),
+        KalmalaForestTundraTestSupport::FindPatch(Config, 2, Center, TundraTrees))) return false;
+    const TArray<FKalmalaForestTreeDescriptor> AllTrees = FKalmalaForestLayout::Generate(Config, Center);
+    if (!TestTrue(TEXT("Shared descriptor patch includes the selected Tundra trees"), AllTrees.Num() >= TundraTrees.Num())) return false;
+
+    TArray<int32> ExpectedOrdinals;
+    for (const FKalmalaForestTreeDescriptor& Tree : AllTrees) ExpectedOrdinals.Add(Tree.CandidateIndex);
+    ExpectedOrdinals.Sort();
+
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("Tundra forest lifecycle world created"), World)) return false;
+    auto* Mode = World->SpawnActor<AKalmalaGameMode>();
+    if (!TestNotNull(TEXT("Tundra lifecycle GameMode spawned"), Mode))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    Mode->WorldGenerationConfig = Config;
+    Mode->TerrainPatchOrigin = Center;
+    auto* Save = NewObject<UKalmalaWorldPopulationSaveGame>(Mode);
+    Save->InitializeForWorld(Config);
+    Mode->PopulationSaveGame = Save;
+
+    const FIntPoint Coordinate = FIntPoint::ZeroValue;
+    Mode->ActivateTerrainPatch(Coordinate);
+    const auto* InitialNodes = Mode->ActiveForestNodes.Find(Coordinate);
+    auto* PatchEntry = Mode->ActiveTerrainPatches.Find(Coordinate);
+    if (!TestNotNull(TEXT("Tundra activation tracks server materialization"), InitialNodes)
+        || !TestNotNull(TEXT("Tundra activation tracks its cosmetic patch"), PatchEntry)
+        || !TestNotNull(TEXT("Tundra activation owns a live patch"), PatchEntry->Get()))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    auto* Patch = PatchEntry->Get();
+    TestEqual(TEXT("Tundra server creates one node per shared descriptor"), InitialNodes->Num(), AllTrees.Num());
+    TestTrue(TEXT("Cosmetic suppression keeps original descriptor ordinals"),
+        Patch->GetSuppressedForestCandidatesForVerification() == ExpectedOrdinals);
+
+    TMap<FString, AKalmalaHarvestNode*> NodesById;
+    for (const TWeakObjectPtr<AKalmalaHarvestNode>& WeakNode : *InitialNodes)
+        if (AKalmalaHarvestNode* Node = WeakNode.Get()) NodesById.Add(Node->GetPersistentSpawnId(), Node);
+    for (const FKalmalaForestTreeDescriptor& Tree : TundraTrees)
+    {
+        TestEqual(TEXT("Tundra descriptor retains its stable world/patch/ordinal ID"), Tree.PersistentSpawnId,
+            FKalmalaForestLayout::GetPersistentSpawnId(Config, Center, Tree.CandidateIndex));
+        TestTrue(TEXT("Tundra descriptor is never classified as Elderwood timber"),
+            Tree.TreeKind == EKalmalaForestTreeKind::FreezingTundraBirch);
+        AKalmalaHarvestNode* Node = NodesById.FindRef(Tree.PersistentSpawnId);
+        if (!TestNotNull(TEXT("Tundra descriptor materializes with the same ID"), Node)) continue;
+        TestEqual(TEXT("Tundra server node derives source from the descriptor kind"), Node->GetGatheringSourceId(),
+            FKalmalaForestResourceContract::GetSourceId(Tree.TreeKind));
+        TestEqual(TEXT("Tundra server node uses the existing Birch source"), Node->GetGatheringSourceId(),
+            FName(TEXT("meadows-birch-trunk")));
+    }
+
+    const FKalmalaForestTreeDescriptor HarvestedTree = TundraTrees[0];
+    AKalmalaHarvestNode* HarvestedNode = NodesById.FindRef(HarvestedTree.PersistentSpawnId);
+    if (!TestNotNull(TEXT("Tundra depletion fixture finds the exact materialized node"), HarvestedNode))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    int32 SaveWrites = 0;
+    TArray<uint8> SaveBytes;
+    bool bSaveSerialized = false;
+    Mode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* WrittenSave,
+        const FString&, const int32)
+    {
+        ++SaveWrites;
+        bSaveSerialized = UGameplayStatics::SaveGameToMemory(WrittenSave, SaveBytes);
+    };
+    TestTrue(TEXT("Tundra node uses the production GameMode depletion binding"),
+        HarvestedNode->OnHarvested.IsBoundToObject(Mode));
+    HarvestedNode->OnHarvested.Broadcast(HarvestedTree.PersistentSpawnId);
+    TestTrue(TEXT("Production depletion callback records the original Tundra identity"),
+        Save->IsHarvested(HarvestedTree.PersistentSpawnId));
+    TestEqual(TEXT("Tundra depletion reaches one isolated save write"), SaveWrites, 1);
+    TestTrue(TEXT("Tundra sparse save snapshot serializes"), bSaveSerialized);
+
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestTrue(TEXT("Tundra patch eviction clears tracking"), Mode->ActiveTerrainPatches.IsEmpty()
+        && Mode->ActiveForestNodes.IsEmpty());
+    auto* ReloadedSave = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(SaveBytes));
+    if (!TestNotNull(TEXT("Tundra depletion reloads from the sparse save snapshot"), ReloadedSave))
+    {
+        Mode->PopulationSaveWriterForTests = {};
+        World->DestroyWorld(false);
+        return false;
+    }
+    Mode->PopulationSaveGame = ReloadedSave;
+    Mode->ActivateTerrainPatch(Coordinate);
+    const auto* ReloadedNodes = Mode->ActiveForestNodes.Find(Coordinate);
+    auto* ReloadedPatchEntry = Mode->ActiveTerrainPatches.Find(Coordinate);
+    if (!TestNotNull(TEXT("Reactivated Tundra patch tracks forest nodes"), ReloadedNodes)
+        || !TestNotNull(TEXT("Reactivated Tundra patch tracks terrain"), ReloadedPatchEntry)
+        || !TestNotNull(TEXT("Reactivated Tundra patch is live"), ReloadedPatchEntry->Get()))
+    {
+        Mode->PopulationSaveWriterForTests = {};
+        World->DestroyWorld(false);
+        return false;
+    }
+    TestEqual(TEXT("Saved Tundra depletion removes only its exact node"), ReloadedNodes->Num(), AllTrees.Num() - 1);
+    TestTrue(TEXT("Saved Tundra depletion still suppresses its original cosmetic ordinal"),
+        ReloadedPatchEntry->Get()->GetSuppressedForestCandidatesForVerification().Contains(HarvestedTree.CandidateIndex));
+    TSet<FString> ReloadedIds;
+    for (const TWeakObjectPtr<AKalmalaHarvestNode>& WeakNode : *ReloadedNodes)
+        if (const AKalmalaHarvestNode* Node = WeakNode.Get()) ReloadedIds.Add(Node->GetPersistentSpawnId());
+    for (const FKalmalaForestTreeDescriptor& Tree : AllTrees)
+    {
+        const bool bDepleted = Tree.PersistentSpawnId == HarvestedTree.PersistentSpawnId;
+        TestEqual(TEXT("Patch reactivation preserves descriptor identity across depletion"),
+            ReloadedIds.Contains(Tree.PersistentSpawnId), !bDepleted);
+    }
+    for (const FKalmalaForestTreeDescriptor& Tree : TundraTrees)
+    {
+        if (Tree.PersistentSpawnId == HarvestedTree.PersistentSpawnId) continue;
+        AKalmalaHarvestNode* Node = nullptr;
+        for (const TWeakObjectPtr<AKalmalaHarvestNode>& WeakNode : *ReloadedNodes)
+            if (WeakNode.IsValid() && WeakNode->GetPersistentSpawnId() == Tree.PersistentSpawnId) Node = WeakNode.Get();
+        if (!TestNotNull(TEXT("Uncollected Tundra identity returns after save reload"), Node)) continue;
+        TestEqual(TEXT("Reloaded Tundra Birch retains resource identity"), Node->GetGatheringSourceId(),
+            FKalmalaForestResourceContract::GetSourceId(Tree.TreeKind));
+    }
+    Mode->RefreshTerrainPatchNeighborhoods();
     Mode->PopulationSaveWriterForTests = {};
     World->DestroyWorld(false);
     return true;

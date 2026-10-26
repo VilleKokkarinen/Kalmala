@@ -284,13 +284,13 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Biome debug material | local developer cosmetic | with `-KalmalaBiomeDebug`, replace the generated terrain material with classifier-driven vertex colours from the replicated identity and patch descriptor; it changes no terrain, collision, or gameplay state |
 | Terrain collision | server | create collision from the server's same continuous terrain mesh; clients derive matching local collision only for prediction, never as authority |
 | Surface water | client cosmetic | clip sea-level water against the same linear terrain triangles from the replicated identity and patch descriptor, retaining partially submerged areas |
-| Shimmering Lakes treatment | client cosmetic | derive collision-free lake-water and shoreline meshes from the replicated identity, lake classification, and continuous terrain height; no lake geometry or physics state is replicated |
+| Shimmering Lakes treatment | client cosmetic | the compiled default-off basin policy produces no inland lake-water or shore mesh; when analytic basins are explicitly re-enabled in code, derive collision-free geometry from basin-supported regional samples; no lake geometry or physics state is replicated |
 | Generated player start | server | resolve a Meadow-preferred seed-specific transform above the sampled terrain height, then place each pawn with its actual collision half-height plus server clearance after the terrain patch collision exists |
 | Meadow rocks | client cosmetic | derive non-interactable low-poly procedural rocks from the replicated identity, terrain sample, and biome classification |
 | Meadow trees | client cosmetic | derive non-interactable low-poly procedural trunks and canopies from the replicated identity, terrain sample, and biome classification |
 | Gameplay population layout | server | activate a bounded set of invisible spatial keys around pawns, materialize harvest nodes and hazards, and admit replicated wildlife through a bounded server scheduler after ordered distance, habitat, cap and camp-placement gates; each uses deterministic per-kind, field-informed descriptors with stable IDs for sparse persistence; clients never select gameplay placements or defeat outcomes |
 | Environmental exposure | server | sample ambient temperature, precipitation, wind exposure, and shelter for each pawn; update clamped wetness and warmth at a fixed server interval; replicate the resulting state for display only |
-| Biome expansion | server | `FKalmalaBiomeExpansionContract` supplies deterministic per-biome terrain-feature intent, bounded population multipliers, normalized exposure modifiers, and stable discovery candidates. The completed Shimmering Lakes slice applies its profile only in lake-classified spatial keys and pawn samples, then materializes at most one dry, water-adjacent harvest discovery per active lake key. The Elderwood slice applies its profile only in Elderwood-classified keys and pawn samples, materializes at most one gently sloped lower-flora clearing discovery per active key, and locally derives dense field-driven canopy and roots with natural clearings. The Mossy Mire slice applies its profile only in Mire-classified keys and pawn samples, applies bounded server-owned footing drag through the existing replicated exposure state, and materializes at most one gently sloped relatively dry hummock harvest discovery per active key. The Freezing Tundra slice applies its sparse-cover, stronger-wind profile only in Tundra-classified keys and pawn samples, and materializes at most one exposed, gently rolling high-ground harvest discovery per active key. The Thunder Mountains slice applies its high-wind profile only in Mountain-classified keys and pawn samples, and materializes at most one steep-but-traversable storm-carved overlook discovery per active key. All use the normal validated harvest path and persist only sparse depletion deltas. Clients receive no candidate list or discovery location. |
+| Biome expansion | server | `FKalmalaBiomeExpansionContract` supplies deterministic per-biome terrain-feature intent, bounded population multipliers, normalized exposure modifiers, and stable discovery candidates. The Shimmering Lakes biome label and its field-based profile remain, but the default-off analytic-basin policy suppresses inland lake-water-adjacent discovery candidates and basin-derived shoreline wetness. Ocean-surface proximity still supplies coastal wetness and dry Lakes-biome shore resources without recreating inland basin water. The Elderwood slice applies its profile only in Elderwood-classified keys and pawn samples, materializes at most one gently sloped lower-flora clearing discovery per active key, and locally derives dense field-driven canopy and roots with natural clearings. The Mossy Mire slice applies its profile only in Mire-classified keys and pawn samples, applies bounded server-owned footing drag through the existing replicated exposure state, and materializes at most one gently sloped relatively dry hummock harvest discovery per active key. The Freezing Tundra slice applies its sparse-cover, stronger-wind profile only in Tundra-classified keys and pawn samples, and materializes at most one exposed, gently rolling high-ground harvest discovery per active key. The Thunder Mountains slice applies its high-wind profile only in Mountain-classified keys and pawn samples, and materializes at most one steep-but-traversable storm-carved overlook discovery per active key. All active discoveries use the normal validated harvest path and persist only sparse depletion deltas. Clients receive no candidate list or discovery location. |
 | Companion minimap | client UI | `UKalmalaMinimapViewModel` derives a local terrain/water sample grid from the replicated world identity and owning pawn transform; `UKalmalaMinimapSubsystem` creates a local top-right circular presentation that draws only in-circle terrain/water samples and a centred facing marker. Local mouse-wheel input adjusts a session-only view radius between tunable 2,500–10,000 cm bounds only while CommonUI allows normal game input; a modal UI retains wheel ownership. The UI never reveals hidden server-owned content. |
 | Settings menu | client UI | `UKalmalaSettingsSubsystem` binds local Escape input and opens/closes a local `UKalmalaSettingsWidget`. Options presents selected Gameplay, Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden while it has no selected option. Existing bindings split by device; resolution, V-Sync, window mode, and a 64–576 m render-distance cap (32 m increments) remain in Graphics. The cap applies to registered local-world primitive components while preserving shorter authored cull distances. Unreal view-distance quality is kept at its full scale so the selected meter cap maps directly to the component draw-distance limit. Audio retains local volume controls and uses the shared stone checkbox for mute/restore. Text scale, whole-interface scale, contrast, feedback, reduced motion, and render distance remain in local configuration. These choices affect only presentation, are never replicated, and cannot mutate gameplay authority or save schemas. |
 | Inventory menu | client UI with validated server slot intent | UKalmalaInventoryMenuSubsystem owns the Tab/I panel and an upper-left gameplay hotbar for each local player. One 10×4 runtime grid contains item stacks and tools; its numbered top row is the hotbar. Grid positions and active identity replicate owner-only. Drag or keyboard/controller moves send source/target indices and expected identities for server validation; quantities, grants, repairs and food outcomes remain server-owned. The popup has a separate Worn Gear section for Main Hand, Head, Cape, Chest, Shield, Legs, and Boots. The six wearable slots display owner-only equipped item names and send server-validated equip, replacement, and return requests; Main Hand references the owner-private equipped tool GUID within its unchanged grid cell. The menu retains selected-item details and existing food/repair actions. The gameplay bar displays only occupied cells in 1–9, 0 order and hides during modals. Tool metadata and save schemas retain their established contracts; arrangement is session state. See `02-technical-architecture.md`. |
@@ -315,7 +315,73 @@ The classifier and terrain-height sampler share `FKalmalaRegionalGeneration`. Sa
 
 Biome classification always uses the current generator. World identity contains only the immutable server-owned `WorldSeed`. Production tuning changes may change existing seed layouts during development. Current saves use seed-only slots; former version-specific slots are neither loaded nor deleted.
 
-The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/water atlas, sampled through a game-seeded crop and rotation at the existing 16 km world radius. Its sign constrains Elevation and final ocean/land terrain; existing game-seeded Perlin fields still provide relief and environmental suitability. Special land biomes compete above hard origin-distance minima: Lakes 0.35–3 km, Elderwood at least 0.75 km, Mire 3–16 km and Tundra at least 4 km. The inclusive 350 m centre is Meadows/Ocean only. Meadows ends at 4 km; Mountains is the remaining land fallback beyond it and the elevated fallback outside the centre. Smooth eligibility ramps stay entirely within allowed distances. Lakes and Mire share all regional, climate, relief and basin parameters; only their distance ranges differ. See `02-technical-architecture.md` for exact precedence and tuning.
+The generator uses `FKalmalaMasterMap`: an independent fixed-seed 128 km land/water atlas, sampled through a game-seeded crop and rotation at the existing 16 km world radius. Its sign constrains Elevation and final ocean/land terrain; existing game-seeded Perlin fields still provide relief and environmental suitability. Special land biomes compete above hard origin-distance minima: Lakes 0.35–3 km, Elderwood at least 0.75 km, Mire 3–16 km and Tundra at least 4 km. The inclusive 350 m centre is Meadows/Ocean only. Meadows ends at 4 km; Mountains is the remaining land fallback beyond it and the elevated fallback outside the centre. Smooth eligibility ramps stay entirely within allowed distances. Lakes and Mire share regional, climate and relief suitability; only their distance ranges differ. Analytic basin generation is disabled by compiled policy. See `02-technical-architecture.md` for exact precedence and tuning.
+
+Final land height blends complete biome candidates by the existing normalized
+land-biome weights. Those weights include the continuous source-land/coast
+attenuation; height adds each candidate's delta from the shared source height
+once, then keeps the existing independently weighted ocean offset. Biome labels,
+ecological fields and eligibility bands remain classifier inputs and do not
+select a hard height switch.
+
+After stream shaping and before priority-river carving, source-land samples use
+a source-relative softplus coast transition instead of a fixed 1 cm minimum.
+For shaped height `H`, positive source clearance `S`, and maximum scale `K0 =
+CoastSignTransitionScale` (300 cm), the scale is `k = min(K0, S / ln(2))` and
+the final land height is `k * ln(1 + exp(H / k))`. The stable implementation
+returns `H` above the transition and tapers `k` to zero at the source coast.
+This retains positive land clearance without flattening negative relief onto a
+constant shelf. Sea-side height remains constrained by source elevation.
+
+The Meadows candidate adds separate seed-derived absolute-world hill and
+rolling signals. BH25a selected a 4 m hill amplitude with the 160 m hill scale
+held fixed; BH25b1 selected a 0.6 m rolling amplitude at 45 m. Across the eight
+fixed profiles, the selected rolling trial's final-height min/mean/max ranges
+were 42.4/176.2/767.8 cm at 30 m, 49.5/226.8/935.1 cm at 45 m, and
+66.4/286.3/1,074.0 cm at 70 m; dry collision-slope p50/p90/p95/maximum was
+2.31/4.55/28.07/36.20 degrees. BH12a adds a third independently seeded floor
+signal; BH25c selected 8 m / 0.1 m after the nine-trial fresh-source matrix.
+At 125 cm collision spacing, the selected scale has 6.4 intervals per scale
+length and a maximum 2.765 cm adjacent floor-input step. These layers enter the smooth, monotonic shoulder
+curve; candidates below 10 m remain unchanged and the curve approaches a 40 m
+upper bound. The broad layer replaces the previous 40 cm Meadows detail term.
+Lakes tuning remains provisional pending BH25d. BH26 retains rendered
+gentler-route and under-vegetation inspection; numeric profiles do not claim
+rendered traversal or floor readability acceptance.
+
+Elderwood and Tundra share the same uncompressed candidate over the absolute-
+world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. BH25b2
+selected broad/middle/local amplitudes of 4 / 0.6 / 0.1 m from fresh-source
+one-layer trials spanning 4–16 / 0.6–4 / 0.1–1 m. On the selected trials,
+the six dry 100 m profile ranges (min/mean/max, cm) were 62.59/212.16/561.43
+(broad), 33.58/194.91/557.29 (middle), and 33.77/176.00/519.75 (local); the
+corresponding collision-slope p50/p90/p95/maximum values were
+1.36/4.17/10.60/23.52, 1.00/2.99/9.86/21.71, and
+1.27/2.96/9.51/22.06 degrees. Tundra directly calls the Elderwood function,
+so candidate height cannot drift between those biomes; continuous
+classification weights still determine each final blend. Detailed trial data
+and the cost/budget comparison are in [the biome-height plan](biome-height-rework.md).
+BH25d owns Lakes blend/lowland selection, and BH26 owns rendered profile acceptance.
+
+The BH25b measurements did not change fixed map or terrain payload sizes. Each
+terrain patch remains 30 m across with a 24x24 collision-cell lattice (625
+vertices and 1,152 triangles); the server remains capped at 25 active patches.
+The existing 129x129 minimap raster and bounded world-map tile/cache sizes are
+unchanged. Cost measurements and unavailable BH01 runtime timings are recorded
+in the biome-height plan; those local readings are guardrails, not hardware-
+independent frame-time promises.
+
+Thunder Mountains now increase gain only above the named `MountainHighlandThreshold`
+of 1,000 cm. The increase ramps with smoothstep across a further 1,000 cm,
+scales by the existing continuous Mountain region field, and reaches a provisional
+0.4 gain at full region strength. The separate detail term is clamped to ±1 and
+uses a provisional 80 cm amplitude. Commandlet preview bounds are 500–2,000 cm
+for the threshold and blend range, 0.1–0.8 for gain, and 40–160 cm for detail.
+Thus low source-height fallback and foothills retain their base height (apart
+from bounded detail), while only high terrain receives the broad amplification.
+Biome weights, distance eligibility, coast attenuation, river order and seeded
+sampling are unchanged. These source settings are provisional; rendered
+mountain/foothill acceptance remains BH26.
 
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 
@@ -323,9 +389,10 @@ The master seed is a compiled constant. Crop transforms derive from the game see
 
 `FKalmalaRegionalGeneration` preserves seeded candidate selection, stable-ID
 coalescing and spline XY placement. Segment endpoint Z still records source
-relief for path construction; it is not the river surface. Production rivers
-use `SeaLevelWorldHeight` (Z=0 cm) outside eligible lake-basin supports. Rivers
-retain their land-biome identity; carved water does not reclassify land as Ocean.
+relief for path construction; it is not the river surface. The compiled
+`FKalmalaRegionalTuning::bEnableAnalyticBasins` policy defaults to false, so
+production rivers use `SeaLevelWorldHeight` (Z=0 cm) without lake-basin support.
+Rivers retain their land-biome identity; carved water does not reclassify land as Ocean.
 Small streams remain disabled; explicitly enabled debug streams retain their
 existing interpolated-height profile.
 
@@ -338,27 +405,32 @@ full central influence and zero derivative at both ends. The maximum B across
 segments is applied once, avoiding cumulative carving at joins. The spatial
 index includes the complete bank envelope, including across hydrology cells.
 The separate narrow `RiverWeight` still ends at `w`; it does not bound the
-carved banks or determine whether final terrain is wet.
+bank envelope or determine whether final terrain is wet. Its smoothstep share
+does control the target depth across that wider bank envelope.
 
-Shaping order is base relief and analytic bowls, optional stream shaping,
-source land/coast clamp, then river carving. With pre-carve height H, basin
-support S, and retained basin water L, the river target is
-`bed = lerp(0, L, S) - RiverBedDepth`; the final height is
-`lerp(H, min(H, bed), B*(1-S))`. Thus high source land cannot refill a channel,
-and already deeper ground is never raised. Outside basin support, the central
-bed reaches at least 80 cm below sea and river water is exactly Z=0. Shoulders
-blend back to H; points outside every bank envelope retain their prior terrain
-and source-coast sign. The shoulder can remain dry where its final height is
-above water. Regional wet state is strictly `WaterLevel > Height`.
+Shaping order is base relief and biome relief, optionally enabled analytic
+bowls, optional stream shaping, source-relative land/coast sign transition,
+then priority river carving. For pre-carve height H and bank influence B, the
+source-land bank floor is `min(H, 1 cm)`; sea-side samples retain H. The target
+blends from that floor to the local sea-level bed by
+`C = smoothstep(0, 1, RiverWeight)`, then the bounded bank applies
+`lerp(H, min(H, lerp(BankFloor, -RiverBedDepth, C)), B)` when basins are
+disabled. This keeps the 1,800 cm bank envelope from cutting a full sea-level
+trench where narrow `RiverWeight` is zero, while preserving the full-depth
+central channel. High source land cannot refill a channel, and already deeper
+ground is never raised. The central bed reaches at least 80 cm below sea and
+river water is exactly Z=0. Shoulders blend back to H; points outside every
+bank envelope retain their prior terrain and source-coast sign. The shoulder
+can remain dry where its final height is above water.
+Regional wet state is strictly `WaterLevel > Height`.
 
-Eligible analytic lake bowls take precedence: any positive basin support
-retains the existing basin water level, full support preserves its existing
-bed, and partial rim support attenuates carving while lifting the target toward
-that level minus the bed depth. This defines a continuous terrain transition;
-it does not flatten inland lakes to sea level. Visible lake water still requires
-the enclosed-component decision described below. Rendered lake joins await the
-queued preview and water-mesh verification; sampler continuity alone does not
-establish visible mesh continuity.
+Analytic basin generation is currently disabled by the compiled shared policy.
+The regional sampler therefore skips bowl/rim height shaping, inland basin
+water-level assignment and positive basin weights without changing biome
+identity. Lake-basin flood-fill and mesh helpers remain available as reusable
+utilities for synthetic fixtures; production samplers and consumers now require
+basin support, so the former lake-precedence path is not current production
+behavior. No derived basin-result cache survives independently of its source.
 
 The same immutable server-owned seed and current tuning must produce identical
 height, water level, wet state and river influence regardless of query order,
@@ -378,9 +450,9 @@ hydrology-grid and terrain-patch seams, and unchanged terrain/coast/lake control
 These cases are not recorded as executed acceptance: compilation, automation,
 preview inspection and host/client agreement remain separate queued gates.
 
-The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional/basin classifier while skipping hydrology and height-only work; default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
+The developer `ExportWorldMaps` commandlet can temporarily install thread-local preview tuning, with installation rejected outside headless commandlets. Each render restores defaults and invalidates derived crop/hydrology caches. Its fast biome query shares the normal regional classifier while skipping hydrology and height-only work; analytic-basin generation is disabled by the compiled policy. Default output is checked against full sampling. A warm parameter-file watcher writes PNGs without starting gameplay. This adds no runtime console setting, client authority, replicated property, production-layout setting or save change; see `07-development-setup.md` for the workflow.
 
-Water presentation uses `FKalmalaWaterSurfaceMesh` to clip the shared terrain triangles at sea/lake level. `FKalmalaLakeBasin` first floods the six-connected 125 cm terrain lattice below lake level, accepting only enclosed components containing a lake-biome seed. Biome boundaries never cut an accepted lake: water extends to the physical banks. Connections to sea level and components exceeding 8,192 wet vertices are conservatively omitted rather than truncated. A bounded identity/lattice-origin cache reuses component decisions across streamed patches. The minimap uses this same visible-basin decision and interpolated terrain surface; existing server wetland/exposure/discovery sampling remains unchanged. It retains partially wet cells and interpolates intersections on shared patch edges. Shore treatment covers only terrain within 12 cm below the lake surface, not every cell or biome edge. There are no additional water collision surfaces, gameplay fields, replicated values, or saved data. The configured startup map supplies lighting without Unreal's template landscape, which otherwise intersects the generated terrain.
+Water presentation uses `FKalmalaWaterSurfaceMesh` to clip shared terrain triangles at sea or sampled regional water levels. Analytic enclosed-basin generation is disabled by the compiled shared policy, so the regional sampler emits no inland basin bowl, basin water-level assignment or positive basin weight. Lake samplers, water/shore meshes, map depth, audio proximity, shoreline exposure and lake-adjacent discoveries all require basin support. `FKalmalaLakeBasin::Find` remains a reusable six-connected 125 cm lattice utility for synthetic fixtures; it is stateless and is not production lake generation. The only lake-basin origin memoization stores the generated player-start transform, not basin/water results. Minimap and expanded-map presentation rasters retain derived water colours until their normal inputs change or their presentation objects are rebuilt; they do not cache basin results independently. Generated patch sections are cleared when rebuilt, and the regional cache contains hydrology splines only. The policy is compile-time, so changing it requires a new build; no persistent basin-result cache needs invalidation. Sea and sea-level river classification/clipping remain active. Shore treatment covers only actual shallow supported terrain; there are no additional water collision surfaces, gameplay fields, replicated values or saved data. The configured startup map supplies lighting without Unreal's template landscape, which otherwise intersects the generated terrain.
 
 ### River terrain/water consumer audit — 2026-10-18
 
@@ -402,11 +474,11 @@ existing linear triangles; river preview, patch-seam and peer gates remain queue
 
 ## Companion minimap presentation
 
-Phase 7 begins with `FKalmalaOceanSampler`: a derived sea-depth query using the same 125 cm lattice and triangle diagonal as terrain collision and clipped ocean water. The normal overload derives the lattice origin from the immutable world's generated start and caches only that origin by identity. The explicit-origin overload supports patch callers. It returns validity, interpolated terrain height, and nonnegative depth below the existing zero-height sea surface; dry ground and the exact shore have zero depth. Invalid identity and nonfinite coordinates are rejected. The minimap now consumes this triangle height and sea-depth result instead of sampling curved Perlin height between mesh vertices, so its ocean coastline follows the visible mesh. Inland lake presentation continues through the enclosed-basin query.
+Phase 7 begins with `FKalmalaOceanSampler`: a derived sea-depth query using the same 125 cm lattice and triangle diagonal as terrain collision and clipped ocean water. The normal overload derives the lattice origin from the immutable world's generated start and caches only that origin by identity. The explicit-origin overload supports patch callers. It returns validity, interpolated terrain height, and nonnegative depth below the existing zero-height sea surface; dry ground and the exact shore have zero depth. Invalid identity and nonfinite coordinates are rejected. The minimap consumes this triangle height and sea-depth result instead of sampling curved Perlin height between mesh vertices, so ocean and carved Z=0 river water follow the visible surface. Analytic inland basins are disabled by compiled policy and their consumers explicitly gate on basin support.
 
 This query adds no world field, terrain deformation, island placement, collision volume, RPC, replicated value, or saved data. `FKalmalaIslandLocator` remains a developer-only query over existing emerging seed terrain and never reserves or creates content. The first gameplay consumer is `UKalmalaCharacterMovementComponent`: server and predicting owner sample the replicated immutable identity at the pawn's current position, enter its generated-ocean custom mode at 100 cm sea depth, and return to normal walking below 75 cm. The server remains authoritative through normal Character Movement replication and correction; the client supplies neither a depth nor a requested mode. The custom mode floats the existing pawn capsule at the zero-height visible sea and retains swept collision with the shared terrain mesh. Server terrain activation retires patches outside the bounded union of all player neighborhoods before activating needed ones, so ordinary long-distance sea movement refreshes collision/rendering without expanding the 25-patch budget. `OceanTravel.ps1` confirms a current-generator host and conflicting-seed client independently derive the same existing island, enter ocean, and arrive over normal replicated movement; its travel target and temporary pawn-collision relaxation are verification-only. Boats and inland lake-depth gameplay remain future Phase 8 work.
 
-The companion minimap uses a `ULocalPlayerSubsystem` per local player and rebuilds its widget/input binding when that player's controller changes. Viewport sizing and positioning precede anchoring because UE 5.8 resets anchors in both setters. A transient 129x129 sRGB texture fills the circle with world-anchored original biome patterns, bilinear filtering, and a transparent feathered edge; sea-level water and inland lake water override land treatment. This is disposable presentation of the existing classifier, not a new world-generation field or persisted biome map. Unchanged position/radius/world identity reuses the raster; facing still refreshes. Texture uploads update an existing GPU resource. The configured CommonUI viewport client routes modal input; Menu mode always retains wheel ownership, including menus with captured previews. No discovery/landmark visibility contract exists yet, so the minimap does not query or draw harvest nodes, hidden discoveries, hazards, or other players.
+The companion minimap uses a `ULocalPlayerSubsystem` per local player and rebuilds its widget/input binding when that player's controller changes. Viewport sizing and positioning precede anchoring because UE 5.8 resets anchors in both setters. A transient 129x129 sRGB texture fills the circle with world-anchored original biome patterns, bilinear filtering, and a transparent feathered edge; sea-level water overrides land treatment, while inland lake depth requires basin support. This is disposable presentation of the existing classifier, not a new world-generation field or persisted biome map. Unchanged position/radius/world identity reuses the raster; facing still refreshes. Texture uploads update an existing GPU resource. The configured CommonUI viewport client routes modal input; Menu mode always retains wheel ownership, including menus with captured previews. No discovery/landmark visibility contract exists yet, so the minimap does not query or draw harvest nodes, hidden discoveries, hazards, or other players.
 
 The expanded map places a local fog texture over all generated terrain/water tiles and clears a fixed 6,500 cm circle around the owning pawn's normal replicated transform. It records the revealed 500 cm coverage cells in a separately versioned, bounded (8,192-cell) local `SaveGame`, keyed by the immutable seed and local-player index; a mismatched identity is never reused. This is separate from server-owned generated-world sparse saves and stores no terrain classification, actor, discovery, or gameplay data. Current sight is fully clear; remembered personal coverage carries a translucent sea-glass teal treatment. A contrasting warm lichen-ember palette is reserved for a future explicitly opted-in shared-cartography source, but this phase does not create, load, query, or render shared coverage. Map pan and zoom merely transform current/personal coverage into the view; neither can widen it, choose another player, issue an RPC, or query actors. Opaque fog pixels contain no terrain, water, landmark, population, or discovery treatment.
 
@@ -532,7 +604,7 @@ The developer-only reconnect harness verifies both harvest and wildlife paths ac
 
 Each land-biome slice consumes `FKalmalaBiomeExpansionContract` rather than creating a parallel seed, placement, exposure, or persistence scheme. A profile supplies bounded terrain-feature intent, per-kind population multipliers, and normalized wetness, wind, and natural-cover modifiers. The current exposure simulation continues unchanged until a completed biome slice explicitly adopts its profile. Discovery candidates are deterministic, terrain-aligned server inputs with stable IDs derived from world identity, biome, and invisible spatial key; candidates are neither spawned, replicated, revealed, nor saved by this contract alone.
 
-The Shimmering Lakes slice consumes that contract without adding water traversal physics or a boat requirement. Existing local terrain patches draw their continuous interlocking lake water and shore treatment. On the server, only lake-classified active spatial keys apply the bounded lake population profile and attempt a fixed deterministic search for one dry, water-adjacent discovery. The resulting replicated one-use harvest node uses the stable discovery ID and existing server-only interaction/depletion save path. A lake pawn's server exposure sample applies the lake wet-ground and reduced-cover modifiers before the unchanged shelter/fire response; clients only receive the resulting replicated exposure state.
+The Shimmering Lakes slice consumes that contract without adding water traversal physics or a boat requirement. The biome label and field-based profile remain active, but the compiled default-off analytic-basin policy builds no inland lake/shore mesh, no water-adjacent Rillstone discovery, and no basin-derived shoreline wetness. Ocean proximity can still inform coastal exposure and dry Lakes-biome harvest resources. The Rillstone content definition remains dormant until genuine basin water is enabled by a reviewed code change. Existing ocean and sea-level river clipping, mapping and swimming remain separate. Clients only receive the resulting server-derived exposure state.
 
 The Elderwood slice consumes the same contract without a route, reserved camp, or authored clearing. Local terrain patches derive larger field-driven trees, canopy, and non-colliding root buttresses from the replicated identity; continuous Flora controls density so lower-flora pockets remain natural clearings. On the server, only Elderwood-classified active spatial keys apply the bounded population profile and may materialize one terrain-aligned, gently sloped lower-flora harvest discovery. A server pawn in Elderwood receives the profile's increased natural cover and reduced wind exposure before the unchanged shelter/fire response. The discovery follows the normal validated interaction and sparse depletion path; clients receive only the ordinary replicated node when relevant.
 
@@ -740,7 +812,7 @@ On land, the existing regional Perlin signals and environmental suitability sele
 
 Minimum-distance weights rise smoothly over 50 m on the eligible side, never leaking into excluded radii. The lowland Meadows fallback fades into Mountains over the last 50 m before 4 km, reaching zero at 4 km. Elevation also favours the mountain fallback nearer the centre, with no mountain influence at or inside 0.35 km. A winning special biome takes precedence over the fallback, including on high terrain. Remaining land beyond 4 km is Thunder Mountains even where source relief is low. These restrictions replace the earlier Gaussian distance preferences; they are not enemy levels or travel gates.
 
-Shimmering Lakes and Mossy Mire share the same regional noise, humidity, elevation and temperature suitability, terrain relief, and analytic basin parameters. Their only generation difference is the distance range: Lakes 0.35–3 km, Mire 3–16 km. Both ends ramp over 50 m inside the allowed range; their weight is zero at the exact endpoints. Biome labels do not require standing water. Qualified bowls shape terrain and water within either wetland without overriding biome weights or distance limits.
+Shimmering Lakes and Mossy Mire share the same regional noise, humidity, elevation and temperature suitability. Their distance ranges differ: Lakes 0.35–3 km, Mire 3–16 km. Both ends ramp over 50 m inside the allowed range; their weight is zero at the exact endpoints. Their height candidates differ: Lakes continuously mixes the Meadows and Elderwood candidates, then adds humidity-weighted compression across a bounded source-height band. BH25d retained the measured center Lakes controls: Meadow share 0.50, lowland floor 200 cm, ceiling 1,200 cm and compression 0.20. Mire uses a monotonic rational compression toward a 300 cm target with a 700 cm scale and clipped ±25 cm residual detail; BH25e retained those measured center settings from the bounded 200–500 / 300–1,200 / 10–60 cm trials. The minimum positive-source worst-case clearance across tested Mire samples was 19.538 cm. BH15b supplies fixed profile diagnostics and stale-binary-safe overrides; raw profiles and coast/river comparisons are in `docs/biome-height-rework.md`. Mire candidate blending stays continuous, and priority river carving remains the later corridor override. The Lakes/Mire lowland terms are height-only and independent of basin support. Biome labels do not require standing water. The compiled shared policy disables qualified bowl/rim shaping, basin water-level assignment and positive basin weights in both wetlands without changing those labels, their field-based profiles or distance limits.
 
 Shared suitability defaults: humidity rises from 0.48 to full strength at 0.65, elevation falls from full strength at 0.43 to zero at 0.58, and temperature rises from 0.18 to full strength at 0.32. `FKalmalaRegionalTuning` and the preview parameter file expose these same six settings. Rivers remain enabled; small streams are disabled. Inland water can occur in a land biome without making it Ocean. Islands come from the master crop. The player-start resolver searches dry Meadows within 320 m of zero.
 
@@ -1223,7 +1295,9 @@ sources.
   point and probes up to 24 deterministic offsets to avoid overlapping its
   first-wave marker. The final position must be in bounds, dry, walkable, and
   in the same biome; the Rillstone also requires lake water within 350 cm, and
-  Leeward Grain requires elevation of at least 0.80.
+  Leeward Grain requires elevation of at least 0.80. Since the compiled basin
+  policy is disabled, the Rillstone candidate is currently dormant; the
+  Leeward Grain remains eligible on qualifying mountain terrain.
 - Stable sparse identities use
   `land-discovery:m9:1:<candidateId>:<x>,<y>`, where the coordinates are the
   population spatial key. The server re-derives the descriptor before use.
@@ -2671,9 +2745,32 @@ child. See `02-technical-architecture.md` for identities and verification bounda
 | --- | --- | --- | --- |
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
-| Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
+| Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content; generated Meadow rocks align to the final sampled terrain normal and remain collision-free | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
 | UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; Settings' Controls (keyboard/mouse), Controller, Graphics, Audio, and Accessibility groups expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
 | Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents combat/support results and discovery acknowledgements; the optional Text + markers overlay remains for nearby hearth/construction context |
+
+The terrain mesh writes normalized grass, soil and rock weights into vertex
+colour RGB from its final-surface normal, world-humidity field and final
+regional water state. Regional water sets moisture to its wet endpoint. Vertex
+colour alpha carries a continuous cold-biome snow mask. Tundra coverage is its
+biome weight multiplied by final surface normal Z. Mountain coverage also uses
+its continuous biome weight, a smooth final-height transition from the named
+highland threshold through its blend range, and final surface normal Z, so low
+foothills stay clear and steep faces receive less snow.
+`M_GeneratedTerrain` blends the established grass and rock colors with the
+original muted soil color from `M_GeneratedSoil`, then blends the existing
+terrain color toward a pale snow tone using alpha; the packages are generated
+by `CreateWorldMaterialsCommandlet`. The blend adds no world-field sample or
+mesh budget; clipped edge vertices derive regional weights from their existing
+field samples. Player cloth selects the established grass channel with snow alpha zero
+so the shared terrain material retains its original clothing color. No grass
+texture or reed presentation asset is introduced. The client-local Mountain
+storm fog fades with the existing replicated storm intensity multiplied by the
+continuous Thunder Mountains weight at the owning pawn. It adds no replicated
+actor, field or RPC, and no gameplay effect; Tundra snow and player-cloth
+material behavior are unchanged.
+Generated Meadow rock bases use the shared final terrain height and surface
+normal; the terrain patch remains their gameplay surface.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered
@@ -3152,14 +3249,53 @@ Equipped accessories' additive `StaminaCostMultiplier` deltas sum with active We
 
 ### Generated-forest harvesting contract (reconciled 2026-10-17)
 
-`FKalmalaForestLayout::Generate` supplies individual Meadow/Elderwood descriptors
-shared by terrain rendering and server materialization: original candidate ordinal,
-world/local position, biome, dimensions and yaw. Each accepted descriptor has a
+`FKalmalaForestLayout::Generate` supplies individual Meadows, Lakes, Elderwood
+and Tundra descriptors shared by terrain rendering and server materialization:
+original candidate ordinal, world/local position, biome, dimensions, yaw, and a
+normalized `ForestFactor` sampled from a separate absolute-world noise domain.
+This derived placement mask is independent of terrain detail, Flora and
+candidate-stream draws; it is not an additional ecological field or replicated
+map. Meadows candidates now use the
+existing Flora probability curve through this shared layout, with a stable
+world/patch/original-ordinal roll applied after existing geometry draws so a new
+rejection cannot shift later candidate randomness. Meadow admission probability
+multiplies the existing Flora probability by the continuous absolute-world
+factor; low-factor areas form clearings without changing the candidate budget or
+resetting at patch boundaries. Meadows descriptors also require a final
+`FKalmalaTerrainHeightSampler::SampleSurfaceNormal` Z component of at least
+0.88; its four neighboring height samples run only after Flora, forest-factor
+and stable per-ID candidate gates. After those checks, a single final regional
+sample supplies both water state and root height. Meadows candidates with
+regional water are rejected; remaining candidates also require a valid dry sea
+sample on the same explicit 125 cm patch triangle lattice used by clipped ocean
+water. This rejects sea, river and policy-enabled basin water without creating
+basins when analytic basin support is disabled. Elderwood behavior is unchanged.
+Shimmering Lakes candidates are admitted only at exact Lakes-classified samples,
+share the existing 18-ordinal Meadows cap and Flora/forest-factor threshold, and
+must pass the same final-slope and dry-water checks on the collision lattice.
+They use the established generic Meadows Birch kind, source and presentation; no
+Lakes timber source or catalogue item is added. Their appearance uses the
+per-candidate geometry seed, so newly eligible Lakes trees do not advance
+existing candidate or geometry draws.
+The same shared descriptors feed cosmetic rendering and server materialization,
+so wet-ground rejection preserves original candidate ordinals and persistent IDs
+for suppression, depletion, late join and restart reconstruction.
+Each accepted descriptor has a
 `forest:v1:<world-seed>:<patch-x>:<patch-y>:<candidate>` identity. Patch coordinates
 are exact world-space centers formatted with 17 significant digits and normalized
 signed zero; full unsigned seeds and original ordinals prevent filtered-order and
 cross-patch aliasing. Invalid centers/ordinals yield an empty identity; rejected
 candidates do not renumber later trees or alter the existing random draw order.
+Descriptors carry an explicit `EKalmalaForestTreeKind` rather than overlapping
+Elderwood/Aspen flags. Meadows birch, Meadows aspen and Elderwood ironheart retain
+their current resource and presentation mappings. The reserved Freezing Tundra
+birch kind maps to the existing Meadows birch source and presentation; it is not
+an Elderwood-only resource and adds no timber item or reward.
+Freezing Tundra forest candidates reuse the Flora curve and absolute-world forest
+factor with a provisional 0.85 density multiplier and a stable patch/ordinal
+threshold. Their appearance uses an independent per-candidate stream so newly
+eligible Tundra samples cannot advance the existing Meadow/Elderwood candidate
+stream; BH25 finalizes the multiplier and BH26 owns rendered acceptance.
 
 GameMode loads the matching population save before terrain activation. It generates
 the shared descriptors once, skips IDs already harvested, and initializes each
@@ -3167,9 +3303,10 @@ remaining node through the private descriptor initializer. Public
 `AKalmalaHarvestNode::InitializeForestServer` reconstructs from server config,
 patch center and ordinal through that same path. Authority, unused actor state,
 candidate identity and finite positive dimensions are validated before mutation.
-There is no client descriptor or reward RPC. Nodes use the Meadows birch-trunk or
-Elderwood ironheart-trunk tier/yield contracts and bind `OnHarvested` to GameMode's
-existing sparse population callback. Forest IDs bypass the session M9 overlay.
+There is no client descriptor or reward RPC. Nodes use the Meadows birch/aspen,
+the existing birch source for Freezing Tundra birch, or Elderwood ironheart
+tier/yield contracts and bind `OnHarvested` to GameMode's existing sparse
+population callback. Forest IDs bypass the session M9 overlay.
 
 ### Patch ownership, suppression and replication
 
@@ -3293,7 +3430,7 @@ persistence without new scrolls or save-format changes.
 Gemstone nodes use equipped Basic pickaxe attacks, never interaction mining. The server validates the pick family/tier, range, health and condition. Each of three accepted hits resolves its 10% smash before extraction; condition and sparse population schema-2 hit/outcome writes precede presentation. Failed writes do not publish node progress and the deterministic per-hit roll is stable on retry. Partial hits, shattered rocks, loose gems and consumed claims reconstruct from sparse state. A loose gem grants exactly one matching catalogue item after capacity validation; full packs retain it. Relevant peers receive node progress/outcome, while inventory stays owner-only. Inventory/gear remain session-only; this adds no general pack restoration. Source generation is enabled separately after its acquisition entry is complete.
 
 
-A9 world treasure is attached to the existing seeded PointOfInterest discovery actors in Elderwood, Shimmering Lakes and Thunder Mountains, as explicitly approved on 2026-10-23. Server-generated schema-2 treasure records retain even empty results and one shared consumed flag. The actor retains its original discovery route and adds a chest with an open/claimed cue; no new location, player-storage entry, item or buildable is created. Claiming the entire loot validates canonical descriptor, authority/range/living owner and inventory capacity, then commits the consumed save state before publishing removal. Full-pack and persistence failures retain availability. Enabled source entries control only initial generation, never reroll an existing chest; Lakes rolls are domain separated. General material inventory remains session-only.
+A9 world treasure is attached to existing seeded PointOfInterest discovery actors in Elderwood, Shimmering Lakes and Thunder Mountains, as explicitly approved on 2026-10-23. Server-generated schema-2 treasure records retain even empty results and one shared consumed flag. The actor retains its original discovery route and adds a chest with an open/claimed cue; no new location, player-storage entry, item or buildable is created. Claiming the entire loot validates canonical descriptor, authority/range/living owner and inventory capacity, then commits the consumed save state before publishing removal. Full-pack and persistence failures retain availability. Enabled source entries control only initial generation, never reroll an existing chest; Lakes rolls are domain separated. Lake-water-dependent Rillstone placements are currently suppressed by the compiled basin policy. General material inventory remains session-only.
 
 A9 source audit found Frost Salt mineral deposits existed only as contracts/fixtures. The user approved an additional bounded one-deposit-per-60-m-key pass on 2026-10-23. It uses 32 distinct deterministic candidates, dry slope-safe Tundra terrain and 250 cm separation. Ordinary candidates and frostmoss stay unchanged. Ordinary population multipliers apply before retaining this separately budgeted slot. A single 1% selection replaces it with Star Opal; the other 99% uses the existing Frost Salt mining/yield contract.
 

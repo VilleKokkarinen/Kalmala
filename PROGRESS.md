@@ -1,3 +1,53 @@
+## Run 2026-10-24T18:09:54Z — Integrate Meadows hills and shoulder curve (BH10a)
+
+- **Selected task:** BH10a, the first ordered child under BH10. BH10 remains
+  open until its profile-measurement child BH10b is complete.
+- **Work completed:** Added a deterministic broad Meadows hill signal with its
+  own world-seed noise salt and preview amplitude/scale. It replaces the old
+  40 cm Meadows detail candidate term. Added a monotonic exponential upper
+  shoulder compression with preview controls for its threshold and scale; the
+  curve is identity below its threshold and asymptotically bounded above it.
+  Kept the continuous biome/coast blend, hydrology ordering, and other biome
+  candidates intact. Added focused source coverage for bounded monotonic
+  compression, lower-candidate preservation, one-time signed hill addition,
+  continuous Meadows/Elderwood blending, and a fixed seed-418 baseline-site
+  hill neighborhood. Added the shoulder controls to commandlet parsing and
+  reporting. The provisional nominal hill amplitude is 6 m, pending BH10b.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`;
+  `Scripts/Tests/World/WorldMapExport.ps1`; `Scripts/WorldMapPreview.params`;
+  `Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp`;
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`;
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`;
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`;
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`;
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`;
+  `docs/02-technical-architecture.md`; `docs/07-development-setup.md`;
+  `docs/biome-height-rework.md`; `docs/meadows-plan.md`.
+- **Lightweight checks:** `git diff --check` passed (Git reported existing
+  CRLF-to-LF working-copy warnings). PowerShell parser validation passed for
+  `Scripts/Tests/World/WorldMapExport.ps1`; the source and staged-control
+  changes were inspected. No Unreal build or automation was run.
+- **Full verification:** Deferred to BH26; BH10a is not the final implementation
+  task in the roadmap milestone.
+- **Observable impact:** Meadows regional heights now receive a deterministic
+  broad hill/hollow signal and a smooth upper-height compression. Other
+  classifier fields and fast biome-map pixels are unaffected by these height
+  controls.
+- **Networking/authority:** The new hill signal uses the existing world seed
+  and absolute world coordinates, so regional sampling stays deterministic.
+  No RPC, gameplay authority, save schema, or player-state behavior changed.
+- **Known limitations / remaining scope:** BH01 recorded fixed-site values but
+  no 100–250 m Meadows transects. No low/nominal/high profile measurements or
+  rendered/gameplay acceptance were run. The 6 m hill, 10 m threshold, and 30 m
+  compression scale are provisional; BH10b must compare 4/6/8 m trials against
+  the baselines and record results. Shared rolling relief and floor detail
+  remain later tasks.
+- **Next eligible task:** BH10b — measure and tune Meadows hill trials using
+  fixed-site and 100–250 m height/slope profiles. Keep BH10 open until that
+  work is complete.
+- **Integration state:** Changes are in the detached BH10 worktree; handoff
+  synchronization to the main checkout is pending.
+
 ## Run 2026-10-23T07:26:32Z — Add Meadows Rat peer-acceptance runner
 
 - **Selected task:** Continue the first unchecked A8 I4 child for live A8a
@@ -12348,3 +12398,2306 @@
 - **Observable impact / networking:** The final fixes restore compilation and correct fixture assertions/lifecycle setup. No gameplay policy, saved-data schema, replication protocol or client authority changed. The live runner confirmed server-owned defeat/reward and replicated state.
 - **Known limitations:** Environmental source behavior remains a reusable dormant policy seam without configured world content; its native policy/admission tests passed. No verification blocker remains.
 - **Final milestone status:** Complete. S01–S35 and the parent goal are checked. No next task remains in this goal.
+
+## Run 2026-10-24 — BH01a seed overviews and site selection
+
+- **Selected increment:** BH01a, the first ordered part of BH01 in the
+  user-requested biome-height worktree. BH01 remains open pending BH01a–BH01c.
+- **Completed:** Exported and visually inspected full-world seed 418 and 419
+  overview maps with the existing visualization commandlet. Recorded its
+  settings, four principal-image SHA-256 hashes per seed, map resolution,
+  representative biome/transition/coast/highland-river coordinates, and the
+  fixed relative camera pose in `docs/biome-height-rework.md`. Checked BH01a
+  only in `BACKLOG.md`.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/biome-height-rework.md`. Ignored map exports remain in `.tmp/bh01/`;
+  no generated outputs were staged.
+- **Lightweight checks/results:** Both commandlet exports exited successfully
+  with zero logged errors. Each produced the expected 2048×2048 P6 maps; the
+  four documented hashes per seed were recomputed directly from the files.
+  All 18 images and `Tuning.txt` per seed passed a P6 header/dimension/size
+  check, and the composite overviews were visually inspected. Each run logged
+  the same pre-existing `Default__KalmalaOceanSkiff:HullMesh: Material index 0
+  is invalid` warning. `git diff --check` and the temporary-path length scan
+  passed.
+- **Full verification:** Deferred. This capture increment did not change code
+  or generation behavior; no build, suite, gameplay acceptance or final
+  rendered fixed-camera capture was run. Final integrated terrain verification
+  remains BH26.
+- **Observable impact / authority:** Baseline evidence and site/camera choices
+  only. Runtime terrain, networking, server authority, RPCs and save behavior
+  are unchanged.
+- **Known limitations / remaining scope:** Map positions have 15.63 m pixel
+  spacing and are candidates with up to 7.82 m uncertainty per axis. The
+  height map is clamped grayscale, not numeric. Exact height/slope/weights/
+  water/tree measurements and camera anchor heights remain BH01b; rendered
+  views and baseline consolidation remain BH01c.
+- **Next task in this directed goal:** BH01b — add narrow quantitative sampler
+  diagnostics at these fixed coordinates. Do not mark BH01 or the roadmap
+  milestone complete.
+
+## Run 2026-10-24 — BH01b1 scalar sampler output path
+
+- **Selected increment:** BH01b1, the first ordered child of BH01b. Split
+  BH01b into scalar sampler output and runtime collision/forest output; BH01b
+  remains open until both children are complete.
+- **Completed:** Added optional `-SampleInput`/`-SampleOutput` CSV handling to
+  `RenderWorldGenerationVisualization`. It reports the final regional sample
+  height, biome index, all seven weights, water level and water-presence flag.
+  The ordinary map-export path is unchanged. The temporary input CSV contains
+  all 28 seed/site rows copied from the BH01a coordinates. Checked BH01b1 only.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/biome-height-rework.md`. Ignored `.tmp/bh01/samples.csv` is not staged.
+- **Lightweight checks/results:** Inspected the optional branch, parser,
+  validation and scalar output fields; `git diff --check` passed. A narrow
+  coordinate check confirmed all 28 CSV rows match the BH01a table and the CSV
+  path is 81 characters. No tests or Unreal build were run; the newly edited
+  commandlet was not rebuilt or executed.
+- **Full verification:** Deferred; this is not a milestone-final task. No
+  terrain or gameplay code changed. Integrated verification remains BH26.
+- **Observable impact / authority:** Adds an opt-in editor diagnostic output
+  path. Default overview exports and generated world behavior remain unchanged;
+  networking, server authority, RPCs and save behavior are unchanged.
+- **Known limitations / remaining scope:** Numeric values have not yet been
+  emitted because the updated commandlet was not compiled. Exact runtime
+  collision-triangle height/slope and deterministic forest descriptor counts
+  remain BH01b2; BH01c records the completed numeric baseline and rendered views.
+- **Next task in this directed goal:** BH01b2 — match the start-relative
+  collision grid, add triangle slope and containing-patch forest descriptor
+  counts, and complete the diagnostic for both seeds and all fixed sites.
+
+## Run 2026-10-24 — BH01b2a mesh and forest output fields
+
+- **Selected increment:** BH01b2a, the first ordered child of BH01b2. BH01b2
+  and BH01 remain open; BH01b2b is still required to produce and validate
+  numeric output.
+- **Completed:** Extended the opt-in sample CSV with exact piecewise collision
+  triangle height, plane slope in degrees and grade percent, runtime start-
+  relative patch origin/coordinate/center, cell and triangle indices, and the
+  containing patch's deterministic forest descriptor count. Corrected the
+  patch-center call to the actual runtime layout API. Documented field and
+  triangle semantics; checked BH01b2a only.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp,
+  docs/biome-height-rework.md. No generated outputs were staged.
+- **Lightweight checks/results:** Inspected the commandlet against the runtime
+  mesh vertex and triangle ordering, patch-origin/layout API, and forest
+  descriptor generator. git diff --check passed. A schema check confirmed 28
+  header fields, 28 format conversions and 28 arguments; all four changed paths
+  are below 260 characters. No tests or Unreal build were run; the updated
+  commandlet was not rebuilt or executed.
+- **Full verification:** Deferred; this is not milestone-final. No generation,
+  gameplay, networking, server-authority, RPC, or save behavior changed.
+- **Observable impact / authority:** Adds opt-in baseline fields. Default map
+  output and generated worlds are unchanged; the diagnostic is local editor
+  tooling and creates no gameplay state.
+- **Known limitations / remaining scope:** No numeric output has been emitted.
+  BH01b2b must build/run the commandlet for the 28 fixed seed/site rows and
+  validate scalar, triangle, water, weight and descriptor-count values. BH01c
+  remains responsible for rendered fixed-camera captures and baseline
+  consolidation.
+- **Next task in this directed goal:** BH01b2b — produce and validate
+  fixed-site output for seeds 418/419. Keep BH01b and BH01 open.
+
+
+## Run 2026-10-24 - BH01b2b fixed-site output and validation
+
+- **Selected increment:** BH01b2b, the final child of BH01b2. This run generated
+  and validated the numeric output before checking BH01b2b, BH01b2 and BH01b.
+  BH01 remains open for BH01c.
+- **Completed:** Built KalmalaEditor in the short disposable project mirror
+  .tmp/bh01/m (55 successful UBT actions), then ran the updated visualization
+  commandlet for all 28 BH01a seed/site rows. The output CSV was byte-identical
+  on a second run. Ten additional probes exercised both sides of a cell
+  diagonal and a patch seam for each seed. Recorded the output hash, ranges,
+  checks and known warning in docs/biome-height-rework.md.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md.
+  Ignored CSVs, logs, build mirror and DDC remain under .tmp/bh01/; none were
+  staged. Repository Binaries, Intermediate, Saved and DerivedDataCache were
+  not modified.
+- **Commands/results:** The Editor build used UE 5.8 Build.bat with
+  -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4
+  -DisableAdaptiveUnity, normal LOCALAPPDATA UnrealBuildTool access, and the
+  .tmp/bh01/m/Kalmala.uproject mirror. It passed 55 actions. The null-RHI
+  commandlet emitted 28 fixed-site rows, a byte-identical repeat, and 10
+  continuity rows; each run exited 0 with 0 errors and one known OceanSkiff
+  hull-material warning. Row checks covered schema/input identity, finite
+  scalars, normalized weights and biome identity, water state, start-relative
+  patch/cell/triangle mapping, slope/grade consistency, forest count bounds and
+  repeat determinism. Triangle diagonal and patch seam continuity checks passed.
+  All temporary paths are under 260 characters. No broader tests were run.
+- **Full verification:** Deferred; this is not milestone-final. Rendered
+  fixed-camera captures are BH01c; integrated terrain verification remains
+  BH26.
+- **Impact / authority:** Baseline measurement only. No generation, gameplay,
+  networking, server authority, RPC or save behavior changed.
+- **Known limitations:** The numeric CSV and probe evidence are ignored temporary
+  files retained for the next worktree increment, not committed. Fixed-site
+  mesh height differs from continuous height by at most 1.237548 cm at these
+  samples. One pre-existing OceanSkiff hull-material warning remains.
+- **Next task in this directed goal:** BH01c - capture rendered fixed-camera
+  views and consolidate the numeric baselines. BH01 remains open.
+
+## Run 2026-10-24 - BH01c1 runtime capture fixture
+
+- **Selected increment:** BH01c1, the first child of BH01c. Added a one-shot
+  development-only game-view capture path, a narrow runner and one actual
+  rendered smoke capture. BH01c and BH01 remain open.
+- **Completed:** The game mode defers capture until its world-generation config
+  is initialized, activates terrain around the fixed site, sets the local
+  standalone camera to BH01a's pose and requests a no-UI PNG. The runner checks
+  the runtime seed/site log, PNG signature and dimensions, and sampled-pixel
+  variation. The seed-418 Starter Meadows smoke capture succeeded and visual
+  inspection confirmed rendered terrain, tree geometry, shadows and sky. The
+  first launch exposed early PostLogin ordering and a seed-zero attempt; an
+  explicit config-initialized guard corrected it. The local pawn remains at its
+  generated start.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md,
+  Source/KalmalaGameplay/Private/KalmalaGameMode.cpp,
+  Source/KalmalaGameplay/Public/KalmalaGameMode.h,
+  Scripts/Tests/World/BiomeBaselineCapture.ps1. The final PNG, logs, user cache
+  and build mirror remain ignored under .tmp/bh01/ and are not staged.
+- **Lightweight checks/results:** PowerShell AST parsing and `git diff --check`
+  passed. The exact final source built in the isolated KalmalaEditor mirror in
+  4 UBT actions with normal LOCALAPPDATA access. The runner produced a
+  1024x768, 921,694-byte PNG; signature, dimensions, pixel variance, seed, site
+  and fixed pose checks passed. Its SHA-256 is
+  `25c17c4f8bdd07b71513891202209a84d8cfec717db6c181810a8564bc5e5912`. No
+  terrain-generation behavior changed.
+- **Full verification:** Deferred; this is not milestone-final. No full test
+  suite, multiplayer peers, or broad world verification ran.
+- **Impact / authority:** Diagnostic-only development flag. It changes the
+  standalone capture camera and activates requested terrain patches for the
+  view; no gameplay rules, RPCs, networking code or save schema changed. Peer
+  replication is not exercised by this renderer capture.
+- **Known limitations:** Only the seed-418 Starter Meadows pose has an actual
+  rendered capture. Earlier overview images are null-RHI diagnostics and are not
+  treated as rendered evidence. The numeric CSV remains temporary. BH01c2 must
+  capture all 28 seed/site rows and consolidate numeric measurements plus
+  camera and vertical bounds before BH01 closes.
+- **Next task in this directed goal:** BH01c2 — capture and validate all fixed
+  rendered views for seeds 418/419 and consolidate the baseline record. Keep
+  BH01c and BH01 open.
+
+## Run 2026-10-24 - BH01c2a durable baseline and seed-418 captures
+
+- **Selected increment:** BH01c2a, the first of four ordered BH01c2 children.
+  BH01c2, BH01c and BH01 remain open.
+- **Completed:** Preserved the validated BH01b2b numeric output as the tracked
+  28-row, 28-column CSV at Scripts/Tests/World/BiomeBaseline418419.csv. Captured
+  and validated the first seven fixed seed-418 sites with the live renderer:
+  Starter Meadows, Outer dry Meadows, Shimmering Lakes, Elderwood interior,
+  Wooded Elderwood, Mossy Mire and Freezing Tundra. The plan records per-site
+  anchor, XY, camera coordinates, dimensions, bytes and image hashes. Fixed
+  anchors use collision-triangle height on dry land, WaterLevelCm for
+  water-present non-ocean samples, and Z=0 for Ocean.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/biome-height-rework.md and
+  Scripts/Tests/World/BiomeBaseline418419.csv. The rendered PNGs, logs and
+  capture user data remain ignored under .tmp/bh01 and are not committed.
+- **Lightweight checks/results:** Revalidated all 28 CSV rows and columns,
+  seed/site/coordinate identity, finite numeric fields, normalized biome
+  weights and water flags. The durable CSV hash is
+  48d7315a014a9b33664fd1aa52eb2f574cdfcefe054c50e6b8cba7cc115c5eaf, matching
+  the previously validated commandlet output. All seven live capture logs
+  matched requested seed/site/XY, anchor Z, camera, aim, FOV and output path
+  within 0.2 cm for Unreal float rounding. Every image was 1024x768, passed
+  sampled-pixel diversity/nonblank checks and was visually reviewed. Per-image
+  SHA-256 values are in docs/biome-height-rework.md.
+- **Full verification:** Deferred; this is not milestone-final.
+- **Impact / authority:** Baseline evidence and test-only rendering only. No
+  terrain generation, gameplay, networking, authority or save behavior changed.
+- **Known limitations:** Only the first seven of 28 live views are captured.
+  Two initial wet-site attempts used the land-height anchor; they are marked
+  invalid in temporary output and excluded from the manifest. Their corrected
+  water-level views are recorded. The captures document current prototype
+  rendering, not water/material acceptance.
+- **Next task in this directed goal:** BH01c2b — capture and validate the other
+  seven fixed seed-418 views with their appropriate land/water/ocean anchors.
+
+## Run 2026-10-24 - BH01c2b remaining seed-418 captures
+
+- **Selected increment:** BH01c2b, the second BH01c2 child. BH01c2, BH01c and
+  BH01 remain open.
+- **Completed:** Captured the other seven fixed seed-418 sites: Thunder
+  Mountains, Ocean, Meadows/Elderwood, Elderwood/Tundra and Tundra/Mountains
+  transitions, source coast, and highland river. The live runtime matched each
+  site, coordinate, anchor, camera, aim, FOV and output path within 0.2 cm.
+  Dry land used collision-triangle heights, wet non-ocean sites used
+  WaterLevelCm, and Ocean used Z=0. Together with c2a, all 14 seed-418 rows now
+  have live captures.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  PNGs and logs are ignored under .tmp/bh01/captures/418 and are not committed.
+- **Lightweight checks/results:** Each capture passed PNG signature, 1024x768
+  dimensions and sampled-pixel nonblank checks; each image was visually
+  inspected. External validation matched runtime seed/site/XY/anchor/camera/
+  aim/FOV/output-path data. Per-image bytes, sampled-color counts, hashes and
+  camera bounds are in docs/biome-height-rework.md.
+- **Full verification:** Deferred; this is not milestone-final.
+- **Impact / authority:** Baseline evidence only; no terrain generation,
+  gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** The prototype renderer does not show a distinct water
+  surface in the Ocean, source-coast or highland-river frames; these are not
+  visual water/material acceptance. The 14 seed-419 captures and final
+  28-image verification remain open.
+- **Next task in this directed goal:** BH01c2c — capture and validate the first
+  seven fixed seed-419 views using the documented anchor rule.
+
+## Run 2026-10-24 - BH01c2c first seven seed-419 captures
+
+- **Selected increment:** BH01c2c, the third ordered BH01c2 child. BH01c2,
+  BH01c and BH01 remain open.
+- **Completed:** Captured the first seven seed-419 fixed sites: Starter
+  Meadows, Outer dry Meadows, Shimmering Lakes, Elderwood interior, Wooded
+  Elderwood, Mossy Mire and Freezing Tundra. All seven samples have
+  HasWater=0; each camera used its collision-triangle anchor. Per-view camera
+  coordinates, aim height, image bytes, sampled-color count and SHA-256 are
+  recorded in docs/biome-height-rework.md.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  PNGs and logs remain ignored under .tmp/bh01/captures/419.
+- **Lightweight checks/results:** Runtime logs matched seed/site/XY/ViewZ,
+  camera, aim, FOV and output path within 0.2 cm. All seven PNGs passed
+  signature, 1024×768 dimensions and sampled-pixel nonblank checks; each was
+  visually inspected. Full project verification remains deferred.
+- **Impact / authority:** Baseline capture evidence only. No terrain generation,
+  gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** These images document the current neutral prototype
+  rendering and are not terrain/art acceptance. Seven seed-419 captures and
+  final 28-row/28-image manifest verification remain in BH01c2d.
+- **Next task in this directed goal:** BH01c2d — capture the final seven
+  seed-419 views, validate all 28 image/numeric rows and finalize the baseline
+  manifest.
+
+## Run 2026-10-24 - BH01c2d complete seed-419 baseline
+
+- **Selected increment:** BH01c2d, the final ordered BH01c2 child.
+- **Completed:** Captured the final seven live seed-419 sites, validated all
+  28 fixed-seed numeric rows and all 28 rendered image/log rows, and recorded
+  the final camera/aim bounds and per-image hashes. All BH01a, BH01b and BH01c
+  baseline criteria are complete; BH01 is checked. BH02 remains next.
+- **Files changed:** BACKLOG.md, PROGRESS.md and docs/biome-height-rework.md.
+  Numeric CSV is unchanged. Images/logs remain ignored under .tmp/bh01.
+- **Lightweight checks/results:** CSV has 28 rows and 28 columns; numeric
+  fields are finite, biome weights normalize, water flags match levels, biome
+  identities and slope/grade/forest ranges validate. Every image matched its
+  seed/site/XY/anchor/camera/aim/FOV/runtime log and documented bytes/hash.
+  All 28 PNGs have valid signatures, 1024×768 dimensions and nonblank sampled
+  pixels; all seven c2d frames were visually inspected. git diff --check
+  passed. Full terrain verification is deferred to BH26.
+- **Impact / authority:** Baseline capture and documentation only. No terrain
+  generation, gameplay, networking, server authority or save behavior changed.
+- **Known limitations:** Captures show neutral prototype materials and tree
+  meshes. Ocean has a checker-grid surface; source coast and highland river
+  show no distinct water surface. Baseline evidence is not terrain-art/water
+  acceptance. Complete terrain implementation and full integrated checks
+  remain.
+- **Next task in this directed goal:** BH02 — map integration points for
+  height, water, forest, harvest, preview, material and test consumers.
+
+## Run 2026-10-24 - BH02 integration map
+
+- **Selected increment:** BH02, map the current height, lake, river, map/wetness,
+  forest-layout, harvest, preview, material and test consumers.
+- **Work completed:** Recorded the actual production source paths and their
+  shared contracts in `docs/biome-height-rework.md`, including the distinction
+  between fast biome previews and full shaped-height/hydrology diagnostics.
+  Mapped focused world, forest and UI tests and their development runners.
+  Checked only BH02; no runtime source or asset changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected source symbols, test files, runner
+  references, existing material assets, and the applicable architecture/setup
+  guidance. `git diff --check` passed. Full verification remains deferred to
+  BH26.
+- **Observable impact / authority:** Planning and integration documentation only;
+  no generator, gameplay, map, networking, server-authority or save behavior
+  changed.
+- **Known limitations / remaining scope:** BH03–BH26 still implement and accept
+  the planned terrain, basin, forest, presentation and verification changes.
+- **Next task in this directed goal:** BH03 — add the shared disabled-by-default
+  analytic-basin policy at regional generation.
+
+## Run 2026-10-24 - BH03 disable analytic basin generation
+
+- **Selected increment:** BH03, add a shared compiled policy defaulting analytic
+  basin generation off.
+- **Work completed:** Added `FKalmalaRegionalTuning::bEnableAnalyticBasins`,
+  default false, as the sole switch around regional bowl/rim shaping, inland
+  basin water-level assignment and positive `BasinWeight` output. Regional
+  biome weights and labels remain computed by their existing path. Updated the
+  focused regional and water-mesh automation assertions and corrected the
+  architecture/setup descriptions; retained synthetic lake-mesh and basin
+  topology utility coverage. Checked only BH03.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Inspected the guarded sampler block and all
+  focused regression references; searched updated architecture/setup text for
+  stale enabled-basin claims. `git diff --check` passed. No build or automation
+  was run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** Generated analytic bowl/rim terrain and
+  positive basin water support are disabled; eligible wetland biome weights
+  and labels, ocean, and sea-level rivers remain. No RPC, replicated state,
+  save data or server-authority path changed; peers derive the same compiled
+  sampler behavior from the existing seed/build.
+- **Known limitations / remaining scope:** BH04 still needs to gate downstream
+  lake samplers, meshes, map/audio/gameplay wetness and their derived caches.
+  The reusable basin flood-fill helper remains covered by synthetic utility
+  tests, not active production lake generation.
+- **Next task in this directed goal:** BH04 — prevent basin resurrection across
+  lake samplers, shoreline/water meshes, maps and gameplay wetness.
+
+## Run 2026-10-24 - BH05 ocean and river controls
+
+- **Selected increment:** BH05, add focused controls for retained ocean, source
+  coast, sea-level river, swimming/Wet behavior and water-map classification
+  with analytic basin water disabled.
+- **Work completed:** Connected the fixed BH01 seed-418 river, seed-419 deep
+  ocean, and former seed-418 basin fixtures across regional outputs, the same
+  ocean/lake water gate used for server Wet refresh, generated-ocean swimming
+  thresholds, exposure shoreline wetness, and minimap classification. Confirmed
+  source-coast sign remains covered by the existing Regional.RiverUnchangedControls
+  fixture and updated setup guidance to remove stale expectations for elevated
+  enclosed-lake water. No production behavior changed; checked only BH05.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`,
+  `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Reviewed fixed coordinates and baseline values
+  in `Scripts/Tests/World/BiomeBaseline418419.csv`, existing sampler, coast,
+  water-mesh and map assertions, and the server water/swimming gates.
+  `git diff --check` passed. Unreal build and automation remain deferred to
+  BH26.
+- **Observable impact / authority:** Regression coverage only. Server Wet and
+  swim decisions remain server-owned and use existing sampled sea/lake paths;
+  basin-disabled lakes cannot keep a player wet, while sea-level rivers and
+  deep ocean remain water. No RPC, replication or save change.
+- **Known limitations / remaining scope:** The new automation fixtures have not
+  been built or executed. Rendered/traversal and peer acceptance remain for
+  BH26; biome height extraction starts at BH06.
+- **Next task in this directed goal:** BH06 — extract output-preserving named
+  candidate height functions for the six land biomes.
+
+## Run 2026-10-24 — BH04 prevent basin resurrection
+
+- **Selected increment:** BH04, apply the compiled basin policy to downstream
+  lake consumers and verify derived cache behavior.
+- **Work completed:** Gated Shimmering Lakes water/visibility sampling, lake
+  sheet and shore clipping, basin-derived minimap depth, basin shoreline
+  exposure, lake-adjacent discovery, and the Rillstone lake-dependent candidate
+  on analytic-basin support. Sea-level ocean and river mesh/map classification
+  stay on their existing independent paths. Retained synthetic basin topology
+  utility fixtures and added focused checks distinguishing basin-only lake
+  water from a submerged sea-level river triangle. Audited cache owners: no
+  persistent basin-result cache exists independently of presentation rasters;
+  minimap/map output follows normal input invalidation, generated patch sections
+  are cleared when rebuilt, the regional cache stores only hydrology splines,
+  and the lake visibility helper memoizes only its start-relative origin. The
+  policy is compile-time, so changing it requires a rebuild. Updated architecture
+  and setup guidance; checked only BH04.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaShimmeringLakeSampler.h`,
+  `Source/KalmalaWorld/Private/KalmalaLakeBasin.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaWaterSurfaceMesh.h`,
+  `Source/KalmalaWorld/Private/KalmalaWaterSurfaceMesh.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h`,
+  `Source/KalmalaUI/Private/KalmalaMinimapViewModel.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaMinimapViewModelTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Inspected lake, map, wetness, discovery,
+  audio, mesh and cache call sites; verified river/ocean paths remain independent;
+  searched documentation for stale BH04-pending notes; and ran `git diff --check`
+  successfully. No Unreal build or automation was run. Full verification remains
+  deferred to BH26.
+- **Observable impact:** With the default-off analytic-basin policy, former
+  inland basin water no longer appears through lake samplers, shoreline/water
+  meshes, minimap depth, shoreline wetness or water-adjacent lake discovery.
+  Ocean and sea-level river water remain visible in their existing mesh and map
+  paths. Shimmering Lakes biome identity and field-based exposure profile remain.
+- **Networking/authority:** The compiled policy and deterministic samples are
+  shared by server and clients. Discovery remains server-owned; no RPC,
+  replicated field, save schema or authority path changed.
+- **Known limitations / remaining scope:** The Unreal source and added
+  automation assertions have not been built or executed. Inland lake content
+  stays dormant while the compiled basin policy is off. Full milestone
+  verification remains for BH26.
+- **Next task in this directed goal:** BH05 — protect ocean and rivers with
+  focused source-coast, sea-level river, swimming/wetness and map controls.
+
+## Run 2026-10-24 - BH06 biome height candidate functions
+
+- **Selected increment:** BH06, extract named candidate land-height functions
+  for Meadows, Elderwood, Shimmering Lakes, Mossy Mire, Freezing Tundra and
+  Thunder Mountains with output-preserving defaults.
+- **Work completed:** Replaced the anonymous per-biome offset array with six
+  named functions that each return a complete candidate height from the shared
+  source height and existing detail inputs. The sampler blends the same float
+  offsets in the same biome-weight order; Ocean's independent seabed term,
+  classifications, weights, basins and rivers are unchanged. Added focused
+  fixed expected-value automation coverage for each candidate across negative,
+  neutral and positive detail, including the Mountains region contribution.
+  Checked only BH06.
+- **Files changed:** BACKLOG.md, PROGRESS.md,
+  Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h,
+  Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp,
+  Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp.
+- **Lightweight checks/results:** Inspected candidate-to-weight ordering and
+  verified the extracted expressions match the previous six land shape terms;
+  `git diff --check` passed. The new automation fixture was added but not built
+  or run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** No intended terrain-output change. The
+  sampler now exposes explicit candidate functions for later per-biome relief
+  work; no gameplay, networking, server-authority or save behavior changed.
+- **Known limitations / remaining scope:** The focused automation has not been
+  compiled or executed. BH07–BH26 still add controls, relief, forest/presentation
+  integration and final acceptance.
+- **Next task in this directed goal:** BH07 — add validated preview controls
+  while keeping production output unchanged.
+
+## Run 2026-10-24 - BH07 validated terrain preview controls
+
+- **Selected increment:** BH07, add named and bounded shared relief and
+  Meadows controls in the regional tuning/preview path without changing
+  production output.
+- **Work completed:** Added shared broad/middle/local scales and documented
+  Meadows hill, rolling and floor scale/amplitude constants. Added matching
+  commandlet preview fields, finite inclusive range validation, parameter-file
+  parsing and effective-value reporting. The preview setter rejects invalid
+  staged terrain values. Added all controls to the sample parameter file,
+  documented their units/ranges and staged status, added focused bounds/default
+  automation assertions, and extended the map-export runner to reject invalid
+  values and prove staged-only controls leave current fast-map pixels unchanged.
+  Checked only BH07.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Private/KalmalaGenerationPreview.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaEditor/Private/ExportWorldMapsCommandlet.cpp`,
+  `Scripts/WorldMapPreview.params`, `Scripts/Tests/World/WorldMapExport.ps1`,
+  `docs/07-development-setup.md`, `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** `git diff --check` passed. The updated
+  `WorldMapExport.ps1` passed PowerShell parser syntax validation. Source search
+  confirmed the new controls are read only by the preview parser/reporting and
+  range test, not by terrain sampling, so production height output remains
+  unchanged. The Unreal automation and exporter were not run. Full verification
+  remains deferred to BH26.
+- **Observable impact / authority:** Designers can provide bounded, named
+  experiment values to the headless preview and see their effective centimetre
+  values in `LastRender.txt`. The current fast PNGs do not consume terrain
+  controls for height. No gameplay, network, server-authority or save behavior
+  changed.
+- **Known limitations / remaining scope:** Relief layers and shaped-height
+  preview consumption begin in BH08 and later shaping increments; BH08–BH26
+  remain. Current map PNGs cannot visually compare terrain relief.
+- **Next task in this directed goal:** BH08 — add the deterministic shared
+  broad, middle and local relief stack.
+
+## Run 2026-10-24 - BH08 shared relief stack
+
+- **Selected increment:** BH08, sample deterministic broad, middle and local
+  relief in absolute world coordinates without integrating height shaping.
+- **Work completed:** Added a pure shared-relief sampler using the validated
+  preview scales and three named, stable independent salts. Kept current field
+  and regional height sampling unchanged; no terrain consumer uses the stack
+  until later blend/shape increments. Added focused automation coverage for
+  normalized finite channels, independent domains, seed and query-order
+  determinism, cache clearing, negative coordinates, patch-edge continuity and
+  unchanged production height. Documented the salts and integration boundary.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Source-level inspection and `git diff --check`
+  passed. Unreal automation/build were not run; full verification remains
+  deferred to BH26.
+- **Observable impact / authority:** No production terrain, ecological field,
+  gameplay, networking, server-authority or save output changed. Peers will use
+  identical seed/domain samples when later shaping is integrated.
+- **Known limitations / remaining scope:** Relief is sampled but not yet blended
+  into candidate heights; BH09–BH26 remain.
+- **Next task in this directed goal:** BH09 — blend candidate heights through
+  existing normalized biome weights and continuous coast attenuation.
+
+## Run 2026-10-24 — BH09 continuous biome-height blend
+
+- **Selected increment:** BH09, blend candidate heights with normalized land-
+  biome weights and continuous coast attenuation.
+- **Work completed:** Added a single candidate-height blend that adds the shared
+  source base once and applies the already coast-scaled land weights directly.
+  Removed the duplicate coast multiplication from land offsets while retaining
+  the existing separately weighted ocean offset, biome classifier inputs,
+  labels and eligibility bands. Added fixed transition and synthetic blend
+  regressions for normalized weights, coast attenuation, near-tie continuity,
+  ocean contribution and classifier identity. Updated the architecture contract;
+  checked only BH09.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Inspected the existing weight normalization,
+  candidate functions, coast clamp and fixed seed-418 Meadows/Elderwood profile.
+  `git diff --check` passed. Added automation coverage but did not run Unreal
+  build or automation; full integrated verification remains deferred to BH26.
+- **Observable impact:** Land-biome relief now receives one continuous coast
+  attenuation instead of a second attenuation; fully inland candidate blending
+  retains its previous float accumulation. The ocean offset and its existing
+  weight are unchanged.
+- **Networking/authority:** Shared deterministic sampling remains derived from
+  the immutable world seed/current build; server gameplay authority is
+  unchanged. No RPC, replicated property or save data changed.
+- **Known limitations / remaining scope:** This adds the shared blend only;
+  biome-specific relief layers and their tuning remain BH10–BH18. Build, test
+  execution and rendered acceptance remain deferred to BH26.
+- **Next task in this directed goal:** BH10 — shape Meadows hills and compare
+  bounded shoulder compression against the recorded profiles.
+
+## Run 2026-10-24 — BH10b1 Meadows hill profile sweep harness
+
+- **Selected increment:** BH10b1, add repeatable fixed-site Meadows height and
+  collision-slope profile sampling for hill amplitude trials.
+- **Work completed:** Added 88 fixed seed-418/419 numeric positions spanning
+  eight east-west/north-south transects at the Starter and outer dry Meadows
+  baseline sites. The full visualization numeric commandlet now accepts a
+  finite, bounded, commandlet-only `MeadowHillAmplitudeM` override and logs the
+  effective trial; with no override it retains the existing sampling defaults.
+  Added `BiomeHillProfiles.ps1` to run separate 4/6/8 m trials, reject stale
+  binaries without the marker, validate finite height/slope data, and write
+  per-transect ranges and maximum collision-triangle slopes. Split BH10b as
+  BH10b1 harness work; moved actual trial execution and final amplitude choice
+  to BH25a, which needs freshly compiled BH10a source. Checked BH10b1 and BH10.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeHillProfiles.ps1`,
+  `Scripts/Tests/World/BiomeHillTransects.csv`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, `docs/meadows-plan.md`.
+- **Lightweight checks/results:** PowerShell syntax parsing passed. The tracked
+  transect fixture contains 88 rows in eight groups of 11. Changed paths are
+  under MAX_PATH and `git diff --check` passed. No Editor build, automation, or
+  4/6/8 commandlet trial was run; measurements remain for BH25a and full
+  integrated verification for BH26.
+- **Observable impact / authority:** Diagnostics only. The amplitude override
+  is accepted only by the editor commandlet; absence of the override leaves
+  current sampling defaults unchanged. No gameplay, server authority, network,
+  or save behavior changed.
+- **Known limitations / remaining scope:** The 6 m hill amplitude remains a
+  provisional trial. Use freshly compiled source at BH25a to record actual
+  fixed-site deltas and transect height/slope distributions before selecting a
+  production amplitude. No rendered traversal acceptance has run.
+- **Next task in this directed goal:** BH11 — add Meadows rolling relief as a
+  separate middle-scale layer and inspect its 30–70 m profiles and slopes.
+
+## Run 2026-10-24 — BH11a Meadows rolling relief
+
+- **Selected increment:** BH11a, integrate the Meadows middle-scale rolling
+  layer separately from the broad hill and later floor-detail layer.
+- **Work completed:** Added a dedicated deterministic Meadows rolling-noise
+  domain using the staged 45 m scale and 1.2 m amplitude. It contributes to the
+  complete Meadows candidate before the existing smooth shoulder compression,
+  is multiplied through the existing continuous Meadows/coast weight once, and
+  is sampled only where Meadows weight is positive. Added focused signed-layer,
+  lower-pocket, fixed seed-418/419 30/45/70 m profile, repeatability and
+  terrain-patch seam automation coverage. Updated the architecture/design
+  contract. Split BH11 into BH11a implementation and BH11b sweep harness;
+  moved fresh-source numerical trial selection to BH25b and rendered route
+  inspection to BH26. Checked only BH11a.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected relief sampling, candidate blend,
+  preview bounds, fixed dry-Meadows sites, test call patterns and staged hill
+  controls. `git diff --check` passed. No Unreal build or automation was run;
+  full project verification remains deferred to BH26.
+- **Observable impact / authority:** Meadows now has an additional smooth,
+  deterministic 30–70 m rolling terrain signal. The 1.2 m amplitude and 6 m
+  hill amplitude remain experimental until BH25b and BH25a respectively.
+  Labels, ecological fields, hydrology, networking, server authority and saves
+  are unchanged.
+- **Known limitations / remaining scope:** Automation has not been built/run;
+  BH11b must add an executable rolling trial harness, BH25b must tune using a
+  fresh build, and rendered gentler-route traversal remains BH26. Floor detail
+  is still BH12.
+- **Next task in this directed goal:** BH11b — add the reproducible rolling
+  profile/slope/patch-seam sweep harness before BH12.
+
+## Run 2026-10-24 — BH11b Meadows rolling profile sweep harness
+
+- **Selected increment:** BH11b, add reproducible fixed-seed rolling-height,
+  collision-slope and patch-seam trial coverage.
+- **Work completed:** Added 264 fixed sampler inputs covering 24 seed-418/419
+  Starter/outer Meadows profiles at 30/45/70 m lengths and 5 m spacing, plus
+  four X/Y start-relative patch-seam pairs derived from BH01 collision metadata.
+  Added a validated commandlet-only 0.6–1.8 m rolling-amplitude override that
+  restores preview defaults after sampling and emits a trial marker. Added a
+  runner for 0.6/1.2/1.8 m CSV sweeps that rejects stale binaries, validates
+  fixture cardinality, dry Meadows classification, finite height/slope fields,
+  adjacent patch coordinates and seam deltas. Checked BH11b and BH11; BH12 is
+  next. Numeric trial selection remains in BH25b and rendered traversal in BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeRollingProfiles.ps1`,
+  `Scripts/Tests/World/BiomeRollingTransects.csv`,
+  `docs/biome-height-rework.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation, CSV row/profile/
+  seam-coordinate checks and `git diff --check` passed. No Editor build, commandlet
+  sweep or automation was run; full terrain verification remains deferred to
+  BH26.
+- **Observable impact / authority:** Diagnostics-only addition. The amplitude
+  override is accepted only by the editor visualization commandlet; when absent,
+  sampling defaults remain unchanged. No gameplay, networking, server authority
+  or save behavior changed.
+- **Known limitations / remaining scope:** The 1.2 m rolling amplitude is
+  provisional. BH25b must run fresh-source trials, compare measured height/slope
+  distributions and select the smallest accepted setting. Rendered route
+  inspection and integrated verification remain for BH26.
+- **Next task in this directed goal:** BH12b — add a reproducible local-floor
+  profile and stale-binary-rejecting amplitude sweep harness.
+
+## Run 2026-10-24 — BH12a integrate local Meadows floor detail
+
+- **Selected increment:** BH12a, the first child of BH12 after splitting its
+  source implementation from fresh-source profile and rendered acceptance.
+- **Work completed:** Added an independently salted, absolute-world MeadowFloor
+  noise signal at the provisional 12 m / 0.2 m settings. The candidate now adds
+  it after the broad hills and rolling layer, before monotonic shoulder
+  compression, and only when the continuous Meadows weight is positive. Added
+  focused automation coverage for signed contribution, shoulder ordering,
+  deterministic seed variation, domain separation, mesh-scale sampling density
+  and patch-edge continuity. Split BH12 into BH12a/BH12b, moved fresh-source
+  trial selection to BH25c, and retained under-vegetation acceptance at BH26.
+  Checked only BH12a.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Lightweight checks/results:** Inspected the source integration and focused
+  assertions; confirmed the 8 m minimum coordinate scale spans at least 6.4
+  collision samples on the 125 cm lattice. `git diff --check` passed and stale
+  BH10b2/floor-staged contract text was corrected. The automation was not built
+  or run. Full verification remains deferred to BH26.
+- **Observable impact / authority:** Meadows height samples now include up to
+  the provisional 20 cm signed floor term through the existing deterministic
+  candidate blend. The four ecological fields, biome weights, labels, other
+  biome candidates, terrain lattice and coast behavior are unchanged.
+- **Networking/authority:** Server and clients derive the same floor signal
+  from the existing world seed and absolute XY. No RPC, replicated field,
+  gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The 12 m / 0.2 m values are
+  provisional. BH12b adds a sweep harness, BH25c measures and selects the floor
+  value with freshly compiled source, and BH26 checks rendered readability
+  beneath vegetation and repairs any aliasing/corrugation found.
+- **Next task in this directed goal:** BH12b — add the validated local-floor
+  profile and stale-binary-rejecting amplitude sweep harness.
+
+## Run 2026-10-24 — Integrate shared Elderwood relief (BH13a)
+
+- **Selected task:** BH13a, the source-integration child under BH13. Numeric
+  amplitude selection remains assigned to BH25b; this run did not implement
+  the profile sweep harness or rendered acceptance.
+- **Work completed:** Elderwood now adds provisional broad, middle and local
+  shared relief over the same source height as other candidates, followed by
+  its bounded existing detail term. It does not use Meadows shoulder
+  compression. Tundra calls the Elderwood candidate directly. Added focused
+  checks for bounded relief, uncompressed source-height differences, signed
+  relief, exact parity at seed-418/419 baseline sites, negative coordinates,
+  and the fixed Elderwood/Tundra transition blend. Checked BH13a only.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Reviewed the candidate integration, existing
+  region/coast blending, fixed baseline coordinates, and source-level
+  assertions. `git diff --check` passed. No Unreal build or automation was run.
+  Full verification remains deferred until the roadmap verification gate.
+- **Observable impact:** Elderwood and Tundra now share the same seeded,
+  absolute-coordinate broad/middle/local relief candidate and bounded detail;
+  the Elderwood shape preserves source-height differences above the Meadows
+  shoulder. The 9 / 2.4 / 0.4 m amplitudes and 4–16 / 0.6–4 / 0.1–1 m ranges
+  are provisional trial settings, not accepted tuning.
+- **Networking/authority:** The change derives only from the existing world
+  seed and absolute XY. Biome classifier inputs, weights, coast blending,
+  replication, gameplay authority and save data are unchanged.
+- **Known limitations / remaining scope:** Fresh-source amplitude trials and
+  measured numeric selection remain BH13b/BH25b; rendered terrain and profile
+  acceptance remains BH26. Full verification is deferred.
+- **Next task in this directed goal:** BH13b — add the validated Elderwood /
+  Tundra profile sweep harness and reject stale binaries.
+
+## Run 2026-10-24T18:54Z — Add Meadows floor-detail profile sweep harness (BH12b)
+
+- **Selected task:** BH12b, the first unchecked child under BH12. Added the
+  reproducible measurement harness; left numeric tuning selection to BH25c and
+  rendered under-vegetation acceptance to BH26.
+- **Work completed:** Added 400 fixed dry-Meadows samples: eight seed-418/419
+  starter and outer profiles with 49 samples each at 125 cm, plus eight
+  start-relative patch-side controls. Added a nine-trial commandlet-only sweep
+  for 8/12/20 m scales and 0.1/0.2/0.3 m amplitudes. The CSV exports floor
+  signal and pre-blend input contribution with final height, biome/water data,
+  collision triangle and patch/cell information, and forest descriptor counts.
+  The runner checks finite outputs, dry Meadows samples, signal/amplitude
+  agreement, profile lattice progression, forested patch coverage, seam
+  adjacency/continuity, and the fresh-parameter log marker. `-ValidateOnly`
+  validates the fixed fixture without launching Unreal. Updated BH12 state and
+  documented BH25c/BH26 boundaries.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeFloorProfiles.csv`,
+  `Scripts/Tests/World/BiomeFloorProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/07-development-setup.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Lightweight checks/results:** PowerShell parser validation passed;
+  `BiomeFloorProfiles.ps1 -ValidateOnly` passed with 400 rows, eight profiles,
+  125 cm spacing and eight seam controls; profile group cardinality and
+  `git diff --check` passed. The first fixture validation found seam coordinates
+  rounded to 0.1 cm; corrected those eight rows to match the baseline-derived
+  seam within the 0.01 cm check. No Unreal build, commandlet sweep or automation
+  was run.
+- **Full verification:** Deferred. Fresh-source numeric selection remains BH25c;
+  final terrain/rendered acceptance remains BH26.
+- **Observable impact:** Adds a reproducible way to export and compare the
+  floor-detail signal, final terrain and collision-lattice samples across the
+  specified trial matrix. It selects no production parameter and changes no
+  terrain default.
+- **Networking/authority:** The diagnostic uses the existing seeded world and
+  absolute coordinates. The override is installed only by the headless preview
+  commandlet; no RPC, gameplay authority, replicated state or save data changed.
+- **Known limitations / remaining scope:** No Unreal build or fresh-source
+  trial was run. Forest descriptor counts identify candidate-bearing patches,
+  not rendered vegetation placement or aliasing; those remain BH26 acceptance.
+- **Next task in this directed goal:** BH13 — shape Elderwood using the shared
+  base and bounded detail without Meadows shoulder compression.
+
+## Run 2026-10-24 - BH13b Elderwood/Tundra profile sweep harness
+
+- **Selected increment:** BH13b, add the fixed Elderwood/Tundra numeric profile
+  fixture, bounded commandlet-only amplitude overrides and stale-binary-safe
+  sweep runner.
+- **Work completed:** Added bounded Elderwood broad/middle/local preview
+  amplitude settings defaulted to the existing provisional tuning. Regional
+  sampling passes the same settings to the Elderwood candidate and the direct
+  Tundra reference. The numeric commandlet can export relief channels,
+  pre-blend contributions, both candidate heights, final height, weights,
+  water and collision-triangle slopes for fixed profiles. Added six 100 m
+  transects (66 samples total) at seed-418/419 Elderwood interior, wooded,
+  Elderwood/Tundra transition and Tundra interior sites, plus a nine-trial
+  one-layer-at-a-time runner. Marked BH13b and its parent complete; numeric
+  selection remains BH25b.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.csv`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `docs/biome-height-rework.md`, `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell syntax parsing and
+  `BiomeWoodProfiles.ps1 -ValidateOnly` passed for all 66 rows, six fixed
+  transects and seed/coordinate/spacing controls. `git diff --check` passed.
+  No Unreal build, commandlet sweep or automation ran; full verification remains
+  deferred to BH26.
+- **Observable impact:** Adds a reproducible path for numeric Elderwood/Tundra
+  profile and slope measurement with per-layer trials. Production defaults
+  remain the existing provisional 9 / 2.4 / 0.4 m values; only commandlet
+  overrides vary them. Fresh-source selection remains BH25b.
+- **Networking/authority:** The overrides are installed only in the headless
+  editor commandlet and reset after sampling. Existing world seed, gameplay
+  authority, replication and save data are unchanged.
+- **Known limitations / remaining scope:** No fresh-source sweep was run, so
+  amplitudes remain provisional. Rendered parity and gameplay acceptance remain
+  BH26.
+- **Next task in this directed goal:** BH14 — shape Shimmering Lakes with the
+  continuous Meadows/Elderwood/Mire candidate blend and disabled-basin policy.
+
+## Run 2026-10-24T19:23Z — Shimmering Lakes source integration (BH14a)
+
+- **Selected increment:** BH14a, integrate the continuous Shimmering Lakes
+  terrain blend and focused formula coverage. BH14 remains open for BH14b.
+- **Work completed:** Replaced the Lakes legacy detail-only candidate with a
+  continuous 0.50 Meadows/Elderwood candidate blend and a smooth lowland
+  offset derived from shared source height and existing humidity. The
+  lowland transform is independent of basin support; the existing disabled
+  basin policy, normalized biome weights, coast blending and hydrology order
+  remain intact. Added tests for monotonic/bounded lowland behavior, control
+  validation, the Lakes candidate formula, neighboring Meadows/Lakes weight
+  continuity, and a dry former-basin sample. Recorded the formula and
+  provisional bounds, split BH14a/BH14b, and added BH25d numeric selection.
+- **Files changed:** `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, `BACKLOG.md`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Source and test changes were inspected;
+  `git diff --check` passed. Unreal build and automation were not run.
+- **Full verification:** Deferred to BH26. Fresh-source Lakes measurement and
+  numeric selection remain BH25d; rendered acceptance remains BH26.
+- **Observable impact:** Shimmering Lakes now uses blended rounded shoulders,
+  shared Elderwood undulation and a humidity-weighted, bounded compression of
+  low source-height pockets. No analytic bowl or inland/perched water is added.
+  The 0.50 share, 200 cm floor, 1,200 cm ceiling and 0.20 compression are
+  provisional controls within the documented preview ranges; no trial result
+  or acceptance is claimed.
+- **Networking/authority:** Terrain remains deterministically sampled from
+  server-owned world fields and absolute coordinates. No RPC, replication,
+  gameplay authority or save data changed.
+- **Known limitations / remaining scope:** No build or automation was run.
+  BH14b adds the stale-safe numeric profile harness; BH25d measures and selects
+  Lakes values from fresh-source trials; BH26 performs rendered and integrated
+  verification.
+- **Next task in this directed goal:** BH14b — add fixed Lakes profile samples,
+  bounded preview overrides and a stale-binary-safe trial runner.
+
+## Run 2026-10-24 — Shimmering Lakes profile harness (BH14b)
+
+- **Selected increment:** BH14b, add fixed Shimmering Lakes samples and a
+  commandlet-only numeric profile sweep. No BH15 work was started.
+- **Work completed:** Added four fixed 100 m transects with 10 m spacing for
+  the seed-418 Meadows/Lakes/Elderwood former-basin blend and seed-419 Lakes
+  interior, each along X and Y (44 samples). The numeric commandlet accepts
+  one bounded Lakes control override per invocation, logs all effective
+  controls for stale-binary detection, exports the candidate/lowland inputs
+  and results, and resets preview settings after sampling. Added a 12-value
+  one-factor runner that validates lowland bounds/formula and candidate blend
+  parity while retaining raw output for BH25d. Checked BH14 and BH14b complete;
+  numeric selection remains BH25d and rendered acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeLakesProfiles.csv`,
+  `Scripts/Tests/World/BiomeLakesProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `docs/biome-height-rework.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation and
+  `BiomeLakesProfiles.ps1 -ValidateOnly` passed for all 44 fixed coordinates
+  and four transects. `git diff --check` passed. No Unreal build, commandlet
+  sweep or automation ran; full verification remains deferred to BH26.
+- **Observable impact:** Adds reproducible numeric Lakes-profile and slope
+  measurement, with raw candidate components and a stale-binary guard. The
+  diagnostic snapshot is used only by commandlet CSV export and does not alter
+  production sampling. No trial values are claimed; all Lakes controls remain
+  provisional pending BH25d fresh-source measurement.
+- **Networking/authority:** Trial values are commandlet-only, reset after each
+  export, and cannot be supplied by clients. No RPC, replication, gameplay
+  authority or save data changed.
+- **Known limitations / remaining scope:** No fresh-source sweep or rendered
+  shoreline/traversal inspection was run. BH25d selects measured controls;
+  rendered and integrated verification remains BH26.
+- **Next task in this directed goal:** BH15 — shape Mossy Mire.
+
+## Run 2026-10-24 — Mossy Mire source integration (BH15a)
+
+- **Selected increment:** BH15a, integrate the monotonic Mire lowland candidate
+  and focused formula/sampler coverage. BH15 remains open for BH15b.
+- **Work completed:** Replaced the Mire detail-only shape with a monotonic
+  rational compression toward a 300 cm target, 700 cm compression scale and
+  clipped ±25 cm residual detail. Added bounded preview controls (200–500 / 300–1200 /
+  10–60 cm) and a validation rule that guarantees positive coast-side clearance
+  for every accepted combination. Wired the candidate into regional sampling
+  and candidate diagnostics. Added coverage for monotonicity, bounded response,
+  coast clearance, residual limits, deterministic fixed-site results, priority
+  river carving, and dry former-basin samples. Split BH15 into source integration
+  and a stale-safe profile harness; added BH25e for fresh-source Mire tuning.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected formula integration, all `ShapeMire`
+  call sites, candidate diagnostics and the focused regression fixtures.
+  `git diff --check` passed (Git reported existing CRLF-to-LF working-copy
+  warnings). No Unreal build or automation ran.
+- **Full verification:** Deferred to BH26. Mire fresh-source range selection
+  remains BH25e; rendered acceptance remains BH26.
+- **Observable impact:** Mossy Mire now receives a bounded lowland shape rather
+  than the former constant offset. The curve retains a positive coast-side
+  floor and small deterministic detail without a hard flat shelf. Existing
+  biome weights, coast blend, river-last override and disabled analytic basin
+  policy are preserved. Coefficients are provisional; no measured acceptance
+  is claimed.
+- **Networking/authority:** Height remains a deterministic function of
+  server-owned world fields, world seed and absolute position. No RPC,
+  replication, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The focused automation was added but
+  not run, and no build, profile sweep or rendered inspection was performed.
+  BH15b adds fixed numeric profiles and stale-binary-safe controls; BH25e selects
+  values from a fresh build; BH26 performs final integrated/rendered verification.
+  Main-checkout handoff synchronized the exact BH15 block and appended this
+  progress entry after existing S30 work under exclusive locks; the BH25 block
+  remains untouched because its wording conflicts with this worktree.
+- **Next task in this directed goal:** BH15b — add the fixed Mire profile
+  harness with bounded commandlet-only controls and stale-binary detection.
+
+## Run 2026-10-24 — Mossy Mire profile harness (BH15b)
+
+- **Selected increment:** BH15b, add the fixed numeric Mire profile sweep
+  harness. The worktree was clean at `31e8f2be` before implementation, and no
+  other active run was modifying this worktree.
+- **Work completed:** Added twelve 100 m transects at 5 m spacing on both axes
+  around the seed-418/419 Mire interiors, source-coast controls and Highland
+  river sites from BH01. Added one-at-a-time commandlet overrides for Mire
+  target height, compression scale and residual detail, each checked against
+  preview bounds and positive source-land clearance. Mire trials export the
+  source height, detail, shaped candidate, effective controls, worst-case
+  source-land clearance, biome/hydrology values, final/collision heights and
+  slopes. The PowerShell runner checks fixed rows, formula/bounds, water and
+  disabled-basin invariants, and the full effective-control log marker to
+  reject a stale binary. Updated this plan and the development-setup profile
+  instructions. Marked BH15b and BH15 implementation complete; BH25e still owns
+  numeric selection and BH26 owns rendered/integrated verification.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/Tests/World/BiomeMireProfiles.ps1`,
+  `Scripts/Tests/World/BiomeMireProfiles.csv`, `docs/biome-height-rework.md`,
+  and `docs/07-development-setup.md`.
+- **Lightweight checks/results:** PowerShell parser validation and
+  `BiomeMireProfiles.ps1 -ValidateOnly` passed for all 252 coordinates across
+  twelve fixed transects. Static inspection confirmed one Mire override is
+  applied before export and the runner expects the exact full-control marker.
+  No Unreal build, commandlet sweep or automation ran. Full verification remains
+  deferred to BH26.
+- **Observable impact:** Adds repeatable raw candidate, collision, slope and
+  source-land clearance measurements for BH25e, with coastal, interior, ocean
+  and river controls. It does not change sampler outputs unless an explicit
+  commandlet-only trial argument is supplied; trial state resets on commandlet
+  exit. No trial values are selected or claimed.
+- **Networking/authority:** Controls are local commandlet preview values only;
+  no client input, RPC, replication, gameplay authority, or save data changed.
+- **Known limitations / remaining scope:** Fresh-source parameter selection is
+  BH25e. Rendered coast/interior/river acceptance and full integrated checks are
+  BH26. The script was parser/fixture-checked but no Unreal binary was built or
+  used to run the sweep.
+- **Next task in this directed goal:** BH16 — shape Freezing Tundra by reusing
+  the Elderwood candidate inside the existing outer eligibility band.
+
+## Run 2026-10-25 — Close Tundra height reuse (BH16)
+
+- **Selected increment:** BH16, the next eligible item under the biome height
+  rework goal. The worktree was clean at `7b16f615`; no other active Kalmala
+  run was modifying this checkout. Other active Kalmala work was in separate
+  A10 and monster-spawn worktrees.
+- **Work completed:** Verified that `ShapeTundra` directly returns
+  `ShapeElderwood` with the same source height, detail, shared relief and three
+  amplitudes. The existing classifier and Tundra outer eligibility remain
+  unchanged. Existing focused source coverage compares Elderwood and Tundra at
+  fixed seed-418/419 positions, including negative coordinates and an
+  Elderwood/Tundra transition where both weights blend the identical candidate.
+  The Tundra height path contains no snow offset; snow surface presentation is
+  still scheduled in BH24. Marked BH16 complete; fresh-source numeric parity
+  remains BH25b and rendered acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks/results:** Inspected the Tundra shape and sampler call
+  sites, existing eligibility expression and focused parity assertions.
+  `git diff --check` passed. No Unreal build or automation was run; full
+  verification remains deferred to BH26.
+- **Observable impact:** No runtime sampler change; records that BH16's source
+  implementation and deterministic parity proof are already present from BH13a
+  and closes the implementation checkbox. Numeric and rendered acceptance are
+  still pending their assigned gates.
+- **Networking/authority:** Height remains a deterministic candidate derived
+  from the existing world seed, absolute coordinates and server-owned fields.
+  No RPC, replicated state, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** BH25b must measure fresh-source
+  Elderwood/Tundra profiles; BH24 owns snow presentation; BH26 owns rendered and
+  full integrated verification.
+- **Main-checkout handoff:** Synchronized only BACKLOG.md and PROGRESS.md;
+  preserved pre-existing S32 progress. Implementation code remains in this
+  detached worktree.
+- **Next task in this directed goal:** BH17 — shape Thunder Mountains with
+  bounded amplification above the named high-terrain threshold.
+
+## Run 2026-10-25 — Shape Mountains with highland amplification (BH17)
+
+- **Selected increment:** BH17, the next unchecked biome-height task. The
+  worktree was clean at `b16afd9e`; no other active run was changing this
+  checkout. A10 and monster-population work continued in separate worktrees.
+- **Work completed:** Replaced the Mountain candidate's broad uniform regional
+  offset with a smooth high-base gain. Source heights below 1,000 cm receive no
+  regional lift; the excess ramps across the next 1,000 cm and scales by the
+  existing continuous Mountain region factor, reaching 0.4 gain at full factor.
+  Detail now clamps to ±1 with a provisional 80 cm amplitude. Added bounded
+  commandlet-preview controls and focused source coverage for lowland
+  preservation, highland/region response, clipped detail, continuity at the
+  threshold, monotonic foothills and the fixed Tundra/Mountain transition.
+  Classifier inputs, distance bands, coast attenuation, river order, seeded
+  sampling and candidate blending remain unchanged. Checked BH17; BH26 retains
+  rendered Mountain/foothill acceptance.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, and `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Inspected all Mountain candidate call sites,
+  the preview bounds, fixed-site transition and source regression assertions.
+  `git diff --check` passed. The new C++ automation assertions were not built or
+  run; no Unreal build or automation was run. Full verification remains deferred
+  to BH26.
+- **Observable impact:** Low-base Mountains keep their existing source
+  landform with bounded detail. Only higher terrain gains additional height,
+  smoothly and in proportion to the regional factor; no new noise sample or
+  classifier/weight change was introduced.
+- **Networking/authority:** All new values are fixed tuning or local
+  commandlet-preview controls. Height still derives from the existing seed and
+  server-owned fields; no RPC, replicated state or save data changed.
+- **Known limitations / remaining scope:** The 1,000 cm threshold, blend range,
+  gain and detail amplitude are provisional bounded settings. Fresh compiled
+  runtime and rendered/traversal Mountain acceptance remain BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving the existing Monster S33 updates. Implementation files remain in
+  this detached worktree.
+- **Next task in this directed goal:** BH18 — reapply priority river carving
+  after biome relief while preserving sea level, banks and shared consumers.
+
+## Run 2026-10-25 — Reapply priority river carving (BH18)
+
+- **Selected increment:** BH18, the first unchecked task after BH17. The
+  worktree was clean at `6a409971`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Inspected the regional sampler and confirmed its priority
+  river profile runs after biome-candidate relief, optional basin/stream stages
+  and the source-coast clamp. Existing high-ground and two-bank regressions
+  compare final output with a no-course sample that retains biome relief and
+  coast shaping; the profile uses the configured 80 cm bed and 1,800 cm bank
+  extent, with Z=0 water. Existing controls and seam coverage protect unchanged
+  source-coast behavior and shared samples. The analytic-basin policy remains
+  disabled. No relief-caused bank or coast defect was demonstrated, so no
+  runtime code change was needed. Checked BH18; rendered acceptance remains
+  BH26.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md` only.
+- **Lightweight checks/results:** Re-read the autonomous-run instructions,
+  backlog, progress and relevant terrain/hydrology documentation. Inspected
+  sampler ordering, tuning values and focused high-ground, bank, coast-control
+  and seam regression definitions. `git diff --check` passed. No automation
+  or build was run; full verification remains deferred to BH26.
+- **Observable impact:** No runtime behavior changed. The existing final
+  regional output continues to provide the carved river profile to terrain,
+  collision, water and map consumers after biome relief and coast shaping.
+- **Networking/authority:** No authority, replicated state, RPC or save data
+  changed; regional terrain continues to derive from the existing seeded
+  sampler.
+- **Known limitations / remaining scope:** Source inspection confirms the
+  intended ordering and existing regression coverage, but compiled behavior,
+  rendered terrain and traversal remain unverified until BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S33 progress and leaving other active work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH19 — add the independent seeded forest
+  factor while preserving candidate identity and random independence.
+
+## Run 2026-10-25 — Add independent forest factor (BH19)
+
+- **Selected increment:** BH19, the first unchecked task after BH18. The
+  worktree was clean at `b6217cee`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Added a normalized `ForestFactor` value to the shared
+  forest descriptor. It samples an independently salted Perlin domain at the
+  candidate's absolute world position, using a provisional 48,000 cm scale.
+  The value is not an ecological field or replicated map. It consumes no
+  candidate-stream draws and does not gate candidates, so current counts,
+  positions, original ordinals and persistent IDs remain unchanged. Meadows
+  suitability integration remains BH20.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  biome/Meadows plans, architecture and development setup. Static inspection
+  confirmed the new domain salt is separate from Flora and terrain detail, the
+  sample uses absolute XY, no random draws were added, and candidate counts and
+  the existing random-stream call order are unchanged. `git diff --check`
+  passed. No build or automation was run; full verification remains deferred to
+  BH26.
+- **Observable impact:** Existing shared descriptors now expose a stable
+  0-to-1 world-space forest placement signal. Current forest admission,
+  rendering and materialization behavior is unchanged.
+- **Networking/authority:** The value is a deterministic function of the
+  existing world seed and absolute position. No RPC, replicated field, save
+  data or server-authority behavior changed.
+- **Known limitations / remaining scope:** The 48,000 cm scale is provisional.
+  The factor does not yet affect density or biome suitability; Meadows gating
+  and its identity/lifecycle checks remain BH20, with integrated verification
+  deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S34 progress and leaving A10 work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20 — integrate Meadows forest
+  suitability through shared descriptors while preserving identity and lifecycle.
+
+## Run 2026-10-25 — Apply Meadows Flora suitability (BH20a)
+
+- **Selected increment:** Split BH20 into four ordered children, then selected
+  BH20a, the first unchecked child. The worktree was clean at `e3c06597`; A10
+  and monster-population work remains in separate worktrees, with no concurrent
+  run in this checkout.
+- **Work completed:** Added BH20a–BH20d in order: Meadows Flora admission,
+  forest-factor patchiness, final-slope gating, and dry-ground gating. Applied
+  the existing Elderwood Flora probability curve to Meadows candidates through
+  the shared layout used by decorative rendering and server materialization.
+  The new decision uses an independent world/patch/original-ordinal hash roll
+  after the current candidate geometry draws, so rejection cannot shift later
+  candidate randomness. Original indices/IDs and the 18-Meadows/72-total
+  candidate limits are preserved; Elderwood behavior is unchanged.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Meadows/forest plans, architecture and development setup. Inspected both
+  rendering and server-materialization consumers of `FKalmalaForestLayout::Generate`.
+  Static review confirmed the gate uses a separate deterministic domain and
+  adds no random-stream draws; `git diff --check` passed. No build or automation
+  was run; full verification remains deferred to BH26.
+- **Observable impact:** Meadow descriptors now become sparser where the
+  existing Flora probability is lower. Rendering and server materialization
+  consume the same filtered descriptors; candidate IDs remain tied to original
+  patch/index identity.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. The selection is deterministic from the existing world seed,
+  patch center and original candidate ordinal.
+- **Known limitations / remaining scope:** Forest-factor patchiness, final
+  slope and dry-ground gates remain BH20b–BH20d. The reused Flora probability
+  curve and rendered density are not yet compiled or visually validated; full
+  verification remains deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving existing Monster S34 progress and leaving A10 work intact.
+  Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20b — apply forest-factor patchiness to
+  Meadows descriptor admission with stable per-ID thresholds.
+
+## Run 2026-10-25 — Apply forest-factor patchiness (BH20b)
+
+- **Selected increment:** BH20b, the next unchecked child after BH20a. The
+  worktree was clean at `244c9f2b`; A10 and monster-population work remains in
+  separate worktrees, with no concurrent run in this checkout.
+- **Work completed:** Combined Meadow admission probability as the existing
+  Flora probability multiplied by the normalized `ForestFactor`. The shared
+  descriptor path compares that probability against the same stable
+  world/patch/original-ordinal threshold added in BH20a, retaining its strict
+  roll comparison and rejecting zero-probability candidates after existing
+  geometry draws. Higher factor values smoothly increase admission. Candidate
+  limits, IDs, random-stream order, patch-independent absolute-world sampling,
+  and Elderwood behavior stay unchanged. Checked BH20b; BH20c/d remain for
+  slope and dry-ground gates.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the forest-factor plan, Meadows plan, architecture and development setup.
+  Inspected the shared descriptor flow, separate factor domain, stable
+  threshold and unchanged random-stream calls. Added focused automation source
+  coverage for probability scaling, stable thresholds, normalized factor range
+  and patch-boundary factor continuity; it was not built or run.
+  `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Meadows density now follows both Flora suitability and
+  the smooth world-space forest factor; low-factor pockets form clearings.
+  Descriptor budgets and the shared rendering/server-materialization path stay
+  intact.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. Factor and candidate thresholds remain deterministic from
+  existing seed/world/patch/candidate identity.
+- **Known limitations / remaining scope:** The 48,000 cm factor scale remains
+  provisional. Final slope and dry-ground gating remain BH20c/d; rendered
+  density and compiled behavior are unverified until BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving the existing Monster S35 progress. A10 work remains in its
+  separate worktree. Implementation files remain in this detached worktree.
+- **Next task in this directed goal:** BH20c — gate Meadows descriptors by final
+  terrain slope through the shared descriptor path.
+
+## Run 2026-10-25 — Gate Meadows trees by final terrain slope (BH20c)
+
+- **Selected increment:** BH20c, the first unchecked child after BH20b. The
+  worktree was clean at `71aa2116`; no other autonomous run is modifying this
+  checkout. A10 and monster-population work remains in separate worktrees.
+- **Work completed:** Added a named final-surface normal-Z floor of 0.88 for
+  Meadows trees, using the shared `SampleSurfaceNormal` from final regional
+  height. It runs after Flora, forest-factor and stable per-ID threshold gates
+  and after all candidate random draws. Rejected trees cannot shift later
+  candidate positions, dimensions, yaw, ordinals or IDs.
+  Accepted descriptors retain their existing `SampleHeight` root placement.
+  Elderwood remains ungated. Marked BH20c complete; BH20d still owns dry-ground
+  filtering.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestSlopeTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height and Meadows plans, forest contract, terrain-sampler and
+  collision docs. Inspected both descriptor consumers, the normal sampler and
+  mesh heights. Static review confirmed only Meadows candidates that pass the
+  Flora, factor and stable-threshold gates incur four neighboring final-height
+  samples; accepted roots retain the same central final-height sample. Added
+  focused source coverage for the 0.88 boundary; it was not built or run.
+  `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Meadows trees are filtered off steeper final surfaces
+  in both decorative rendering and server materialization. Existing root
+  placement stays on the final sampled terrain; candidate identity and forest
+  budgets remain unchanged.
+- **Networking/authority:** The gate is deterministic from world seed and
+  absolute position; both server and cosmetic consumers use the shared layout.
+  No RPC, replicated state, gameplay authority or save data changed.
+- **Known limitations / remaining scope:** The 0.88 normal-Z floor reuses the
+  existing terrain-safe placement threshold. It is a finite-difference normal
+  of final regional heights, not a measured runtime collision-face slope.
+  Compiled and rendered/collision acceptance remains BH26; dry-ground filtering
+  remains BH20d.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`,
+  preserving pre-existing Monster and A10 progress. Implementation files
+  remain in this detached worktree.
+- **Next task in this directed goal:** BH20d — reject Meadows trees on wet
+  ground using the shared final water and terrain samples.
+
+## Run 2026-10-25 — Gate Meadows trees off wet ground (BH20d)
+
+- **Selected increment:** BH20d, the first unchecked child under BH20. The
+  detached worktree was clean at `4061a237`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** The shared forest descriptor path now uses one final
+  regional sample for Meadows water state and root height, rejecting candidates
+  on regional water. Remaining Meadows candidates require a valid dry ocean
+  sample on the explicit 3 km patch triangle lattice. The ocean query is
+  skipped when regional water already rejects the candidate. Disabled analytic
+  basin policy remains owned by the regional sampler. Elderwood, candidate
+  random draws, ordinals, IDs and root alignment remain unchanged. Marked BH20d
+  and the BH20 implementation parent complete; integrated milestone acceptance
+  remains for BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestWetGroundTest.cpp`,
+  `docs/02-technical-architecture.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Meadows and biome-height plans, water/terrain architecture and forest
+  lifecycle setup. Static inspection confirmed the layout remains the common
+  input for cosmetics, server materialization and suppression; lifecycle tests
+  still key off original CandidateIndex/PersistentSpawnId for depletion, patch
+  reconstruction and restart. Added source coverage for regional wet, ocean wet,
+  invalid-sample rejection, dry placement and original-ordinal identity; it was
+  not built or run. Full build and automation remain deferred to BH26.
+- **Observable impact:** Meadows trees are omitted from wet/invalid ground in
+  both presentation and harvest materialization. Accepted roots use the same
+  final regional height already used by `SampleHeight`.
+- **Networking/authority:** No RPC, replicated state, save data or authority
+  path changed. Server and cosmetic consumers continue to derive descriptors
+  from the shared seeded layout; existing suppression and sparse depletion IDs
+  are unchanged.
+- **Known limitations / remaining scope:** Focused source coverage was not
+  compiled or executed. Full rendering, collision, hydrology and gameplay
+  lifecycle acceptance remains deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21 — add Tundra forest participation with reduced
+  density and explicit resource identity.
+
+## Run 2026-10-25 — Make forest tree kind explicit (BH21a)
+
+- **Selected increment:** BH21a, the first child after splitting the broad BH21
+  acceptance into explicit identity, Tundra admission and lifecycle proof. The
+  detached worktree was clean at `929ff985`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** Replaced the overlapping `bElderwood`/`bAspen` descriptor
+  flags with `EKalmalaForestTreeKind`. Existing Meadows birch, Meadows aspen and
+  Elderwood ironheart candidates retain their prior appearance and gathering
+  sources. Added an explicit Freezing Tundra birch kind that maps to the existing
+  Meadows birch source and presentation, adding no timber content or reward.
+  Updated cosmetic rendering, server source selection, delivery verification
+  and existing source/lifecycle coverage to consume the explicit kind. Tundra
+  candidate generation remains BH21b.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaForestResourceContract.h`,
+  `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestResourceContractTest.cpp`,
+  and `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the forest-factor and Tundra plan, forest architecture, harvest lifecycle and
+  Tundra verification setup. Static search found no remaining descriptor
+  consumers of the removed boolean flags. Source inspection confirmed existing
+  placement, dimensions, random draws, persistent IDs and Meadow/Elderwood
+  source choices remain unchanged. Added source assertions for every tree-kind
+  source/presentation mapping and unknown-kind rejection; they were not built
+  or run. `git diff --check` passed. Full verification remains deferred to BH26.
+- **Observable impact:** Existing trees keep their current appearance and
+  harvesting source. Shared descriptors now carry an explicit type so later
+  Tundra placement cannot inherit Elderwood's ironheart source by height reuse.
+- **Networking/authority:** No RPC, replication, save schema or gameplay
+  authority changed. Server materialization and cosmetic rendering consume the
+  same descriptor kind; suppression and sparse persistence IDs are unchanged.
+- **Known limitations / remaining scope:** This increment defines the explicit
+  Tundra birch mapping but does not generate Tundra trees. Reduced-density
+  candidate admission and its identity/lifecycle proof remain BH21b–BH21c;
+  full build, automation and rendered acceptance remain deferred to BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21b — add reduced-density Tundra forest candidates
+  through the shared descriptor path without shifting existing candidate draws.
+
+## Run 2026-10-25 — Add reduced-density Tundra forest (BH21b)
+
+- **Selected increment:** BH21b, the first unchecked child after BH21a. The
+  detached worktree was clean at `6267f7cd`; no other autonomous run is
+  modifying this checkout. A10 and monster-population work remains in separate
+  worktrees.
+- **Work completed:** Existing Freezing Tundra-classified candidate positions
+  can now enter the shared forest layout when their existing Flora probability
+  multiplied by the absolute-world forest factor and provisional 0.85 density
+  passes the stable world/patch/original-ordinal threshold. Accepted descriptors
+  use `FreezingTundraBirch`, which maps to the existing Birch presentation and
+  source. Tundra appearance dimensions use a separate seed domain keyed by
+  world, patch and candidate; no Tundra eligibility, rejection or geometry draw
+  advances the existing Meadow/Elderwood candidate stream. The original 72
+  candidate budget, Meadows cap, Elderwood Flora gate, candidate positions,
+  resource IDs and persistent IDs remain unchanged. BH21b is complete; lifecycle
+  acceptance remains BH21c.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the Tundra/forest-factor plan, candidate identity and resource contracts, and
+  the Tundra verification setup. Static inspection confirmed only existing
+  Freezing Tundra labels enter the gate; accepted trees use the explicit Birch
+  kind and stable threshold. Reviewed the shared stream flow: candidate XY and
+  all current Meadow/Elderwood geometry draws are unchanged, while Tundra's five
+  dimensions/yaw draws use the independent geometry salt. Added source coverage
+  for factor/Flora composition and the 0.85 provisional multiplier; it was not
+  built or run. `git diff --check` passed. Full verification remains deferred
+  to BH26.
+- **Observable impact:** Freezing Tundra can now produce a lower-density,
+  factor-patched Birch forest using the existing resource and presentation.
+  Runtime counts and visuals were not measured.
+- **Networking/authority:** No RPC, replicated state, save schema or authority
+  changed. Cosmetic rendering and server materialization continue to consume
+  the same deterministic descriptors; candidate ID and suppression contracts
+  remain unchanged.
+- **Known limitations / remaining scope:** The 0.85 multiplier is provisional
+  pending BH25 tuning. Tundra depletion/suppression, late-join and restart
+  identity proof remain BH21c; full build and rendered acceptance remain BH26.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  in `E:\dev\Kalmala`, preserving the existing A10 and Monster progress.
+  Implementation and source-coverage files remain in this detached worktree.
+- **Next eligible task:** BH21c — verify Tundra resource identity and forest
+  lifecycle behavior.
+
+### BH21c — Tundra forest identity and lifecycle source proof (2026-10-25)
+
+- **Work completed:** Added a deterministic Tundra-patch fixture that searches
+  classified Tundra positions for accepted `FreezingTundraBirch` descriptors.
+  The lifecycle fixture now reconstructs a Tundra candidate by its original
+  `CandidateIndex` and checks the stable `PersistentSpawnId` and existing Birch
+  source. The patch fixture traces that descriptor through server node
+  materialization, canonical cosmetic suppression, the production sparse
+  depletion callback, save snapshot reload and patch reactivation. The opt-in
+  process restart fixture now persists and reloads Tundra Birch identities.
+  The existing late-join verifier was inspected: it regenerates the same shared
+  descriptors and checks candidate suppression, persistent ID, source selected
+  by `TreeKind`, replicated transform and tree stage. BH21 is implementation
+  complete; the roadmap milestone remains open for BH22–BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestTundraTestSupport.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestLifecycleTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestRestartTest.cpp`, and
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h` (test-fixture friendship).
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome rework plan, architecture identity contract, and development setup
+  coverage for forest reconstruction, patch suppression, depletion, delivery and
+  process restart. Static inspection confirmed server materialization resolves
+  sources from the shared descriptor kind, and the late-join verifier checks
+  regenerated descriptors against replicated nodes. `git diff --check` passed.
+  Automation and builds were not run; full verification remains deferred to
+  BH26.
+- **Observable impact:** Focused source fixtures now exercise Tundra-specific
+  identities through the existing server materialization and persistence paths.
+  No runtime counts or peer behavior were measured.
+- **Networking/authority:** No production RPC, replicated state, save schema or
+  authority behavior changed. The test fixture calls the existing server-bound
+  depletion callback; late-join source/identity checks remain on the existing
+  shared descriptor verifier. Integrated peer verification remains deferred to
+  BH26.
+- **Known limitations / remaining scope:** Fixtures were inspected but not
+  compiled or executed. Rendered behavior, actual client late-join delivery,
+  measured Tundra density and final 0.85 multiplier tuning remain for BH25–BH26.
+- **Main-checkout handoff:** Synchronized only this run's `BACKLOG.md` and
+  `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
+  existing A10 and Monster progress was preserved.
+- **Next eligible task:** BH22 — add eligible Lakes forest shoulders.
+
+### BH22 — Eligible Shimmering Lakes forest shoulders (2026-10-25)
+
+- **Work completed:** The shared layout now admits exact Shimmering Lakes
+  candidates from the existing 18 lowland ordinals, combining the Flora curve
+  with the absolute-world forest factor and stable original-ordinal threshold.
+  Lakes reuse the established Meadows Birch kind, source and presentation; no
+  Lakes-specific timber source, item or catalogue entry was introduced. Their
+  appearance uses a per-candidate geometry seed, leaving existing Meadow,
+  Elderwood and Tundra candidate positions and shared-stream draws unchanged.
+  The shared 0.88 final-slope gate and final regional plus collision-lattice
+  water checks reject unsuitable and wet ground. Rendering and server
+  materialization continue to consume the same descriptors.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaForestLayout.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaForestLayout.h`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestLakesTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestFactorTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestSlopeTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestWetGroundTest.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome rework forest plan, forest identity architecture, existing forest
+  materialization/rendering paths and water/slope contracts. Static inspection
+  confirmed both rendering and server activation call `FKalmalaForestLayout::Generate`,
+  and the new Lakes gate uses no shared-stream draws. `git diff --check` passed.
+  The focused source automation was added but not run; no build or full suite
+  was run. Full verification remains deferred to BH26.
+- **Observable impact:** Dry, gently sloped Lakes candidates can join the
+  existing Birch forest presentation while wet ground remains excluded.
+  Runtime counts and rendered results were not measured.
+- **Networking/authority:** No RPC, replicated state, save schema or catalogue
+  authority changed. Cosmetic patches and server harvest nodes continue to use
+  the same deterministic descriptors and existing server-side source mapping.
+- **Known limitations / remaining scope:** The 18-candidate cap and provisional
+  forest settings were not measured at runtime. The focused Lakes test was not
+  compiled or executed; full rendered, water, peer and performance acceptance
+  remains for BH26.
+- **Main-checkout handoff:** Synchronized only this run's `BACKLOG.md` and
+  `PROGRESS.md` changes to `E:\dev\Kalmala` after inspecting both main versions;
+  existing A10 and Monster progress was preserved.
+- **Next eligible task:** BH23 — add terrain-driven ground presentation.
+
+### BH23a — Fit decorative Meadow rocks to final terrain (2026-10-25)
+
+- **Selected increment:** BH23a, the first child after splitting BH23 into
+  decorative-rock alignment and terrain-material blending. The worktree was
+  clean at `62af48c9`; no other autonomous run is modifying this checkout.
+  A10 work remains in its separate worktree; Monster work is also separate.
+- **Work completed:** Existing procedural Meadow rock bases still use the
+  shared final `SampleHeight`, and their local ring, apex, normals and tangents
+  now align to `SampleSurfaceNormal` at the same candidate center. The existing
+  48-candidate budget, candidate positions, rock dimensions, yaw draws,
+  deterministic seed and collision-disabled presentation remain unchanged.
+  Marked BH23a complete and split BH23b for material blending. The material
+  source creates only constant-color `M_GeneratedTerrain` and `M_GeneratedRock`
+  assets; no distinct authored grass/soil ground materials or reed visual mesh
+  or material are present. BH23b remains open until suitable existing material
+  inputs are available; no palette or visual assets were invented.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height and Meadows decoration plans, terrain-material source,
+  runtime patch renderer and architecture/setup notes. Static inspection
+  confirmed the rock center continues to use the final height sampler and the
+  only placement change is normal-based mesh orientation; no random calls,
+  actor authority, collision or gameplay resources changed. Checked available
+  world assets and found no distinct ground grass/soil materials or reed visual
+  asset. `git diff --check` passed. No automation or build was run; full
+  rendered verification remains deferred to BH26.
+- **Observable impact:** Existing low-poly Meadow rocks now sit flush with the
+  local final-surface orientation on gentle terrain. Runtime appearance was not
+  measured.
+- **Networking/authority:** No networking, replication, save, harvest or
+  gameplay-authority path changed. Rocks remain cosmetic and collision-free;
+  terrain collision remains authoritative.
+- **Known limitations / remaining scope:** Alignment uses the final normal at
+  each rock center as a local tangent plane; rendered contact on curved or steep
+  surfaces remains for BH26. Ground material blending remains BH23b pending
+  suitable existing authored grass/soil/rock material inputs. No reed decoration
+  was added because matching original visual content is absent.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; existing A10 and
+  Monster progress was preserved.
+- **Next eligible task:** None while BH23b is blocked. BH23b is next in order
+  and awaits suitable existing authored ground-material inputs; BH24 remains
+  queued behind the incomplete BH23 parent.
+
+### BH23b — Blend ground materials by slope and moisture (2026-10-25)
+
+- **Selected increment:** BH23b, now unblocked by the user's authorization to
+  add an original soil material. The worktree was clean at `fcb37662`; no other
+  autonomous run is modifying this checkout. A10 and Monster work remains in
+  separate worktrees.
+- **Work completed:** Added `FKalmalaTerrainGroundBlend::SampleWeights`, which
+  produces normalized grass/soil/rock vertex weights from final surface-normal
+  Z, the existing world-humidity field and final regional water. `BuildVisualSurface`
+  reuses its height, normal and field samples, so this adds no world samples or
+  geometry budget; the `-KalmalaBiomeDebug` vertex colors remain unchanged. The
+  `CreateWorldMaterials` commandlet now generates a muted original
+  `M_GeneratedSoil` material and updates `M_GeneratedTerrain` with a
+  vertex-color weighted blend using the established grass and rock palette.
+  Added focused formula coverage and updated the material/ground presentation
+  contract. Marked BH23b and BH23 implementation complete; BH24 is next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaTerrainGroundBlendTest.cpp`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`,
+  `docs/meadows-plan.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  ground-presentation plans, generated-material commandlet, terrain patch mesh,
+  field and final-normal samplers, and material asset inventory. Static review
+  confirmed vertex weights use already-sampled humidity and final normals,
+  normalize to one, retain the debug-color override and do not alter terrain
+  collision or network state. Added focused automation source for dry/flat,
+  moist/flat, steep, mixed, monotonic and deterministic weights; it was not
+  compiled or run. `git diff --check` passed. No build, automation or material
+  commandlet was run; full verification remains deferred to BH26.
+- **Observable impact:** Generated terrain now receives grass on dry gentle
+  ground, more soil with humidity, and more rock on exposed slopes. The
+  rendered palette was not inspected.
+- **Networking/authority:** Ground colors are deterministic cosmetic vertex
+  data derived from shared world configuration. Server terrain collision,
+  client prediction, patch identity and gameplay authority remain unchanged.
+- **Known limitations / remaining scope:** The Editor-generated
+  `M_GeneratedSoil.uasset` still needs to be created and the existing
+  `M_GeneratedTerrain.uasset` regenerated by `CreateWorldMaterials` after the
+  Editor target is built. Material compilation, runtime appearance and traversal
+  remain for BH26. No grass or reed asset was added.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH24 — add cold-biome presentation.
+
+### BH24a — Add Tundra snow coverage (2026-10-25)
+
+- **Selected increment:** BH24a, the first child after splitting cold-biome
+  presentation into Tundra snow, Mountain snow, and Mountain storm visuals. The
+  worktree was clean at `1b43ccb7`; no other autonomous run is modifying this
+  checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Extended terrain vertex alpha into a deterministic snow
+  mask: continuous Freezing Tundra biome weight multiplied by the final surface
+  normal Z. RGB grass/soil/rock weights remain unchanged. The existing
+  `M_GeneratedTerrain` material pipeline now lerps the established ground blend
+  toward a pale snow color using that alpha. Both ordinary and bounded-world
+  clipped mesh vertices derive the mask from the shared regional sample; no
+  extra world-field sample or geometry budget was added. Updated the acceptance
+  backlog split and material/weather docs. Marked BH24a complete; BH24b is next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `docs/02-technical-architecture.md`, `docs/biome-height-rework.md`, and
+  `docs/07-development-setup.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  the biome-height plan, terrain material contract, and server-owned weather
+  state/cycle. Static inspection confirmed alpha uses the already sampled
+  continuous Tundra weight and final normal, RGB layer weights are unchanged,
+  player clothing explicitly selects the grass channel with snow alpha zero,
+  and weather selection, replicated fields, terrain height/collision and
+  gameplay exposure remain unchanged. `git diff --check` passed. No build,
+  automation, material generation or rendering was run; full verification
+  remains deferred to BH26.
+- **Observable impact:** Tundra portions of the generated terrain receive a
+  pale snow overlay that decreases continuously on steep faces. The generated
+  material package and rendered appearance were not inspected.
+- **Networking/authority:** Snow is deterministic client cosmetic vertex data
+  from shared world configuration; no replicated weather or gameplay authority
+  path changed.
+- **Known limitations / remaining scope:** The Editor-generated
+  `M_GeneratedTerrain.uasset` must be updated after the Editor target is built.
+  Material compilation and rendered Tundra coverage remain for BH26. Mountain
+  snow remains BH24b and Mountain storm presentation remains BH24c.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; existing A10 and
+  Monster progress and unrelated main-checkout files were preserved.
+- **Next eligible task:** BH24b — add Mountain snow coverage.
+
+### BH24b — Add Mountain snow coverage (2026-10-25)
+
+- **Selected increment:** BH24b, the next cold-biome child after Tundra snow.
+  The worktree was clean at `3ebd60ce`; no other autonomous run is modifying
+  this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Extended the existing vertex-alpha snow mask with
+  continuous Thunder Mountains biome weight multiplied by a smooth final-height
+  transition from the existing 1,000 cm highland threshold through its
+  1,000 cm blend range and final surface normal Z. This leaves low foothills
+  without Mountain snow, reduces coverage on steep faces, preserves the prior
+  Tundra contribution and leaves RGB grass/soil/rock weights unchanged. Both
+  ordinary and bounded-world clipped mesh vertices use their existing final
+  regional sample. No terrain heights, player cloth, weather state or gameplay
+  path changed. Marked BH24b complete; BH24c remains next.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  Mountain height tuning, terrain material generation and weather authority
+  contracts. Static inspection confirmed continuous Mountain weight, final
+  height and slope drive only the snow alpha; RGB weights, Tundra coverage,
+  foothill height, player-cloth palette, replicated weather and gameplay
+  authority are unchanged. `git diff --check` passed. No build, automation,
+  material generation or rendering was run; full verification remains deferred
+  to BH26.
+- **Observable impact:** High Mountain terrain now shares the pale snow overlay;
+  the coverage fades in above the highland threshold and decreases on steep
+  faces. The generated material package and rendered appearance were not
+  inspected.
+- **Networking/authority:** Mountain snow is deterministic cosmetic vertex data
+  from the shared final terrain sample. No replicated weather or gameplay
+  authority path changed.
+- **Known limitations / remaining scope:** `M_GeneratedTerrain.uasset` must be
+  updated after the Editor target is built. Material compilation, rendered
+  peaks/foothills and traversal remain for BH26. Mountain storm visuals remain
+  BH24c.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH24c — add Mountain storm presentation.
+
+### BH24c — Add Mountain storm presentation (2026-10-25)
+
+- **Selected increment:** BH24c, the final cold-biome presentation child. The
+  worktree was clean at `6f221be4`; no other autonomous run is modifying this
+  checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** The local weather presentation subsystem now samples
+  the existing server-selected, replicated weather interval and the local
+  pawn's continuous Thunder Mountains weight once per second. It fades a
+  client-local cool exponential-height fog effect by their product, and removes
+  the transient actor when the player leaves the Mountains or the storm eases.
+  The fog actor does not replicate. No weather RPC/field, authority, exposure,
+  damage, shelter rule, terrain snow mask, player-cloth palette or gameplay
+  state changed. Marked BH24c and BH24 implementation complete; rendered
+  acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Lightweight checks/results:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md,
+  weather replication and activity presentation, local-player subsystem
+  lifetime, and Mountain coverage contracts. Static review confirmed the visual
+  reads the current valid server interval, uses continuous regional Mountain
+  weight, is local-only, samples at a bounded one-second cadence, and leaves
+  weather authority and gameplay unchanged. Confirmed the engine fog actor and
+  component setters in the installed Unreal 5.8 headers. No build, automation,
+  generated material, or render was run; full visual and integration
+  verification remains deferred to BH26.
+- **Observable impact:** During server-selected storms, the local view gains a
+  softly faded cool fog in Thunder Mountains; it fades out beyond the Mountain
+  transition and when storm intensity falls. No new authored asset is required.
+  Rendered intensity and visibility remain uninspected.
+- **Networking/authority:** Clients read the replicated `FKalmalaWeatherState`
+  and immutable world configuration. The transient fog actor does not replicate;
+  the server's weather selection and all gameplay paths remain unchanged.
+- **Known limitations / remaining scope:** Fog is a local atmosphere effect for
+  the owning player's view, not a replicated weather actor or terrain material
+  change. BH26 must inspect fade, visibility, storm transitions, snow coverage,
+  and traversal in rendered Mountain and foothill views.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  to `E:\dev\Kalmala` after inspecting both main versions; A10 and Monster
+  progress plus unrelated main-checkout files were preserved.
+- **Next eligible task:** BH25a — run the Meadows hill sweep.
+
+### BH25a — Measure and select the Meadows hill amplitude (2026-10-25)
+
+- **Selected increment:** BH25a. The isolated worktree was clean at
+  `e8d458dc475ba45079b4e4877de967ec368d54dd`; no other autonomous run was
+  modifying this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** Ran the fresh-source 4/6/8 m hill sweep and compared the
+  outputs with all 28 BH01 fixed-site coordinates. Selected the smallest
+  measured amplitude, 4 m, and changed `MeadowHillAmplitude` from 600 cm to
+  400 cm. Updated the tuning contract and recorded the measured profile data.
+  Fixed four goal-introduced test compilation issues: the new Lakes test now
+  compares double coordinates consistently; the regional preview test no
+  longer shadows Unity-global `Settings`; its Mire coast assertion now lives in
+  the Mire friend fixture; and the non-finite value uses the standard-library
+  quiet NaN API supported by UE 5.8.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaForestLakesTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Build and measurement results:** A fresh UE 5.8 Editor build in
+  `C:\Users\Ville\AppData\Local\Temp\kb25a` succeeded with the current
+  production sources and remaining tests. The unchanged pre-goal
+  `KalmalaWaterSurfaceMeshTest.cpp` translation unit was preserved outside the
+  temporary mirror's source scan because its old double/float `TestEqual` at
+  line 58 fails under UE 5.8 (C2666); the exact line is present at merge-base
+  `460339b3`. No repository copy of that test was changed. The selected-source
+  build command was:
+  `C:\Program Files\Epic Games\UE_5.8\Engine\Build\BatchFiles\Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity -NoUBTMakefiles`.
+  `BiomeHillProfiles.ps1` then exported 88 samples for each 4/6/8 m trial and
+  accepted the exact fresh-build marker. Separate fresh commandlet runs
+  exported all 28 BH01 fixed points for each amplitude with the same marker.
+  Across the eight profiles, the minimum/mean/maximum height ranges were
+  2.61/5.36/12.01 m at 4 m, 2.68/5.75/12.83 m at 6 m, and 2.78/6.31/13.67 m
+  at 8 m. For 4 m, 90.9% of 88 collision-triangle slopes were below 15°,
+  4.5% were 15–25°, 4.5% exceeded 25°; p50/p90/p95/max were
+  2.38/13.08/16.73/30.40°. Seven of eight profiles varied by at least 3.48 m;
+  one outer north–south profile varied by 2.61 m. The 4 m trial was the
+  smallest that met the numeric profile target; larger amplitudes raised mean
+  range but did not lower the >25° slope share.
+- **BH01 fixed-site comparison:** At the four Starter/outer dry Meadows points,
+  4 m had a maximum absolute height delta of 111.7 cm (85.1 cm mean absolute)
+  and maximum absolute slope delta of 2.58°. Corresponding maxima were
+  188.5 cm / 2.78° at 6 m and 263.3 cm / 2.98° at 8 m. The 17 fixed rows with
+  zero Meadows weight were identical across all three overrides. The full
+  per-profile and baseline measurements are in `docs/meadows-plan.md`.
+- **Lightweight checks/results:** `git diff --check` passed. The targeted
+  Editor build and numeric commandlets passed with the noted baseline test
+  exclusion and exact trial markers. No automation suite, full unfiltered
+  Editor build, rendered view or gameplay traversal check was run.
+- **Full verification:** Deferred to BH26. The 4 m result is a numeric
+  selection only; rendered shoulders, gentler routes and gameplay traversal
+  remain unverified.
+- **Observable impact:** The production Meadows broad hill now uses a 4 m
+  amplitude at the existing 160 m scale. The change is deterministic and
+  affects only the existing continuous terrain-height candidate blend.
+- **Networking/authority:** No network state or gameplay authority changed;
+  peers continue to sample the same seed-derived regional height.
+- **Known limitations / remaining scope:** An unfiltered Editor build remains
+  blocked by the unchanged baseline water-mesh test compile error. The
+  temporary build excluded only that preserved test translation unit; all
+  current production sources and other test sources compiled. Rendered and
+  gameplay acceptance remains BH26. Rolling/Elderwood tuning is BH25b.
+- **Main-checkout handoff:** Synchronized only `BACKLOG.md` and `PROGRESS.md`
+  after inspecting the main versions; existing A10/Monster edits and unrelated
+  main-checkout files were preserved.
+- **Next eligible task:** BH25b — run Meadows rolling and Elderwood trials.
+
+### BH25b1 — Select Meadows rolling relief (2026-10-25)
+
+- **Selected increment:** BH25b1. The isolated worktree was clean at
+  `09deb80d52cfe379aad8a3bd4f4457cb5b5f7169`; no other autonomous run was
+  modifying this checkout. A10 and Monster work remains in separate worktrees.
+- **Work completed:** The existing rolling runner incorrectly rejected all
+  wet samples and required every profile point to have Meadows weight above
+  0.5. A focused diagnostic confirmed four seed-419 Starter EW samples are
+  priority river controls (RiverWeight 0.1731/0.3293/1.0000/0.7202,
+  StreamWeight=0, OceanWeight=0, WaterLevel=0). The runner now requires those
+  exact points to remain wet at Z=0, rejects any other wet sample, keeps them in
+  raw CSVs, and excludes their channel beds from dry-land profile/slope metrics.
+  The outer seed-419 profiles have positive continuous Meadows influence down
+  to 0.4125, so the fixture now rejects zero weight while allowing the gradual
+  biome blend. Selected the smallest tested rolling amplitude, 0.6 m, and set
+  `MeadowRollingAmplitude` to 60 cm in the tuning header. Split BH25b into its
+  rolling-selection, Elderwood/Tundra-selection and aggregate-contract children.
+- **Freshness and measurements:** The existing `C:\Users\Ville\AppData\Local\Temp\kb25a`
+  mirror contained the BH25a-selected `MeadowHillAmplitude=400` cm and its
+  `build5.log` reports `Result: Succeeded`; the regional-generation and Lakes
+  test sources matched the worktree before this increment. The build had the
+  pre-selection rolling default of 120 cm, but every measurement explicitly
+  overrode it before sampling and confirmed the exact effective-value marker.
+  The profile command was
+  `BiomeRollingProfiles.ps1 -Project C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -TimeoutSeconds 900`.
+  Each 0.6/1.2/1.8 m run exported 264 rows across 24 profiles and eight seam
+  points. Separate `RenderWorldGenerationVisualization` commandlets sampled
+  all 28 BH01 fixed sites for the same three overrides; all six trial groups
+  had exact markers and expected row counts.
+- **Measured profile ranges:** The min/mean/max final-height ranges (cm) across
+  the eight profiles at each length were 42.4/176.2/767.8, 49.5/226.8/935.1
+  and 66.4/286.3/1,074.0 at 0.6 m; 50.4/179.8/744.1, 52.5/233.2/921.0 and
+  65.9/297.3/1,072.3 at 1.2 m; and 60.1/183.6/720.3, 68.0/242.1/906.7 and
+  74.9/310.8/1,070.6 at 1.8 m (30/45/70 m respectively). Across 260 dry
+collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
+  at 0.6 m, 2.60/5.29/27.36/35.93 degrees at 1.2 m and
+  2.97/6.37/26.64/35.76 degrees at 1.8 m. Each trial had 22 samples at or
+  above 15 degrees and 16 at or above 25 degrees. All four river controls
+  stayed wet at Z=0; the other 260 samples remained dry.
+- **BH01 fixed-site comparison:** At the four Starter/outer Meadows sites,
+  maximum/mean absolute height deltas were 136.18/90.43 cm at 0.6 m,
+  111.75/85.13 cm at 1.2 m, and 130.93/79.78 cm at 1.8 m. Maximum absolute
+  collision-slope deltas were 2.04, 2.58 and 3.12 degrees. The 17 fixed rows
+  with zero Meadows weight were identical across all overrides. Maximum
+  terrain/collision seam deltas remained below 0.06 cm at each amplitude.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Scripts/Tests/World/BiomeRollingProfiles.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks/results:** The PowerShell parser check and
+  `BiomeRollingProfiles.ps1 -ValidateOnly` passed. All three profile trials
+  passed exact markers, 264-row checks, expected river controls and seam
+  limits. All three fixed-site commandlets passed their exact markers and
+  28-row checks. `git diff --check` passed.
+- **Full verification:** Deferred to BH26. No Editor build or automation suite
+  was run in this increment; BH25b1's exact commandlet overrides used the
+  successful current BH25a production build. Rendered readability and
+  connected-route traversal remain unverified.
+- **Observable impact:** The regional tuning source now selects 0.6 m at the
+  existing 45 m rolling scale. The signal remains deterministic and changes
+  only the existing continuous Meadows height candidate.
+- **Networking/authority:** No networking, gameplay authority, persistence or
+  save behavior changed; peers continue to sample the same seed-derived terrain.
+- **Known limitations / remaining scope:** This is numeric tuning only. The
+  four water controls and profile slopes are source-sampled, not rendered.
+  Elderwood/Tundra selection and BH25b aggregate cost/preview contracts remain
+  BH25b2 and BH25b3; final integrated verification remains BH26.
+- **Main-checkout handoff:** Main `BACKLOG.md` and `PROGRESS.md` were inspected
+  with their A10/Monster edits present. Only the Biome BH25b tracking section
+  and this progress entry were synchronized; unrelated content remains
+  preserved.
+- **Next eligible task:** BH25b2 — select shared Elderwood/Tundra relief.
+
+## Run 2026-10-25 — Select shared Elderwood/Tundra relief (BH25b2)
+
+- **Selected increment:** BH25b2. The detached goal worktree had no concurrent
+  writer; only this run modified it. The worktree was at `5d517e38` before the
+  increment. A10 and Monster work remained in their separate worktrees.
+- **Work completed:** Rebuilt the current source in the established temporary
+  UE 5.8 mirror, then ran all nine one-layer-at-a-time low/nominal/high trials:
+  broad 4/9/16 m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m. The first trial
+  audit found that seed-418 `WoodedElderwood` at `(207132.4,-325940.4)` had
+  changed from the BH01 `+15.1726685 cm`, dry control to `-45.3237 cm`, wet
+  terrain with zero narrow river/stream/ocean/basin support. The wide bank
+  envelope was targeting the full -80 cm bed even where narrow `RiverWeight`
+  was zero. River carving now smoothly shares from the positive land bank floor
+  to the bed using `smoothstep(0,1,RiverWeight)`. The profile matrix also
+  exposed an exact 1 cm shelf on every broad16 sample at seed-419
+  `WoodedElderwood`. Replaced the fixed source-land minimum with a strictly
+  monotonic softplus floor whose maximum 300 cm scale shrinks with source
+  clearance and reaches zero at the coast. Selected the smallest accepted
+  measured defaults: broad/middle/local 4 / 0.6 / 0.1 m.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Fresh build and trial results:** The disposable `C:\Users\Ville\AppData\Local\Temp\kb25a`
+  mirror included BH25a's 400 cm hill default and BH25b1's 60 cm rolling
+  default. It excluded only the unchanged pre-goal
+  `KalmalaWaterSurfaceMeshTest.cpp` translation unit; the repository test was
+  not edited. The UE 5.8 Editor build succeeded twice with 24 actions, first
+  with the nominal 900/240/40 cm Elderwood controls for the matrix and again
+  after updating the selected 400/60/10 cm defaults; a final four-action
+  incremental rebuild compiled the corrected coast-transition assertion. Build
+  command: `Build.bat KalmalaEditor Win64 Development -Project=C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity -NoUBTMakefiles`.
+  The sweep command was
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1 -Project C:\Users\Ville\AppData\Local\Temp\kb25a\Kalmala.uproject -TimeoutSeconds 900`.
+  All nine fresh runs exported 66 rows with exact override markers. The full
+  measured ranges, slopes and BH01 comparisons are recorded in
+  `docs/biome-height-rework.md`; raw CSV/logs were retained under
+  `C:\Users\Ville\AppData\Local\Temp\bh25b2x\bew76a7ac04`.
+- **Acceptance evidence:** All 594 Elderwood/Tundra candidate pairs matched
+  exactly. Every trial had zero basin support and only the two confirmed
+  seed-418/419 sea-level river controls wet; all other rows remained dry, and
+  each of the six BH01 center water states matched. The minimum dry sample
+  height was `+16.9858 cm`. Each trial had 64 dry collision samples, three
+  slopes at or above 15 degrees, and none at or above 25 degrees. The selected
+  broad4 / middle0.6 / local0.1 m fixed-center maximum absolute height/slope
+  deltas were 174.17 cm / 7.42 degrees, 180.05 cm / 9.60 degrees, and
+  252.80 cm / 10.14 degrees respectively. These changes preserve positive
+  source-land sign, do not enable basin water, and keep the two confirmed river
+  beds at Z=0.
+- **Lightweight checks/results:** PowerShell parsing and the 66-sample
+  `BiomeWoodProfiles.ps1 -ValidateOnly` passed. `git diff --check` and changed
+  path-length checks passed. A focused source automation test for monotonic
+  positive coast transition compiled in the Editor build; automation was not
+  executed.
+- **Full verification:** Deferred to BH26. No full automation suite, render,
+  gameplay traversal, or broad cost measurement was run. The nine numeric
+  commandlets are BH25b2's required measurements, not milestone-final
+  acceptance.
+- **Observable impact:** The source now uses 4 / 0.6 / 0.1 m shared
+  Elderwood/Tundra amplitudes. The repaired bank envelope cannot create
+  sea-level water where narrow channel weight is zero, and source-land relief
+  no longer collapses to a fixed 1 cm shelf. All generation remains deterministic.
+- **Networking/authority:** No network state, authority, persistence, resource
+  identity or save behavior changed. Host and clients still sample the same
+  seed-derived regional terrain.
+- **Known limitations / remaining scope:** The coast transition is numeric and
+  its rendered shoreline remains uninspected. The old unrelated water-mesh test
+  compile issue remains excluded only from the disposable mirror. Rendered
+  relief, connected traversal and integrated generation costs remain pending.
+- **Main-checkout handoff:** Main `BACKLOG.md` and `PROGRESS.md` contain
+  concurrent A10/Monster edits and were inspected before synchronization. Only
+  the Biome goal paragraphs and this BH25b2 progress entry were synchronized;
+  those edits and the unrelated untracked lighting-plan document were preserved.
+- **Next eligible task:** BH25b3 — aggregate terrain tuning and cost contracts.
+
+## Run 2026-10-25 — Aggregate relief tuning and cost contracts (BH25b3)
+
+- **Selected increment:** BH25b3. The detached worktree was clean at
+  `177bc6ca`; no other autonomous run was modifying this checkout. A10 and
+  Monster work remained in separate worktrees.
+- **Work completed:** Aggregated the BH25b1 rolling and BH25b2
+  Elderwood/Tundra raw profile ranges into the architecture, setup and biome-
+  height preview documentation. Closed BH25b after both tuning children passed
+  their fixed-site/profile, water, parity and seam criteria. BH25 remains open.
+- **Cost comparison:** The retained BH01 CSV contains 28 fixed coordinates,
+  final/collision heights and slopes, water state, and per-site containing-patch
+  descriptor counts; it has no sampler, map, patch-generation or collision-build
+  timings. The closest retained pre-height minimap benchmark (2026-10-18,
+  `C:/Users/Ville/AppData/Local/Temp/krfinal/perf.log`) measured 68.326 / 90.594 /
+  145.952 ms at 25 / 50 / 100 m radii. The same focused automation passed on
+  2026-10-25 against the current BH25b2 mirror at 55.395 / 70.863 / 116.175 ms
+  (`C:/Users/Ville/AppData/Local/Temp/bh25b3/minimap.log`). These local readings
+  are about 19% / 22% / 20% lower, but are not a controlled paired benchmark and
+  do not attribute the difference to biome relief.
+- **Map and geometry costs:** `Kalmala.UI.WorldMap.PerformanceBudget` passed in
+  `C:/Users/Ville/AppData/Local/Temp/bh25b3/worldmap.log`: a 33x33 tile took
+  19.211 ms, a 129x129 minimap while four tile workers ran took 54.613 ms, and
+  the bounded terrain/fog cache remained 5,341,696 bytes. These are below the
+  existing 250 ms / 1.50 s limits; BH01 did not retain a comparable tile-time
+  result. The BH01 and current source retain a 30 m patch, 24x24 collision cells,
+  625 terrain vertices, 1,152 triangles and the 25 active-patch cap. No map or
+  collision payload grew. Per-patch generation and collision-build wall times
+  were not retained and remain for BH26.
+- **Decoration comparison:** A current-source `RenderWorldGenerationVisualization`
+  numeric export at the exact 28 BH01 coordinates completed and wrote
+  `C:/Users/Ville/AppData/Local/Temp/bh25b3/current.csv`. Per-site containing-
+  patch descriptor counts remained 0–32; their observations summed to 213,
+  versus 243 in BH01, with 12 of 28 site observations changed as the Meadows,
+  Lakes and Tundra suitability gates were integrated. These repeated-site sums
+  are not global tree totals or timings. The unchanged per-patch candidate loops
+  are 72 for broad forest biomes and 18 for Meadows/Lakes.
+- **Lightweight checks/results:** The checked sampler/layout/map/performance
+  source files in the disposable UE 5.8 mirror hash-matched this worktree. Its
+  recorded BH25b2 build had succeeded (24 actions). The two focused performance
+  automations both explicitly reported `Result={Success}`; the 28-row current
+  numeric export reported success. Unreal logged two startup `Condition failed`
+  diagnostics in each automation log before the selected test; both requested
+  tests then completed successfully. `git diff --check`, source review and
+  changed-path length review passed.
+- **Full verification:** Deferred to BH26. No full build, full automation suite,
+  material generation, rendered preview, traversal or peer run was performed
+  in this documentation-and-cost-contract increment.
+- **Observable impact:** Documentation now records selected rolling and
+  Elderwood/Tundra raw ranges and measured local sampler/map costs. Fixed patch,
+  cache, collision-lattice, active-patch and candidate-loop budgets remain
+  unchanged; sampled descriptor counts reflect intended biome suitability.
+- **Networking/authority:** No runtime source, networking, gameplay authority,
+  persistence, resource identity or save behavior changed.
+- **Known limitations / remaining scope:** The stored BH01 artifact did not
+  include generation/collision wall times or expanded-map tile timings. The
+  historical minimap comparison is unpaired and local; representative runtime
+  generation, collision, traversal and rendered acceptance remain BH26.
+- **Main-checkout handoff:** Main files were inspected before sync; only this
+  BH25b tracking update and progress entry were synchronized. Concurrent
+  A10/Monster edits and unrelated content were preserved.
+- **Next eligible task:** BH25c — measure the Meadows floor-detail profile matrix.
+## Run 2026-10-25 — Select Meadows floor detail (BH25c)
+
+- **Selected increment:** BH25c, the next unchecked child under BH25. The
+  detached worktree was at `418c5d7e`; no other autonomous run was modifying
+  this checkout. A10 and Monster work continued in separate worktrees.
+- **Work completed:** Ran the fresh-source 8/12/20 m by 0.1/0.2/0.3 m floor
+  matrix and selected 8 m / 0.1 m, the smallest tested scale and amplitude
+  that retained a resolved floor signal on the fixed collision lattice. Updated
+  the compiled defaults and focused source expectation. The raw nine-trial
+  ranges and fixed-site comparisons are in `docs/meadows-plan.md`.
+- **Fixture and guard repair:** The BH12b floor CSV had quoted fields, unlike
+  the existing simple fixtures; the commandlet's comma parser rejected the
+  literal quotes. Normalized this fixture to the established unquoted format.
+  Trial 1 then identified five exact seed-419 river-control points and twelve
+  dry outer-profile rows with positive Meadows weight below 0.5. The runner now
+  retains and validates only those five known river controls separately, keeps
+  blended dry rows in the profile metrics, and requires all other rows dry with
+  positive Meadows influence. Fixed anchors still require weight above 0.5.
+- **Measurements:** All nine exact override markers and fixture checks passed;
+  each output contains 400 rows, with 387 dry profile points, five fixed wet
+  river controls and eight patch-side controls. The selected floor input ranges
+  from −6.726 to +6.497 cm (13.223 cm peak-to-peak) and changes by at most
+  2.765 cm per 125 cm sample. The 60 m profile spans, including existing relief,
+  range from 43.036 cm to 1,143.148 cm across sites; selected collision-slope
+  p50/p95/max is 1.751 / 28.043 / 34.523 degrees. Maximum final/collision seam
+  deltas are 0.026 / 0.028 cm. No scale-linked slope spike or lattice seam
+  defect appeared. Rendered readability is not claimed.
+- **Fixed sites:** A selected-setting export at all 28 BH01 coordinates matched
+  the retained pre-selection current-source export on water and biome state.
+  Height deltas versus that current-source control were −4.105 to +4.799 cm,
+  maximum collision-height delta was 4.661 cm and maximum slope delta was
+  0.942 degrees. Two water flags differ from BH01, but were already dry in the
+  current-source control before floor selection. The separate river diagnostic
+  confirmed the five controls have water level 0, no basin/stream weight and
+  RiverWeight 0.720–1.000; all remained submerged through the matrix.
+- **Source/build freshness:** Before changing the defaults, all tracked runtime
+  inputs were compared with the documented UE 5.8 mirror. It had 1,071 raw
+  matches, one line-ending-only source difference, and the one unchanged
+  pre-goal `KalmalaWaterSurfaceMeshTest.cpp` excluded. The two current changes
+  (tuning header and regional test source) were copied and hash-verified in the
+  mirror. The incremental `KalmalaEditor Win64 Development` build succeeded in
+  24 actions with normal UnrealBuildTool cache access; the nine trials and the
+  28-site export were rerun on that binary.
+- **Checks:** `BiomeFloorProfiles.ps1 -ValidateOnly` passed for 400 rows, eight
+  profiles, 125 cm spacing and eight patch-side controls. PowerShell parsing of
+  the runner passed. The Editor build and all numeric commandlets passed. No
+  automation suite or rendered preview was run.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeFloorProfiles.csv`,
+  `Scripts/Tests/World/BiomeFloorProfiles.ps1`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Full verification:** Deferred to BH26. Under-vegetation readability, rendered
+  aliasing, gameplay traversal and the full required automation suite remain
+  unchecked. No generated assets or gameplay/network behavior changed.
+- **Observable impact:** Runtime Meadows floor detail now uses a deterministic
+  8 m / 0.1 m signal. The fixed 125 cm terrain lattice, biome weights, water
+  state and sampled fixed-site biome labels remain unchanged by this selection.
+- **Networking/authority:** No network fields, RPCs, authority or persistence
+  behavior changed.
+- **Known limitations / remaining scope:** Numeric sampling cannot establish
+  visual readability beneath trees. The unchanged pre-goal water-mesh test
+  translation unit remains excluded only from the disposable build mirror.
+- **Main-checkout handoff:** Main files were inspected before sync; only the
+  BH25c backlog block and this progress entry were synchronized. Active
+  A10/Monster content was preserved.
+- **Next eligible task:** BH25d — run Shimmering Lakes profile trials.
+
+## Run 2026-10-25 — Select Shimmering Lakes controls (BH25d)
+
+- **Selected increment:** BH25d, the first unchecked child under BH25. The
+  worktree was clean at `99c8db0a`; no other run was modifying this checkout.
+  A10 and Monster work remained in separate worktrees.
+- **Work completed:** Ran all 12 BH14b one-control-at-a-time profile trials
+  across four fixed 100 m transects (44 samples per trial). Retained the
+  measured combined center settings: Meadow share 0.50, lowland floor 200 cm,
+  ceiling 1,200 cm and compression 0.20. Full raw ranges and the selection
+  rationale are recorded in `docs/biome-height-rework.md`.
+- **Source freshness:** The BH25c Editor mirror matched 1,071 of 1,073 tracked
+  runtime input hashes exactly. The one other test source was byte-different
+  only by line endings; the single unchanged pre-goal water-mesh test
+  translation unit was absent as documented. The mirror binary therefore
+  included the current source and selected Meadows 8 m / 0.1 m defaults; no
+  rebuild was needed. All 12 commandlets returned the exact effective-control
+  marker and 44 fixed rows.
+- **Measurements and checks:** All 12 settings passed finite-output, normalized
+  biome-weight, disabled-basin, lowland formula/bounds, candidate-composition
+  and fixed-site checks. A numeric lowland-curve sweep passed 144,000 adjacent
+  source-height comparisons across the 12 control settings and both humidity
+  weight endpoints. Each trial retained four sea-level wet river-channel rows
+  with positive river weight and zero basin weight; the other 40 rows remained
+  dry. Compared with the combined nominal trial, water level, `HasWater`,
+  river/stream/ocean weights, biome labels and biome weights changed at zero of
+  44 coordinates. The four nominal trial CSVs were byte-identical. Nominal
+  profile spans min/mean/max were 24.651 / 334.335 / 550.026 cm; nearest-rank
+  collision slope p50/p90/p95/max across all 44 samples was 0.907 / 13.286 /
+  18.073 / 23.543 degrees. The maximum source-to-lowland reduction was
+  48.031 cm. `BiomeLakesProfiles.ps1 -ValidateOnly` and its PowerShell parser
+  check passed.
+- **BH01 comparison:** BH01 records only the two Lakes center samples, not the
+  full 44-point profiles. At the seed-418 former-basin center, BH01 measured
+  307.496 / 307.512 cm final/collision height, 2.297 degrees, and basin water
+  at 356.951 cm; current nominal measures 25.399 / 24.792 cm, 12.421 degrees
+  and dry sea-level status under the basin-disabled policy introduced by BH03.
+  The Lakes biome label remains. The seed-419 center changed from
+  383.552 / 383.572 cm and 0.095 degrees to 441.498 / 441.548 cm and 0.793
+  degrees; it remained dry and retained its label. These BH01-to-current
+  differences predate BH25d. All profile variants matched current nominal
+  water and biome state.
+- **Selection:** Kept the measured center combination because it was directly
+  exercised together, preserves the four river controls and basin-disabled
+  behavior, and avoids combining one-factor alternatives whose joint response
+  was not measured. Rendered shoreline and traversal acceptance remains BH26.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`. No gameplay source or generated asset changed.
+- **Full verification:** Deferred to BH26. No new Editor build, automation
+  suite, rendered preview or traversal inspection was run in this increment.
+- **Observable impact:** The selected Lakes controls are now documented and
+  tracked; their compiled values remain the measured center defaults already
+  present in source.
+- **Networking/authority:** No network, authority, persistence, or gameplay
+  behavior changed.
+- **Known limitations / remaining scope:** Numeric profiles do not establish
+  rendered shoreline readability. The BH01 wet-to-dry former-basin change is
+  the expected BH03 basin-policy effect, not a BH25d trial change.
+- **Main-checkout handoff:** Main `BACKLOG.md` has a genuine BH25 scope conflict:
+  it ends BH25 at BH25d, while this worktree has BH25e. Per the handoff rules,
+  main backlog remains at its existing BH25d parent scope. The nonconflicting
+  BH25d child state was synchronized, and this BH25d entry was appended to main
+  `PROGRESS.md`; A10/Monster content is preserved.
+- **Next eligible task:** BH25e — run Mossy Mire profile trials.
+
+## Biome height rework — BH25e Mossy Mire trial selection
+
+- **Selected increment:** BH25e, the first remaining child under BH25 in the
+  isolated biome-height worktree. The checkout was clean at start commit
+  `9312c594`; no concurrent writer was active.
+- **Work completed:** Ran all nine fresh-source one-control Mossy Mire trials
+  over 252 points: target 200/300/500 cm, compression scale 300/700/1,200 cm,
+  and residual detail 10/25/60 cm. Retained the measured nominal combination
+  of 300/700/25 cm because the sweeps do not establish the joint response of
+  an off-center combination and there is no rendered evidence for another
+  choice. Updated the stale coast fixture to identify the seed-418 positive-
+  source land-side center, require it dry, and preserve submerged negative-
+  source ocean neighbors. Water-level sentinels are compared only where a
+  surface or channel is active. Corrected the measured minimum clearance in
+  BACKLOG to 19.538 cm.
+- **Source freshness/build:** Compared 1,073 tracked runtime input files with
+  the disposable `kb25a` mirror: 1,071 matched exactly; the only source
+  difference normalized to identical content after line-ending normalization;
+  the unchanged pre-goal water-mesh test TU was absent from the mirror. The
+  current regional-generation source hash matched, and its compiled unity
+  object was newer than the source. No rebuild was needed. Trial outputs and
+  exact control markers are under
+  `C:\Users\Ville\AppData\Local\Temp\bm655e5ef5`.
+- **Measurements/checks:** All nine variants preserved the same 50/252 wet
+  samples as nominal; no new wet samples and no basin, river, stream, or active
+  surface-level changes occurred. The four fixed river centers remained at
+  Z=0 with RiverWeight=1, BasinWeight=0 and an -80 cm bed. The numerical sweep
+  produced 180,009 finite/bounded values and passed 180,000 monotonic adjacent
+  comparisons across all target/scale pairings. The selected nominal dry
+  interior spans min/mean/max were 18.443/117.023/247.873 cm; nearest-rank
+  collision-slope p50/p90/p95/max were 0.708/2.994/3.244/3.861 degrees. Full
+  per-control ranges, fixed-site BH01 comparisons and source-coast attribution
+  are recorded in `docs/biome-height-rework.md`. `BiomeMireProfiles.ps1
+  -ValidateOnly`, its PowerShell parser, and `git diff --check` passed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeMireProfiles.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, and
+  `docs/biome-height-rework.md`.
+- **Full verification:** Deferred to BH26. No Editor rebuild, automation suite,
+  rendered preview, shoreline inspection, or traversal run was performed.
+- **Observable impact:** Mire tuning and numeric profile contract now record
+  the tested nominal values and their measured ranges. Runtime defaults were
+  already at those values; this increment changed the fixture and documents.
+- **Networking/authority:** No gameplay, network authority, persistence, or
+  replication behavior changed.
+- **Known limitations / remaining scope:** One-factor trials do not establish
+  off-center joint behavior. The BH01 seed-418 coast wet-to-dry change is the
+  positive source-land sign correction from BH25b2, not a BH25e trial result.
+  Rendered shore readability, vegetation interaction and traversal remain for
+  BH26.
+- **Main-checkout handoff:** Main `BACKLOG.md` has a genuine BH25 parent-scope
+  conflict and no BH25e block. Leave it unchanged. Append only this
+  nonconflicting BH25e record to main `PROGRESS.md` after inspection; preserve
+  A10/Monster edits.
+- **Next eligible task:** BH26 — final integrated verification and repair.
+
+## Biome height rework — BH26 final integrated verification
+
+- **Selected increment:** BH26, the final remaining implementation and
+  verification task for the biome-height and Meadows goal.
+- **Work completed:** Repaired positive source-coast sign cancellation in the
+  bounded softplus tail; corrected generated-terrain vertex alpha material
+  wiring and regenerated the terrain package; retained the original soil
+  material; repaired traversal route selection, dry-sample filtering, local
+  host movement and remote-proxy observation; updated forest lifecycle
+  fixtures to derive current layout expectations; fixed the BiomeExpansion
+  PowerShell wrapper's script-status check; and finalized terrain acceptance
+  documentation and backlog status. The user confirmed the rendered terrain
+  inspection worked and closed the Editor.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset`,
+  `Content/Kalmala/World/Materials/M_GeneratedSoil.uasset`,
+  `Scripts/Tests/World/BiomeExpansion.ps1`,
+  `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaMasterMapTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`,
+  `docs/07-development-setup.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Milestone-final verification:** Passed on 2026-10-26. The Editor build
+  succeeded in the isolated short-path mirror with
+  `Build.bat KalmalaEditor Win64 Development -Project=<mirror>/Kalmala.uproject
+  -WaitMutex -NoHotReload -MaxParallelActions=4` (2 actions, 1.97 seconds).
+  `RegionalGeneration.ps1` passed 26 named regional, biome, water, population
+  save and local minimap automation tests; repeated seed-418 preview outputs
+  matched, seed 419 differed as expected, and host/client seed and minimap
+  fingerprints matched. Focused world gates passed 10 named tests covering
+  master map, finite/integrated worlds, water, minimap performance, slope and
+  moisture weights, generated start determinism, no portable construction kits
+  and forest reconstruction lifecycle. `BiomeExpansion.ps1` passed its
+  integrated biome scenario and two-player replicated camp recovery. Its
+  forest lifecycle/stage/pickup/streaming run passed exact host/client identity,
+  depletion, reward and reconstruction checks; the separate process-restart
+  run passed collected-ID absence, uncollected-tree restoration and stable
+  slot-hash checks. Headless traversal passed: the host reached a dry
+  Shimmering Lakes target after 1,249 m and the client observed at least 3,000
+  units of replicated host movement. `CreateWorldMaterials` exited successfully
+  and generated grass/soil/rock/Tundra terrain material packages. The
+  presentation ownership audit passed for 8 assets and 33 procedural/UI seams.
+  The user's rendered/editor inspection passed.
+- **Failures and repairs:** The first source-coast checks exposed cancellation
+  of tiny positive softplus results; the exponential negative-tail branch now
+  preserves source-land sign and the affected regional/master-map checks pass.
+  The first forest fixture run had obsolete fixed patch counts; its expectations
+  now come from the current layout. The first client traversal did not observe
+  the remote proxy because its initial location predated shared seed identity;
+  the corrected world-start baseline and tick observer passed on rerun. The
+  integrated biome and camp checks initially passed while their PowerShell
+  wrapper reported a false failure from `$LASTEXITCODE`; checking `$?` directly
+  fixed the wrapper and the full runner passed. A stale Unreal process briefly
+  held a build DLL; after stopping that process the isolated Editor build passed.
+  No milestone gate remains failing.
+- **Lightweight checks:** `git diff --check`, changed-path length scan (all 19
+  paths under 260 characters), and PowerShell parser validation passed after
+  the final backlog/progress edits.
+- **Observable impact:** Positive source-land clearance remains positive near
+  the coast; generated terrain uses the intended grass/soil/rock weights and
+  the original muted soil material; forest lifecycle evidence tracks current
+  Meadow eligibility; and host-driven traversal is visible as replicated
+  movement on the client. The user confirmed the rendered result in the Editor.
+- **Networking/authority:** Traversal input uses the listen-server host pawn's
+  normal Character Movement; the remote client only observes the replicated
+  host proxy. Existing harvesting, population persistence, and gameplay
+  authority remain server-side; peer lifecycle and restart checks passed.
+- **Known limitations:** No screenshot was retained for the user's rendered
+  terrain inspection. Startup emitted a pre-existing invalid skiff hull
+  material-index warning and two unnamed engine automation condition messages;
+  commandlet and named automation gates succeeded. Packaging and unrelated full
+  game suites were outside the BH26 acceptance gates and were not run.
+- **Final milestone status:** Complete; all BH26 implementation, rendered
+  acceptance and listed final verification gates passed. No verification is
+  deferred for this goal.
+- **Next eligible task:** S03 — add named monster-population tuning constants.
+
+
+## BH26 merged-master integration follow-up — 2026-10-26
+
+- **Work completed:** Merged `codex/biome-height-rework` into `master`. The integrated surface-water probes now recognize generated ocean water as well as active Shimmering Lakes water, preserving coastal exposure, camp water-distance sampling, and dry Lakes-biome shore resources while analytic lake basins remain disabled. Updated related biome-content, former-basin, and movement assertions.
+- **Files changed by integration repair:** `Source/KalmalaWorld/Public/KalmalaEnvironmentalExposureSampler.h`, `Source/KalmalaWorld/Public/KalmalaCampConditionSampler.h`, `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h`, `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`, `Source/KalmalaWorld/Private/Tests/KalmalaBiomeContentContractTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerMovementTest.cpp`, and `docs/02-technical-architecture.md`. The BH26 implementation and original generated soil material are included in the merged feature changes.
+- **Milestone-final verification:** The merged snapshot Editor build succeeded (330 actions). Follow-up Editor builds after integration repairs succeeded (98 actions, then two 4-action incremental builds). The full merged automation queue passed on the final run: 228 tests passed, 0 failed, exit code 0. Command forms used:
+  `Build.bat KalmalaEditor Win64 Development -Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload -MaxParallelActions=4`
+  and `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject -unattended -nop4 -nosplash -NullRHI -UserDir=<mirror>/User-rerun3 -abslog=<mirror>/automation-rerun3.log "-ExecCmds=Automation RunTests Kalmala; Quit" "-TestExit=Automation Test Queue Empty"`.
+- **Failures and repairs:** The first merged automation run passed 225/228. It found that the local trade-off sampler returned no coastal water distance, the exposure terrain sweep saw no shoreline, and Lakes-biome content had no eligible Rutabaga/Tin shore descriptors. These shared consumers sampled only disabled analytic-lake water. They now recognize generated ocean water as well as active lake water. The next run passed 227/228 and found that the movement test incorrectly required zero shoreline exposure at a dry former-basin sample even though ocean water was within the 400 cm exposure probe. The revised contract separates exact Wet-status refresh from nearby shoreline exposure. Final rerun passed all 228 tests.
+- **Observable impact and authority:** Coastline exposure, camp water-distance, and shoreline resource eligibility work with generated ocean water. No new replicated state or client-authoritative gameplay behavior was added; the probes consume the existing world configuration and positions. The user's rendered terrain inspection worked; the user confirmed they had closed the Editor.
+- **Known limitations / pre-existing output:** Analytic inland lake basins remain disabled under the existing project policy. Unreal startup logged the existing invalid Skiff HullMesh material-index warning and two unnamed engine automation condition messages; neither failed the merged build or final test queue. No terrain screenshot was retained.
+- **Final milestone status:** BH26 and the biome-height/Meadows goal are complete on merged `master`; the merged build and all 228 automation tests passed. No verification remains deferred.
+- **Next eligible task on merged master:** S03 — add named monster-population tuning constants.
+- **Main-checkout handoff:** The progress record is appended without replacing local edits. `E:\dev\Kalmala\BACKLOG.md` was left unchanged because its BH25 checklist ends at BH25d, while merged master includes BH25e and BH26; the scope conflict remains for review.

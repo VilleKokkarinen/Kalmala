@@ -2168,7 +2168,7 @@ rejects more than 256 sparse identities.
 
 ## Water surface regression check
 
-`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, seeded closed basins, rejection of sea-connected/unbounded/unseeded basins, deterministic meshes, and nonempty matching patch-edge intersections. Lake-biome fields seed enclosed terrain basins rather than clipping floating sheets at humidity/temperature boundaries. Basins exceeding 8,192 wet lattice vertices are conservatively omitted. The minimap uses the same visible water decision. Terrain/collision, server wetland rules, saved-data schemas are unchanged. Run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
+`Kalmala.World.Water.ClippedSurface` checks partial-cell coverage, winding, flat levels, shallow shore treatment, deterministic synthetic clipping, and the reusable `FKalmalaLakeBasin::Find` topology rules with synthetic closed, sea-connected, unbounded and unseeded fixtures. It also verifies that basin-free regional samples cannot draw an inland lake sheet, while the same submerged river triangle still clips into sea-level water. The compiled production policy `FKalmalaRegionalTuning::bEnableAnalyticBasins` defaults to false, so synthetic basin fixtures do not represent active production lake generation. Ocean and sea-level river clipping remain enabled; samplers, map depth, audio proximity, shoreline exposure and lake discovery all gate on basin support. No basin-result cache exists independently of presentation output: minimap/map rasters are rebuilt through their normal input invalidation, patch mesh sections are cleared on initialization, and the only lake helper memoizes the start-relative origin. Run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered` for rendered host/client traversal and screenshots after building. Restart the editor to load the repaired native module.
 
 ## Ocean-depth regression
 
@@ -2346,7 +2346,7 @@ With a server-capable engine, build the target with:
 
 ## Generated-world traversal smoke test
 
-For the developer-only two-player traversal verification, launch a listen server and a client with `-KalmalaTraversalTest`. Both peers derive the lake target from the server-selected world identity; locally controlled pawns move through normal Character Movement input, while the server remains authoritative. The test only disables pawn-to-pawn capsule blocking and only while the switch is present. A passing run logs that both server pawns reached the Shimmering Lakes target and that the client observed replicated movement.
+For the developer-only two-player traversal verification, launch a listen server and a client with `-KalmalaTraversalTest`. Both peers derive the nearest dry, Shimmering Lakes-classified terrain target from the server-selected world identity, searching within 12 km of the generated start on a 250 m sample grid. The limits are in Unreal centimeters and are shared by the host and client. The target excludes ocean and analytic lake water, which is disabled by the terrain contract. The listen-server host pawn traverses with normal Character Movement input and server authority; the client observes its replicated movement. The test only disables pawn-to-pawn capsule blocking and only while the switch is present. A passing run logs that the server pawn reached dry Shimmering Lakes terrain and that the client observed at least 30 m of replicated movement.
 
 ## Generated harvest reconnect smoke test
 
@@ -3521,7 +3521,7 @@ variation scenario.
 
 ## Shimmering Lakes slice verification
 
-After an editor build, run the focused `Kalmala.World.BiomeExpansion.ShimmeringLakesSlice` headless automation with `-DDC-ForceMemoryCache`. It searches deterministic spatial keys for a dry Shimmering Lakes discovery location, verifies adjacent seed-derived water and the wet-shore exposure tradeoff, and confirms that the stable discovery ID reproduces. Runtime activation remains server-only: it creates at most one normal validated harvest discovery per active lake key and requires neither water physics nor a boat.
+After an editor build, run the focused `Kalmala.World.BiomeExpansion.ShimmeringLakesSlice` headless automation with `-DDC-ForceMemoryCache`. Under the current default-off basin policy it verifies that the known former basin sample has no lake water or shoreline wetness and that the server discovery contract returns no water-adjacent lake candidate. Biome labels and field-based exposure profiles remain. The reusable synthetic basin and clipping fixtures are covered separately by `Kalmala.World.Water.ClippedSurface`.
 
 ## Elderwood slice verification
 
@@ -3582,11 +3582,25 @@ alone proves that the new river cases ran. The regional prefix includes:
 | Case under `Kalmala.World.Regional.` | Required result |
 | --- | --- |
 | `HighGroundRiverCenter` | An actual seed-418 river midpoint with source height at least 400 cm and no basin support has water at Z=0, a bed at or below -80 cm, and wet state. Retain the logged coordinates. |
-| `RiverBankCrossSection` | Both bank shoulders follow the bounded cubic profile, remain continuous, and return to exact course-free terrain/water outside the full bank envelope. |
+| `RiverBankCrossSection` | Both bank shoulders follow the bounded cubic profile with channel-weighted depth, remain continuous, and return to exact course-free terrain/water outside the full bank envelope. |
+| `RiverBankPreservesDryLand` | A fixed BH01 source-land bank point with no basin or narrow-channel support stays above Z=0 and dry after biome relief. |
+| `CoastSignTransition` | The source-relative soft coast floor stays positive and strictly monotonic, tapers with source clearance, and retains terrain well above the transition. |
 | `RiverSeedRepeatability` | Height, water level, wet state and river influence repeat exactly after cache resets, reversed queries and interleaved seeds; fixed-position height/influence vary between seeds 418/419. |
 | `RiverHydrologyGridSeam` | Actual X/Y hydrology-cell crossings for both seeds retain continuous submerged channel height/influence, Z=0 water and exact cache/order reproduction. |
 | `RiverTerrainPatchSeam` | Actual X/Y 3000 cm patch crossings retain matching adjacent collision-triangle heights/depths and nonempty matching clipped sea-water mesh edges. |
-| `RiverUnchangedControls` | Distant terrain, both source-coast sides and sea retain exact baseline outputs; enclosed-lake levels retain precedence under river influence. |
+| `RiverUnchangedControls` | Distant terrain and both source-coast sides are exactly unchanged outside course envelopes; source land/sea sign and biome identity remain intact, and eligible wetland controls have no analytic basin water or support. |
+
+The basin-disabled integration controls also span regional sampling, server Wet
+refresh, generated-ocean swimming, and minimap output. In
+`Kalmala.Gameplay.Movement.SprintSavedMoves`, the seed-418 Highlandriver fixture
+remains a submerged Z=0 channel, refreshes Wet through the ocean-depth gate, but
+stays below the 100 cm swimming threshold. The seed-419 Ocean baseline remains
+deep enough to enter swimming and refresh Wet. The former seed-418 Shimmering
+Lakes basin remains dry and adds no shoreline exposure wetness. The
+`Kalmala.UI.Minimap.LocalPresentation` fixture checks that the former basin map
+cell is dry and that river/ocean map-water flags match regional water output.
+Together with `RiverUnchangedControls`, these distinguish basin-only water from
+retained coast, river, ocean, swimming and Wet behavior.
 
 Missing generated fixtures are failures, not skipped coverage. These tests
 check sampler/mesh outputs; they do not establish rendered or playable results.
@@ -3614,10 +3628,11 @@ visual acceptance.
 
 In an editor terrain view at the fixture, expect a sea-level surface over the
 submerged bed, continuous banks across patch edges, and map water classification
-over the channel independent of its land biome. Preserve elevated enclosed-lake
-water and inspect lake/river joins for gaps or steps; sampler tests alone do not
-prove visible lake-mesh continuity. Rendered minimap captures inspect HUD layout
-and may have black world backgrounds, so they cannot replace terrain inspection.
+over the channel independent of its land biome. The former analytic enclosed
+basins stay dry under the compiled policy; preserve ocean and river water.
+Sampler tests alone do not prove visible river-mesh continuity. Rendered minimap
+captures inspect HUD layout and may have black world backgrounds, so they cannot
+replace terrain inspection.
 
 Run `Scripts/Tests/World/Minimap.ps1` for peer agreement (also called by
 the combined runner). The seed-999 client must receive seed 418, then match the
@@ -3660,6 +3675,30 @@ The visualization commandlet accepts `-Revision=7 -Seed=418 -Size=256 -Extent=32
 
 The main biome preview also masks the exterior. `-SkipSplineOverlay` skips only the costly whole-area line-overlay enumeration; each pixel still samples actual hydrology and terrain. At whole-world resolution, small lakes and channels may be subpixel. Render the same seed twice and compare every PPM hash, then render seed 419 and require crop, biome and height variation. No preview image becomes authoritative world data. Restart an open editor or watcher after rebuilding native modules.
 
+### Generated terrain ground materials
+
+After rebuilding the Editor target for BH23 and BH24a/BH24b, run the project-owned
+`CreateWorldMaterials` commandlet against the project with
+`UnrealEditor-Cmd.exe <project.uproject> -run=CreateWorldMaterials`. It updates
+`Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
+vertex-color grass/soil/rock blend and creates the original
+`M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
+Vertex alpha blends a pale snow tone over Freezing Tundra by continuous biome
+weight and final slope, and over Thunder Mountains only above the named
+highland threshold, with continuous height and slope coverage; Mountain storm
+visuals use a client-local cool fog whose intensity follows the replicated
+server storm intensity and continuous Mountain weight at the local player. It
+does not change weather authority or gameplay exposure and requires no generated
+material asset.
+No grass texture or reed material is generated. Run
+`Scripts/Tests/Presentation/PresentationOwnership.ps1` after the material
+generation step so it can check the new soil asset. BH26 owns the Editor build,
+material generation, blend-weight automation and rendered slope/moisture
+acceptance; inspect dry gentle ground, damp shoulders, exposed slopes, flat
+and steep Tundra surfaces, player cloth, Mountain peaks and foothills, storm
+visual changes under the replicated weather interval, and confirm
+`-KalmalaBiomeDebug` still displays classifier colors.
+
 ## Fast world-map PNG export
 
 Run from the repository root:
@@ -3681,7 +3720,7 @@ Edit and save `Scripts/WorldMapPreview.params` while watching. Each stable edit 
 | --- | --- |
 | `MasterLandWater.png` | The full 128 km master land/water atlas, without a crop outline. |
 | `LandWaterCrop.png` | The game-seeded rotated crop at the current 16 km playable radius. |
-| `Biomes.png` | The same crop classified by the production biome rules, including lake basins and distance eligibility. |
+| `Biomes.png` | The same crop classified by production biome labels, including Shimmering Lakes/Mire eligibility and distance bands. Analytic basin shaping and water are disabled by compiled policy. |
 | `LastRender.txt` | Requested and effective parameters, crop transform, palette and timings from the last successful export. |
 
 Use `-Parameters <path>` for an alternate parameter file and `-Output <directory>` for a separate experiment. One exporter should own each output directory. Ctrl+C stops watch mode and its owned child process. Logs and headless engine cache/user data go to a unique temporary directory; the script prints its location. The script does not load a gameplay map, spawn terrain/population, run shaders, or join a session.
@@ -3701,6 +3740,13 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `LandThreshold` | 0 | -0.5–0.5; increasing it creates less land. |
 | `BiomeScaleKm` | 0.6 | Regional scale, 0.1–16 km; larger values make broader regions. |
 | `WarpStrengthKm` | 0.08 | Regional edge displacement, 0–2 km. |
+| `ReliefBroadScaleKm` | 1.0 | Staged broad terrain noise scale, 0.5–1.5 km. |
+| `ReliefMiddleScaleKm` | 0.15 | Staged shared middle relief scale, 0.08–0.25 km. |
+| `ReliefLocalScaleKm` | 0.03 | Staged shared local relief scale, 0.01–0.05 km. |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 4 | BH25a selected 4 m from fresh 4/6/8 m profiles; 100–250 m / preview bounds 4–10 m. |
+| `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 / 30 | Meadows upper shoulder begins at 6–16 m and approaches a bounded asymptote with a 10–60 m scale. |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 0.6 | BH25b1 selected 0.6 m from fresh 0.6/1.2/1.8 m profile trials; 30–70 m / preview bounds 0.6–2 m. |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 8 / 0.1 (selected in BH25c) | Meadow floor detail; 8–20 m / 0.1–0.35 m. |
 | `StarterRadiusKm` | 0.35 | Inclusive Meadows/Ocean-only radius. |
 | `ElderwoodMinimumKm` | 0.75 | Forest eligibility minimum. |
 | `LakesMinimumKm` / `LakesMaximumKm` | 0.35 / 3 | Starter wetland distance range. |
@@ -3712,11 +3758,143 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `MeadowsMaximumKm` | 4 | Meadows cutoff; must exceed the starter radius and be at most 16 km. |
 | `EligibilityBlendKm` | 0.05 | Smooth eligibility ramp; 0.001 km through the Meadows maximum. |
 
+The production regional sampler consumes the selected Meadows hill, rolling
+and floor controls and the shared Elderwood/Tundra relief. This fast PNG exporter validates and reports its own map controls
+but does not display shaped height; use the full visualization commandlet and
+the numeric profile runners below for final-height ranges.
+
 The starter, Elderwood, Mire and Tundra radii must be nonnegative, ordered and at most 16 km. Lakes follow the starter exclusion. Atlas dimensions and playable radius remain fixed to the current contract. Broad land thresholds can leave little or no land; such an experiment is a visual preview, not validation of a playable spawn.
 
 These parameters are **preview-only** and restricted to the headless commandlet sampling thread. Each render restores defaults and invalidates derived caches. Promote selected values into compiled production constants and rebuild all peers. There is no generator compatibility selector; the current build always defines the layout.
 
+The terrain-control keys are currently staged: the parser bounds them and
+`LastRender.txt` reports their effective centimetre values, but the fast PNG
+exporter does not consume them for height output. Changing only these keys must
+leave its map pixels unchanged. The later shaped-height preview will use them as
+its relief layers are integrated; they never tune a running game or saved world.
+
 The fast path shares the production regional classifier and wetland suitability/distance rules. It skips bowl shaping, rivers and other height work because these do not change labels. PNGs display biome identity, not final water depth. Use `RenderWorldGenerationVisualization` for hydrology and height.
+
+### Meadows hill profile sweep
+
+After compiling the BH10a regional sampler, run
+`Scripts/Tests/World/BiomeHillProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. The runner samples the fixed seed-418/419 starter
+and outer-Meadows transects at 4, 6 and 8 m hill amplitudes, recording final
+height and collision-triangle slope CSVs plus a per-profile summary under its
+short temporary output directory. It requires the commandlet's effective-trial
+log marker, so a pre-BH10a binary cannot silently produce accepted results.
+BH10b1 adds the fixture and runner; BH25 uses a freshly compiled sampler to
+compare trials against `BiomeBaseline418419.csv`, select the smallest accepted
+amplitude, and preserve the measured output summary. This script does not build
+the Editor or decide final tuning by itself.
+
+### Meadows rolling profile sweep
+
+After compiling the BH11a regional sampler, run
+`Scripts/Tests/World/BiomeRollingProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. The fixture covers seed-418/419 Starter and outer
+Meadows in both axes, over 30/45/70 m profiles with 5 m spacing, and includes
+start-relative X/Y collision-patch seam controls derived from the BH01 output.
+The runner exports final heights and collision-triangle slopes for 0.6/1.2/1.8 m
+rolling trials, rejects binaries without the effective-amplitude log marker,
+and checks adjacent patch coordinates and seam continuity. It does not build
+the Editor. BH25b1 ran the sweep with fresh source and selected 0.6 m. The
+eight-profile final-height min/mean/max ranges were 42.4/176.2/767.8 cm at
+30 m, 49.5/226.8/935.1 cm at 45 m, and 66.4/286.3/1,074.0 cm at 70 m; dry
+collision-slope p50/p90/p95/maximum was 2.31/4.55/28.07/36.20 degrees. The
+full trial and BH01 fixed-site comparisons are recorded in
+[`meadows-plan.md`](meadows-plan.md). Rendered connected-route traversal remains
+part of BH26.
+
+### Meadows floor-detail profile sweep
+
+After compiling the current regional sampler, run
+`Scripts/Tests/World/BiomeFloorProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. `-ValidateOnly` checks the checked-in fixture
+without launching Unreal. The fixture contains 60 m seed-418/419 starter and
+outer Meadows transects at 125 cm collision-cell spacing, plus start-relative
+outer X/Y patch-seam controls. Five exact seed-419 river rows remain in the raw
+outputs as fixed wet controls and are excluded from dry-floor metrics. Other
+profile rows require dry status and positive Meadows weight; fixed anchors must
+have Meadows weight above 0.5. Nine commandlet-only trials cover 8/12/20 m
+scales and 0.1/0.2/0.3 m amplitudes. The output includes raw floor noise and
+pre-blend input contribution, final height, collision height/slope/grade,
+patch/cell coordinates and descriptor counts for the forest patches crossed by
+the profiles. The runner checks the effective-parameter log marker, so a binary
+without the BH12b sampler export cannot silently produce accepted results; it
+also checks signal/amplitude agreement, dry status outside fixed river controls,
+positive Meadows influence, collision-cell progression and patch seams. It
+does not build or select production tuning. BH25c rebuilt current source and
+ran all nine combinations, selecting 8 m / 0.1 m. At this setting, floor input
+ranges from −6.726 to +6.497 cm and its maximum adjacent step is 2.765 cm over
+the 125 cm lattice. Full raw ranges and fixed-site comparisons are in
+[`meadows-plan.md`](meadows-plan.md). Rendered under-vegetation aliasing and
+readability remain part of BH26.
+
+### Elderwood/Tundra profile sweep
+
+After compiling BH13a, run
+`Scripts/Tests/World/BiomeWoodProfiles.ps1 -Project <project-path>` with the
+matching Editor commandlet. `-ValidateOnly` checks the fixed seed-418/419
+Elderwood interior, wooded, Elderwood/Tundra transition, and Tundra interior
+samples without launching Unreal. The runner makes nine one-layer-at-a-time
+trials across broad 4/9/16 m, middle 0.6/2.4/4 m, and local 0.1/0.4/1 m
+amplitudes. It records raw relief and candidate heights, final regional height,
+biome/water fields, and collision-triangle slopes, and requires an effective-
+trial log marker to reject a stale binary. BH25b2 ran all nine trials with
+freshly compiled source, confirmed candidate parity, and selected 4 / 0.6 /
+0.1 m. The selected dry 100 m final-height min/mean/max ranges were
+62.59/212.16/561.43 cm (broad), 33.58/194.91/557.29 cm (middle), and
+33.77/176.00/519.75 cm (local); corresponding slope p50/p90/p95/maximum was
+1.36/4.17/10.60/23.52, 1.00/2.99/9.86/21.71, and
+1.27/2.96/9.51/22.06 degrees. The complete trial table, BH01 comparisons and
+cost/budget notes are in [`biome-height-rework.md`](biome-height-rework.md).
+Rendered biome appearance and profile acceptance remain in BH26.
+
+### Shimmering Lakes profile sweep
+
+`Scripts/Tests/World/BiomeLakesProfiles.ps1 -ValidateOnly` checks the fixed
+seed-418 former-basin composite and seed-419 Lakes interior transects on both
+axes without launching Unreal. After compiling the BH14b commandlet source, run
+the script with `-Project <project-path>` for 12 independent Meadow-share,
+lowland-floor, lowland-ceiling and compression trials around their provisional
+center. It records candidate and compressed-lowland heights, humidity and
+effective controls, biome/water fields, and collision-triangle slopes. It
+checks the effective-control log marker to reject a stale binary, along with
+fixed profile coordinates, normalized weights, disabled basin support,
+lowland bounds/formula and candidate composition. Trial CSVs and the summary
+are written to a short temporary directory. BH25d ran the 12 trials from a
+source-hash-verified Editor mirror and retained the measured center defaults:
+0.50 Meadow share, 200 cm floor, 1,200 cm ceiling and 0.20 compression. Each
+trial returned 44 rows; all variants preserved water/course state, biome labels
+and weights, and had zero basin weight. The nominal 44-sample nearest-rank
+slope p50/p90/p95/max was 0.907/13.286/18.073/23.543 degrees. The script does
+not build or select tuning. Rendered shoreline and traversal acceptance remain
+in BH26.
+
+### Mossy Mire profile sweep
+
+`Scripts/Tests/World/BiomeMireProfiles.ps1 -ValidateOnly` checks 252 fixed
+seed-418/419 samples in 100 m transects at 5 m spacing, covering the two Mire
+interiors, both source-coast controls and both Highland river corridors on X/Y
+axes. After verifying the BH15b commandlet source, run the script with
+`-Project <project-path>` for target-height 200/300/500 cm, compression-scale
+300/700/1200 cm and residual-detail 10/25/60 cm trials, varying one control at
+a time. It exports candidate/source/detail diagnostics, current effective
+controls, raw final/collision heights, slopes, and numeric dry-clearance and
+range summaries. It checks the compression formula, positive worst-case
+source-land clearance, river-last water behavior, disabled basin support and
+the exact effective-control log marker to reject stale binaries. The runner
+also compares water coverage and course fields with its combined nominal
+trial. The seed-418 source-coast center is a positive-source land-side sample
+after the BH25b2 coast-sign repair; its neighboring negative-source ocean-side
+samples must remain submerged. Water levels are compared where a surface or
+course is active; dry no-course rows use a below-ground sentinel derived from
+terrain height. BH25e ran all nine fresh-source trials and retained the
+measured center settings: 300 cm target, 700 cm scale and 25 cm residual
+detail. The script does not build or choose tuning; rendered acceptance remains
+BH26.
 
 ### Export verification
 

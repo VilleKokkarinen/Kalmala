@@ -49,7 +49,7 @@ struct KALMALAWORLD_API FKalmalaCampConditionSampler
 private:
     static float FindNearestWaterDistance(const FKalmalaWorldGenerationConfig& Config, const FVector2D Position)
     {
-        if (FKalmalaShimmeringLakeSampler::IsWater(Config, Position))
+        if (FKalmalaEnvironmentalExposureSampler::IsSurfaceWaterAt(Config, Position))
         {
             return 0.0f;
         }
@@ -58,7 +58,7 @@ private:
         {
             for (const FVector2D Direction : Directions)
             {
-                if (FKalmalaShimmeringLakeSampler::IsWater(Config, Position + Direction * Distance)) return Distance;
+                if (FKalmalaEnvironmentalExposureSampler::IsSurfaceWaterAt(Config, Position + Direction * Distance)) return Distance;
             }
         }
         return WaterSearchRadius;

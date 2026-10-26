@@ -154,6 +154,233 @@ double FKalmalaRegionalGeneration::Noise(const FKalmalaWorldGenerationConfig& C,
     return FMath::PerlinNoise2D(P * Frequency + FVector2D(RegionalUnit(S) * 128, RegionalUnit(S >> 24) * 128));
 }
 
+FKalmalaTerrainReliefSample FKalmalaRegionalGeneration::SampleSharedRelief(
+    const FKalmalaWorldGenerationConfig& C, const FVector2D AbsoluteWorldPosition)
+{
+    const auto& Preview = FKalmalaGenerationPreview::Get();
+    FKalmalaTerrainReliefSample Result;
+    Result.Broad = Noise(C, T::ReliefBroadSalt, AbsoluteWorldPosition, 1.0 / Preview.ReliefBroadScale);
+    Result.Middle = Noise(C, T::ReliefMiddleSalt, AbsoluteWorldPosition, 1.0 / Preview.ReliefMiddleScale);
+    Result.Local = Noise(C, T::ReliefLocalSalt, AbsoluteWorldPosition, 1.0 / Preview.ReliefLocalScale);
+    return Result;
+}
+
+double FKalmalaRegionalGeneration::ShapeMeadows(const double SourceHeight, const double Detail)
+{
+    return SourceHeight + double(float(40 * Detail));
+}
+
+double FKalmalaRegionalGeneration::CompressMeadowShoulder(
+    const double Height, const double ShoulderHeight, const double ShoulderCompressionScale)
+{
+    if (Height <= ShoulderHeight) return Height;
+    const double Excess = Height - ShoulderHeight;
+    return ShoulderHeight + ShoulderCompressionScale * (1.0 - FMath::Exp(-Excess / ShoulderCompressionScale));
+}
+
+double FKalmalaRegionalGeneration::ShapeMeadows(
+    const double SourceHeight, const double HillNoise, const double HillAmplitude,
+    const double ShoulderHeight, const double ShoulderCompressionScale)
+{
+    return ShapeMeadows(SourceHeight, HillNoise, HillAmplitude, 0.0, 0.0,
+        ShoulderHeight, ShoulderCompressionScale);
+}
+
+double FKalmalaRegionalGeneration::ShapeMeadows(
+    const double SourceHeight, const double HillNoise, const double HillAmplitude,
+    const double RollingNoise, const double RollingAmplitude, const double ShoulderHeight,
+    const double ShoulderCompressionScale)
+{
+    return ShapeMeadows(SourceHeight, HillNoise, HillAmplitude, RollingNoise, RollingAmplitude,
+        0.0, 0.0, ShoulderHeight, ShoulderCompressionScale);
+}
+
+double FKalmalaRegionalGeneration::ShapeMeadows(
+    const double SourceHeight, const double HillNoise, const double HillAmplitude,
+    const double RollingNoise, const double RollingAmplitude, const double FloorNoise,
+    const double FloorAmplitude, const double ShoulderHeight, const double ShoulderCompressionScale)
+{
+    const double HeightWithHills = SourceHeight
+        + double(float(HillNoise * HillAmplitude))
+        + double(float(RollingNoise * RollingAmplitude))
+        + double(float(FloorNoise * FloorAmplitude));
+    return CompressMeadowShoulder(HeightWithHills, ShoulderHeight, ShoulderCompressionScale);
+}
+
+double FKalmalaRegionalGeneration::ShapeElderwood(
+    const double SourceHeight, const double Detail, const FKalmalaTerrainReliefSample& SharedRelief,
+    const double BroadAmplitude, const double MiddleAmplitude, const double LocalAmplitude)
+{
+    const double SharedBase = SourceHeight
+        + double(float(SharedRelief.Broad * BroadAmplitude))
+        + double(float(SharedRelief.Middle * MiddleAmplitude))
+        + double(float(SharedRelief.Local * LocalAmplitude));
+    return SharedBase + double(float(-60 + 15 * Detail));
+}
+
+double FKalmalaRegionalGeneration::CompressShimmeringLakesLowland(
+    const double SourceHeight, const double Humidity, const double HumidityMinimum,
+    const double HumidityFull, const double LowlandFloor, const double LowlandCeiling,
+    const double Compression)
+{
+    if (!FMath::IsFinite(SourceHeight) || !FMath::IsFinite(Humidity)
+        || !FMath::IsFinite(HumidityMinimum) || !FMath::IsFinite(HumidityFull)
+        || !FMath::IsFinite(LowlandFloor) || !FMath::IsFinite(LowlandCeiling)
+        || !FMath::IsFinite(Compression) || HumidityFull <= HumidityMinimum
+        || LowlandCeiling <= LowlandFloor)
+    {
+        return SourceHeight;
+    }
+
+    const double BandWidth = (LowlandCeiling - LowlandFloor) * 0.25;
+    const double LowlandEntry = Smooth(LowlandFloor, LowlandFloor + BandWidth, SourceHeight);
+    const double LowlandExit = 1.0 - Smooth(LowlandCeiling - BandWidth, LowlandCeiling, SourceHeight);
+    const double LowlandBand = LowlandEntry * LowlandExit;
+    const double HumidityWeight = Smooth(HumidityMinimum, HumidityFull, Humidity);
+    const double Strength = FMath::Clamp(Compression, 0.0, 0.35) * HumidityWeight * LowlandBand;
+    const double AboveFloor = FMath::Max(0.0, SourceHeight - LowlandFloor);
+    return SourceHeight - AboveFloor * Strength;
+}
+
+double FKalmalaRegionalGeneration::ShapeShimmeringLakes(
+    const double SourceHeight, const double MeadowCandidate, const double ElderwoodCandidate,
+    const double Humidity, const double HumidityMinimum, const double HumidityFull,
+    const double MeadowShare, const double LowlandFloor, const double LowlandCeiling,
+    const double LowlandCompression)
+{
+    const double RoundedShoulders = FMath::Lerp(
+        ElderwoodCandidate, MeadowCandidate, FMath::Clamp(MeadowShare, 0.0, 1.0));
+    const double CompressedSource = CompressShimmeringLakesLowland(
+        SourceHeight, Humidity, HumidityMinimum, HumidityFull,
+        LowlandFloor, LowlandCeiling, LowlandCompression);
+    return RoundedShoulders + (CompressedSource - SourceHeight);
+}
+
+double FKalmalaRegionalGeneration::ShapeMire(
+    const double SourceHeight, const double Detail, const double TargetHeight,
+    const double CompressionScale, const double ResidualDetailAmplitude)
+{
+    if (!FMath::IsFinite(SourceHeight) || !FMath::IsFinite(Detail)
+        || !FMath::IsFinite(TargetHeight) || !FMath::IsFinite(CompressionScale)
+        || !FMath::IsFinite(ResidualDetailAmplitude) || CompressionScale <= 0.0
+        || ResidualDetailAmplitude < 0.0)
+    {
+        return SourceHeight;
+    }
+
+    // The rational response is strictly monotonic and asymptotes to a narrow
+    // band instead of clamping into a flat shelf. The selected tuning bounds
+    // keep even the lowest source-land sample above zero after residual detail.
+    const double Offset = SourceHeight - TargetHeight;
+    const double CompressedOffset = Offset / (1.0 + FMath::Abs(Offset) / CompressionScale);
+    const double Residual = FMath::Clamp(Detail, -1.0, 1.0) * ResidualDetailAmplitude;
+    return TargetHeight + CompressedOffset + Residual;
+}
+
+double FKalmalaRegionalGeneration::ShapeTundra(
+    const double SourceHeight, const double Detail, const FKalmalaTerrainReliefSample& SharedRelief,
+    const double BroadAmplitude, const double MiddleAmplitude, const double LocalAmplitude)
+{
+    return ShapeElderwood(SourceHeight, Detail, SharedRelief,
+        BroadAmplitude, MiddleAmplitude, LocalAmplitude);
+}
+
+FKalmalaTerrainCandidateDiagnostics FKalmalaRegionalGeneration::SampleTerrainCandidateDiagnostics(
+    const FKalmalaWorldGenerationConfig& C, const FKalmalaWorldFieldSample& F)
+{
+    const auto& Preview = FKalmalaGenerationPreview::Get();
+    const FVector2D P = F.Position;
+    FKalmalaTerrainCandidateDiagnostics Result;
+    const float SourceHeight = (F.Elevation - T::SeaElevation) * 2000.0f;
+    Result.SourceHeight = SourceHeight;
+    Result.WetlandHumidityMinimum = Preview.WetlandHumidityMinimum;
+    Result.WetlandHumidityFull = Preview.WetlandHumidityFull;
+    const double Detail = Noise(C, 250, P, 0.00015);
+    const double MeadowHill = Noise(C, T::MeadowHillSalt, P, 1.0 / Preview.MeadowHillScale);
+    const double MeadowRolling = Noise(C, T::MeadowRollingSalt, P, 1.0 / Preview.MeadowRollingScale);
+    const double MeadowFloor = Noise(C, T::MeadowFloorSalt, P, 1.0 / Preview.MeadowFloorScale);
+    Result.SharedRelief = SampleSharedRelief(C, P);
+    Result.MeadowCandidate = ShapeMeadows(Result.SourceHeight, MeadowHill, Preview.MeadowHillAmplitude,
+        MeadowRolling, Preview.MeadowRollingAmplitude, MeadowFloor, Preview.MeadowFloorAmplitude,
+        Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale);
+    Result.ElderwoodCandidate = ShapeElderwood(Result.SourceHeight, Detail, Result.SharedRelief,
+        Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+    Result.TundraCandidate = ShapeTundra(Result.SourceHeight, Detail, Result.SharedRelief,
+        Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+    Result.ShimmeringLakesLowlandCandidate = CompressShimmeringLakesLowland(
+        Result.SourceHeight, F.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+        Preview.ShimmeringLakesLowlandFloor, Preview.ShimmeringLakesLowlandCeiling,
+        Preview.ShimmeringLakesLowlandCompression);
+    Result.ShimmeringLakesCandidate = ShapeShimmeringLakes(Result.SourceHeight, Result.MeadowCandidate,
+        Result.ElderwoodCandidate, F.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+        Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
+        Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression);
+    Result.MireCandidate = ShapeMire(Result.SourceHeight, Detail, Preview.MireTargetHeight,
+        Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude);
+    return Result;
+}
+
+double FKalmalaRegionalGeneration::ShapeMountains(
+    const double SourceHeight, const double Detail, const double MountainRegion,
+    const double HighlandThreshold, const double HighlandBlendRange, const double HighlandGain,
+    const double DetailAmplitude)
+{
+    if (!FMath::IsFinite(SourceHeight) || !FMath::IsFinite(Detail) || !FMath::IsFinite(MountainRegion)
+        || !FMath::IsFinite(HighlandThreshold) || !FMath::IsFinite(HighlandBlendRange)
+        || !FMath::IsFinite(HighlandGain) || !FMath::IsFinite(DetailAmplitude)
+        || HighlandBlendRange <= 0.0 || HighlandGain < 0.0 || DetailAmplitude < 0.0)
+    {
+        return SourceHeight;
+    }
+
+    const double HighBaseBlend = Smooth(HighlandThreshold,
+        HighlandThreshold + HighlandBlendRange, SourceHeight);
+    const double HeightAboveThreshold = FMath::Max(0.0, SourceHeight - HighlandThreshold);
+    const double HighlandAmplification = HeightAboveThreshold * HighBaseBlend
+        * FMath::Clamp(MountainRegion, 0.0, 1.0) * FMath::Clamp(HighlandGain, 0.0, 0.8);
+    const double BoundedDetail = FMath::Clamp(Detail, -1.0, 1.0)
+        * FMath::Clamp(DetailAmplitude, 0.0, 160.0);
+    return SourceHeight + double(float(HighlandAmplification)) + double(float(BoundedDetail));
+}
+
+float FKalmalaRegionalGeneration::BlendCandidateHeights(
+    const float SourceHeight, const double CandidateHeights[6], const float OceanOffset, const float Weights[7])
+{
+    float Result = SourceHeight;
+    for (int32 Index = 0; Index < 6; ++Index)
+    {
+        // Land weights are normalized against the six land biomes, then already
+        // attenuated by the continuous coast factor. Do not apply that factor twice.
+        const float Offset = float(CandidateHeights[Index] - double(SourceHeight));
+        Result += Weights[Index] * Offset;
+    }
+    Result += Weights[6] * OceanOffset;
+    return Result;
+}
+
+double FKalmalaRegionalGeneration::PreserveSourceLandSign(
+    const double Height, const double SourceHeight, const double TransitionScale)
+{
+    if (!FMath::IsFinite(Height) || !FMath::IsFinite(SourceHeight)
+        || !FMath::IsFinite(TransitionScale) || SourceHeight <= 0.0 || TransitionScale <= 0.0)
+    {
+        return Height;
+    }
+
+    // A source-relative cap makes the transition vanish with source clearance
+    // at the coast. Stable softplus is identity far above zero and approaches
+    // zero smoothly below it, avoiding a broad flat minimum-height shelf.
+    constexpr double LnTwo = 0.69314718055994530942;
+    const double Scale = FMath::Min(TransitionScale, SourceHeight / LnTwo);
+    const double ScaledHeight = Height / Scale;
+    if (ScaledHeight >= 40.0) return Height;
+    const double BoundedScaledHeight = FMath::Max(ScaledHeight, -80.0);
+    // Avoid cancellation in log(1 + exp(x)) when exp(x) is below double
+    // precision. That tail still needs a positive result to preserve land sign.
+    if (BoundedScaledHeight <= -36.0) return Scale * FMath::Exp(BoundedScaledHeight);
+    return Scale * FMath::Loge(1.0 + FMath::Exp(BoundedScaledHeight));
+}
+
 TArray<FKalmalaHydrologySegment> FKalmalaRegionalGeneration::GetHydrology(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell)
 {
     FScopeLock Lock(&CacheMutex);
@@ -225,46 +452,85 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     if (!bBiomeOnly)
     {
         const double Detail = Noise(C, 250, P, 0.00015);
-        const float Shapes[] = { float(40 * Detail), float(-60 + 15 * Detail), float(65 * Detail), float(-60 + 15 * Detail),
-            float(50 * Detail), float(160 * Detail + 100 * WarpedRegion(C, Warped, 5)), float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6)) };
-        for (int32 I = 0; I < 7; ++I) R.Height += R.Weights[I] * Shapes[I] * (I == 6 ? 1 : Land);
+        const bool bNeedsMeadowCandidate = R.Weights[0] > 0.0f || R.Weights[1] > 0.0f;
+        const double MeadowHill = bNeedsMeadowCandidate
+            ? Noise(C, T::MeadowHillSalt, P, 1.0 / Preview.MeadowHillScale)
+            : 0.0;
+        const double MeadowRolling = bNeedsMeadowCandidate
+            ? Noise(C, T::MeadowRollingSalt, P, 1.0 / Preview.MeadowRollingScale)
+            : 0.0;
+        const double MeadowFloor = bNeedsMeadowCandidate
+            ? Noise(C, T::MeadowFloorSalt, P, 1.0 / Preview.MeadowFloorScale)
+            : 0.0;
+        FKalmalaTerrainReliefSample ElderwoodRelief;
+        if (R.Weights[1] > 0.0f || R.Weights[2] > 0.0f || R.Weights[4] > 0.0f)
+        {
+            ElderwoodRelief = SampleSharedRelief(C, P);
+        }
+        const double ElderwoodHeight = ShapeElderwood(Source, Detail, ElderwoodRelief,
+            Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude);
+        const double MeadowHeight = ShapeMeadows(Source, MeadowHill, Preview.MeadowHillAmplitude,
+            MeadowRolling, Preview.MeadowRollingAmplitude, MeadowFloor, Preview.MeadowFloorAmplitude,
+            Preview.MeadowShoulderHeight, Preview.MeadowShoulderCompressionScale);
+        const double ShimmeringLakesHeight = ShapeShimmeringLakes(Source, MeadowHeight, ElderwoodHeight,
+            F.Humidity, Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull,
+            Preview.ShimmeringLakesMeadowShare, Preview.ShimmeringLakesLowlandFloor,
+            Preview.ShimmeringLakesLowlandCeiling, Preview.ShimmeringLakesLowlandCompression);
+        const double CandidateHeights[] = {
+            MeadowHeight,
+            ShimmeringLakesHeight,
+            ElderwoodHeight,
+            ShapeMire(Source, Detail, Preview.MireTargetHeight,
+                Preview.MireCompressionScale, Preview.MireResidualDetailAmplitude),
+            ShapeTundra(Source, Detail, ElderwoodRelief,
+                Preview.ElderwoodBroadAmplitude, Preview.ElderwoodMiddleAmplitude, Preview.ElderwoodLocalAmplitude),
+            ShapeMountains(Source, Detail, WarpedRegion(C, Warped, 5),
+                Preview.MountainHighlandThreshold, Preview.MountainHighlandBlendRange,
+                Preview.MountainHighlandGain, Preview.MountainDetailAmplitude),
+        };
+        const float OceanOffset = float(-60 * (1 - Land) * WarpedRegion(C, Warped, 6));
+        R.Height = BlendCandidateHeights(Source, CandidateHeights, OceanOffset, R.Weights);
     }
 
-    // Analytic enclosed bowls: source-qualified lowland centers, continuous raised rims.
-    // Centers are separated by at least 28,000 cm; bowl supports never overlap.
-    const auto BasinCell = CellAt(P, T::BasinSpacing);
     double BasinSupport = 0;
-    for (int32 Y = -1; Y <= 1; ++Y) for (int32 X = -1; X <= 1; ++X)
+    if (T::bEnableAnalyticBasins)
     {
-        const auto Cell = BasinCell + FIntPoint(X, Y);
-        const uint64 S = Seed(C, 400, Cell);
-        const FVector2D Center = (FVector2D(Cell) + FVector2D(0.35 + RegionalUnit(S) * 0.3, 0.35 + RegionalUnit(S >> 24) * 0.3)) * T::BasinSpacing;
-        const double Radius = 4000 + 4500 * RegionalUnit(S >> 12);
-        const FVector2D Delta = P - Center;
-        const double Aspect = 0.65 + 0.35 * RegionalUnit(S >> 32);
-        const double D = FVector2D(Delta.X, Delta.Y / Aspect).Size() / Radius;
-        if (D >= 1.5) continue;
-        // Keep the entire bowl/rim beyond the starter boundary and on atlas
-        // land. Fade its influence at coast/distance edges without a height step.
-        if (Center.Size() - Radius * 1.5 <= Preview.StarterRadius || F.Elevation <= T::SeaElevation) continue;
-        // Reject out-of-support bowls before evaluating their fields and region.
-        const auto CenterFields = FKalmalaWorldFieldSampler::Sample(C, Center);
-        const double CenterWetland = WarpedRegion(C, Warp(C, Center), 3)
-            * Smooth(Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull, CenterFields.Humidity)
-            * (1 - Smooth(Preview.WetlandElevationFull, Preview.WetlandElevationMaximum, CenterFields.Elevation))
-            * Smooth(Preview.WetlandTemperatureMinimum, Preview.WetlandTemperatureFull, CenterFields.Temperature);
-        if (CenterFields.Elevation < 0.32f || CenterWetland < 0.25) continue;
-        // Lakes and Mire use exactly the same bowl parameters and suitability.
-        // Bowls shape terrain/water only; they never override the distance-gated label.
-        const double LakeEligibility = FMath::Clamp(double(R.Weights[1] + R.Weights[3]) * 2, 0.0, 1.0);
-        if (LakeEligibility <= 0) continue;
-        const double Support = (1 - Smooth(1.0, 1.5, D)) * LakeEligibility;
-        const float Level = (CenterFields.Elevation - T::SeaElevation) * 2000.0f;
-        const float Bowl = Level - 120.0f + 240.0f * D * D;
-        R.Height = FMath::Lerp(R.Height, Bowl, float(Support));
-        R.WaterLevel = Level;
-        BasinSupport = Support;
-        R.BasinWeight = (1 - Smooth(0.65, 1.0, D)) * LakeEligibility;
+        // Analytic enclosed bowls use source-qualified lowland centers and
+        // continuous raised rims. This compiled policy is the sole switch for
+        // their height, water-level and BasinWeight outputs.
+        const auto BasinCell = CellAt(P, T::BasinSpacing);
+        for (int32 Y = -1; Y <= 1; ++Y) for (int32 X = -1; X <= 1; ++X)
+        {
+            const auto Cell = BasinCell + FIntPoint(X, Y);
+            const uint64 S = Seed(C, 400, Cell);
+            const FVector2D Center = (FVector2D(Cell) + FVector2D(0.35 + RegionalUnit(S) * 0.3, 0.35 + RegionalUnit(S >> 24) * 0.3)) * T::BasinSpacing;
+            const double Radius = 4000 + 4500 * RegionalUnit(S >> 12);
+            const FVector2D Delta = P - Center;
+            const double Aspect = 0.65 + 0.35 * RegionalUnit(S >> 32);
+            const double D = FVector2D(Delta.X, Delta.Y / Aspect).Size() / Radius;
+            if (D >= 1.5) continue;
+            // Keep the entire bowl/rim beyond the starter boundary and on atlas
+            // land. Fade its influence at coast/distance edges without a height step.
+            if (Center.Size() - Radius * 1.5 <= Preview.StarterRadius || F.Elevation <= T::SeaElevation) continue;
+            // Reject out-of-support bowls before evaluating their fields and region.
+            const auto CenterFields = FKalmalaWorldFieldSampler::Sample(C, Center);
+            const double CenterWetland = WarpedRegion(C, Warp(C, Center), 3)
+                * Smooth(Preview.WetlandHumidityMinimum, Preview.WetlandHumidityFull, CenterFields.Humidity)
+                * (1 - Smooth(Preview.WetlandElevationFull, Preview.WetlandElevationMaximum, CenterFields.Elevation))
+                * Smooth(Preview.WetlandTemperatureMinimum, Preview.WetlandTemperatureFull, CenterFields.Temperature);
+            if (CenterFields.Elevation < 0.32f || CenterWetland < 0.25) continue;
+            // Lakes and Mire use exactly the same bowl parameters and suitability.
+            // Bowls shape terrain/water only; they never override the distance-gated label.
+            const double LakeEligibility = FMath::Clamp(double(R.Weights[1] + R.Weights[3]) * 2, 0.0, 1.0);
+            if (LakeEligibility <= 0) continue;
+            const double Support = (1 - Smooth(1.0, 1.5, D)) * LakeEligibility;
+            const float Level = (CenterFields.Elevation - T::SeaElevation) * 2000.0f;
+            const float Bowl = Level - 120.0f + 240.0f * D * D;
+            R.Height = FMath::Lerp(R.Height, Bowl, float(Support));
+            R.WaterLevel = Level;
+            BasinSupport = Support;
+            R.BasinWeight = (1 - Smooth(0.65, 1.0, D)) * LakeEligibility;
+        }
     }
 
     double Sum = 0, Water = 0, Influence = 0, RiverBankInfluence = 0;
@@ -300,22 +566,28 @@ FKalmalaRegionalSample FKalmalaRegionalGeneration::SampleInternal(const FKalmala
     // Shores retain the source sea-level sign outside inland basins/courses.
     if (BasinSupport == 0 && Sum == 0) R.WaterLevel = FMath::Min(0.0f, R.Height - 1.0f);
     {
-        // Preserve the source shore before applying the bounded river override.
+        // Preserve the source coast sign without a fixed-height land shelf.
         R.Height = F.Elevation <= T::SeaElevation ? FMath::Min(R.Height, Source)
-            : FMath::Max(R.Height, FMath::Min(Source, 1.0f));
+            : float(PreserveSourceLandSign(R.Height, Source, T::CoastSignTransitionScale));
         if (F.Elevation <= T::SeaElevation) R.WaterLevel = 0;
     }
     if (RiverBankInfluence > 0 && BasinSupport < 1)
     {
         // Carve after the land clamp so high ground cannot refill the channel.
         // Maximum influence across segments avoids repeated carving at joins.
+        // The bank envelope extends beyond RiverWeight. Fade its target from
+        // the positive land floor into the full bed as narrow channel weight
+        // rises, so relief cannot turn a dry bank into new sea-level water.
         const float W = RiverBankInfluence * (1 - BasinSupport);
         // Lift the channel target toward the retained basin surface through its
         // continuous rim support instead of targeting sea depth throughout a lake.
         // Full basin support keeps both its original bed and water level.
         const float ChannelLevel = FMath::Lerp(0.0f, R.WaterLevel, float(BasinSupport));
         const float Bed = ChannelLevel - float(T::RiverBedDepth);
-        R.Height = FMath::Lerp(R.Height, FMath::Min(R.Height, Bed), W);
+        const float BankFloor = F.Elevation > T::SeaElevation ? FMath::Min(R.Height, 1.0f) : R.Height;
+        const float ChannelShare = float(Smooth(0.0, 1.0, R.RiverWeight));
+        const float CarveTarget = FMath::Lerp(BankFloor, Bed, ChannelShare);
+        R.Height = FMath::Lerp(R.Height, FMath::Min(R.Height, CarveTarget), W);
         if (BasinSupport == 0) R.WaterLevel = 0;
     }
     R.bHasWater = R.WaterLevel > R.Height;

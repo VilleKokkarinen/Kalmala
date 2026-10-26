@@ -335,7 +335,7 @@ bool FKalmalaBiomeContentContractTest::RunTest(const FString& Parameters)
                             const FVector2D RutabagaPosition(Spawn.Location.X, Spawn.Location.Y);
                             TestFalse(TEXT("Wild rutabaga patch stays out of ocean water"), FKalmalaOceanSampler::Sample(Config, RutabagaPosition).IsWater());
                             TestFalse(TEXT("Wild rutabaga patch occupies dry land"), FKalmalaShimmeringLakeSampler::IsWater(Config, RutabagaPosition));
-                            TestTrue(TEXT("Wild rutabaga patch is on a generated lake bank"),
+                            TestTrue(TEXT("Wild rutabaga patch is on an active-water shoreline"),
                                 FKalmalaEnvironmentalExposureSampler::Sample(Config, RutabagaPosition).bIsShoreline);
                             TestTrue(TEXT("Wild rutabaga patch uses safe terrain slope"),
                                 FKalmalaTerrainHeightSampler::SampleSurfaceNormal(Config, RutabagaPosition).Z >= 0.88f);

@@ -169,7 +169,7 @@ struct KALMALAWORLD_API FKalmalaWorldPopulationLayout
                 && FKalmalaEnvironmentalExposureSampler::Sample(Config, Position).bIsShoreline)
             {
                 // Keep one hand-gathered crop on dry, gently sloped Lakes land
-                // within the shared shoreline probe of generated lake water.
+                // within the shared shoreline probe of active surface water.
                 ContentId = TEXT("lakes-wild-rutabaga-patch");
                 PersistentSeed = Mix(CandidateSeed ^ 0xA0B07ABA71019ull);
                 bAddedLakesRutabagaPatch = true;
