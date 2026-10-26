@@ -312,9 +312,98 @@
       ],
       "width": 1024,
       "file": "Seed419_OpenWater.png"
+    },
+    {
+      "role": "primary-weather-view",
+      "bytes": 435699,
+      "height": 768,
+      "site": "ThunderMountainsStorm",
+      "sampleCm": {
+        "x": -970004.9,
+        "viewZ": 768.734985,
+        "y": -243087.4
+      },
+      "scene": "Overcast / rain",
+      "condition": "OvercastRain",
+      "weather": {
+        "precipitationIntensity": 0.8,
+        "fogIntensity": 0.8,
+        "windStrength": 0.75
+      },
+      "sunRotationDegrees": [
+        -40,
+        -35,
+        0
+      ],
+      "sunIntensity": 2.0,
+      "skyIntensity": 1.0,
+      "exposureCompensationEV": 0.0,
+      "captureDelaySeconds": 3.0,
+      "aimCm": [
+        -970004.9,
+        -243087.4,
+        918.734985
+      ],
+      "fovDegrees": 65,
+      "review": "Dark sky/horizon and broad cyan surface with a tiny centered avatar; no visible rain particles, readable mountain silhouettes, or clear terrain framing.",
+      "sha256": "abe801891c88bba8f2fe818459ad3bade4f42c793e42c555cae94aa903018b64",
+      "seed": 419,
+      "cameraCm": [
+        -970004.9,
+        -245487.4,
+        1968.734985
+      ],
+      "width": 1024,
+      "file": "Seed419_OvercastRain.png"
+    },
+    {
+      "role": "primary-fire-view",
+      "bytes": 208643,
+      "height": 768,
+      "site": "MeadowsFireDusk",
+      "sampleCm": {
+        "x": -781.6,
+        "viewZ": 528.94458,
+        "y": -781.6
+      },
+      "scene": "Fire-lit dusk",
+      "condition": "FireDusk",
+      "weather": {
+        "precipitationIntensity": 0.0,
+        "fogIntensity": 0.0,
+        "windStrength": 0.0
+      },
+      "sunRotationDegrees": [
+        -40,
+        -35,
+        0
+      ],
+      "sunIntensity": 0.6,
+      "skyIntensity": 0.25,
+      "skyCapture": "Default sky captured before dimming; real-time capture disabled on the transient fixture.",
+      "captureHearthLightRadiusCm": 4500,
+      "runtimeCampfireLightRadiusCm": 600,
+      "exposureCompensationEV": 1.5,
+      "captureDelaySeconds": 5.0,
+      "aimCm": [
+        -781.6,
+        -781.6,
+        678.94458
+      ],
+      "fovDegrees": 65,
+      "review": "Almost entirely black; only a tiny procedural stone ring is visible. Ground and firelight spill are unreadable, and no modeled flame exists.",
+      "sha256": "a4576a67aaa91a384cd11701060fecb559fca91ae5fb9099a899bcac085d6a41",
+      "seed": 419,
+      "cameraCm": [
+        -781.6,
+        -3181.6,
+        1728.94458
+      ],
+      "width": 1024,
+      "file": "Seed419_FireDusk.png"
     }
   ],
-  "manifestGeneratedAtUtc": "2026-10-26T13:54:18Z",
+  "manifestGeneratedAtUtc": "2026-10-26T14:04:46Z",
   "worldSeeds": [
     418,
     419

@@ -242,6 +242,26 @@ seed-418 poses were retained as required, so the seed-419 forest and water
 content differences remain visible baseline limitations for L01e/L01f review;
 L01d does not retune scene anchors, lighting or materials.
 
+### L01e seed-419 weather and fire captures — 2026-10-26
+
+Reused the fixed L01a weather and fire anchors with seed 419, the same capture
+fixture, 65-degree camera and 1024x768 output. The headless UE 5.8 runner
+resolved D3D12/SM5 on the RTX 5090; both logs report eye-adaptation quality 2.
+OvercastRain used default camera compensation; FireDusk retained its capture-only
++1.5 EV bias.
+
+| Capture | Site and capture | Visual review |
+| --- | --- | --- |
+| Seed419_OvercastRain.png | Thunder Mountains (-970004.9,-243087.4), ViewZ=768.734985; camera (-970004.9,-245487.4,1968.734985), aim (-970004.9,-243087.4,918.734985); precipitation 0.8, fog 0.8, wind 0.75; sun 2.0, sky 1.0. | The frame has a dark sky/horizon and broad cyan surface with only a tiny centered avatar. No rain particles, readable mountain silhouettes or clear terrain framing appear. It is retained as a baseline limitation, not a visually accepted overcast scene. |
+| Seed419_FireDusk.png | Starter Meadows (-781.6,-781.6), ViewZ=528.94458; camera (-781.6,-3181.6,1728.94458), aim (-781.6,-781.6,678.94458); clear weather, sun 0.6, sky 0.25, default sky captured before dimming, and +1.5 EV camera compensation. The transient test hearth uses a 4500 cm point-light radius; ordinary campfires remain at 600 cm. | The frame is almost entirely black, with only a tiny procedural stone ring visible at center. Surrounding ground and firelight spill are unreadable, and no modeled flame exists. This is baseline evidence, not visual acceptance. |
+
+Both captures passed the runner's PNG signature, 1024x768 dimensions,
+nonblank-sample and requested seed/site/condition checks. The shared manifest
+now contains all five primary scene roles for seeds 418 and 419 plus the
+supplemental seed-418 coast candidate. The lack of visible rain, the unreadable
+fire-light view, and unknown effective EV bounds remain for later lighting
+review; L01e did not change anchors, lighting, or materials.
+
 ## Proposed implementation stages
 
 ### 1. Capture a lighting baseline

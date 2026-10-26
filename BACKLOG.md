@@ -1099,9 +1099,11 @@ do not mark the lighting milestone complete before it passes.
     and open water. Recorded that the forest anchor has no visible forest and
     the water frame shows a checkerboard surface; these remain baseline
     limitations, not accepted scene looks.
-  - [ ] **L01e — Capture seed-419 weather and fire scenes.** Capture the
+  - [x] **L01e — Capture seed-419 weather and fire scenes.** Capture the
     matching overcast/rain and fire-lit dusk/night views; verify the full
-    two-seed baseline set before changing the rig.
+    two-seed baseline set before changing the rig. Both fixed views passed the
+    capture checks and are recorded in the shared manifest; the images retain
+    the missing-rain and unreadable-fire baseline limitations.
   - [ ] **L01f — Tune the scene-wide rig and grade.** Keep solid surfaces on
     Default Lit. Stabilize exposure, balance the existing directional key and
     sky fill, tune existing fog, then apply a restrained global grade and bloom

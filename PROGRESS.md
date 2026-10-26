@@ -1,3 +1,15 @@
+## L01e seed-419 weather and fire captures — 2026-10-26
+
+- **Selected task:** L01e, capture seed-419 overcast/rain and fire-lit dusk/night at the fixed L01a anchors.
+- **Work completed:** Used the existing UE 5.8 mirror and headless capture helper for Thunder Mountains OvercastRain and Meadows FireDusk. Reviewed both images, added full camera/aim, condition, weather, exposure, byte-count, and SHA-256 records to the shared manifest, and verified five primary scene roles for each seed plus the supplemental seed-418 coast candidate.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/valheim-like-lighting-plan.md, TestResults/LightingBaseline/manifest.json, TestResults/LightingBaseline/Seed419_OvercastRain.png, TestResults/LightingBaseline/Seed419_FireDusk.png.
+- **Lightweight checks:** The helper passed PNG signature, 1024x768 dimensions, nonblank-sample, and requested seed/site/condition checks for both images. The capture source in the klc mirror matched the worktree SHA-256 exactly; logs resolve D3D12/SM5 on the RTX 5090 and eye-adaptation quality 2. Parsed the manifest, checked image dimensions and hashes, and ran git diff --check. No Editor build or automation suite was run.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The manifest now contains all ten primary scene images across seeds 418 and 419 plus the supplemental coast candidate. Seed-419 OvercastRain has a dark sky/horizon and broad cyan surface without visible rain or readable mountain framing. FireDusk is almost black, with only the small procedural ring visible; neither frame passes visual acceptance.
+- **Networking/authority:** Capture evidence only; no gameplay code, network, server-authority, or save behavior changed.
+- **Known limitations / remaining scope:** No rain particles, no modeled flame, unreadable firelight spill, unclear overcast terrain framing, and unknown effective EV bounds remain. The reused anchors and baseline limitations are preserved; L01f has not started.
+- **Next eligible task:** L01f — tune the scene-wide rig and grade with Default Lit surfaces, stable exposure, the existing sun/sky/fog and built-in grading/bloom controls.
+
 ## L01d seed-419 daylight, forest and water captures — 2026-10-26
 
 - **Selected task:** L01d, capture seed-419 daylight, forest and water using
