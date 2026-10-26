@@ -1,3 +1,14 @@
+## L01a prototype map package-name scan — 2026-10-26
+
+- **Selected task:** L01a remains incomplete; this source-only increment scans readable actor paths in the tracked prototype map.
+- **Work completed:** The package contains object paths for a directional light, SkyAtmosphere, SkyLight, two PlayerStarts, and the interaction-test actor. It also contains all three environment tag names. No post-process, exponential-fog, or campfire path appeared in the scan; the plan explicitly limits this to string-level evidence and leaves actor properties and loaded-map state unresolved.
+- **Files changed:** BACKLOG.md; docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Scanned the tracked map for serialized `PersistentLevel` object paths and lighting actor/tag strings; `git diff --check` passed. No package parser, Editor, build, or automation was run; full verification remains deferred.
+- **Observable impact:** The source audit now records likely serialized key/sky actors and the limits of the raw package scan. No runtime or asset changes.
+- **Networking/authority:** No code or network behavior changed.
+- **Known limitations / remaining scope:** The scan cannot prove component settings or fully establish absent actors. Active RHI, GI/reflections, effective fog/exposure/post-process, and visually confirmed views remain unknown.
+- **Next eligible task:** L01a remains first: inspect the loaded prototype map and renderer and verify all five fixed views, then proceed to L01b.
+
 ## L01a source controls audit — 2026-10-26
 
 - **Selected task:** L01a remains incomplete; this source-only increment checks existing time, weather, and campfire capture controls.
