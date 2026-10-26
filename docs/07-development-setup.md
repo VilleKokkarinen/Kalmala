@@ -2282,7 +2282,7 @@ With a server-capable engine, build the target with:
 
 ## Generated-world traversal smoke test
 
-For the developer-only two-player traversal verification, launch a listen server and a client with `-KalmalaTraversalTest`. Both peers derive the lake target from the server-selected world identity; locally controlled pawns move through normal Character Movement input, while the server remains authoritative. The test only disables pawn-to-pawn capsule blocking and only while the switch is present. A passing run logs that both server pawns reached the Shimmering Lakes target and that the client observed replicated movement.
+For the developer-only two-player traversal verification, launch a listen server and a client with `-KalmalaTraversalTest`. Both peers derive the nearest dry, Shimmering Lakes-classified terrain target from the server-selected world identity, searching within 12 km of the generated start on a 250 m sample grid. The limits are in Unreal centimeters and are shared by the host and client. The target excludes ocean and analytic lake water, which is disabled by the terrain contract. The listen-server host pawn traverses with normal Character Movement input and server authority; the client observes its replicated movement. The test only disables pawn-to-pawn capsule blocking and only while the switch is present. A passing run logs that the server pawn reached dry Shimmering Lakes terrain and that the client observed at least 30 m of replicated movement.
 
 ## Generated harvest reconnect smoke test
 

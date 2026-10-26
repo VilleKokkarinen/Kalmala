@@ -171,6 +171,8 @@ private:
     void VerifyForestStreaming();
     FString ForestStreamingCollectedId;
     int32 ForestStreamingRewardBefore = 0;
+    int32 ForestStreamingExpectedTrees = 0;
+    int32 ForestStreamingExpectedTreePatches = 0;
     int32 ForestStreamingPhase = 0;
     FVector ForestStreamingHome = FVector::ZeroVector;
     TMap<FString, TWeakObjectPtr<class AKalmalaHarvestNode>> ForestStreamingNodes;
@@ -181,6 +183,7 @@ private:
     bool bForestContentionFinished = false;
     float ForestDeliveryElapsed = 0;
     int32 ForestDeliveryDiagnostics = 0;
+    bool bForestDeliveryTargetReported = false;
     TSet<FString> ForestDeliveryReported;
     float ForestDriverReadySeconds = 0;
     bool bForestDriverPrepared = false;
@@ -366,6 +369,11 @@ private:
     bool bTraversalMovementLogged = false;
     bool bTraversalTargetConfigured = false;
     bool bTraversalArrivalLogged = false;
+    bool bTraversalDetouring = false;
     FVector TraversalStartLocation = FVector::ZeroVector;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
+    FVector2D TraversalTestDetourDirection = FVector2D::ZeroVector;
+    FVector2D TraversalTestBlockedPosition = FVector2D::ZeroVector;
+    float TraversalTestNextProgressReportTime = 0.0f;
+    float TraversalTestBlockedSeconds = 0.0f;
 };

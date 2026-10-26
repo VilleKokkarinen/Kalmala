@@ -55,7 +55,7 @@ bool FKalmalaWaterSurfaceMeshTest::RunTest(const FString& Parameters)
     FKalmalaWaterSurfaceMesh::AppendTriangle(RiverA, RiverB, RiverC, false, false, RiverSurface);
     TestTrue(TEXT("A sea-level river cannot create a lake sheet without basin support"), BasinOnly.Triangles.IsEmpty());
     TestTrue(TEXT("The same submerged river remains in the sea-level surface mesh"), !RiverSurface.Triangles.IsEmpty());
-    for (const FVector& V : RiverSurface.Vertices) TestEqual(TEXT("Sea-level river surface remains at zero"), V.Z, 0.0f);
+    for (const FVector& V : RiverSurface.Vertices) TestEqual(TEXT("Sea-level river surface remains at zero"), V.Z, 0.0);
 
     FKalmalaWorldGenerationConfig Config;
     Config.WorldSeed = 418;

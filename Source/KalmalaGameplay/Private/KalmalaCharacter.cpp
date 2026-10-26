@@ -25,6 +25,8 @@
 #include "KalmalaInteractable.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaOceanSampler.h"
+#include "KalmalaBiomeClassifier.h"
+#include "KalmalaWorldFieldSampler.h"
 #include "KalmalaIslandLocator.h"
 #include "KalmalaWorldGenerationGameState.h"
 #include "KalmalaGameMode.h"
@@ -445,6 +447,7 @@ void AKalmalaCharacter::BeginPlay()
     bTraversalTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaTraversalTest"));
     bExposureReplicationTelemetryEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaExposureReplicationTest"));
     TraversalStartLocation = GetActorLocation();
+    TraversalTestBlockedPosition = FVector2D(GetActorLocation());
     bControlsTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaPlayerControlsTest"));
     bSwimmingTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSwimmingTest"));
     bOceanTravelTestEnabled = FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanTravelTest"));
@@ -756,21 +759,127 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
         return;
     }
 
+    if (bTraversalTelemetryEnabled && !HasAuthority() && !IsLocallyControlled()
+        && !bTraversalMovementLogged
+        && FVector::DistSquared2D(TraversalStartLocation, GetActorLocation()) >= FMath::Square(3000.0f))
+    {
+        bTraversalMovementLogged = true;
+        UE_LOG(LogTemp, Display, TEXT("Traversal-test client observed replicated pawn movement of at least 3,000 units."));
+    }
+
     const FVector2D RemainingOffset = TraversalTestTarget - FVector2D(GetActorLocation());
     if (RemainingOffset.SizeSquared() <= FMath::Square(180.0f))
     {
         if (!bTraversalArrivalLogged)
         {
             bTraversalArrivalLogged = true;
-            UE_LOG(LogTemp, Display, TEXT("Traversal-test %s pawn %s reached the Shimmering Lakes target."), HasAuthority() ? TEXT("server") : TEXT("client"), *GetName());
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test %s pawn %s reached dry Shimmering Lakes terrain."), HasAuthority() ? TEXT("server") : TEXT("client"), *GetName());
         }
         return;
     }
 
-    if (IsLocallyControlled())
+    if (HasAuthority() && IsLocallyControlled())
     {
-        GetCharacterMovement()->MaxWalkSpeed = 1800.0f;
-        AddMovementInput(FVector(RemainingOffset.GetSafeNormal(), 0.0f), 1.0f, true);
+        constexpr float TestMoveSpeedCmPerSecond = 1800.0f;
+        constexpr float CollisionProbeDistanceCm = 200.0f;
+        constexpr float StuckDetectionSeconds = 0.35f;
+        constexpr float StuckProgressThresholdCm = 50.0f;
+        const FVector2D ForwardDirection = RemainingOffset.GetSafeNormal();
+        const FVector2D CurrentPosition(GetActorLocation());
+        const FVector SweepStart = GetActorLocation() + FVector(0.0f, 0.0f, 15.0f);
+        const float CapsuleRadius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+        const float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+        FCollisionQueryParams TraversalQueryParams(SCENE_QUERY_STAT(TraversalObstacleAvoidance), false, this);
+        auto IsBlocked = [this, &TraversalQueryParams, &SweepStart, CapsuleRadius, CapsuleHalfHeight](const FVector2D& Direction)
+        {
+            FHitResult Hit;
+            return GetWorld()->SweepSingleByChannel(Hit, SweepStart,
+                SweepStart + FVector(Direction * CollisionProbeDistanceCm, 0.0f), FQuat::Identity,
+                ECC_Pawn, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), TraversalQueryParams);
+        };
+
+        const bool bForwardBlocked = IsBlocked(ForwardDirection);
+        if (bTraversalDetouring && !bForwardBlocked)
+        {
+            bTraversalDetouring = false;
+            TraversalTestDetourDirection = FVector2D::ZeroVector;
+            TraversalTestBlockedSeconds = 0.0f;
+        }
+
+        if (bTraversalDetouring && bForwardBlocked)
+        {
+            if (TraversalTestBlockedSeconds <= 0.0f)
+            {
+                TraversalTestBlockedPosition = CurrentPosition;
+            }
+            TraversalTestBlockedSeconds += DeltaSeconds;
+            if (TraversalTestBlockedSeconds >= StuckDetectionSeconds)
+            {
+                if (FVector2D::DistSquared(CurrentPosition, TraversalTestBlockedPosition) > FMath::Square(StuckProgressThresholdCm))
+                {
+                    TraversalTestBlockedPosition = CurrentPosition;
+                    TraversalTestBlockedSeconds = 0.0f;
+                }
+                else
+                {
+                    TraversalTestDetourDirection *= -1.0f;
+                    TraversalTestBlockedPosition = CurrentPosition;
+                    TraversalTestBlockedSeconds = 0.0f;
+                    UE_LOG(LogTemp, Display, TEXT("Traversal-test %s pawn %s is switching sides around a blocking world obstacle."),
+                        HasAuthority() ? TEXT("server") : TEXT("client"), *GetName());
+                }
+            }
+        }
+        else if (!bTraversalDetouring && bForwardBlocked)
+        {
+            if (TraversalTestBlockedSeconds <= 0.0f)
+            {
+                TraversalTestBlockedPosition = CurrentPosition;
+            }
+            TraversalTestBlockedSeconds += DeltaSeconds;
+            if (TraversalTestBlockedSeconds >= StuckDetectionSeconds)
+            {
+                if (FVector2D::DistSquared(CurrentPosition, TraversalTestBlockedPosition) <= FMath::Square(StuckProgressThresholdCm))
+                {
+                    TraversalTestDetourDirection = FVector2D(-ForwardDirection.Y, ForwardDirection.X);
+                    bTraversalDetouring = true;
+                    UE_LOG(LogTemp, Display, TEXT("Traversal-test %s pawn %s is steering around a blocking world obstacle."),
+                        HasAuthority() ? TEXT("server") : TEXT("client"), *GetName());
+                }
+                TraversalTestBlockedPosition = CurrentPosition;
+                TraversalTestBlockedSeconds = 0.0f;
+            }
+        }
+        else if (!bTraversalDetouring)
+        {
+            TraversalTestBlockedSeconds = 0.0f;
+            TraversalTestBlockedPosition = CurrentPosition;
+        }
+
+        GetCharacterMovement()->MaxWalkSpeed = TestMoveSpeedCmPerSecond;
+        const FVector2D SteeringDirection = bTraversalDetouring ? TraversalTestDetourDirection : ForwardDirection;
+        AddMovementInput(FVector(SteeringDirection, 0.0f), 1.0f, true);
+
+        if (GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= TraversalTestNextProgressReportTime)
+        {
+            TraversalTestNextProgressReportTime = GetWorld()->GetTimeSeconds() + 5.0f;
+            FHitResult SteeringHit;
+            const bool bSteeringBlocked = GetWorld()->SweepSingleByChannel(SteeringHit, SweepStart,
+                SweepStart + FVector(SteeringDirection * CollisionProbeDistanceCm, 0.0f), FQuat::Identity,
+                ECC_Pawn, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), TraversalQueryParams);
+            const FString SteeringBlocker = bSteeringBlocked && SteeringHit.GetActor() != nullptr
+                ? SteeringHit.GetActor()->GetName()
+                : (bSteeringBlocked ? TEXT("component") : TEXT("none"));
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test %s progress pawn=%s Location=%s Remaining=%.0f cm Velocity=%.0f cm/s MaxWalk=%.0f cm/s Mode=%d DirectBlocked=%d Detouring=%d Detour=%s Steering=%s SteeringBlocked=%d Blocker=%s Stuck=%.2f Input=%s."),
+                HasAuthority() ? TEXT("server") : TEXT("client"), *GetName(), *GetActorLocation().ToCompactString(),
+                RemainingOffset.Size(), GetVelocity().Size2D(), GetCharacterMovement()->MaxWalkSpeed,
+                static_cast<int32>(GetCharacterMovement()->MovementMode.GetValue()), bForwardBlocked,
+                bTraversalDetouring,
+                *FString::Printf(TEXT("(%.2f,%.2f)"), TraversalTestDetourDirection.X, TraversalTestDetourDirection.Y),
+                *FString::Printf(TEXT("(%.2f,%.2f)"), SteeringDirection.X, SteeringDirection.Y),
+                bSteeringBlocked, *SteeringBlocker, TraversalTestBlockedSeconds,
+                *GetLastMovementInputVector().ToCompactString());
+        }
     }
 }
 
@@ -789,21 +898,47 @@ void AKalmalaCharacter::ConfigureTraversalTestTarget()
 
     const FKalmalaWorldGenerationConfig& Config = WorldGenerationState->GetWorldGenerationConfig();
     const FVector StartLocation = FKalmalaWorldPlayerStartResolver::ResolveStartTransform(Config).GetLocation();
+    TraversalStartLocation = StartLocation;
     const FVector2D StartPosition(StartLocation);
     float ClosestDistanceSquared = TNumericLimits<float>::Max();
-    for (int32 Y = -12000; Y <= 12000; Y += 250)
+    const auto IsDryTraversalLine = [&Config, &StartPosition](const FVector2D& Candidate)
     {
-        for (int32 X = -12000; X <= 12000; X += 250)
+        const FVector2D Offset = Candidate - StartPosition;
+        const int32 SampleCount = FMath::Max(1, FMath::CeilToInt(Offset.Size() / 5000.0f));
+        for (int32 SampleIndex = 1; SampleIndex <= SampleCount; ++SampleIndex)
+        {
+            const FVector2D SamplePosition = StartPosition + Offset * (static_cast<float>(SampleIndex) / SampleCount);
+            if (FKalmalaOceanSampler::Sample(Config, SamplePosition).IsWater()
+                || FKalmalaShimmeringLakeSampler::IsWater(Config, SamplePosition))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    for (int32 Y = -AKalmalaGameMode::TraversalTestTargetSearchExtentCm;
+        Y <= AKalmalaGameMode::TraversalTestTargetSearchExtentCm;
+        Y += AKalmalaGameMode::TraversalTestTargetSearchStepCm)
+    {
+        for (int32 X = -AKalmalaGameMode::TraversalTestTargetSearchExtentCm;
+            X <= AKalmalaGameMode::TraversalTestTargetSearchExtentCm;
+            X += AKalmalaGameMode::TraversalTestTargetSearchStepCm)
         {
             const FVector2D Candidate = StartPosition + FVector2D(X, Y);
-            if (FKalmalaShimmeringLakeSampler::IsWater(Config, Candidate))
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(Config, Candidate);
+            if (FKalmalaBiomeClassifier::Classify(Fields) != EKalmalaBiome::ShimmeringLakes)
             {
-                const float DistanceSquared = FVector2D::DistSquared(StartPosition, Candidate);
-                if (DistanceSquared < ClosestDistanceSquared)
-                {
-                    ClosestDistanceSquared = DistanceSquared;
-                    TraversalTestTarget = Candidate;
-                }
+                continue;
+            }
+
+            const float DistanceSquared = FVector2D::DistSquared(StartPosition, Candidate);
+            if (DistanceSquared < ClosestDistanceSquared
+                && IsDryTraversalLine(Candidate)
+                && !FKalmalaOceanSampler::Sample(Config, Candidate).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(Config, Candidate))
+            {
+                ClosestDistanceSquared = DistanceSquared;
+                TraversalTestTarget = Candidate;
             }
         }
     }

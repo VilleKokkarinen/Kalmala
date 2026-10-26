@@ -108,11 +108,21 @@ namespace KalmalaWorldMaterials
             const bool bGreen, const bool bBlue, const bool bAlpha)
         {
             UMaterialExpressionComponentMask* Mask = NewObject<UMaterialExpressionComponentMask>(Material);
-            Mask->Input.Connect(0, VertexColor);
-            Mask->R = bRed;
-            Mask->G = bGreen;
-            Mask->B = bBlue;
-            Mask->A = bAlpha;
+            if (bAlpha)
+            {
+                // UE 5.8's Vertex Color output 0 is RGB (float3); alpha is
+                // exposed on output 4. Select that scalar pin, then its R
+                // component, instead of asking an RGB value for channel A.
+                Mask->Input.Connect(4, VertexColor);
+                Mask->R = true;
+            }
+            else
+            {
+                Mask->Input.Connect(0, VertexColor);
+                Mask->R = bRed;
+                Mask->G = bGreen;
+                Mask->B = bBlue;
+            }
             EditorOnlyData->ExpressionCollection.Expressions.Add(Mask);
             return Mask;
         };

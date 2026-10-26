@@ -77,6 +77,32 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
     if (ForestDeliveryElapsed < 1) return;
     ForestDeliveryElapsed = 0;
     const auto& Config = State->GetWorldGenerationConfig();
+    if (!bForestDeliveryTargetReported)
+    {
+        TSet<FString> ExpectedIds;
+        int32 ExpectedPatches = 0;
+        int32 ExpectedTrees = 0;
+        for (TActorIterator<AKalmalaGeneratedTerrainPatch> Patch(GetWorld()); Patch; ++Patch)
+        {
+            if (!Patch->HasGenerationData()) continue;
+            const auto Trees = FKalmalaForestLayout::Generate(Config, Patch->GetGeneratedPatchCenter());
+            if (Trees.IsEmpty()) continue;
+            ++ExpectedPatches;
+            ExpectedTrees += Trees.Num();
+            for (const auto& Tree : Trees) ExpectedIds.Add(Tree.PersistentSpawnId);
+        }
+        bForestDeliveryTargetReported = true;
+        const bool bUniqueTargets = ExpectedIds.Num() == ExpectedTrees;
+        TArray<FString> ExpectedIdList = ExpectedIds.Array();
+        ExpectedIdList.Sort();
+        FString ExpectedIdText;
+        for (const FString& Id : ExpectedIdList) ExpectedIdText += Id + TEXT(";");
+        UE_LOG(LogTemp, Display,
+            TEXT("Forest delivery target: Passed=%d Authority=%d Seed=%llu Patches=%d Trees=%d UniqueIds=%d Ids=%s"),
+            bUniqueTargets, HasAuthority(), Config.WorldSeed, ExpectedPatches, ExpectedTrees, ExpectedIds.Num(),
+            *ExpectedIdText);
+        if (!bUniqueTargets) return;
+    }
     for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
     {
         const FString Id = Node->GetPersistentSpawnId();
@@ -161,11 +187,39 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         }
     }
     if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestStageDriver"))) return;
-    // Standing coverage must be captured before the fixture mutates any tree.
+    // Every populated active patch must report its exact shared-layout IDs
+    // before the fixture mutates a tree. Terrain filters can leave patches
+    // empty or reduce descriptor counts, so derive coverage from this layout.
     int32 StandingPatches = 0;
-    for (const FString& Report : ForestDeliveryReported)
-        if (!Report.EndsWith(TEXT(":Trunk")) && !Report.EndsWith(TEXT(":Drop")) && !Report.EndsWith(TEXT(":Collected"))) ++StandingPatches;
-    if (StandingPatches < 9) return;
+    bool bAllStandingPatchesReported = true;
+    TArray<FString> ValidatedDescriptorIds;
+    const auto& DeliveryConfig = State->GetWorldGenerationConfig();
+    for (TActorIterator<AKalmalaGeneratedTerrainPatch> Patch(GetWorld()); Patch; ++Patch)
+    {
+        if (!Patch->HasGenerationData()) continue;
+        const auto Trees = FKalmalaForestLayout::Generate(DeliveryConfig, Patch->GetGeneratedPatchCenter());
+        if (Trees.IsEmpty()) continue;
+        ++StandingPatches;
+        bAllStandingPatchesReported &= ForestDeliveryReported.Contains(Trees[0].PersistentSpawnId);
+        for (const auto& Tree : Trees) ValidatedDescriptorIds.Add(Tree.PersistentSpawnId);
+    }
+    if (StandingPatches == 0 || !bAllStandingPatchesReported) return;
+    const bool bPickupFixture = FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"));
+    const bool bStageDriverFixture = FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestStageDriver"));
+    const bool bExactStageFixture = bPickupFixture || bStageDriverFixture;
+    if (bExactStageFixture && ForestPickupId.IsEmpty())
+    {
+        ValidatedDescriptorIds.Sort();
+        if (ValidatedDescriptorIds.IsEmpty()) return;
+        // Both peers select the same ID from the exact descriptors they just
+        // validated. This keeps later stages attached to one original
+        // candidate when terrain gates reduce the active forest set.
+        ForestPickupId = ValidatedDescriptorIds[0];
+        UE_LOG(LogTemp, Display,
+            TEXT("%s: Passed=1 Authority=%d Seed=%llu Id=%s"),
+            bPickupFixture ? TEXT("Forest pickup target") : TEXT("Forest stage target"),
+            HasAuthority(), DeliveryConfig.WorldSeed, *ForestPickupId);
+    }
     if (HasAuthority())
     {
         ForestDriverReadySeconds += 1;
@@ -180,6 +234,43 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             AKalmalaHarvestNode* Pickup = nullptr;
             for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
                 if (Node->GetPersistentSpawnId() == ForestPickupId) { Pickup = *Node; break; }
+            if (Pickup && Pickup->IsFelledTrunk())
+            {
+                const FVector4 Dimensions = Pickup->GetForestDimensionsForVerification();
+                const FString GeometryKey = ForestPickupId + TEXT(":TrunkSurface");
+                if (!Remote->ForestDeliveryReported.Contains(GeometryKey))
+                {
+                    Remote->ForestDeliveryReported.Add(GeometryKey);
+                    const FVector Root = Pickup->GetActorLocation();
+                    const FVector Axis = Pickup->GetActorForwardVector();
+                    const FBox MeshBounds = Pickup->GetComponentsBoundingBox(true);
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Forest trunk surface: Id=%s Root=%s Yaw=%.3f Radius=%.2f Length=%.2f MeshMin=%s MeshMax=%s"),
+                        *ForestPickupId, *Root.ToCompactString(), Pickup->GetActorRotation().Yaw,
+                        Dimensions.X, Dimensions.Y, *MeshBounds.Min.ToCompactString(), *MeshBounds.Max.ToCompactString());
+                    FCollisionQueryParams SurfaceParams(SCENE_QUERY_STAT(ForestTrunkSurface), true, Pickup);
+                    SurfaceParams.AddIgnoredActor(Remote);
+                    for (int32 Sample = 0; Sample <= 4; ++Sample)
+                    {
+                        const float Along = Dimensions.Y * 0.25f * Sample;
+                        const FVector Center = Root + Axis * Along + FVector(0, 0, Dimensions.X);
+                        FHitResult GroundHit;
+                        const bool bGroundHit = GetWorld()->LineTraceSingleByChannel(GroundHit,
+                            Center + FVector(0, 0, 500), Center - FVector(0, 0, 500), ECC_Visibility, SurfaceParams);
+                        UE_LOG(LogTemp, Display,
+                            TEXT("Forest trunk terrain sample: Id=%s Along=%.1f GroundHit=%d GroundZ=%.2f RootZ=%.2f Clearance=%.2f"),
+                            *ForestPickupId, Along, bGroundHit, bGroundHit ? GroundHit.ImpactPoint.Z : -99999.0f,
+                            Root.Z, bGroundHit ? Root.Z - GroundHit.ImpactPoint.Z : -99999.0f);
+                    }
+                }
+                const FVector LogCenter = Pickup->GetActorLocation()
+                    + Pickup->GetActorForwardVector() * FMath::Min(Dimensions.Y * 0.1f, 60.0f)
+                    + FVector(0, 0, Dimensions.X);
+                const FRotator Facing = (LogCenter - (Remote->GetActorLocation() + FVector(0, 0, 55))).Rotation();
+                Remote->SetActorRotation(Facing);
+                Remote->ForceNetUpdate();
+            }
+            if (bStageDriverFixture && !bPickupFixture) return;
             if (Remote->ForestForgedRequests >= 3 && !bForestRemoteRangeReturned)
             {
                 if (!bForestRemoteRangeStarted)
@@ -396,10 +487,27 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             return;
         }
         AKalmalaHarvestNode* Target = nullptr;
-        for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
-            if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:")) && Node->CanReceiveAxeAttack()
-                && (!Target || FVector::DistSquared(Node->GetActorLocation(), Remote->GetActorLocation())
-                    < FVector::DistSquared(Target->GetHarvestInteractionLocation(), Remote->GetActorLocation()))) Target = *Node;
+        if (bExactStageFixture)
+        {
+            for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+                if (Node->GetPersistentSpawnId() == ForestPickupId && Node->CanReceiveAxeAttack())
+                {
+                    Target = *Node;
+                    break;
+                }
+            if (!Target)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 ExactStageTargetMissing Id=%s"), *ForestPickupId);
+                return;
+            }
+        }
+        else
+        {
+            for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
+                if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:")) && Node->CanReceiveAxeAttack()
+                    && (!Target || FVector::DistSquared(Node->GetActorLocation(), Remote->GetActorLocation())
+                        < FVector::DistSquared(Target->GetHarvestInteractionLocation(), Remote->GetActorLocation()))) Target = *Node;
+        }
         if (!Target) return;
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")))
         {
@@ -409,7 +517,13 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             if (FKalmalaM9SourceLootContract::IsM9Source(Target->GetGatheringSourceId())
                 && !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(Config, Target->GetGatheringSourceId(),
                     Target->GetPersistentSpawnId(), ForestPickupExpected)) return;
-            ForestPickupId = Target->GetPersistentSpawnId();
+            if (bExactStageFixture && Target->GetPersistentSpawnId() != ForestPickupId)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 ExactStageTargetChanged Requested=%s Selected=%s"),
+                    *ForestPickupId, *Target->GetPersistentSpawnId());
+                return;
+            }
+            if (!bExactStageFixture) ForestPickupId = Target->GetPersistentSpawnId();
             ForestPickupItem = Selection.RewardItemId;
             ForestPickupBefore = Remote->GetInventoryComponent()->GetQuantity(ForestPickupItem);
             ForestPickupHostBefore = GetInventoryComponent()->GetQuantity(ForestPickupItem);
@@ -447,14 +561,30 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         AKalmalaHarvestNode* Target = nullptr;
         for (TActorIterator<AKalmalaHarvestNode> Node(GetWorld()); Node; ++Node)
             if (Node->GetPersistentSpawnId().StartsWith(TEXT("forest:v1:"))
+                && (!bPickupFixture || Node->GetPersistentSpawnId() == ForestPickupId)
                 && (ForestForgedId.IsEmpty()
                     ? FVector::DistSquared(Node->GetActorLocation(), GetActorLocation()) < FMath::Square(210.0f)
                     : Node->GetPersistentSpawnId() == ForestForgedId)
                 && (!Target || FVector::DistSquared(Node->GetActorLocation(), GetActorLocation())
                     < FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()))) Target = *Node;
         if (!Target) return;
+        // Keep the fixture driver's ordinary attack ray on the exact tree or
+        // fallen log as presentation changes. The settled trunk lies along
+        // actor-local +X, so aiming at its old root would trace into the ground.
+        FVector AimLocation = Target->GetHarvestInteractionLocation() + FVector(0, 0, 10);
+        if (Target->IsFelledTrunk())
+        {
+            const FVector4 Dimensions = Target->GetForestDimensionsForVerification();
+            AimLocation = Target->GetActorLocation()
+                + Target->GetActorForwardVector() * FMath::Min(Dimensions.Y * 0.1f, 60.0f)
+                + FVector(0, 0, Dimensions.X);
+        }
+        const FRotator Facing = (AimLocation - (GetActorLocation() + FVector(0, 0, 55))).Rotation();
+        SetActorRotation(Target->IsFelledTrunk() ? Facing : FRotator(0, Facing.Yaw, 0));
+        Controller->SetControlRotation(Facing);
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
-            && ForestForgedRequests >= 4 && !ForestForgedId.IsEmpty() && !Target->IsWoodDrop() && ForestPickupId.IsEmpty())
+            && ForestForgedRequests >= 4 && !ForestForgedId.IsEmpty() && !Target->IsWoodDrop()
+            && ForestRemoteRangeRequests < 4)
         {
             if (FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()) > FMath::Square(500.0f))
             {
@@ -466,7 +596,7 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             // Wait for the server's far phase and its return teleport before attacking.
             if (ForestRemoteRangeRequests < 4) return;
         }
-        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && (Target->IsWoodDrop() || !ForestPickupId.IsEmpty()))
+        if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && Target->IsWoodDrop())
         {
             if (bForestPickupReported) return;
             if (FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()) > FMath::Square(500.0f))
@@ -477,7 +607,9 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             }
             // Wait for the authoritative far phase and return before collection.
             if (ForestDropRangeRequests < 4) return;
-            if (ForestPickupId.IsEmpty())
+            if (ForestPickupId.IsEmpty()) ForestPickupId = Target->GetPersistentSpawnId();
+            if (Target->GetPersistentSpawnId() != ForestPickupId) return;
+            if (ForestPickupItem.IsNone())
             {
                 // Preserve the drop long enough for both observers to sample it.
                 if (ForestDriverStage != TEXT("Drop")) { ForestDriverStage = TEXT("Drop"); ForestDriverStageWait = 0; }
@@ -488,7 +620,6 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
                 if (FKalmalaM9SourceLootContract::IsM9Source(Target->GetGatheringSourceId())
                     && !FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity(Config, Target->GetGatheringSourceId(),
                         Target->GetPersistentSpawnId(), ForestPickupExpected)) return;
-                ForestPickupId = Target->GetPersistentSpawnId();
                 ForestPickupItem = Selection.RewardItemId;
                 ForestPickupBefore = GetInventoryComponent()->GetQuantity(ForestPickupItem);
                 // Aim from the normal boom pivot; the camera lies behind it
@@ -636,7 +767,10 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         ++ForestDriverRequests;
         RequestAttack(); // Normal owned RPC carries sequence only; server selects and validates the target.
         if (ForestDriverRequests == 60)
-            UE_LOG(LogTemp, Error, TEXT("Forest delivery: Passed=0 DriverAttackBudgetExhausted Id=%s"), *Target->GetPersistentSpawnId());
+            UE_LOG(LogTemp, Error,
+                TEXT("Forest delivery: Passed=0 DriverAttackBudgetExhausted Id=%s Stage=%d Health=%.1f InRange=%d"),
+                *Target->GetPersistentSpawnId(), Target->IsFelledTrunk() ? 1 : 0, Target->TreeHealth,
+                Target->IsWithinAxeRange(GetActorLocation()));
     }
 #endif
 }
@@ -673,7 +807,20 @@ void AKalmalaCharacter::VerifyForestStreaming()
     };
     if (ForestStreamingPhase == 0)
     {
-        if (!Collected && ForestDeliveryReported.Num() != 9) return;
+        const auto& Config = State->GetWorldGenerationConfig();
+        TSet<FString> ExpectedTreeIds;
+        int32 ExpectedTreePatches = 0;
+        bool bAllDeliveryReportsReceived = true;
+        for (TActorIterator<AKalmalaGeneratedTerrainPatch> Patch(GetWorld()); Patch; ++Patch)
+        {
+            if (!Patch->HasGenerationData()) continue;
+            const auto Trees = FKalmalaForestLayout::Generate(Config, Patch->GetGeneratedPatchCenter());
+            if (Trees.IsEmpty()) continue;
+            ++ExpectedTreePatches;
+            bAllDeliveryReportsReceived &= ForestDeliveryReported.Contains(Trees[0].PersistentSpawnId);
+            for (const auto& Tree : Trees) ExpectedTreeIds.Add(Tree.PersistentSpawnId);
+        }
+        if (ExpectedTreePatches == 0 || !bAllDeliveryReportsReceived) return;
         if (Now >= 40) { Report(TEXT("BaselineTimeout"), false); return; }
         if (Collected)
         {
@@ -694,7 +841,15 @@ void AKalmalaCharacter::VerifyForestStreaming()
                 ForestStreamingNodes.Add(Node->GetPersistentSpawnId(), *Node);
         for (TActorIterator<AKalmalaGeneratedTerrainPatch> Patch(GetWorld()); Patch; ++Patch)
             if (Patch->HasGenerationData()) ForestStreamingPatches.Add(*Patch);
-        if (ForestStreamingNodes.Num() != 162 || ForestStreamingPatches.Num() != 9)
+        ForestStreamingExpectedTrees = ExpectedTreeIds.Num();
+        ForestStreamingExpectedTreePatches = ExpectedTreePatches;
+        bool bMatchesExpectedIds = ForestStreamingExpectedTrees > 0
+            && ForestStreamingExpectedTrees == ForestStreamingNodes.Num();
+        for (const auto& ExpectedId : ExpectedTreeIds)
+            bMatchesExpectedIds &= ForestStreamingNodes.Contains(ExpectedId);
+        for (const auto& Entry : ForestStreamingNodes)
+            bMatchesExpectedIds &= ExpectedTreeIds.Contains(Entry.Key);
+        if (!bMatchesExpectedIds || ForestStreamingPatches.Num() != 9)
         { Report(TEXT("Baseline"), false); return; }
         Report(TEXT("Baseline"), true);
         ForestStreamingPhase = 1;
@@ -759,7 +914,8 @@ void AKalmalaCharacter::VerifyForestStreaming()
             Matches &= Patch->GetCosmeticForestCountForVerification() == 0
                 && Patch->GetSuppressedForestCandidatesForVerification().Num() == Trees.Num();
         }
-        Matches &= Restored.Num() == 162 - (Collected ? 1 : 0) && Patches == 9;
+        Matches &= Restored.Num() == ForestStreamingExpectedTrees - (Collected ? 1 : 0)
+            && Patches == ForestStreamingExpectedTreePatches;
         if (Collected)
         {
             Matches &= !Restored.Contains(ForestStreamingCollectedId)

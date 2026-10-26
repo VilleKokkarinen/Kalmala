@@ -164,6 +164,15 @@ AActor* UKalmalaCombatComponent::FindServerTarget() const
             bLineHit, Hit.GetActor() != nullptr ? *Hit.GetActor()->GetName() : TEXT("None"),
             *Start.ToCompactString(), *(Start + Pawn->GetActorForwardVector() * AttackRange).ToCompactString());
     }
+    else if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && Pawn->HasAuthority())
+    {
+        UE_LOG(LogTemp, Display, TEXT("Forest pickup combat trace: Pawn=%s Yaw=%.1f Pitch=%.1f Forward=%s Hit=%d Actor=%s Component=%s Impact=%s Start=%s End=%s"),
+            *Pawn->GetName(), Pawn->GetActorRotation().Yaw, Pawn->GetActorRotation().Pitch,
+            *Pawn->GetActorForwardVector().ToCompactString(),
+            bLineHit, Hit.GetActor() != nullptr ? *Hit.GetActor()->GetName() : TEXT("None"),
+            Hit.GetComponent() != nullptr ? *Hit.GetComponent()->GetName() : TEXT("None"), *Hit.ImpactPoint.ToCompactString(),
+            *Start.ToCompactString(), *(Start + Pawn->GetActorForwardVector() * AttackRange).ToCompactString());
+    }
 #endif
     if (bLineHit
         && (Cast<AKalmalaWildlifeSpawn>(Hit.GetActor()) || Cast<AKalmalaHarvestNode>(Hit.GetActor()))) return Hit.GetActor();
@@ -177,6 +186,15 @@ AActor* UKalmalaCombatComponent::FindServerTarget() const
     {
         UE_LOG(LogTemp, Display, TEXT("Rat verification melee sweep: Hit=%d Actor=%s Start=%s End=%s."),
             bLowSweepHit, Hit.GetActor() != nullptr ? *Hit.GetActor()->GetName() : TEXT("None"),
+            *LowStart.ToCompactString(), *(LowStart + Pawn->GetActorForwardVector() * AttackRange).ToCompactString());
+    }
+    else if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup")) && Pawn->HasAuthority())
+    {
+        UE_LOG(LogTemp, Display, TEXT("Forest pickup combat sweep: Pawn=%s Yaw=%.1f Pitch=%.1f Forward=%s Hit=%d Actor=%s Component=%s Impact=%s Start=%s End=%s"),
+            *Pawn->GetName(), Pawn->GetActorRotation().Yaw, Pawn->GetActorRotation().Pitch,
+            *Pawn->GetActorForwardVector().ToCompactString(),
+            bLowSweepHit, Hit.GetActor() != nullptr ? *Hit.GetActor()->GetName() : TEXT("None"),
+            Hit.GetComponent() != nullptr ? *Hit.GetComponent()->GetName() : TEXT("None"), *Hit.ImpactPoint.ToCompactString(),
             *LowStart.ToCompactString(), *(LowStart + Pawn->GetActorForwardVector() * AttackRange).ToCompactString());
     }
 #endif

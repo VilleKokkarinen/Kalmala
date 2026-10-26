@@ -413,8 +413,12 @@ bool FKalmalaShimmeringLakesShapeTest::RunTest(const FString& Parameters)
         WeightsSample.Weights[2], WeightsSample.Weights[3], WeightsSample.Weights[4],
         WeightsSample.Weights[5], WeightsSample.Weights[6]};
     const FKalmalaRegionalSample Integrated = G::SampleInternal(Fields, false, true);
-    TestEqual(TEXT("Regional sampler uses the Meadows/Elderwood Lakes candidate blend"), Integrated.Height,
-        G::BlendCandidateHeights(float(Source), Candidates, 0.0f, FullWeights));
+    const float CandidateBlend = G::BlendCandidateHeights(float(Source), Candidates, 0.0f, FullWeights);
+    const float ExpectedHeight = Fields.Elevation <= T::SeaElevation
+        ? FMath::Min(CandidateBlend, float(Source))
+        : float(G::PreserveSourceLandSign(CandidateBlend, Source, T::CoastSignTransitionScale));
+    TestEqual(TEXT("Regional sampler applies the source-relative coast transition after Lakes blending"),
+        Integrated.Height, ExpectedHeight);
     constexpr float WeightStep = 0.0001f;
     float NeighborWeights[7];
     FMemory::Memcpy(NeighborWeights, FullWeights, sizeof(FullWeights));
@@ -424,6 +428,13 @@ bool FKalmalaShimmeringLakesShapeTest::RunTest(const FString& Parameters)
     const float HeightAfter = G::BlendCandidateHeights(float(Source), Candidates, 0.0f, NeighborWeights);
     TestTrue(TEXT("Neighboring Meadows/Lakes weight transfer changes height continuously"),
         FMath::IsNearlyEqual(HeightAfter - HeightBefore, WeightStep * float(Meadow - Lakes), 0.02f));
+    const float CoastHeightBefore = float(G::PreserveSourceLandSign(
+        HeightBefore, Source, T::CoastSignTransitionScale));
+    const float CoastHeightAfter = float(G::PreserveSourceLandSign(
+        HeightAfter, Source, T::CoastSignTransitionScale));
+    TestTrue(TEXT("Source-coast shaping preserves the continuous neighboring weight response"),
+        FMath::Abs(CoastHeightAfter - CoastHeightBefore)
+            <= FMath::Abs(HeightAfter - HeightBefore) + 0.02f);
 
     TestFalse(TEXT("Compiled analytic basin support remains disabled"), T::bEnableAnalyticBasins);
     const FKalmalaRegionalSample FormerBasin = G::Sample(Config, FormerBasinPosition);
@@ -521,9 +532,13 @@ bool FKalmalaBiomeHeightBlendTest::RunTest(const FString& Parameters)
             Preview.MountainDetailAmplitude),
     };
     const float NoTransitionOceanOffset = 0.0f;
-    const float ExpectedTransitionHeight = G::BlendCandidateHeights(
+    const float ExpectedCandidateBlend = G::BlendCandidateHeights(
         SourceHeight, TransitionCandidates, NoTransitionOceanOffset, Sample.Weights);
-    TestEqual(TEXT("Regional sampling blends candidates with its continuous biome weights"),
+    const float ExpectedTransitionHeight = Fields.Elevation <= FKalmalaRegionalTuning::SeaElevation
+        ? FMath::Min(ExpectedCandidateBlend, SourceHeight)
+        : float(G::PreserveSourceLandSign(ExpectedCandidateBlend,
+            SourceHeight, FKalmalaRegionalTuning::CoastSignTransitionScale));
+    TestEqual(TEXT("Regional sampling blends candidates before the source-relative coast transition"),
         Sample.Height, ExpectedTransitionHeight);
     TestEqual(TEXT("Height blending leaves classifier identity unchanged"), Sample.Biome, G::SampleBiome(Fields));
 
@@ -1068,6 +1083,10 @@ bool FKalmalaCoastSignTransitionTest::RunTest(const FString& Parameters)
     const double NearCoast = G::PreserveSourceLandSign(-100.0, 0.001, T::CoastSignTransitionScale);
     TestTrue(TEXT("Coast transition remains positive for low source clearance"), NearCoast > 0.0);
     TestTrue(TEXT("Coast transition tapers below source clearance"), NearCoast < 0.001);
+    const double DeepCoastTail = G::PreserveSourceLandSign(-100.0, 0.22, T::CoastSignTransitionScale);
+    TestTrue(TEXT("Deep softplus tail preserves positive source-land sign"), DeepCoastTail > 0.0);
+    TestTrue(TEXT("Deep softplus tail survives terrain float conversion"), float(DeepCoastTail) > 0.0f);
+    TestTrue(TEXT("Deep softplus tail remains below source clearance"), DeepCoastTail < 0.22);
     TestEqual(TEXT("Above-transition terrain retains its shaped height"),
         G::PreserveSourceLandSign(15000.0, Source, T::CoastSignTransitionScale), 15000.0);
     return true;

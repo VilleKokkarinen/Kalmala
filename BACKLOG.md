@@ -479,7 +479,8 @@ for BH26. Update `BACKLOG.md` and `PROGRESS.md`, commit only run-owned changes,
 and stop after the increment. BH26 is the final integrated verification/repair
 run for this goal and may exceed one turn.
 
-- [ ] **Implement biome height rework and Meadows terrain dressing.**
+- [x] **Implement biome height rework and Meadows terrain dressing.** BH01–BH26
+  completed 2026-10-26; final acceptance is recorded in `PROGRESS.md`.
   - [x] **BH01 — Capture fixed-seed baselines.** Keep this parent open until
     BH01a–BH01c are complete.
     - [x] **BH01a — Export seed overviews and choose sites.** Render full-world
@@ -786,14 +787,10 @@ run for this goal and may exceed one turn.
       curve passed 180,000 monotonic comparisons across every target/scale
       pairing. Raw ranges and BH01 comparisons are in
       `docs/biome-height-rework.md`; rendered acceptance remains BH26.
-  - [ ] **BH26 — Run final integrated verification and repair.** Inspect the full
-    combined change; run the applicable Editor build, regional/master-map/
-    finite-world/integrated/water checks, RegionalGeneration and Minimap peers,
-    forest/harvest lifecycle, and rendered terrain traversal, under-vegetation
-    floor detail, start/build checks from `docs/07-development-setup.md`.
-    Repair regressions and rerun affected plus
-    required full checks; mark this goal complete only after required results
-    pass and all remaining limitations are recorded.
+  - [x] **BH26 — Run final integrated verification and repair.** The Editor
+    build, world and water automation, RegionalGeneration/Minimap peers, forest
+    lifecycle/restart, material generation, and rendered traversal acceptance
+    passed 2026-10-26. Results and remaining limits are in `PROGRESS.md`.
 
 ### Monster population and camp spawn suppression — user request, 2026-10-22
 

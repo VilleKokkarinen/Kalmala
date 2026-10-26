@@ -27,6 +27,9 @@ class KALMALAGAMEPLAY_API AKalmalaGameMode : public AGameModeBase
     GENERATED_BODY()
 
 public:
+    static constexpr int32 TraversalTestTargetSearchExtentCm = 1200000;
+    static constexpr int32 TraversalTestTargetSearchStepCm = 25000;
+
     AKalmalaGameMode();
 
     virtual void BeginPlay() override;
@@ -404,6 +407,7 @@ private:
     int32 M9Schema2CandidatePeerLoginCount = 0;
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
+    float TraversalTestNextProgressReportTime = 0.0f;
     TSet<TWeakObjectPtr<APawn>> TraversalTestCompletedPawns;
     TSet<TWeakObjectPtr<APawn>> TraversalTestStartedPawns;
 };

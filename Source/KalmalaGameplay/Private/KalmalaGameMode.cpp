@@ -86,10 +86,7 @@ namespace KalmalaGameMode
     constexpr float TerrainPatchActivationIntervalSeconds = 1.0f;
     constexpr float ExposureUpdateIntervalSeconds = 1.0f;
     constexpr float InteractionGridUpdateIntervalSeconds = 1.0f;
-    constexpr float TraversalTestSpeed = 1800.0f;
     constexpr float TraversalTestArrivalDistance = 180.0f;
-    constexpr int32 TraversalTargetSearchExtent = 12000;
-    constexpr int32 TraversalTargetSearchStep = 250;
     bool TryGetWildlifeArchetypeForSpawn(const FKalmalaWorldGenerationConfig& Config,
         const FKalmalaWorldPopulationSpawn& Spawn, EKalmalaWildlifeArchetype& OutArchetype)
     {
@@ -8258,19 +8255,39 @@ void AKalmalaGameMode::ConfigureTraversalTest()
         return;
     }
 
+    const FVector2D TraversalStartPosition(FKalmalaWorldPlayerStartResolver::ResolveStartTransform(WorldGenerationConfig).GetLocation());
     float ClosestDistanceSquared = TNumericLimits<float>::Max();
-    for (int32 Y = -KalmalaGameMode::TraversalTargetSearchExtent; Y <= KalmalaGameMode::TraversalTargetSearchExtent; Y += KalmalaGameMode::TraversalTargetSearchStep)
+    const auto IsDryTraversalLine = [this, &TraversalStartPosition](const FVector2D& Candidate)
     {
-        for (int32 X = -KalmalaGameMode::TraversalTargetSearchExtent; X <= KalmalaGameMode::TraversalTargetSearchExtent; X += KalmalaGameMode::TraversalTargetSearchStep)
+        const FVector2D Offset = Candidate - TraversalStartPosition;
+        const int32 SampleCount = FMath::Max(1, FMath::CeilToInt(Offset.Size() / 5000.0f));
+        for (int32 SampleIndex = 1; SampleIndex <= SampleCount; ++SampleIndex)
         {
-            const FVector2D Candidate = TerrainPatchOrigin + FVector2D(X, Y);
-            if (!FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Candidate))
+            const FVector2D SamplePosition = TraversalStartPosition + Offset * (static_cast<float>(SampleIndex) / SampleCount);
+            if (FKalmalaOceanSampler::Sample(WorldGenerationConfig, SamplePosition).IsWater()
+                || FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, SamplePosition))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    for (int32 Y = -AKalmalaGameMode::TraversalTestTargetSearchExtentCm; Y <= AKalmalaGameMode::TraversalTestTargetSearchExtentCm; Y += AKalmalaGameMode::TraversalTestTargetSearchStepCm)
+    {
+        for (int32 X = -AKalmalaGameMode::TraversalTestTargetSearchExtentCm; X <= AKalmalaGameMode::TraversalTestTargetSearchExtentCm; X += AKalmalaGameMode::TraversalTestTargetSearchStepCm)
+        {
+            const FVector2D Candidate = TraversalStartPosition + FVector2D(X, Y);
+            const FKalmalaWorldFieldSample Fields = FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig, Candidate);
+            if (FKalmalaBiomeClassifier::Classify(Fields) != EKalmalaBiome::ShimmeringLakes)
             {
                 continue;
             }
 
-            const float DistanceSquared = FVector2D::DistSquared(TerrainPatchOrigin, Candidate);
-            if (DistanceSquared < ClosestDistanceSquared)
+            const float DistanceSquared = FVector2D::DistSquared(TraversalStartPosition, Candidate);
+            if (DistanceSquared < ClosestDistanceSquared
+                && IsDryTraversalLine(Candidate)
+                && !FKalmalaOceanSampler::Sample(WorldGenerationConfig, Candidate).IsWater()
+                && !FKalmalaShimmeringLakeSampler::IsWater(WorldGenerationConfig, Candidate))
             {
                 ClosestDistanceSquared = DistanceSquared;
                 TraversalTestTarget = Candidate;
@@ -8280,12 +8297,14 @@ void AKalmalaGameMode::ConfigureTraversalTest()
 
     if (ClosestDistanceSquared == TNumericLimits<float>::Max())
     {
-        UE_LOG(LogTemp, Error, TEXT("Traversal-test switch was requested but no Shimmering Lakes target was found within %d units."), KalmalaGameMode::TraversalTargetSearchExtent);
+        UE_LOG(LogTemp, Error, TEXT("Traversal-test switch was requested but no dry Shimmering Lakes terrain target was found within %.0f km."),
+            AKalmalaGameMode::TraversalTestTargetSearchExtentCm / 100000.0f);
         bTraversalTestEnabled = false;
         return;
     }
 
-    UE_LOG(LogTemp, Display, TEXT("Traversal-test server target is %s, %.0f units from the generated start."), *TraversalTestTarget.ToString(), FMath::Sqrt(ClosestDistanceSquared));
+    UE_LOG(LogTemp, Display, TEXT("Traversal-test dry Shimmering Lakes target is %s, %.2f km from the generated start."),
+        *TraversalTestTarget.ToString(), FMath::Sqrt(ClosestDistanceSquared) / 100000.0f);
 }
 
 void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
@@ -8527,20 +8546,52 @@ void AKalmalaGameMode::DriveTraversalTest()
         {
             TraversalTestStartedPawns.Add(Character);
             Character->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-            UE_LOG(LogTemp, Display, TEXT("Traversal-test server is driving pawn %s from %s toward the Shimmering Lakes target."), *Character->GetName(), *Character->GetActorLocation().ToCompactString());
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test server is driving pawn %s from %s toward dry Shimmering Lakes terrain."), *Character->GetName(), *Character->GetActorLocation().ToCompactString());
         }
 
         const FVector CurrentLocation = Character->GetActorLocation();
         const FVector2D RemainingOffset = TraversalTestTarget - FVector2D(CurrentLocation);
+        const float CurrentTime = GetWorld()->GetTimeSeconds();
+        if (CurrentTime >= TraversalTestNextProgressReportTime)
+        {
+            TraversalTestNextProgressReportTime = CurrentTime + 5.0f;
+            const UCharacterMovementComponent* Movement = Character->GetCharacterMovement();
+            const FVector2D CurrentPosition(CurrentLocation);
+            const FVector2D ForwardPosition = CurrentPosition + RemainingOffset.GetSafeNormal() * 250.0f;
+            const float CurrentHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, CurrentPosition);
+            const float ForwardHeight = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, ForwardPosition);
+            const FVector TerrainNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(WorldGenerationConfig, CurrentPosition);
+            const float TerrainSlopeDegrees = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(TerrainNormal.Z, -1.0f, 1.0f)));
+            const float ForwardSlopeDegrees = FMath::RadiansToDegrees(FMath::Atan2(FMath::Abs(ForwardHeight - CurrentHeight), 250.0f));
+            const FHitResult& FloorHit = Movement->CurrentFloor.HitResult;
+            const float CollisionFloorSlopeDegrees = FloorHit.bBlockingHit
+                ? FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FloorHit.ImpactNormal.Z, -1.0f, 1.0f)))
+                : -1.0f;
+            FHitResult ForwardHit;
+            FCollisionQueryParams TraversalQueryParams(SCENE_QUERY_STAT(TraversalDiagnostic), false, Character);
+            const FVector SweepStart = CurrentLocation + FVector(0.0f, 0.0f, 15.0f);
+            const FVector SweepEnd = SweepStart + FVector(RemainingOffset.GetSafeNormal() * 200.0f, 0.0f);
+            const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+            const float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+            const bool bForwardBlocked = GetWorld()->SweepSingleByChannel(ForwardHit, SweepStart, SweepEnd, FQuat::Identity,
+                ECC_Pawn, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), TraversalQueryParams);
+            const FString ForwardBlocker = bForwardBlocked && ForwardHit.GetActor() != nullptr
+                ? ForwardHit.GetActor()->GetName()
+                : (bForwardBlocked ? TEXT("component") : TEXT("none"));
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test server progress pawn=%s Location=%s Remaining=%.0f cm Velocity=%.0f cm/s MaxWalk=%.0f cm/s Mode=%d TerrainSlope=%.1f deg ForwardSlope=%.1f deg CollisionFloorSlope=%.1f deg FloorHit=%d Input=%s ForwardBlocked=%d Blocker=%s."),
+                *Character->GetName(), *CurrentLocation.ToCompactString(), RemainingOffset.Size(),
+                Character->GetVelocity().Size2D(), Movement->MaxWalkSpeed, static_cast<int32>(Movement->MovementMode.GetValue()),
+                TerrainSlopeDegrees, ForwardSlopeDegrees, CollisionFloorSlopeDegrees, FloorHit.bBlockingHit,
+                *Character->GetLastMovementInputVector().ToCompactString(), bForwardBlocked, *ForwardBlocker);
+        }
+
         if (RemainingOffset.SizeSquared() <= FMath::Square(KalmalaGameMode::TraversalTestArrivalDistance))
         {
             TraversalTestCompletedPawns.Add(Character);
-            UE_LOG(LogTemp, Display, TEXT("Traversal-test server pawn %s reached the Shimmering Lakes target after travelling %.0f units."), *Character->GetName(), FMath::Sqrt(FVector2D::DistSquared(TerrainPatchOrigin, FVector2D(CurrentLocation))));
+            UE_LOG(LogTemp, Display, TEXT("Traversal-test server pawn %s reached dry Shimmering Lakes terrain after travelling %.0f m."), *Character->GetName(), FMath::Sqrt(FVector2D::DistSquared(TerrainPatchOrigin, FVector2D(CurrentLocation))) / 100.0f);
             continue;
         }
 
-        Character->GetCharacterMovement()->MaxWalkSpeed = KalmalaGameMode::TraversalTestSpeed;
-        Character->AddMovementInput(FVector(RemainingOffset.GetSafeNormal(), 0.0f), 1.0f, true);
     }
 }
 

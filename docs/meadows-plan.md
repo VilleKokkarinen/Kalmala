@@ -1,13 +1,14 @@
 # Meadows terrain and biome plan
 
-Status: active implementation plan, updated 2026-10-25. BH25a selected the
+Status: completed in BH26 on 2026-10-26; final integrated acceptance is recorded
+in [`PROGRESS.md`](../PROGRESS.md). BH25a selected the
 4 m broad-hill amplitude, BH25b1 selected 0.6 m rolling amplitude, and BH25b2
 selected 4 / 0.6 / 0.1 m shared Elderwood/Tundra amplitudes from fresh-source
 profiles. BH25c selected the 8 m / 0.1 m Meadows floor detail. BH10a/BH11a
 implement the Meadows hill and rolling layers, and BH12a adds the selected
 floor-detail layer. BH10b1/BH11b/BH12b provide profile harnesses; remaining
 fresh-source tuning is in BH25d–BH25e and aggregate cost contracts are in
-BH25b3. Rendered acceptance is in BH26. No gameplay, forest or
+BH25b3. Rendered acceptance passed in BH26. No gameplay, forest or
 presentation changes are implemented by this document. Execution is tracked in
 `BACKLOG.md` before Monster Population under the combined biome-height goal.
 

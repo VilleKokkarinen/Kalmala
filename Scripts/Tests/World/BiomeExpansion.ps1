@@ -99,28 +99,61 @@ if ($ForestDeliveryOnly) {
             if ($server.HasExited -or $client.HasExited) { throw 'A forest peer exited before delivery.' }
             $hostText = if (Test-Path $serverLog) { [string](Get-Content $serverLog -Raw) } else { '' }
             $clientText = if (Test-Path $clientLog) { [string](Get-Content $clientLog -Raw) } else { '' }
-            if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0|Forest contention result: Passed=0') { throw 'Forest peer failure; inspect logs.' }
+            if (($hostText + $clientText) -match 'Fatal error:|Assertion failed:|Forest delivery(?: target)?: Passed=0|Forest contention result: Passed=0') { throw 'Forest peer failure; inspect logs.' }
+            $hostTarget = [regex]::Match($hostText, 'Forest delivery target: Passed=1 Authority=1 Seed=10323456789 Patches=([1-9][0-9]*) Trees=([1-9][0-9]*) UniqueIds=([1-9][0-9]*) Ids=([^\r\n]+)')
+            $clientTarget = [regex]::Match($clientText, 'Forest delivery target: Passed=1 Authority=0 Seed=10323456789 Patches=([1-9][0-9]*) Trees=([1-9][0-9]*) UniqueIds=([1-9][0-9]*) Ids=([^\r\n]+)')
+            $hostTargetCounts = @($hostTarget.Groups[1].Value, $hostTarget.Groups[2].Value, $hostTarget.Groups[3].Value) -join ','
+            $clientTargetCounts = @($clientTarget.Groups[1].Value, $clientTarget.Groups[2].Value, $clientTarget.Groups[3].Value) -join ','
+            if ($hostTarget.Success -and $clientTarget.Success -and $hostTargetCounts -ne $clientTargetCounts) { throw 'Host/client forest descriptor targets differ.' }
+            $targetReady = $hostTarget.Success -and $clientTarget.Success
+            $targetPatches = if ($targetReady) { [int]$hostTarget.Groups[1].Value } else { 0 }
+            $targetTrees = if ($targetReady) { [int]$hostTarget.Groups[2].Value } else { 0 }
+            $targetUniqueIds = if ($targetReady) { [int]$hostTarget.Groups[3].Value } else { 0 }
+            if ($targetReady -and $targetTrees -ne $targetUniqueIds) { throw 'Shared forest layout produced duplicate persistent IDs.' }
+            $targetIds = if ($targetReady) { @($hostTarget.Groups[4].Value -split ';' | Where-Object { $_ }) } else { @() }
+            $clientTargetIds = if ($targetReady) { @($clientTarget.Groups[4].Value -split ';' | Where-Object { $_ }) } else { @() }
+            if ($targetReady -and ($targetIds.Count -ne $targetTrees -or @($targetIds | Sort-Object -Unique).Count -ne $targetTrees -or
+                ($targetIds -join ';') -ne ($clientTargetIds -join ';'))) { throw 'Host/client initial forest descriptor IDs differ.' }
+
             $matches = [regex]::Matches($hostText, 'Forest delivery: Passed=1 Authority=1 (Seed=10323456789 Trees=[1-9][0-9]* Cosmetics=0 Ids=[^\r\n]+)')
-            # This fixed-seed/start-location fixture has nine populated patches,
-            # each with eighteen trees. Do not accept a single delivered patch
-            # or count duplicate log lines as additional patch coverage.
+            # Derive the expected populated patch and tree counts from the same
+            # shared layout used by the game; the Meadows gates intentionally
+            # change how many candidates survive in each active patch.
             $shared = @($matches | Where-Object {
                 $report = $_.Groups[1].Value
                 $ids = @(($report -split ' Ids=', 2)[1] -split ';' | Where-Object { $_ })
-                $report -match '^Seed=10323456789 Trees=18 Cosmetics=0 ' -and
-                $ids.Count -eq 18 -and @($ids | Sort-Object -Unique).Count -eq 18 -and
+                $treeCount = [int]([regex]::Match($report, '^Seed=10323456789 Trees=([1-9][0-9]*)').Groups[1].Value)
+                $report -match '^Seed=10323456789 Trees=[1-9][0-9]* Cosmetics=0 ' -and
+                $ids.Count -eq $treeCount -and @($ids | Sort-Object -Unique).Count -eq $treeCount -and
                 @($ids | Where-Object { $_ -notmatch '^forest:v1:10323456789:[^:;\s]+:[^:;\s]+:[0-9]+$' }).Count -eq 0
             } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique | Where-Object {
                 $clientText.Contains('Forest delivery: Passed=1 Authority=0 ' + $_)
             })
-            # Stage/pickup proof must belong to the exact replacements observed
-            # on both peers, rather than an unrelated forest actor.
+            if ($targetReady) {
+                # Players may stream more patches after the fixture teleports.
+                # Keep the exact startup descriptor set that selected the test
+                # target, and let later patches remain outside this baseline.
+                $shared = @($shared | Where-Object {
+                    $reportedIds = @(($_ -split ' Ids=', 2)[1] -split ';' | Where-Object { $_ })
+                    @($targetIds | Where-Object { $reportedIds -contains $_ }).Count -gt 0
+                })
+            }
+            # Stage/pickup proof must belong to exact replacements observed on
+            # both peers, rather than unrelated forest actors.
             $sharedTreeIds = @($shared | ForEach-Object {
                 ($_ -split ' Ids=', 2)[1] -split ';' | Where-Object { $_ }
             } | Sort-Object -Unique)
-            # Nine patch reports must represent disjoint physical sources; a
-            # repeated ID in different reports cannot count as another tree.
-            if ($sharedTreeIds.Count -ne 162) { $shared = @(); $sharedTreeIds = @() }
+            $sharedTreeCount = 0
+            foreach ($report in $shared) {
+                $sharedTreeCount += [int]([regex]::Match($report, '^Seed=10323456789 Trees=([1-9][0-9]*)').Groups[1].Value)
+            }
+            # Reports must represent every target patch and disjoint candidate
+            # IDs. Duplicate IDs cannot satisfy a missing tree or patch.
+            if (!$targetReady -or $shared.Count -ne $targetPatches -or
+                $sharedTreeCount -ne $targetTrees -or $sharedTreeIds.Count -ne $targetTrees -or
+                @($targetIds | Where-Object { $sharedTreeIds -notcontains $_ }).Count -ne 0) {
+                $shared = @(); $sharedTreeIds = @()
+            }
             # The fixture reads GameState's seed itself. An identity OnRep log
             # is not guaranteed when the server seed equals its class default.
             # Require both stages for the same exact tree on both peers; a
@@ -211,10 +244,27 @@ if ($ForestDeliveryOnly) {
                     !$clientText.Contains('Forest sparse write:')
                 } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
             }
-            if ($shared.Count -eq 9 -and (!$ForestStages -or $sharedStages.Count -gt 0) -and (!$ForestPickup -or $sharedPickups.Count -gt 0)) { break }
+            if ($ForestPickup) {
+                $hostPickupTarget = [regex]::Match($hostText, 'Forest pickup target: Passed=1 Authority=1 Seed=10323456789 Id=([^\s]+)')
+                $clientPickupTarget = [regex]::Match($clientText, 'Forest pickup target: Passed=1 Authority=0 Seed=10323456789 Id=([^\s]+)')
+                if ($hostPickupTarget.Success -and $clientPickupTarget.Success) {
+                    $pickupTargetId = $hostPickupTarget.Groups[1].Value
+                    if ($pickupTargetId -ne $clientPickupTarget.Groups[1].Value -or $sharedTreeIds -notcontains $pickupTargetId) {
+                        throw 'Pickup fixture target is not one exact host/client-shared descriptor ID.'
+                    }
+                    $sharedStages = @($sharedStages | Where-Object { $_ -eq $pickupTargetId })
+                    $sharedPickups = @($sharedPickups | Where-Object { $_ -eq $pickupTargetId })
+                }
+                else {
+                    $sharedStages = @()
+                    $sharedPickups = @()
+                }
+            }
+            if ($shared.Count -eq $targetPatches -and $targetPatches -gt 0 -and
+                (!$ForestStages -or $sharedStages.Count -gt 0) -and (!$ForestPickup -or $sharedPickups.Count -gt 0)) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
-        if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/9 matching eighteen-tree patches; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages); $($sharedPickups.Count) pickups (required=$ForestPickup). Inspect $output." }
+        if ((Get-Date) -ge $deadline) { throw "Exact forest replacement/suppression delivery timed out: $($shared.Count)/$targetPatches descriptor-derived populated patches and $($sharedTreeIds.Count)/$targetTrees exact IDs; $($sharedStages.Count) shared Trunk/Drop IDs (required=$ForestStages); $($sharedPickups.Count) pickups (required=$ForestPickup). Inspect $output." }
         if ($ForestContention) { Write-Output "PASS: competing owners dispatched ordinary pickup requests within 100 ms; exactly one reward and sparse write: $($sharedPickups -join ', ')." }
         elseif ($ForestPickup) { Write-Output "PASS: exact-ID pickup quantity stable after three initial and three post-depletion owned requests, with collected state on both peers and zero reward for three second-player depleted attempts: $($sharedPickups -join ', ')." }
         if ($ForestFullPack) { Write-Output "PASS: ordinary client full-pack request was rejected; the owner received the Inventory is full result and InteractionRejectedCue." }
@@ -233,7 +283,7 @@ if ($ForestDeliveryOnly) {
                 $hostText = [string](Get-Content $serverLog -Raw)
                 $clientText = [string](Get-Content $clientLog -Raw)
                 $lateText = if (Test-Path $lateLog) { [string](Get-Content $lateLog -Raw) } else { '' }
-                if (($hostText + $clientText + $lateText) -match 'Fatal error:|Assertion failed:|Forest delivery: Passed=0|Forest contention result: Passed=0') { throw "Forest late-join failure; inspect $output." }
+            if (($hostText + $clientText + $lateText) -match 'Fatal error:|Assertion failed:|Forest delivery(?: target)?: Passed=0|Forest contention result: Passed=0') { throw "Forest late-join failure; inspect $output." }
                 $lateStageDelivered = $lateText.Contains("Forest stage delivery: Passed=1 Authority=0 Seed=10323456789 Id=$lateId Stage=$lateStage Cosmetics=0")
                 if ($lateStageDelivered) { break }
                 Start-Sleep -Milliseconds 500
@@ -247,12 +297,19 @@ if ($ForestDeliveryOnly) {
                 if ($server.HasExited -or $client.HasExited) { throw 'A forest streaming peer exited early.' }
                 $hostText = [string](Get-Content $serverLog -Raw)
                 $clientText = [string](Get-Content $clientLog -Raw)
-                if (($hostText + $clientText) -match 'Forest streaming: Passed=0|Fatal error:|Assertion failed:') { throw "Forest streaming failed; inspect $output." }
-                $streamed = $hostText.Contains('Forest streaming: Passed=1 Authority=1 Phase=SharedRetained Trees=162')
-                foreach ($authority in 0, 1) {
-                    $peerText = if ($authority) { $hostText } else { $clientText }
-                    foreach ($phase in 'Baseline', 'Evicted', 'Reactivated') {
-                        $streamed = $streamed -and $peerText.Contains("Forest streaming: Passed=1 Authority=$authority Phase=$phase Trees=162")
+                if (($hostText + $clientText) -match 'Forest streaming: Passed=0|Forest delivery(?: target)?: Passed=0|Fatal error:|Assertion failed:') { throw "Forest streaming failed; inspect $output." }
+                $hostBaseline = [regex]::Match($hostText, 'Forest streaming: Passed=1 Authority=1 Phase=Baseline Trees=([1-9][0-9]*)')
+                $clientBaseline = [regex]::Match($clientText, 'Forest streaming: Passed=1 Authority=0 Phase=Baseline Trees=([1-9][0-9]*)')
+                $streamed = $hostBaseline.Success -and $clientBaseline.Success -and
+                    $hostBaseline.Groups[1].Value -eq $clientBaseline.Groups[1].Value
+                $expectedTrees = if ($streamed) { [int]$hostBaseline.Groups[1].Value } else { 0 }
+                if ($streamed) {
+                    $streamed = $hostText.Contains("Forest streaming: Passed=1 Authority=1 Phase=SharedRetained Trees=$expectedTrees")
+                    foreach ($authority in 0, 1) {
+                        $peerText = if ($authority) { $hostText } else { $clientText }
+                        foreach ($phase in 'Baseline', 'Evicted', 'Reactivated') {
+                            $streamed = $streamed -and $peerText.Contains("Forest streaming: Passed=1 Authority=$authority Phase=$phase Trees=$expectedTrees")
+                        }
                     }
                 }
                 if ($streamed) { break }
@@ -263,7 +320,7 @@ if ($ForestDeliveryOnly) {
                 $id = $sharedPickups[0]
                 foreach ($authority in 0, 1) {
                     $peerText = if ($authority) { $hostText } else { $clientText }
-                    if (!$peerText.Contains("Forest collected reactivation: Passed=1 Authority=$authority Id=$id Restored=161 Absent=1 RewardUnchanged=1 Cosmetics=0")) { throw 'Collected reactivation exact-ID/reward proof missing.' }
+                    if (!$peerText.Contains("Forest collected reactivation: Passed=1 Authority=$authority Id=$id Restored=$($expectedTrees - 1) Absent=1 RewardUnchanged=1 Cosmetics=0")) { throw 'Collected reactivation exact-ID/reward proof missing.' }
                 }
                 $escapedId = [regex]::Escape($id)
                 if (@([regex]::Matches($hostText, 'Forest sparse write:')).Count -ne 1 -or
@@ -271,10 +328,10 @@ if ($ForestDeliveryOnly) {
                     $clientText.Contains('Forest sparse write:')) { throw 'Streaming changed sparse-write accounting.' }
                 $slots = @(Get-ChildItem $output -Filter 'KalmalaPopulationDeltas_*.sav' -Recurse)
                 if ($slots.Count -ne 1 -or $slots[0].FullName -notlike (Join-Path $output 'Host/*')) { throw 'Expected only the host population slot.' }
-                Write-Output 'PASS: collected exact ID stays absent on both peers; 161 uncollected trees return, rewards unchanged, one host sparse write.'
+                Write-Output "PASS: collected exact ID stays absent on both peers; $($expectedTrees - 1) uncollected trees return, rewards unchanged, one host sparse write."
             }
             elseif (Get-ChildItem $output -Filter 'KalmalaPopulationDeltas_*.sav' -Recurse) { throw 'Unharvested streaming wrote population depletion.' }
-            if (!$ForestCollectedStreaming) { Write-Output 'PASS: shared departure retains original actors; final departure evicts; both peers reconstruct 162 exact standing IDs with no cosmetics or depletion slot.' }
+            if (!$ForestCollectedStreaming) { Write-Output "PASS: shared departure retains original actors; final departure evicts; both peers reconstruct $expectedTrees exact standing IDs with no cosmetics or depletion slot." }
         }
         Write-Output "PASS: $($shared.Count) populated forest patches match host/client exact IDs, transforms, shape, source, standing state and zero cosmetics."
     }
@@ -303,7 +360,8 @@ try {
     $automationText = Get-Content $automationLog -Raw
     if ($automationText -match 'Fatal error:|Assertion failed:') { throw 'Integrated biome automation reported a fatal error.' }
     & (Join-Path $repoPaths.TestsRoot 'Survival\ExposureRecoveryPeers.ps1') -Editor $Editor
-    if ($LASTEXITCODE -ne 0) { throw "Two-player camp scenario exited with code $LASTEXITCODE." }
+    $campScenarioSucceeded = $?
+    if (-not $campScenarioSucceeded) { throw 'Two-player camp scenario failed.' }
     Write-Output 'PASS: all biome deterministic seam/discovery/shelter checks and two-player replicated camp recovery passed.'
 }
 finally {

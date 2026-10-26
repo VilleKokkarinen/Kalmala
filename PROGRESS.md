@@ -9888,3 +9888,88 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   nonconflicting BH25e record to main `PROGRESS.md` after inspection; preserve
   A10/Monster edits.
 - **Next eligible task:** BH26 — final integrated verification and repair.
+
+## Biome height rework — BH26 final integrated verification
+
+- **Selected increment:** BH26, the final remaining implementation and
+  verification task for the biome-height and Meadows goal.
+- **Work completed:** Repaired positive source-coast sign cancellation in the
+  bounded softplus tail; corrected generated-terrain vertex alpha material
+  wiring and regenerated the terrain package; retained the original soil
+  material; repaired traversal route selection, dry-sample filtering, local
+  host movement and remote-proxy observation; updated forest lifecycle
+  fixtures to derive current layout expectations; fixed the BiomeExpansion
+  PowerShell wrapper's script-status check; and finalized terrain acceptance
+  documentation and backlog status. The user confirmed the rendered terrain
+  inspection worked and closed the Editor.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset`,
+  `Content/Kalmala/World/Materials/M_GeneratedSoil.uasset`,
+  `Scripts/Tests/World/BiomeExpansion.ps1`,
+  `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaMasterMapTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaWaterSurfaceMeshTest.cpp`,
+  `docs/07-development-setup.md`, `docs/biome-height-rework.md`, and
+  `docs/meadows-plan.md`.
+- **Milestone-final verification:** Passed on 2026-10-26. The Editor build
+  succeeded in the isolated short-path mirror with
+  `Build.bat KalmalaEditor Win64 Development -Project=<mirror>/Kalmala.uproject
+  -WaitMutex -NoHotReload -MaxParallelActions=4` (2 actions, 1.97 seconds).
+  `RegionalGeneration.ps1` passed 26 named regional, biome, water, population
+  save and local minimap automation tests; repeated seed-418 preview outputs
+  matched, seed 419 differed as expected, and host/client seed and minimap
+  fingerprints matched. Focused world gates passed 10 named tests covering
+  master map, finite/integrated worlds, water, minimap performance, slope and
+  moisture weights, generated start determinism, no portable construction kits
+  and forest reconstruction lifecycle. `BiomeExpansion.ps1` passed its
+  integrated biome scenario and two-player replicated camp recovery. Its
+  forest lifecycle/stage/pickup/streaming run passed exact host/client identity,
+  depletion, reward and reconstruction checks; the separate process-restart
+  run passed collected-ID absence, uncollected-tree restoration and stable
+  slot-hash checks. Headless traversal passed: the host reached a dry
+  Shimmering Lakes target after 1,249 m and the client observed at least 3,000
+  units of replicated host movement. `CreateWorldMaterials` exited successfully
+  and generated grass/soil/rock/Tundra terrain material packages. The
+  presentation ownership audit passed for 8 assets and 33 procedural/UI seams.
+  The user's rendered/editor inspection passed.
+- **Failures and repairs:** The first source-coast checks exposed cancellation
+  of tiny positive softplus results; the exponential negative-tail branch now
+  preserves source-land sign and the affected regional/master-map checks pass.
+  The first forest fixture run had obsolete fixed patch counts; its expectations
+  now come from the current layout. The first client traversal did not observe
+  the remote proxy because its initial location predated shared seed identity;
+  the corrected world-start baseline and tick observer passed on rerun. The
+  integrated biome and camp checks initially passed while their PowerShell
+  wrapper reported a false failure from `$LASTEXITCODE`; checking `$?` directly
+  fixed the wrapper and the full runner passed. A stale Unreal process briefly
+  held a build DLL; after stopping that process the isolated Editor build passed.
+  No milestone gate remains failing.
+- **Lightweight checks:** `git diff --check`, changed-path length scan (all 19
+  paths under 260 characters), and PowerShell parser validation passed after
+  the final backlog/progress edits.
+- **Observable impact:** Positive source-land clearance remains positive near
+  the coast; generated terrain uses the intended grass/soil/rock weights and
+  the original muted soil material; forest lifecycle evidence tracks current
+  Meadow eligibility; and host-driven traversal is visible as replicated
+  movement on the client. The user confirmed the rendered result in the Editor.
+- **Networking/authority:** Traversal input uses the listen-server host pawn's
+  normal Character Movement; the remote client only observes the replicated
+  host proxy. Existing harvesting, population persistence, and gameplay
+  authority remain server-side; peer lifecycle and restart checks passed.
+- **Known limitations:** No screenshot was retained for the user's rendered
+  terrain inspection. Startup emitted a pre-existing invalid skiff hull
+  material-index warning and two unnamed engine automation condition messages;
+  commandlet and named automation gates succeeded. Packaging and unrelated full
+  game suites were outside the BH26 acceptance gates and were not run.
+- **Final milestone status:** Complete; all BH26 implementation, rendered
+  acceptance and listed final verification gates passed. No verification is
+  deferred for this goal.
+- **Next eligible task:** S03 — add named monster-population tuning constants.

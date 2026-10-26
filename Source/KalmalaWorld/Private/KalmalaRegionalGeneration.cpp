@@ -374,7 +374,11 @@ double FKalmalaRegionalGeneration::PreserveSourceLandSign(
     const double Scale = FMath::Min(TransitionScale, SourceHeight / LnTwo);
     const double ScaledHeight = Height / Scale;
     if (ScaledHeight >= 40.0) return Height;
-    return Scale * FMath::Loge(1.0 + FMath::Exp(FMath::Max(ScaledHeight, -80.0)));
+    const double BoundedScaledHeight = FMath::Max(ScaledHeight, -80.0);
+    // Avoid cancellation in log(1 + exp(x)) when exp(x) is below double
+    // precision. That tail still needs a positive result to preserve land sign.
+    if (BoundedScaledHeight <= -36.0) return Scale * FMath::Exp(BoundedScaledHeight);
+    return Scale * FMath::Loge(1.0 + FMath::Exp(BoundedScaledHeight));
 }
 
 TArray<FKalmalaHydrologySegment> FKalmalaRegionalGeneration::GetHydrology(const FKalmalaWorldGenerationConfig& C, FIntPoint Cell)

@@ -1,7 +1,10 @@
 # Biome height rework plan
 
-Status: user-requested design direction, 2026-10-24; implementation is in
-progress under `BACKLOG.md` after A10 acceptance and before Monster Population.
+Status: implementation and BH26 integrated acceptance passed 2026-10-26; see
+[`PROGRESS.md`](../PROGRESS.md). The user confirmed the editor terrain/traversal
+inspection worked and had closed the editor before the final headless checks.
+Implementation is tracked in `BACKLOG.md` after A10 acceptance and before
+Monster Population.
 The fixed baselines, basin policy, shared sampler, preview controls and Meadows
 hill/rolling/floor layers and the Shimmering Lakes blend are
 implemented incrementally. BH25b2 selected 4 / 0.6 / 0.1 m shared
@@ -10,8 +13,8 @@ regression and a fixed 1 cm source-land shelf; BH25b3 consolidated the selected
 profile ranges and measured cost guardrails. BH25c selected 8 m / 0.1 m Meadows
 floor detail, BH25d retained measured Shimmering Lakes center controls, and
 BH25e retained the measured Mossy Mire center settings. BH15a integrates the
-Mire lowland candidate and BH15b supplies its profile harness. Rendered terrain and
-under-vegetation acceptance remains BH26. This plan supersedes
+Mire lowland candidate and BH15b supplies its profile harness. Rendered terrain,
+under-vegetation and traversal acceptance passed in BH26. This plan supersedes
 Meadows-specific height details where they differ.
 
 This plan expands [the Meadows plan](meadows-plan.md) to all land biomes. Where
