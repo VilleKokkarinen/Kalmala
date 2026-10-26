@@ -732,7 +732,7 @@ milestone-final verification/repair run and can exceed a normal turn.
     never arbitrary Unreal console execution, scripts, file paths or asset loads.
     Audit actor identity, command, sanitized arguments and outcome server-side.
   - Cheats target the caller only unless a command below explicitly addresses
-    debug-created entities. Debug privilege/flags, flight and time/weather/AI
+    debug-created entities. Debug privilege/flags, flight/noclip and time/weather/AI
     overrides are transient, never saved. Restore captured values on revocation;
     server restart uses ordinary settings. Reject a global override while held
     by another authorized connection; restore it when its owner loses privilege.
@@ -751,9 +751,21 @@ milestone-final verification/repair run and can exceed a normal turn.
     only; do not revive, alter attack damage or silently refill stats.
     `heal`: restore own health/stamina to current maxima and clear negative
     status effects using existing server APIs, without changing progression.
-    `fly <on|off>` and `speed <multiplier>`: own server-controlled collision-
-    respecting flight and movement multiplier in [0.25,5], default 1; safe
-    grounded exit required. No noclip or interaction-range bypass.
+    `fly <on|off>`: own server-controlled flight with collision enabled.
+    `noclip <on|off>`: enable flight and bypass world/body collision for the
+    caller only; keep world bounds and loaded-region limits enforced. Turning
+    noclip off retains flight and restores collision only at a clear capsule
+    position. Turning flight off also disables noclip and requires safe ground.
+    `speed <multiplier>`: own movement multiplier in [0.25,5], default 1.
+    Expose separate Fly and Noclip toggles in the authenticated console panel,
+    default off and session-only, reflecting server-confirmed state; changes
+    use the same command authorization path. No interaction-range bypass.
+    Record the last collision-clear, grounded position before either mode.
+    On voluntary disable, reject unsafe restoration and retain the current
+    mode with feedback. On expiry/logout/disconnect/respawn/world change,
+    clear both flags and restore ordinary movement/collision at that safe
+    position, or the normal server spawn if it is no longer valid; never
+    leave a pawn embedded, falling outside the world or retaining a cheat.
   - `give <itemId> [quantity]`: default 1, integer [1,100], registered ordinary
     inventory/equipment IDs only; respect capacity, instance identity and
     persistence rules, reject the entire grant on failure. Never grant
@@ -810,8 +822,16 @@ milestone-final verification/repair run and can exceed a normal turn.
     Verify valid travel and unsafe/unloaded/out-of-world rejection.
   - [ ] **DC10 — Add caller-only god/heal and damage-path integration.**
     Verify incoming damage, death/status behavior and revocation cleanup.
-  - [ ] **DC11 — Add collision-respecting flight and speed controls.**
-    Verify server movement, multiplier bounds and safe grounded restoration.
+  - [ ] **DC11 — Add flight, noclip and speed controls.**
+    - [ ] **DC11a — Add collision-respecting flight and speed commands.**
+      Verify server movement, multiplier bounds and safe grounded restoration.
+    - [ ] **DC11b — Add server-authorized noclip movement.** Verify collision
+      bypass for the caller only, mode dependencies and world/loaded-area bounds.
+    - [ ] **DC11c — Add separate Fly/Noclip console settings.** Verify default
+      off, server-confirmed UI state, command/toggle parity and denied requests.
+    - [ ] **DC11d — Cover safe movement restoration and revocation.** Verify
+      disable inside terrain, last-safe/spawn fallback, expiry/logout, death/
+      respawn, disconnect and world change; both flags remain unsaved.
   - [ ] **DC12 — Add catalogue-only transactional item grants.**
     Verify quantity/capacity/ID gates, equipment identity, rollback and Kit denial.
   - [ ] **DC13 — Add carried-equipment repair through existing transactions.**
@@ -828,7 +848,8 @@ milestone-final verification/repair run and can exceed a normal turn.
     Verify range/privacy limits, public data only and revocation cleanup.
   - [ ] **DC19 — Add focused authorization/lifecycle regression coverage.**
     Cover direct RPC bypass, concurrent authorized users, secret redaction,
-    logout/expiry/disconnect, respawn and debug-entity shutdown cleanup.
+    logout/expiry/disconnect, respawn, flight/noclip cleanup and debug-entity
+    shutdown cleanup.
   - [ ] **DC20 — Document command help and operator setup.**
     Update existing architecture/setup docs with actual configuration, transport,
     persistence consequences and reset behavior; never include a working key.
@@ -836,7 +857,8 @@ milestone-final verification/repair run and can exceed a normal turn.
     Inspect the combined feature; run applicable full build/automation and
     solo/listen/dedicated peer checks from `docs/07-development-setup.md`,
     including unauthorized and authorized remote peers, unsafe input, restart,
-    ordinary gameplay after logout and secret-free logs/history. Verify build
+    ordinary gameplay after logout, flight/noclip peer movement and safe
+    collision restoration, and secret-free logs/history. Verify build
     configurations fail closed without opt-in, commands affect only permitted
     targets, normal construction still pays materials, and no debug creatures
     or privileges survive restart. Repair milestone defects and rerun required

@@ -1,3 +1,18 @@
+## Planning 2026-10-26 - Add Fly and Noclip console settings
+
+- **Scope/completed:** Planning only; expanded DC movement commands with separate
+  Fly/Noclip toggles and four ordered DC11 child increments. Explicitly replaces
+  the earlier no-noclip exclusion at the user's request.
+- **Files:** `BACKLOG.md`, `PROGRESS.md`; all pre-existing edits preserved.
+- **Behavior/authority:** Server-authorized caller-only flight/collision bypass;
+  loaded-region/world bounds remain enforced. Toggles default off, are unsaved,
+  and reflect server state. Defined safe disable/revocation and spawn fallback.
+- **Checks:** Inspected contract/task consistency, staged diff, whitespace and
+  path lengths; no runtime builds/tests. Full verification deferred to DC21.
+- **Impact/remaining scope:** No runtime change. Existing queue order remains;
+  DC01 is first when eligible, DC11a is first movement increment. All new tasks
+  remain unchecked. The session's explicit concurrency override still applies.
+
 ## Planning 2026-10-26 - Developer console and secret-key debug mode
 
 - **Scope:** Planning only. The user explicitly overrode the concurrent-run
