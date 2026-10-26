@@ -1,3 +1,47 @@
+## L01c2 seed-418 weather and fire captures — 2026-10-26
+
+- **Selected task:** L01c2, render/review the weather and fire scenes and verify
+  the five-scene seed-418 baseline.
+- **Work completed:** Built the capture fixture in an isolated UE 5.8 mirror,
+  captured `Seed418_OvercastRain.png` and `Seed418_FireDusk.png`, reviewed both,
+  updated the manifest, and verified the five primary seed-418 scene entries.
+  Restored the default capture's immediate screenshot request after a 0.25-second
+  timer produced a black anchor check. The fire fixture now snapshots the map
+  sky before dimming it, uses a transient test hearth with a 4500 cm light
+  radius, +1.5 EV capture-camera compensation, and a five-second settle delay.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `TestResults/LightingBaseline/Seed418_OvercastRain.png`,
+  `TestResults/LightingBaseline/Seed418_FireDusk.png`,
+  `TestResults/LightingBaseline/manifest.json`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Checks and build:** The first compile found missing concrete light headers
+  and a `RecaptureSky` call on the actor instead of its component; both were
+  fixed. `Build.bat KalmalaEditor Win64 Development
+  -Project=C:/Users/Ville/AppData/Local/Temp/klc/Kalmala.uproject -WaitMutex
+  -NoHotReload -MaxParallelActions=4` then passed 216 actions. Final capture-only
+  source adjustments rebuilt successfully in four actions. The runner passed
+  PNG signature, 1024x768 dimensions, nonblank-sample and seed/site/condition
+  log checks for both retained frames. A default-light anchor smoke capture also
+  passed. The manifest JSON and `git diff --check` are checked in this increment.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The seed-418 manifest now contains all five primary
+  scenes. The overcast frame shows gray sky/distance haze but no visible rain
+  particles. The fire frame is blue-black with only the small procedural hearth
+  ring visible; surrounding ground and firelight spill remain unreadable at the
+  fixed wide pose. These images record baseline limitations, not accepted looks.
+- **Networking/authority:** All overrides remain behind the non-Shipping
+  capture flag. Weather uses the existing authoritative setter and the transient
+  hearth is initialized server-side. No RPC, save state, or gameplay session
+  behavior changed.
+- **Known limitations / remaining scope:** No rain particle system, modeled
+  flame, or time-of-day controller exists. Effective EV bounds remain unknown;
+  FireDusk uses a capture-only +1.5 EV bias and widened transient light radius.
+  The frame does not establish readable firelight and must not be treated as
+  visual acceptance.
+- **Next eligible task:** L01d — capture seed-419 daylight, forest, and water.
+
 ## L01c1 capture-only weather and fire controls — 2026-10-26
 
 - **Selected task:** L01c1, the first implementation subtask under the

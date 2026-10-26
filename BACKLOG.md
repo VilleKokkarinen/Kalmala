@@ -1074,24 +1074,26 @@ do not mark the lighting milestone complete before it passes.
     all five baseline scenes. Do not change project behavior in this audit.
     The live map/renderer audit and five fixed camera anchors are recorded in
     `docs/valheim-like-lighting-plan.md`; L01b reviewed the daylight, forest,
-    and water images. L01c1 adds capture-only condition controls; L01c2 will
-    render and review the weather and fire frames.
+    and water images. L01c1 added capture-only condition controls; L01c2
+    rendered both conditions and verified the five-scene seed-418 set. The
+    plan records the missing rain/flame visuals and unreadable wide fire view.
   - [x] **L01b — Capture seed-418 daylight, forest, and water.** Use the fixed
     camera poses for Meadows daylight, forest shade, and coast/water. Preserve
     captures and manifest under `TestResults/LightingBaseline/`; record
     resolution, exposure, hardware, and renderer settings. Do not write under
     `Saved/`, `Intermediate/`, or `DerivedDataCache/`.
-  - [ ] **L01c — Capture seed-418 weather and fire scenes.** Capture
+  - [x] **L01c — Capture seed-418 weather and fire scenes.** Capture
     overcast/rain and fire-lit dusk/night using L01a's matching camera and
     exposure records; verify all five seed-418 scenes are present.
     - [x] **L01c1 — Add capture-only condition controls.** Add deterministic
       non-Shipping overcast/rain and fire-lit dusk/night options to the existing
       baseline capture runner; keep default captures and ordinary game sessions
       unchanged.
-    - [ ] **L01c2 — Render and review the weather and fire frames.** Compile the
-      capture fixture in an isolated short mirror, capture both fixed views,
-      preserve the images and manifest, and verify all five seed-418 scenes are
-      present. Record unsupported weather/fire visuals and exposure limits.
+    - [x] **L01c2 — Render and review the weather and fire frames.** Compiled the
+      capture fixture in an isolated short mirror, preserved both fixed views
+      and manifest entries, and verified all five seed-418 scenes. Recorded no
+      rain particles or modeled flame, the unreadable wide fire-light view, and
+      unknown effective EV bounds in the lighting plan.
   - [ ] **L01d — Capture seed-419 daylight, forest, and water.** Reuse L01a's
     fixed views and the seed-418 manifest for Meadows daylight, forest shade,
     and coast/water.

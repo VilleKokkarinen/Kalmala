@@ -1,6 +1,8 @@
 #include "KalmalaGameMode.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/SkyLightComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
 #include "UnrealClient.h"
@@ -10212,6 +10214,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     FString Site;
     FString ScreenshotPath;
     FString Condition = TEXT("Default");
+    float ExposureCompensationEV = 0.0f;
     float Xcm = 0.0f;
     float Ycm = 0.0f;
     float ViewZcm = 0.0f;
@@ -10282,9 +10285,11 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         }
         else
         {
-            CaptureSun->SetActorRotation(FRotator(8.0f, -35.0f, 0.0f));
-            CaptureSun->GetLightComponent()->SetIntensity(0.0f);
-            CaptureSky->GetLightComponent()->SetIntensity(0.12f);
+            CaptureSky->GetLightComponent()->RecaptureSky();
+            CaptureSky->GetLightComponent()->bRealTimeCapture = false;
+            CaptureSun->SetActorRotation(FRotator(-40.0f, -35.0f, 0.0f));
+            CaptureSun->GetLightComponent()->SetIntensity(0.6f);
+            CaptureSky->GetLightComponent()->SetIntensity(0.25f);
 
             FActorSpawnParameters HearthParameters;
             HearthParameters.ObjectFlags |= RF_Transient;
@@ -10299,7 +10304,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
             }
             CaptureHearth->InitializeLitForBaselineCaptureFromServer();
         }
-        CaptureSky->RecaptureSky();
+        if (bOvercastRain) CaptureSky->GetLightComponent()->RecaptureSky();
     }
 
     if (bOvercastRain)
@@ -10359,20 +10364,34 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
             WorldGenerationConfig.WorldSeed, *Site);
         return;
     }
-    CaptureCamera->GetCameraComponent()->SetFieldOfView(65.0f);
+    UCameraComponent* CameraComponent = CaptureCamera->GetCameraComponent();
+    CameraComponent->SetFieldOfView(65.0f);
+    if (bFireDusk)
+    {
+        ExposureCompensationEV = 1.5f;
+        CameraComponent->PostProcessSettings.bOverride_AutoExposureBias = true;
+        CameraComponent->PostProcessSettings.AutoExposureBias = ExposureCompensationEV;
+    }
     LocalController->SetViewTarget(CaptureCamera);
     FTimerHandle ScreenshotHandle;
-    const float CaptureDelaySeconds = bOvercastRain ? 3.0f : 0.25f;
-    GetWorldTimerManager().SetTimer(ScreenshotHandle,
-        FTimerDelegate::CreateLambda([ScreenshotPath]()
-        {
-            FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
-        }), CaptureDelaySeconds, false);
+    const float CaptureDelaySeconds = bOvercastRain ? 3.0f : bFireDusk ? 5.0f : 0.0f;
+    if (CaptureDelaySeconds <= 0.0f)
+    {
+        FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+    }
+    else
+    {
+        GetWorldTimerManager().SetTimer(ScreenshotHandle,
+            FTimerDelegate::CreateLambda([ScreenshotPath]()
+            {
+                FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+            }), CaptureDelaySeconds, false);
+    }
     UE_LOG(LogTemp, Display,
-        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 Output=%s."),
+        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 ExposureCompensationEV=%.2f Output=%s."),
         WorldGenerationConfig.WorldSeed, *Site, *Condition, Xcm, Ycm, ViewZcm,
         *CameraLocation.ToCompactString(), *ViewTarget.ToCompactString(), SunIntensity, SkyIntensity,
-        CaptureDelaySeconds, *ScreenshotPath);
+        CaptureDelaySeconds, ExposureCompensationEV, *ScreenshotPath);
 #endif
 }
 

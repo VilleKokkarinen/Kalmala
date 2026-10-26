@@ -15,19 +15,19 @@
   "engine": "Unreal Engine 5.8",
   "render": {
     "featureLevel": "SM5",
-    "weather": "not pinned",
+    "weather": "Per capture: default for daylight/forest/water; OvercastRain uses precipitation=0.8, fog=0.8, wind=0.75; FireDusk clears precipitation, fog and wind.",
     "autoExposure": "enabled (r.DefaultFeature.AutoExposure=1)",
-    "exposureCompensation": "not overridden",
+    "exposureCompensation": "FireDusk capture camera uses +1.50 EV; other captures use default camera compensation. Effective EV minimum/maximum remain unknown.",
     "gpu": "NVIDIA GeForce RTX 5090",
     "dynamicGlobalIllumination": "None (r.DynamicGlobalIlluminationMethod=0)",
     "hardwareRayTracing": "off (r.RayTracing=0)",
     "evRange": "not established by map/volume",
     "rhi": "D3D12",
     "eyeAdaptationQuality": 2,
-    "timeOfDay": "not pinned",
+    "timeOfDay": "No runtime day/night controller; FireDusk is a capture-only lighting condition, not a time-of-day simulation.",
     "reflections": "Lumen (r.ReflectionMethod=2)"
   },
-  "validation": "The capture helper passed PNG signature, 1024x768 dimensions, nonblank-sample, and requested seed/site log checks for every listed image.",
+  "validation": "All listed images are 1024x768 PNGs and passed the runner's nonblank-sample check. New condition captures also passed requested seed/site/condition log checks.",
   "captures": [
     {
       "role": "primary",
@@ -140,7 +140,96 @@
       ],
       "width": 1024,
       "file": "Seed418_CoastCandidate.png"
+    },
+    {
+      "role": "primary-weather-view",
+      "bytes": 567484,
+      "height": 768,
+      "site": "ThunderMountainsStorm",
+      "sampleCm": {
+        "x": -970004.9,
+        "viewZ": 768.734985,
+        "y": -243087.4
+      },
+      "scene": "Overcast / rain",
+      "condition": "OvercastRain",
+      "weather": {
+        "precipitationIntensity": 0.8,
+        "fogIntensity": 0.8,
+        "windStrength": 0.75
+      },
+      "sunRotationDegrees": [
+        -40,
+        -35,
+        0
+      ],
+      "sunIntensity": 2.0,
+      "skyIntensity": 1.0,
+      "exposureCompensationEV": 0.0,
+      "captureDelaySeconds": 3.0,
+      "aimCm": [
+        -970004.9,
+        -243087.4,
+        918.734985
+      ],
+      "fovDegrees": 65,
+      "review": "Gray sky and distance haze sit over a bright shoreline and blue water band. No rain particles are visible, so this records storm-state fog and light rather than visible precipitation.",
+      "sha256": "a89fa1a6e6247117316638c925830341cc7dec15e6ddb81a610c23e898e129c2",
+      "seed": 418,
+      "cameraCm": [
+        -970004.9,
+        -245487.4,
+        1968.734985
+      ],
+      "width": 1024,
+      "file": "Seed418_OvercastRain.png"
+    },
+    {
+      "role": "primary-fire-view",
+      "bytes": 208943,
+      "height": 768,
+      "site": "MeadowsFireDusk",
+      "sampleCm": {
+        "x": -781.6,
+        "viewZ": 528.94458,
+        "y": -781.6
+      },
+      "scene": "Fire-lit dusk",
+      "condition": "FireDusk",
+      "weather": {
+        "precipitationIntensity": 0.0,
+        "fogIntensity": 0.0,
+        "windStrength": 0.0
+      },
+      "sunRotationDegrees": [
+        -40,
+        -35,
+        0
+      ],
+      "sunIntensity": 0.6,
+      "skyIntensity": 0.25,
+      "skyCapture": "Default sky captured before dimming; real-time capture disabled on the transient fixture.",
+      "captureHearthLightRadiusCm": 4500,
+      "runtimeCampfireLightRadiusCm": 600,
+      "exposureCompensationEV": 1.5,
+      "captureDelaySeconds": 5.0,
+      "aimCm": [
+        -781.6,
+        -781.6,
+        678.94458
+      ],
+      "fovDegrees": 65,
+      "review": "The fixed wide shot is blue-black with only a small procedural stone ring visible at center; the surrounding ground and firelight spill are not readable. No modeled flame exists. This is a captured baseline limitation, not an accepted lighting result.",
+      "sha256": "87a3d29785b69a3d5353aa0bcff109c495fcae3b03ab4d62fdf3aee8a65c407b",
+      "seed": 418,
+      "cameraCm": [
+        -781.6,
+        -3181.6,
+        1728.94458
+      ],
+      "width": 1024,
+      "file": "Seed418_FireDusk.png"
     }
   ],
-  "manifestGeneratedAtUtc": "2026-10-26T12:37:04Z"
+  "manifestGeneratedAtUtc": "2026-10-26T13:47:06Z"
 }

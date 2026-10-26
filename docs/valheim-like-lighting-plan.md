@@ -137,9 +137,10 @@ frames or scene conditions have passed visual acceptance.
 
 L01a's map, renderer, light, exposure, fog, material-assignment, capture-input,
 and five-anchor audit is recorded. L01b reviewed the daylight, forest, and water
-framing. L01c1 adds capture-only weather and hearth controls; L01c2 still needs
-to render those scenes and check the full five-scene set. Exposure remains
-automatic with unknown effective EV bounds.
+framing. L01c added the weather/hearth capture controls and rendered the two
+remaining seed-418 conditions. All five seed-418 views are present; the fire
+frame remains too dark to judge surrounding illumination. Exposure remains
+automatic with unknown effective EV bounds; FireDusk has a capture-only +1.5 EV bias.
 
 ### L01b seed-418 capture set — 2026-10-26
 
@@ -190,11 +191,34 @@ system or flame mesh; the planned captures show storm-state fog and the hearth's
 warm point-light response, not precipitation particles or a modeled flame.
 Exposure compensation and EV bounds remain unknown.
 
-L01c1 passed PowerShell parsing and diff whitespace checks, but the source has
-not compiled or rendered. Fresh and cached short-mirror builds each planned
-hundreds of actions and were stopped before the changed gameplay module compiled.
-L01c2 owns compiling the fixture, capturing/reviewing both images, updating the
-manifest, and verifying the five-scene seed-418 set.
+At the L01c1 checkpoint, PowerShell parsing and diff whitespace checks had
+passed, while the initial mirror builds were stopped before the changed module
+compiled. L01c2 subsequently compiled and rendered the fixture as recorded
+below.
+
+### L01c2 seed-418 weather and fire captures — 2026-10-26
+
+The fixture was compiled in the short `C:/Users/Ville/AppData/Local/Temp/klc`
+mirror with UE 5.8. The first compile exposed missing concrete light-component
+headers and an actor/component `RecaptureSky` call mismatch; both were fixed.
+The Editor target then built successfully in 216 actions, with later
+capture-only adjustments rebuilding in four or five actions. The headless
+runner retained its fixed 65-degree cameras, 1024x768 output, separate user
+directories, and condition log checks. Default captures request screenshots
+immediately as before; weather waits three seconds and FireDusk waits five.
+
+| Capture | Final fixture values | Visual review |
+| --- | --- | --- |
+| `Seed418_OvercastRain.png` | Thunder Mountains at the fixed L01a anchor; precipitation 0.8, fog 0.8, wind 0.75; sun 2.0, sky 1.0; default camera compensation. | Gray sky and distance haze over a bright shoreline/water band. No rain particles appear. The frame records storm-state fog and lighting, not visible precipitation. |
+| `Seed418_FireDusk.png` | Meadows at the fixed L01a anchor; clear weather; sun 0.6, sky 0.25, default sky captured before dimming, sky real-time capture disabled, and +1.5 EV capture-camera compensation. The transient test hearth uses a 4500 cm point-light radius; ordinary campfires remain at 600 cm. | Blue-black frame with only the small procedural stone ring visible. Ground and firelight spill are not readable at this wide pose, and the project has no modeled flame or time-of-day controller. This is a captured baseline limitation, not a visual acceptance result. |
+
+Both retained frames passed PNG signature, 1024x768 dimensions, nonblank-sample,
+and requested seed/site/condition log checks. The manifest now contains the three
+previous primary scenes plus these weather and fire views; the coast candidate
+remains supplemental. Global auto exposure remains enabled, effective EV bounds
+remain unknown, and FireDusk's +1.5 EV override is capture-only. The lack of
+visible rain particles, a modeled flame, and readable firelight at the fixed
+wide shot remain for later lighting work.
 
 ## Proposed implementation stages
 
