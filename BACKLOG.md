@@ -2,10 +2,6 @@
 
 ## Active queue
 
-M0–M14, world-generation Phases 1–9, and the defined attack-driven
-tree-harvesting increment remain complete under their recorded acceptance
-scope. The user-requested post-roadmap goals below are queued in order.
-
 ### Valheim-inspired Kalmala lighting and materials — user request, 2026-10-25
 
 **Goal:** Build an original Kalmala lighting/material stack with readable
