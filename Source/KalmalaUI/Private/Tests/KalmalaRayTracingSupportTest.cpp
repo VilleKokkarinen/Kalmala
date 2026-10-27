@@ -63,4 +63,32 @@ bool FKalmalaRayTracingSupportTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRayTracingQualityProfileTest,
+    "Kalmala.Rendering.RayTracing.QualityProfiles",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaRayTracingQualityProfileTest::RunTest(const FString& Parameters)
+{
+    using namespace KalmalaRendering;
+
+    const FRayTracingQualityProfile Compatibility =
+        GetRayTracingQualityProfile(ERayTracingQualityLevel::Compatibility);
+    TestTrue(TEXT("Compatibility disables runtime hardware ray tracing."), Compatibility.RayTracingEnable == 0);
+    TestTrue(TEXT("Compatibility disables Lumen hardware tracing."), Compatibility.LumenHardwareRayTracing == 0);
+    TestTrue(TEXT("Compatibility retains the no-dynamic-GI baseline."), Compatibility.DynamicGlobalIllumination == 0);
+    TestTrue(TEXT("Compatibility uses screen-space reflections."), Compatibility.ReflectionMethod == 2);
+    TestTrue(TEXT("Compatibility pins Surface Cache and disables Hit Lighting."),
+        Compatibility.LumenLightingMode == 0 && Compatibility.HitLightingAllowed == 0);
+
+    const FRayTracingQualityProfile Balanced =
+        GetRayTracingQualityProfile(ERayTracingQualityLevel::Balanced);
+    TestTrue(TEXT("Balanced enables hardware ray tracing."), Balanced.RayTracingEnable == 1);
+    TestTrue(TEXT("Balanced enables Lumen hardware tracing."), Balanced.LumenHardwareRayTracing == 1);
+    TestTrue(TEXT("Balanced enables Lumen global illumination and reflections."),
+        Balanced.DynamicGlobalIllumination == 1 && Balanced.ReflectionMethod == 1);
+    TestTrue(TEXT("Balanced uses Surface Cache and disables Hit Lighting."),
+        Balanced.LumenLightingMode == 0 && Balanced.HitLightingAllowed == 0);
+    return true;
+}
+
 #endif

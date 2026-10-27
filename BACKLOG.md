@@ -144,19 +144,23 @@ do not mark the lighting milestone complete before it passes.
     Windows Lumen path requires Windows 10 build 1909.1350 or newer, DX12, and
     SM6; the hardware-RT-specific GPU list is NVIDIA RTX 2000-series+ or AMD
     RX 6000-series+. The 2026-10-26 L01a Editor/PIE audit observed D3D12/SM5,
-    dynamic GI off, Lumen reflections, and hardware RT off on the RTX 5090;
-    tracked project settings do not pin those observed values. This is dated
-    baseline evidence, not a Kalmala release hardware floor; see
+    dynamic GI off, screen-space reflections (SSR), and hardware RT off on the
+    RTX 5090. At the time of that audit, tracked settings did not pin those
+    observed values; L05c now sets an explicit RT-off Compatibility startup
+    profile while compiling optional support. This is dated baseline evidence,
+    not a Kalmala release hardware floor; see
     `docs/valheim-like-lighting-plan.md` for source links and audit details.
   - [x] **L05b — Preserve the RT-off compatibility path.** The accepted L01h
-    visual baseline used the L01a-observed RT-off setting. Pin project-level
-    hardware RT off for Compatibility, and require project permission, Windows
-    D3D12, SM6, and shader-platform/RHI RT support before resolving a hardware
-    request. Automation covers each missing capability falling back to
-    Compatibility.
-  - [ ] **L05c — Implement the Balanced tier.** On supported adapters, enable
-    Lumen hardware tracing for GI/reflections using Surface Cache lighting;
-    compare against RT-off and keep Hit Lighting disabled for this tier.
+    visual baseline used the L01a-observed RT-off setting. Compatibility keeps
+    hardware tracing off and uses no dynamic GI plus SSR, even though the
+    project now builds optional RT shader support for Balanced. Require project
+    permission, Windows D3D12, SM6, and shader-platform/RHI RT support before a
+    hardware request resolves; automation covers each missing capability.
+  - [x] **L05c — Implement the Balanced tier.** Add a local Graphics-menu
+    selection that is offered only on supported adapters. Balanced uses Lumen
+    hardware tracing for GI/reflections, Surface Cache lighting, and no Hit
+    Lighting; the profile configures those settings separately from
+    Compatibility. Rendered comparison remains in the L06c integration gate.
   - [ ] **L05d — Implement the High tier selectively.** Scale GI/reflection
     quality and test ray-traced shadows only on key lights with visible benefit.
     Set ray-tracing culling/visibility for generated forest, grass, sky, and

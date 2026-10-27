@@ -186,6 +186,8 @@ private:
     UFUNCTION()
     void HandleWindowModeSelectionChanged(FString SelectedOption, ESelectInfo::Type SelectionType);
     UFUNCTION()
+    void HandleRayTracingQualityChanged(FString SelectedOption, ESelectInfo::Type SelectionType);
+    UFUNCTION()
     void HandleCustomResolutionChanged(bool bIsChecked);
     UFUNCTION()
     void HandleCustomResolutionApplyClicked();
@@ -243,6 +245,8 @@ private:
     TObjectPtr<UEditableTextBox> CustomResolutionHeightInput;
     UPROPERTY(Transient)
     TObjectPtr<UComboBoxString> WindowModeDropdown;
+    UPROPERTY(Transient)
+    TObjectPtr<UComboBoxString> RayTracingQualityDropdown;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ViewDistanceValueLabel;
     UPROPERTY(Transient)

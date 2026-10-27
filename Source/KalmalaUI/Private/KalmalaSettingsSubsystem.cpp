@@ -14,6 +14,7 @@
 #include "Misc/Parse.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaRayTracingSupport.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaInventoryMenuSubsystem.h"
 #include "KalmalaWorldMapSubsystem.h"
@@ -74,6 +75,10 @@ void UKalmalaSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     RenderDistanceMeters = ClampRenderDistanceMeters(StoredRenderDistanceMeters);
     UKalmalaSettingsWidget::ApplySavedMasterVolume();
     UKalmalaSettingsWidget::ApplySavedInterfaceScale();
+    if (!KalmalaRendering::ApplySavedRayTracingQualityLevel())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not apply the saved ray-tracing quality setting."));
+    }
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaSettingsAccessibilityTest")))
     {

@@ -10,6 +10,22 @@ namespace KalmalaRendering
         Hardware
     };
 
+    enum class ERayTracingQualityLevel : uint8
+    {
+        Compatibility,
+        Balanced
+    };
+
+    struct KALMALAUI_API FRayTracingQualityProfile
+    {
+        int32 RayTracingEnable = 0;
+        int32 LumenHardwareRayTracing = 0;
+        int32 DynamicGlobalIllumination = 0;
+        int32 ReflectionMethod = 2;
+        int32 LumenLightingMode = 0;
+        int32 HitLightingAllowed = 0;
+    };
+
     struct KALMALAUI_API FKalmalaRayTracingCapabilities
     {
         bool bProjectAllowsHardwareRayTracing = false;
@@ -33,4 +49,10 @@ namespace KalmalaRendering
 
     /** Runtime convenience overload; call after RHI initialization. */
     KALMALAUI_API ERayTracingPath ResolveCurrentRayTracingPath(bool bHardwareRayTracingRequested);
+
+    KALMALAUI_API FRayTracingQualityProfile GetRayTracingQualityProfile(ERayTracingQualityLevel QualityLevel);
+    KALMALAUI_API bool IsBalancedRayTracingAvailable();
+    KALMALAUI_API ERayTracingQualityLevel GetSavedRayTracingQualityLevel();
+    KALMALAUI_API bool SetRayTracingQualityLevel(ERayTracingQualityLevel QualityLevel);
+    KALMALAUI_API bool ApplySavedRayTracingQualityLevel();
 }

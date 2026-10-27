@@ -29,6 +29,7 @@
 #include "GameFramework/PlayerInput.h"
 #include "Engine/LocalPlayer.h"
 #include "KalmalaSettingsSubsystem.h"
+#include "KalmalaRayTracingSupport.h"
 #include "InputCoreTypes.h"
 #include "HAL/PlatformTime.h"
 #include "Misc/App.h"
@@ -1828,6 +1829,25 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
     }
     WindowModeDropdown->SetSelectedOption(CurrentWindowMode);
 
+    RayTracingQualityDropdown = AddSettingsDropdownRow(*WidgetTree, *ContentBox,
+        TEXT("Ray Tracing Quality"), TEXT("RayTracingQualityDropdown"),
+        TextScalePercent, ContrastMode);
+    RayTracingQualityDropdown->OnGenerateWidgetEvent.BindDynamic(this,
+        &ThisClass::GenerateDropdownOptionWidget);
+    RayTracingQualityDropdown->OnSelectionChanged.AddDynamic(this,
+        &ThisClass::HandleRayTracingQualityChanged);
+    RayTracingQualityDropdown->AddOption(TEXT("Compatibility"));
+    if (KalmalaRendering::IsBalancedRayTracingAvailable())
+    {
+        RayTracingQualityDropdown->AddOption(TEXT("Balanced"));
+    }
+    RayTracingQualityDropdown->SetToolTipText(FText::FromString(
+        TEXT("Balanced uses Lumen hardware ray tracing with Surface Cache lighting on supported Windows DX12/SM6 systems.")));
+    const bool bBalancedSelected = KalmalaRendering::GetSavedRayTracingQualityLevel()
+        == KalmalaRendering::ERayTracingQualityLevel::Balanced
+        && KalmalaRendering::IsBalancedRayTracingAvailable();
+    RayTracingQualityDropdown->SetSelectedOption(bBalancedSelected ? TEXT("Balanced") : TEXT("Compatibility"));
+
     int32 RenderDistanceMeters = 576;
     if (APlayerController* OwningPlayer = GetOwningPlayer())
     {
@@ -2294,6 +2314,13 @@ void UKalmalaSettingsWidget::UpdateVideoLabels()
                 ? TEXT("Borderless") : TEXT("Fullscreen");
         WindowModeDropdown->SetSelectedOption(Mode);
     }
+    if (RayTracingQualityDropdown != nullptr)
+    {
+        const bool bBalancedSelected = KalmalaRendering::GetSavedRayTracingQualityLevel()
+            == KalmalaRendering::ERayTracingQualityLevel::Balanced
+            && KalmalaRendering::IsBalancedRayTracingAvailable();
+        RayTracingQualityDropdown->SetSelectedOption(bBalancedSelected ? TEXT("Balanced") : TEXT("Compatibility"));
+    }
     bUpdatingGraphicsControls = false;
 }
 
@@ -2537,6 +2564,23 @@ void UKalmalaSettingsWidget::HandleWindowModeSelectionChanged(const FString Sele
     {
         Settings->SetFullscreenMode(Mode);
         ApplyVideoSettings();
+    }
+}
+
+void UKalmalaSettingsWidget::HandleRayTracingQualityChanged(const FString SelectedOption,
+    const ESelectInfo::Type SelectionType)
+{
+    if (bUpdatingGraphicsControls || SelectionType == ESelectInfo::Direct) return;
+
+    const KalmalaRendering::ERayTracingQualityLevel QualityLevel = SelectedOption == TEXT("Balanced")
+        ? KalmalaRendering::ERayTracingQualityLevel::Balanced
+        : KalmalaRendering::ERayTracingQualityLevel::Compatibility;
+    if (!KalmalaRendering::SetRayTracingQualityLevel(QualityLevel))
+    {
+        if (RayTracingQualityDropdown != nullptr)
+        {
+            RayTracingQualityDropdown->SetSelectedOption(TEXT("Compatibility"));
+        }
     }
 }
 

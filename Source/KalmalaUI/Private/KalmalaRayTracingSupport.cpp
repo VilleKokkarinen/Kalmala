@@ -2,9 +2,47 @@
 
 #include "DataDrivenShaderPlatformInfo.h"
 #include "DynamicRHI.h"
+#include "HAL/IConsoleManager.h"
+#include "Misc/ConfigCacheIni.h"
 #include "RenderUtils.h"
 #include "RHI.h"
 #include "RHIGlobals.h"
+
+namespace
+{
+    constexpr TCHAR RayTracingSettingsSection[] = TEXT("/Script/KalmalaUI.KalmalaSettingsWidget");
+    constexpr TCHAR RayTracingQualityKey[] = TEXT("LocalRayTracingQuality");
+
+    bool ApplyRayTracingProfile(const KalmalaRendering::FRayTracingQualityProfile& Profile)
+    {
+        IConsoleVariable* RayTracingEnable = IConsoleManager::Get().FindConsoleVariable(TEXT("r.RayTracing.Enable"));
+        IConsoleVariable* LumenHardwareRayTracing = IConsoleManager::Get().FindConsoleVariable(TEXT("r.Lumen.HardwareRayTracing"));
+        IConsoleVariable* DynamicGlobalIllumination = IConsoleManager::Get().FindConsoleVariable(TEXT("r.DynamicGlobalIlluminationMethod"));
+        IConsoleVariable* ReflectionMethod = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ReflectionMethod"));
+        IConsoleVariable* LumenLightingMode = IConsoleManager::Get().FindConsoleVariable(TEXT("r.Lumen.HardwareRayTracing.LightingMode"));
+        IConsoleVariable* HitLightingAllowed = IConsoleManager::Get().FindConsoleVariable(TEXT("r.Lumen.HardwareRayTracing.HitLighting.Allowed"));
+
+        if (LumenHardwareRayTracing == nullptr || DynamicGlobalIllumination == nullptr
+            || ReflectionMethod == nullptr || LumenLightingMode == nullptr || HitLightingAllowed == nullptr
+            || (Profile.RayTracingEnable != 0 && RayTracingEnable == nullptr))
+        {
+            return false;
+        }
+
+        // Set up Lumen's method before enabling RT; disabling RT last keeps a
+        // return to Compatibility from briefly rendering through hardware RT.
+        LumenHardwareRayTracing->Set(Profile.LumenHardwareRayTracing, ECVF_SetByGameSetting);
+        DynamicGlobalIllumination->Set(Profile.DynamicGlobalIllumination, ECVF_SetByGameSetting);
+        ReflectionMethod->Set(Profile.ReflectionMethod, ECVF_SetByGameSetting);
+        LumenLightingMode->Set(Profile.LumenLightingMode, ECVF_SetByGameSetting);
+        HitLightingAllowed->Set(Profile.HitLightingAllowed, ECVF_SetByGameSetting);
+        if (RayTracingEnable != nullptr)
+        {
+            RayTracingEnable->Set(Profile.RayTracingEnable, ECVF_SetByGameSetting);
+        }
+        return true;
+    }
+}
 
 namespace KalmalaRendering
 {
@@ -52,5 +90,73 @@ namespace KalmalaRendering
     ERayTracingPath ResolveCurrentRayTracingPath(const bool bHardwareRayTracingRequested)
     {
         return ResolveRayTracingPath(bHardwareRayTracingRequested, GetCurrentRayTracingCapabilities());
+    }
+
+    FRayTracingQualityProfile GetRayTracingQualityProfile(const ERayTracingQualityLevel QualityLevel)
+    {
+        if (QualityLevel == ERayTracingQualityLevel::Balanced)
+        {
+            FRayTracingQualityProfile Profile;
+            Profile.RayTracingEnable = 1;
+            Profile.LumenHardwareRayTracing = 1;
+            Profile.DynamicGlobalIllumination = 1;
+            Profile.ReflectionMethod = 1;
+            Profile.LumenLightingMode = 0;
+            Profile.HitLightingAllowed = 0;
+            return Profile;
+        }
+
+        return FRayTracingQualityProfile();
+    }
+
+    bool IsBalancedRayTracingAvailable()
+    {
+        return ResolveCurrentRayTracingPath(true) == ERayTracingPath::Hardware;
+    }
+
+    ERayTracingQualityLevel GetSavedRayTracingQualityLevel()
+    {
+        int32 StoredQuality = static_cast<int32>(ERayTracingQualityLevel::Compatibility);
+        if (GConfig != nullptr)
+        {
+            GConfig->GetInt(RayTracingSettingsSection, RayTracingQualityKey,
+                StoredQuality, GGameUserSettingsIni);
+        }
+        return StoredQuality == static_cast<int32>(ERayTracingQualityLevel::Balanced)
+            ? ERayTracingQualityLevel::Balanced
+            : ERayTracingQualityLevel::Compatibility;
+    }
+
+    bool SetRayTracingQualityLevel(const ERayTracingQualityLevel QualityLevel)
+    {
+        if (QualityLevel == ERayTracingQualityLevel::Balanced && !IsBalancedRayTracingAvailable())
+        {
+            return false;
+        }
+
+        const FRayTracingQualityProfile Profile = GetRayTracingQualityProfile(QualityLevel);
+        if (!ApplyRayTracingProfile(Profile))
+        {
+            return false;
+        }
+
+        if (GConfig != nullptr)
+        {
+            GConfig->SetInt(RayTracingSettingsSection, RayTracingQualityKey,
+                static_cast<int32>(QualityLevel), GGameUserSettingsIni);
+            GConfig->Flush(false, GGameUserSettingsIni);
+        }
+        return true;
+    }
+
+    bool ApplySavedRayTracingQualityLevel()
+    {
+        ERayTracingQualityLevel QualityLevel = GetSavedRayTracingQualityLevel();
+        if (QualityLevel == ERayTracingQualityLevel::Balanced && !IsBalancedRayTracingAvailable())
+        {
+            QualityLevel = ERayTracingQualityLevel::Compatibility;
+        }
+
+        return SetRayTracingQualityLevel(QualityLevel);
     }
 }

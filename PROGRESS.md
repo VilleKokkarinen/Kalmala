@@ -1,3 +1,55 @@
+## L05c local Balanced ray-tracing tier — 2026-10-27
+
+- **Selected increment:** L05c, the next child in the user-directed L05 track.
+- **Work completed:** Added a local Graphics-menu tier selector with
+  Compatibility as the saved/default choice and Balanced available only when
+  the L05b runtime gate confirms project permission, Windows D3D12, SM6,
+  shader-platform and RHI ray-tracing support. Balanced applies
+  `r.RayTracing.Enable=1`, `r.Lumen.HardwareRayTracing=1`,
+  `r.DynamicGlobalIlluminationMethod=1`, and `r.ReflectionMethod=1`; it pins
+  Surface Cache with `r.Lumen.HardwareRayTracing.LightingMode=0` and disables
+  Hit Lighting with `r.Lumen.HardwareRayTracing.HitLighting.Allowed=0`.
+  Compatibility applies RT off, no dynamic GI, and screen-space reflections.
+  The tier persists in local `GameUserSettings` and sends no RPC. Enabled
+  optional project RT support with `DefaultGraphicsRHI=DefaultGraphicsRHI_DX12`,
+  `+D3D12TargetedShaderFormats=PCD3D_SM6`, `RayTracingMode=Full`,
+  `SkinningShaderSupport=InlineAndSkinCacheShaders`, `bEnableRayTracing=True`,
+  and `bUseHardwareRayTracingForLumen=True`. Project Compatibility defaults
+  are `DynamicGlobalIllumination=0`, `Reflections=2` (SSR),
+  `LumenRayLightingMode=SurfaceCache`, and `bEnableRayTracingShadows=False`.
+  Startup CVars `r.RayTracing.Enable=0` and
+  `r.Lumen.HardwareRayTracing=0` retain Compatibility. Corrected the UE 5.8
+  audit: `r.ReflectionMethod=2` is SSR, not Lumen reflections.
+- **Files changed:** `Config/DefaultEngine.ini`,
+  `Source/KalmalaUI/Public/KalmalaRayTracingSupport.h`,
+  `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`,
+  `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`,
+  `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaRayTracingSupportTest.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `docs/02-technical-architecture.md`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected UE 5.8 renderer CVar and project-setting
+  declarations, and added focused automation assertions for Compatibility and
+  Balanced profile values. `git diff --check` and changed-path length checks
+  passed. The automation and Unreal build were not run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** A supported local user can choose Balanced; unsupported
+  adapters retain Compatibility and cannot request the hardware profile. The
+  project compiles optional SM6 ray-tracing shaders, but startup selects the
+  RT-off path.
+- **Networking/authority:** Graphics quality is local presentation state;
+  no RPC, replication, gameplay authority, or save schema changed.
+- **Known limitations / remaining scope:** No rebuilt Editor or rendered
+  RT-off/Balanced comparison was run; L06c remains the visual comparison gate.
+  Project shader changes require an Editor restart/rebuild before the Balanced
+  option can be verified on a capable adapter. High quality, selective shadows,
+  device measurements, and upscaling separation remain outstanding.
+- **Main-checkout handoff:** Deferred while other Kalmala worktrees remain
+  active; only backlog/progress updates will be reconciled after their edits are
+  safe to preserve.
+- **Next eligible task:** L05d, selective High quality and key-light shadows.
+
 ## L05b RT-off compatibility gate — 2026-10-27
 
 - **Selected increment:** L05b, preserving the hardware-RT-off compatibility
@@ -11,6 +63,9 @@
   an unrequested request, and each missing capability. The accepted L01h visual
   gate supplies the existing RT-off baseline evidence; its recorded L01a
   renderer values remain dated and were not represented as newly captured here.
+  That was the L05b project state; L05c now compiles optional RT support while
+  the Compatibility startup profile keeps `r.RayTracing.Enable` and
+  `r.Lumen.HardwareRayTracing` at 0.
 - **Files changed:** `Config/DefaultEngine.ini`,
   `Source/KalmalaUI/KalmalaUI.Build.cs`,
   `Source/KalmalaUI/Public/KalmalaRayTracingSupport.h`,
@@ -50,7 +105,7 @@
   The existing 2026-10-26 L01a live Editor/PIE audit, recorded in main-checkout
   `PROGRESS.md` and commit `de201f5`, observed D3D12/SM5,
   `r.DynamicGlobalIlluminationMethod=0` (no dynamic GI),
-  `r.ReflectionMethod=2` (Lumen reflections), and `r.RayTracing=0` (hardware
+  `r.ReflectionMethod=2` (screen-space reflections), and `r.RayTracing=0` (hardware
   RT off) on the RTX 5090. Recorded Epic's UE 5.8 Windows/Lumen requirements
   and the narrower hardware-RT GPU families in the lighting plan. Kept the RTX
   5090 explicitly as a reference system, not a release hardware claim.
@@ -64,16 +119,20 @@
 - **Full verification:** Deferred. The L01a Editor/PIE values are a dated
   baseline, not a guarantee after later renderer changes. No new live Editor
   recheck, hardware profile, or frame-time test was part of this audit.
-- **Observable impact:** The plan now defines the documented Windows DX12/SM6
-  Lumen hardware-RT capability path and records that checked-in settings do not
-  pin the dated L01a runtime baseline. No runtime behavior changed.
+- **Observable impact:** The plan defined the documented Windows DX12/SM6
+  Lumen hardware-RT capability path and recorded that then-checked-in settings
+  did not pin the dated L01a runtime baseline. L05c later added explicit
+  Compatibility startup settings and optional shader support. No L05b runtime
+  behavior changed.
 - **Networking/authority:** No gameplay, networking, save, or authority
   behavior changed; this increment records local renderer configuration only.
 - **Known limitations / remaining scope:** Epic's GPU families describe engine
   eligibility, not a Kalmala minimum/recommended spec. Hardware support and
-  performance on specific devices remain unmeasured. The current effective
-  settings can change because tracked config does not pin the L01a-observed
-  RHI, feature level, GI/reflection method, or hardware-RT state.
+  performance on specific devices remain unmeasured. At audit time, project
+  config did not pin the L01a-observed RHI, feature level, GI/reflection method,
+  or hardware-RT state. L05c later pins the startup RHI, shader target, and
+  Compatibility renderer profile; live hardware and performance eligibility
+  remain unmeasured.
 - **Main-checkout handoff:** Not synchronized while the earlier lighting run is
   active; review and synchronize only the L05a backlog/progress updates after
   that handoff clears.

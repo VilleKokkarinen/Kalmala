@@ -2625,7 +2625,10 @@ size and leaves a 16-unit inset at each edge when the available area is smaller.
 
 ## Local storage and authority boundary
 
-Settings are local presentation preferences. They may use the existing local
+Settings are local presentation preferences. Graphics ray-tracing quality is
+stored in the local `GameUserSettings` configuration; Compatibility is the
+default, and Balanced is only applied after the runtime renderer capability
+gate succeeds. These settings may use the existing local
 user/configuration path alongside `GameUserSettings`, but must not be written
 to world saves, player progression saves, sparse world deltas, or replicated
 properties. Changing a setting sends no RPC and cannot alter world identity,

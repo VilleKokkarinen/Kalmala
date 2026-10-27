@@ -187,22 +187,23 @@ device matrix before promising a minimum card. ([Lumen Technical Details](https:
 ### L05a — Checked-in renderer support audit (2026-10-27)
 
 `Kalmala.uproject` targets UE 5.8 and the project brief targets Windows PC
-first. The tracked `Config/DefaultEngine.ini` has no Renderer Settings section.
-The tracked config, target rules, and source contain no explicit graphics RHI,
-targeted shader format/SM6, Lumen GI/reflections, Support Hardware Ray Tracing,
-Support Compute Skin Cache, or `Use Hardware Ray Tracing when available`
-selection. The prototype map package was not decoded for world-setting values.
-The checked-in project does not pin these effective settings. The existing
+first. At the time of the L05a audit, the tracked config, target rules, and
+source contained no explicit graphics RHI, targeted shader format/SM6, Lumen
+GI/reflections, Support Hardware Ray Tracing, Support Compute Skin Cache, or
+`Use Hardware Ray Tracing when available` selection. The prototype map package
+was not decoded for world-setting values. L05c later added an explicit
+Windows D3D12/SM6 target, hardware ray-tracing and skin-cache shader support,
+and a Compatibility startup profile with hardware RT disabled. The existing
 2026-10-26 L01a live map/renderer audit did observe the Editor/PIE baseline on
 the RTX 5090: D3D12 RHI with active feature level SM5,
 `r.DynamicGlobalIlluminationMethod=0` (no dynamic GI), `r.ReflectionMethod=2`
-(Lumen reflections), and `r.RayTracing=0` (hardware RT off). This is recorded
+(screen-space reflections), and `r.RayTracing=0` (hardware RT off). This is recorded
 in the 2026-10-26 L01a live map/renderer audit in the main-checkout
 `PROGRESS.md` and commit `de201f5`.
-These are dated observed values, not project defaults or a guarantee of the
-effective renderer state after later changes; recheck after any renderer
-configuration update. The observed SM5 session did not qualify for the planned
-DX12/SM6 hardware-RT path.
+These are dated observed values, not a guarantee of the effective renderer
+state after later changes; recheck after any renderer configuration update.
+The observed SM5 session did not qualify for the planned DX12/SM6 hardware-RT
+path.
 
 For the planned Windows path, UE 5.8's Lumen requirements specify Windows 10
 build 1909.1350 or newer, DirectX 12, and SM6 enabled. Epic's hardware-RT
@@ -224,18 +225,20 @@ establish a minimum or recommended GPU, performance tier, or release support
 floor. Device-level performance and image-quality measurements remain for L05e.
 
 L05b preserves the accepted L01h visual baseline, which was reviewed with the
-L01a-observed `r.RayTracing=0` setting. `Config/DefaultEngine.ini` now explicitly
-keeps project-level hardware ray tracing disabled for the Compatibility path.
-Runtime path resolution also fails closed unless hardware RT was requested and
-the project allows it, the active shader platform supports SM6 plus ray-tracing
-shaders, and the initialized RHI is Windows D3D12 with ray-tracing support. The
-existing GI/reflection method is not changed by this gate; its observed L01a
-values remain dated runtime evidence rather than pinned project defaults.
+L01a-observed `r.RayTracing=0` setting. Compatibility is explicitly configured
+as no dynamic GI and screen-space reflections, with `r.RayTracing.Enable=0`
+and `r.Lumen.HardwareRayTracing=0` at startup. The project compiles optional
+D3D12 SM6 RT shaders for Balanced, enables the `bUseHardwareRayTracingForLumen`
+project option, and retains Compatibility as the saved/default local choice.
+Runtime path resolution still fails closed unless hardware RT was requested
+and the project, shader platform, and RHI satisfy the L05b capability gate. UE 5.8
+defines `r.ReflectionMethod=1` as Lumen and `=2` as screen-space reflections;
+the recorded L01a value was SSR, not Lumen.
 
 | Quality level | Proposed rendering path | Intended support and limits |
 | --- | --- | --- |
-| **Compatibility — hardware RT off** | Keep the hardware ray tracing path disabled. Use Lumen software ray tracing only where the chosen renderer and GPU support it; otherwise use the project's selected non-hardware fallback. | This is the required visual baseline. The scene must retain readable lighting, shadows, and material separation without an RTX-capable GPU. Epic lists DX12/SM6 and GTX 1070-class requirements for Lumen software ray tracing, so verify the actual supported floor rather than assuming it runs on every PC. |
-| **Ray Tracing Balanced** | On supported DX12/SM6 hardware, use Lumen hardware ray tracing for global illumination and reflections with the Surface Cache lighting mode. Keep hit lighting off initially. | Optional quality uplift for compatible RTX 20-series-and-newer or RX 6000-series-and-newer hardware. Preserve an automatic fallback to the hardware-RT-off path on unsupported systems. |
+| **Compatibility — hardware RT off** | Keep hardware ray tracing off, dynamic GI off, and use screen-space reflections with the existing raster shadow path. This is the explicit non-hardware fallback for all supported Windows adapters. | Required visual baseline. The accepted L01h review used the observed RT-off baseline. The scene must retain readable lighting, shadows, and material separation without an RTX-capable GPU. |
+| **Ray Tracing Balanced** | On supported Windows DX12/SM6 hardware, use Lumen hardware ray tracing for global illumination and reflections with Surface Cache lighting. Keep Hit Lighting disabled. | Optional uplift gated by project, shader-platform, and RHI capability checks. Unsupported systems stay on Compatibility. The compiled project setting only makes the shaders available; the local Compatibility profile remains the startup default. |
 | **Ray Tracing High** | Raise Lumen GI/reflection quality only as measured performance allows. Test ray-traced shadows on selected key lights where they visibly improve contact or foliage shadows; keep other lights on their normal shadow method unless they pass the same test. | This is an opt-in high-quality preset, not a universal default. Cull ray tracing to relevant scene ranges and profile forests, water, camp lights, and moving creatures. Avoid Hit Lighting for gameplay unless a separate test proves its cost acceptable; Epic describes it as substantially more expensive. |
 | **Path-traced capture** | Use Unreal's Path Tracer for offline stills or slow cinematic captures when a converged reference image is useful. | A reference and presentation mode only. Do not use it to define runtime gameplay lighting, minimum hardware, or performance targets. |
 
@@ -248,6 +251,15 @@ GPU-specific numerical settings before measuring the scene. Hardware ray
 tracing has additional scene-update cost, especially with many overlapping
 instances, so check the generated forests, grass, sky geometry, and other
 repeated meshes for ray-tracing visibility and culling before enabling it broadly.
+
+The local Graphics-menu tier is stored in `GameUserSettings`. Compatibility
+applies `r.RayTracing.Enable=0`, `r.Lumen.HardwareRayTracing=0`,
+`r.DynamicGlobalIlluminationMethod=0`, and `r.ReflectionMethod=2`. Balanced is
+offered only when the runtime gate accepts the active Windows D3D12/SM6 adapter;
+it applies Lumen GI/reflections (`r.DynamicGlobalIlluminationMethod=1`,
+`r.ReflectionMethod=1`), enables hardware tracing, and forces Surface Cache
+lighting with Hit Lighting disallowed. Rendered visual comparison is reserved
+for the integrated L06c gate.
 
 Keep NVIDIA DLSS separate from the ray-tracing levels. Super Resolution is an
 optional upscaling choice; DLAA, Ray Reconstruction, and Frame Generation are
