@@ -240,9 +240,9 @@ do not mark the lighting milestone complete before it passes.
     - [ ] **L05e2 — Measure integrated reference-PC profiles.** After L06b's
       Editor build, run the ten seed-418/419 fixed views at Compatibility,
       Balanced, and High on the RTX 5090. Record frame time, resolution, memory,
-      and visible image/temporal artifacts for the L06c visual review. This is
-      blocked until L06b supplies the final integrated build; lower-tier/AMD
-      measurements remain pending hardware selection.
+      and visible image/temporal artifacts for the L06c visual review. L06b has
+      now supplied the integrated Editor build, so this task is unblocked;
+      lower-tier/AMD measurements remain pending hardware selection.
   - [x] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
     separate from ray tracing. Add no vendor plugin/dependency or Frame
     Generation path in this goal; seek a separate user-approved plan if they
@@ -263,9 +263,10 @@ do not mark the lighting milestone complete before it passes.
     preference in GameUserSettings.ini, not gameplay SaveGame data. No production
     gameplay, replication schema, RPC, or save behavior was added. Full build and
     rendered acceptance remain for L06b/L06c.
-  - [ ] **L06b — Run the project-prescribed build and focused checks.** Use the
-    applicable Editor build, rendered-world checks, and performance procedures
-    in `docs/07-development-setup.md`. Record actual commands and results.
+  - [x] **L06b — Run the project-prescribed build and focused checks.** The UE
+    5.8 integrated Editor build, focused RT/material/weather automations, and
+    Compatibility-tier rendered smoke capture passed in the isolated mirror.
+    Exact commands and remaining performance/visual scope are in `PROGRESS.md`.
   - [ ] **L06c — Capture integrated visual acceptance.** Repeat the ten L01
     fixed views with the final material/effect stack for RT-off, Balanced, and
     High where supported; inspect regular third-person camera movement and UI.
