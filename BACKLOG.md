@@ -124,7 +124,7 @@ do not mark the lighting milestone complete before it passes.
   - [x] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable
     surfaces with an existing client biome/surface signal; record unsupported
     combinations as N/A in the lighting plan.
-  - [ ] **L04e — Tune existing sky and atmospheric effects.** Adjust available
+  - [x] **L04e — Tune existing sky and atmospheric effects.** Adjust available
     cloud, local fog, and weather color treatments through the existing pipeline;
     add no new sky model or weather type.
   - [ ] **L04f — Tune existing world-space weather effects.** Adjust available

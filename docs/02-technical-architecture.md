@@ -2765,10 +2765,11 @@ mesh budget; clipped edge vertices derive regional weights from their existing
 field samples. Player cloth selects the established grass channel with snow alpha zero
 so the shared terrain material retains its original clothing color. No grass
 texture or reed presentation asset is introduced. The client-local Mountain
-storm fog fades with the existing replicated storm intensity multiplied by the
-continuous Thunder Mountains weight at the owning pawn. It adds no replicated
-actor, field or RPC, and no gameplay effect; Tundra snow and player-cloth
-material behavior are unchanged.
+weather fog uses the existing replicated FogIntensity multiplied by the
+continuous Thunder Mountains weight at the owning pawn. A one-second local
+probe feeds a smooth interpolation; the fog actor is transient and
+nonreplicated. The effect adds no field, RPC, or gameplay behavior; Tundra snow
+and player-cloth material behavior are unchanged.
 Generated Meadow rock bases use the shared final terrain height and surface
 normal; the terrain patch remains their gameplay surface.
 

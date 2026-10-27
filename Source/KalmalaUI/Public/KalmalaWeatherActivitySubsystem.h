@@ -9,7 +9,7 @@ class APlayerController;
 class AExponentialHeightFog;
 class UKalmalaWeatherActivityWidget;
 
-/** Presents local weather feedback and Mountain storm atmosphere from replicated state. */
+/** Presents local weather feedback and regional fog from replicated state. */
 UCLASS()
 class KALMALAUI_API UKalmalaWeatherActivitySubsystem : public ULocalPlayerSubsystem, public FTickableGameObject
 {
@@ -27,17 +27,17 @@ public:
 
 private:
     void ReleaseController();
-    void UpdateMountainStormVisuals(float DeltaTime);
-    void DestroyMountainStormFog();
+    void UpdateMountainWeatherFog(float DeltaTime);
+    void DestroyMountainWeatherFog();
 
     UPROPERTY(Transient)
     TObjectPtr<UKalmalaWeatherActivityWidget> WeatherWidget;
 
     UPROPERTY(Transient)
-    TObjectPtr<AExponentialHeightFog> MountainStormFog;
+    TObjectPtr<AExponentialHeightFog> MountainWeatherFog;
 
     TWeakObjectPtr<APlayerController> LocalController;
-    float MountainStormProbeTimeRemaining = 0.0f;
-    float TargetMountainStormCoverage = 0.0f;
-    float CurrentMountainStormCoverage = 0.0f;
+    float MountainWeatherFogProbeTimeRemaining = 0.0f;
+    float TargetMountainWeatherFogCoverage = 0.0f;
+    float CurrentMountainWeatherFogCoverage = 0.0f;
 };

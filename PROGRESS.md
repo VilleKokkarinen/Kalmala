@@ -1,3 +1,15 @@
+## L04e - existing local fog and sky-path tuning - 2026-10-27
+
+- **Selected task:** L04e, tuning the existing weather-linked local fog and auditing available sky paths.
+- **Work completed:** Retargeted the existing local highland fog from derived StormIntensity to the replicated FogIntensity multiplied by the local ThunderMountains weight. Preserved the active-interval gate, one-second probe, smooth interpolation, bounded fog values, nonreplicated local actor, and dedicated-server exclusion. Recorded cloud and weather-linked sky-color paths as N/A because the current setup contains only the sun, SkyAtmosphere, and skylight.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/valheim-like-lighting-plan.md, docs/02-technical-architecture.md, KalmalaWeatherActivitySubsystem.h, and KalmalaWeatherActivitySubsystem.cpp.
+- **Lightweight checks:** Reviewed the weather cycle, replicated weather contract, fog subsystem, sky setup, and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Foggy weather intervals now drive the existing client-local highland fog according to FogIntensity, including foggy calm intervals. No cloud, sky-color, or additional world-space effect was added.
+- **Networking/authority:** The server remains the sole weather writer; clients use the existing replicated FogIntensity and deterministic local biome weight. The fog actor remains transient and nonreplicated; no RPC, replicated field, save field, or gameplay behavior changed.
+- **Known limitations / remaining scope:** Cloud actors and weather-linked sky color are N/A in the current project pipeline. L04b remains blocked pending L02c/L02d; L04f-L04g remain incomplete. Rendered fog quality remains for the later environment-effects gate.
+- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04f is the next currently unblocked child.
+
 ## L04d - moss and lichen signal audit - 2026-10-27
 
 - **Selected task:** L04d, checking whether existing client biome/surface signals reach suitable moss/lichen materials.

@@ -14,42 +14,42 @@
 
 namespace
 {
-    constexpr float MountainStormProbeIntervalSeconds = 1.0f;
-    constexpr float MountainStormFogMaxDensity = 0.005f;
-    constexpr float MountainStormFogMaxOpacity = 0.24f;
-    constexpr float MountainStormFogStartDistance = 2500.0f;
-    constexpr float MountainStormFogFadeSpeed = 1.5f;
-    constexpr float MountainStormFogReleaseThreshold = 0.005f;
-    const FLinearColor MountainStormFogColor(0.32f, 0.34f, 0.41f);
+    constexpr float MountainWeatherFogProbeIntervalSeconds = 1.0f;
+    constexpr float MountainWeatherFogMaxDensity = 0.005f;
+    constexpr float MountainWeatherFogMaxOpacity = 0.24f;
+    constexpr float MountainWeatherFogStartDistance = 2500.0f;
+    constexpr float MountainWeatherFogFadeSpeed = 1.5f;
+    constexpr float MountainWeatherFogReleaseThreshold = 0.005f;
+    const FLinearColor MountainWeatherFogColor(0.32f, 0.34f, 0.41f);
 }
 
 void UKalmalaWeatherActivitySubsystem::Tick(const float DeltaTime)
 {
     // The survival subsystem owns the single top-right weather/status parent.
     ReleaseController();
-    UpdateMountainStormVisuals(DeltaTime);
+    UpdateMountainWeatherFog(DeltaTime);
 }
 
-void UKalmalaWeatherActivitySubsystem::UpdateMountainStormVisuals(const float DeltaTime)
+void UKalmalaWeatherActivitySubsystem::UpdateMountainWeatherFog(const float DeltaTime)
 {
     UWorld* World = GetWorld();
     ULocalPlayer* LocalPlayer = GetLocalPlayer();
     if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr
         || World->GetNetMode() == NM_DedicatedServer)
     {
-        DestroyMountainStormFog();
+        DestroyMountainWeatherFog();
         return;
     }
-    if (MountainStormFog != nullptr
-        && (!IsValid(MountainStormFog.Get()) || MountainStormFog->GetWorld() != World))
+    if (MountainWeatherFog != nullptr
+        && (!IsValid(MountainWeatherFog.Get()) || MountainWeatherFog->GetWorld() != World))
     {
-        DestroyMountainStormFog();
+        DestroyMountainWeatherFog();
     }
 
-    MountainStormProbeTimeRemaining -= FMath::Max(DeltaTime, 0.0f);
-    if (MountainStormProbeTimeRemaining <= 0.0f)
+    MountainWeatherFogProbeTimeRemaining -= FMath::Max(DeltaTime, 0.0f);
+    if (MountainWeatherFogProbeTimeRemaining <= 0.0f)
     {
-        TargetMountainStormCoverage = 0.0f;
+        TargetMountainWeatherFogCoverage = 0.0f;
         APlayerController* Controller = LocalPlayer->GetPlayerController(World);
         const AKalmalaWorldGenerationGameState* GameState =
             World->GetGameState<AKalmalaWorldGenerationGameState>();
@@ -70,59 +70,59 @@ void UKalmalaWeatherActivitySubsystem::UpdateMountainStormVisuals(const float De
                     GameState->GetWorldGenerationConfig(), FVector2D(PawnLocation.X, PawnLocation.Y));
                 const float MountainWeight = Surface.Weights[
                     static_cast<uint8>(EKalmalaBiome::ThunderMountains)];
-                TargetMountainStormCoverage = FMath::Clamp(
-                    FMath::Clamp(Weather.GetStormIntensity(), 0.0f, 1.0f)
+                TargetMountainWeatherFogCoverage = FMath::Clamp(
+                    FMath::Clamp(Weather.FogIntensity, 0.0f, 1.0f)
                         * FMath::Clamp(MountainWeight, 0.0f, 1.0f),
                     0.0f, 1.0f);
             }
         }
-        MountainStormProbeTimeRemaining = MountainStormProbeIntervalSeconds;
+        MountainWeatherFogProbeTimeRemaining = MountainWeatherFogProbeIntervalSeconds;
     }
 
-    if (TargetMountainStormCoverage > MountainStormFogReleaseThreshold && MountainStormFog == nullptr)
+    if (TargetMountainWeatherFogCoverage > MountainWeatherFogReleaseThreshold && MountainWeatherFog == nullptr)
     {
         FActorSpawnParameters SpawnParameters;
         SpawnParameters.ObjectFlags |= RF_Transient;
         SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        MountainStormFog = World->SpawnActor<AExponentialHeightFog>(
+        MountainWeatherFog = World->SpawnActor<AExponentialHeightFog>(
             AExponentialHeightFog::StaticClass(), FTransform::Identity, SpawnParameters);
-        if (MountainStormFog != nullptr)
+        if (MountainWeatherFog != nullptr)
         {
-            MountainStormFog->SetReplicates(false);
-            MountainStormFog->SetActorTickEnabled(false);
+            MountainWeatherFog->SetReplicates(false);
+            MountainWeatherFog->SetActorTickEnabled(false);
         }
     }
 
-    if (MountainStormFog == nullptr || !IsValid(MountainStormFog.Get())) return;
-    UExponentialHeightFogComponent* Fog = MountainStormFog->GetComponent();
+    if (MountainWeatherFog == nullptr || !IsValid(MountainWeatherFog.Get())) return;
+    UExponentialHeightFogComponent* Fog = MountainWeatherFog->GetComponent();
     if (Fog == nullptr)
     {
-        DestroyMountainStormFog();
+        DestroyMountainWeatherFog();
         return;
     }
 
-    CurrentMountainStormCoverage = FMath::FInterpTo(CurrentMountainStormCoverage,
-        TargetMountainStormCoverage, DeltaTime, MountainStormFogFadeSpeed);
-    Fog->SetFogDensity(MountainStormFogMaxDensity * CurrentMountainStormCoverage);
-    Fog->SetFogMaxOpacity(MountainStormFogMaxOpacity * CurrentMountainStormCoverage);
-    Fog->SetStartDistance(MountainStormFogStartDistance);
+    CurrentMountainWeatherFogCoverage = FMath::FInterpTo(CurrentMountainWeatherFogCoverage,
+        TargetMountainWeatherFogCoverage, DeltaTime, MountainWeatherFogFadeSpeed);
+    Fog->SetFogDensity(MountainWeatherFogMaxDensity * CurrentMountainWeatherFogCoverage);
+    Fog->SetFogMaxOpacity(MountainWeatherFogMaxOpacity * CurrentMountainWeatherFogCoverage);
+    Fog->SetStartDistance(MountainWeatherFogStartDistance);
     Fog->SetFogInscatteringColor(FLinearColor::LerpUsingHSV(
-        FLinearColor::White, MountainStormFogColor, CurrentMountainStormCoverage));
+        FLinearColor::White, MountainWeatherFogColor, CurrentMountainWeatherFogCoverage));
 
-    if (TargetMountainStormCoverage <= MountainStormFogReleaseThreshold
-        && CurrentMountainStormCoverage <= MountainStormFogReleaseThreshold)
+    if (TargetMountainWeatherFogCoverage <= MountainWeatherFogReleaseThreshold
+        && CurrentMountainWeatherFogCoverage <= MountainWeatherFogReleaseThreshold)
     {
-        DestroyMountainStormFog();
+        DestroyMountainWeatherFog();
     }
 }
 
-void UKalmalaWeatherActivitySubsystem::DestroyMountainStormFog()
+void UKalmalaWeatherActivitySubsystem::DestroyMountainWeatherFog()
 {
-    if (IsValid(MountainStormFog.Get())) MountainStormFog->Destroy();
-    MountainStormFog = nullptr;
-    TargetMountainStormCoverage = 0.0f;
-    CurrentMountainStormCoverage = 0.0f;
-    MountainStormProbeTimeRemaining = 0.0f;
+    if (IsValid(MountainWeatherFog.Get())) MountainWeatherFog->Destroy();
+    MountainWeatherFog = nullptr;
+    TargetMountainWeatherFogCoverage = 0.0f;
+    CurrentMountainWeatherFogCoverage = 0.0f;
+    MountainWeatherFogProbeTimeRemaining = 0.0f;
 }
 
 void UKalmalaWeatherActivitySubsystem::ReleaseController()
@@ -134,7 +134,7 @@ void UKalmalaWeatherActivitySubsystem::ReleaseController()
 void UKalmalaWeatherActivitySubsystem::Deinitialize()
 {
     ReleaseController();
-    DestroyMountainStormFog();
+    DestroyMountainWeatherFog();
     LocalController = nullptr;
     Super::Deinitialize();
 }
