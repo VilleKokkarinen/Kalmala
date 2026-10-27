@@ -24,9 +24,9 @@
   Lower-tier/AMD coverage is explicitly pending. The repository's build timing
   policy and L05e-before-L06 order need resolution before captures can run.
   L06 is still required before the lighting milestone can be marked verified.
-- **Main-checkout handoff:** L05 bookkeeping is already synchronized to the
-  main checkout; this update will be synchronized after commit, preserving its
-  unrelated edits.
+- **Main-checkout handoff:** Synchronized this L05e scope/blocker note into the
+  main checkout's `BACKLOG.md` and `PROGRESS.md`, preserving its unrelated
+  edits; no implementation files were synchronized.
 - **Next eligible task:** Resolve the L05e/L06 build timing, then record the
   reference PC captures; keep lower-tier/AMD coverage pending until actual
   devices are chosen.
