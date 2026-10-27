@@ -1,3 +1,38 @@
+## L03c direct-light integration evidence audit — incomplete — 2026-10-27
+
+- **Selected task:** L03c, check the candidate's lighting integration.
+- **Work completed:** Audited the existing fixture and capture workflow against
+  the requested shadow, indirect-fill, local camp-light, silhouette, temporal
+  stability, and GPU-cost criteria. Recorded the specific missing scene/runtime
+  evidence and left L03c unchecked.
+- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
+  PROGRESS.md. No fixture assets, capture files, or production materials changed.
+- **Lightweight checks:** Confirmed this worktree has no
+  Binaries/Win64/KalmalaEditor.exe, UnrealEditor-KalmalaEditor.dll, or generated
+  L_LightingComparison.umap. Inspected the fixture's movable sun/skylight,
+  Toon Profile scales, proxy meshes, and capture helper; parsed both fixture
+  PowerShell scripts and ran git diff --check.
+- **Incremental compile attempt:** Refreshed 31 current Source/Config/project/
+  script files into the external kdc1 mirror. UnrealBuildTool scheduled 205
+  Editor-target actions; stopped at 38/205 after errors in
+  KalmalaConsoleComponent.cpp and KalmalaConsolePeerFixture.cpp where the
+  partially refreshed mirror mixed current headers with another source version.
+  No successful L03 commandlet compile resulted; the Editor target did not
+  complete and no render ran.
+- **Full verification:** Deferred. No full build, commandlet asset generation,
+  material compilation, render, test suite, or GPU capture completed.
+- **Observable impact:** No runtime or visual change. The remaining integration
+  gates and the fixture gaps are now explicit.
+- **Networking/authority:** Documentation/source audit only; gameplay,
+  networking, authority, persistence, and save behavior are unchanged.
+- **Known limitations / remaining scope:** No visual evidence exists for cast
+  shadows, indirect fill, local camp-light response, silhouettes, or temporal
+  stability; per-view GPU cost is unmeasured. The current fixture lacks a local
+  light and multi-frame/GPU timing capture path, and uses primitive proxies.
+- **Next eligible task:** L03c remains open. Generate and render the comparison
+  fixture with local-light coverage and review fixed-view images/temporal
+  behavior. L03d was not started in this increment.
+
 ## L03b UE 5.8 Substrate NPR support audit — 2026-10-27
 
 - **Selected task:** L03b, evaluate whether UE 5.8 Substrate NPR is supported by

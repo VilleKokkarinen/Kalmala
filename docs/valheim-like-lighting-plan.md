@@ -1,8 +1,9 @@
 # Valheim-inspired material and lighting plan
 
 **Status:** L01 is complete. L02 is in progress with its shared material
-interface authored; L03 is in progress with an isolated direct-light fixture and
-a source-level Substrate support audit; L04–L06 remain queued in BACKLOG.md.
+interface authored; L03 is in progress with its direct-light fixture and
+Substrate support audit; rendered integration evidence remains pending; L04–L06
+remain queued in BACKLOG.md.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -551,6 +552,33 @@ candidate compiles or renders correctly on project targets. Keep the Toon
 candidate test-only; do not enable Substrate in project defaults or add a
 production dependency. L03c still needs rendered integration, silhouette,
 stability, and cost evidence before L03d can make a review recommendation.
+
+#### L03c — integration evidence gate audit (incomplete) — 2026-10-27
+
+A source audit of the L03a fixture and capture runner found no project Editor
+binary, Kalmala module DLL, or generated L_LightingComparison map in this
+worktree. The reusable UE 5.8 kdc1 mirror had an Editor module DLL, but it
+differed in 24 common Source files and lacked both L03a commandlet files. After
+syncing the current Source/Config/project/script differences, UnrealBuildTool
+scheduled 205 actions. The build was stopped at 38/205 after compile errors in
+KalmalaConsoleComponent.cpp and KalmalaConsolePeerFixture.cpp against mismatched
+headers in the mixed mirror state. This did not compile the L03 commandlet. No
+asset generation, render, or GPU capture ran.
+
+| L03c criterion | Source-level finding | Evidence status |
+| --- | --- | --- |
+| Cast shadows | The fixture sets up a movable directional sun and leaves shadow behavior to engine defaults; no comparison frame was rendered. | Unverified |
+| Indirect fill | The Toon Profile sets diffuse and specular indirect scales to 1.0; this does not establish the rendered contribution. | Unverified |
+| Camp-light response | The fixture contains a directional sun and skylight only; it has no local campfire/point-light case. | Not covered |
+| Silhouette readability | Samples are UE BasicShapes proxies rather than production meshes, and no image was captured. | Unverified |
+| Temporal stability | The runner captures one still per view; its file-size settling check is not a temporal-shading test. | Not measured |
+| Per-view GPU cost | The runner records no GPU timing or stat data, and no successful project Editor target was built. | Not measured |
+
+L03c remains unchecked. To complete it, generate the fixture, include or capture a
+representative local camp-light response, render the paired samples in the fixed
+L01 views, review shadowing/indirect contribution/silhouettes across frames, and
+record per-view GPU timing. No production renderer or material assignment was
+changed. Do not make a support or performance claim from this source audit.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an

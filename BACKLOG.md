@@ -135,6 +135,10 @@ do not mark the lighting milestone complete before it passes.
   - [ ] **L03c — Check lighting integration.** Confirm each candidate preserves
     cast shadows, indirect fill, camp-light response, silhouette readability,
     and temporal stability; record per-view GPU cost.
+    Evidence remains pending: the worktree has no Editor binary or generated
+    map, the mirror build expanded to 205 actions and failed in mixed-version
+    console code, and the fixture has no local-light, temporal, or GPU
+    timing capture. Keep unchecked until scene evidence is recorded.
   - [ ] **L03d — Record the review recommendation.** Keep Default Lit as the
     production path and report the captures, tradeoffs, and recommended next
     choice. Any change to the game's overall visual identity requires explicit
