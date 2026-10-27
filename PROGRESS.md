@@ -1,3 +1,41 @@
+## L02b terrain and shore integration — 2026-10-27
+
+- **Selected task:** L02b, integrate generated terrain and shore.
+- **Work completed:** Routed the preserved grass/soil/rock RGB and snow-alpha
+  terrain blend through `MF_KalmalaSurfaceResponse`, generated
+  `MI_GeneratedTerrain`, and assigned it before the optional biome-debug
+  override. Generated and assigned `MI_GeneratedLakeShore` from the shared
+  lit parent, setting its tint to preserve the prior flat base color and its
+  roughness to 0.78. The cloth component retains its terrain-parent reference.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset`,
+  `Content/Kalmala/World/Materials/MI_GeneratedTerrain.uasset`,
+  `Content/Kalmala/World/Materials/MI_GeneratedLakeShore.uasset`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  build passed and compiled both changed C++ files. The material commandlet
+  generated the terrain parent and two instances with 0 errors; on the repeat
+  run it loaded the instances and reported 0 errors plus the known unrelated
+  invalid ocean-skiff material slot warning. The first generation's startup
+  also logged the not-yet-created instance references before producing them.
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1` passed for 10 assets
+  and 33 source seams; `git diff --check` passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials completion checks remain for L06.
+- **Observable impact:** Terrain and shore now use the shared lit response
+  while retaining terrain layer weights, snow coverage, the previous shore
+  base tint and roughness, and the developer biome-color override.
+- **Networking/authority:** Cosmetic materials only; no gameplay, server
+  authority, replication, geometry, sampling, or save behavior changed.
+- **Known limitations / remaining scope:** No rendered visual review was run;
+  shore remains hidden by the default-off basin policy. Material quality,
+  world-noise appearance, and GPU cost remain for L02g/L06. Other generated
+  surface families remain unintegrated.
+- **Next eligible task:** L02c — integrate generated rock.
+
 ## L02a shared surface interface — 2026-10-27
 
 - **Selected task:** L02a, define the shared material interface.

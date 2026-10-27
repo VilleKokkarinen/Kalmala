@@ -3681,8 +3681,13 @@ After rebuilding the Editor target for BH23 and BH24a/BH24b, run the project-own
 `CreateWorldMaterials` commandlet against the project with
 `UnrealEditor-Cmd.exe <project.uproject> -run=CreateWorldMaterials`. It updates
 `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
-vertex-color grass/soil/rock blend and creates the original
-`M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
+vertex-color grass/soil/rock blend routed through the shared surface-response
+function, and creates the `MI_GeneratedTerrain` and `MI_GeneratedLakeShore`
+instances plus the original `M_GeneratedSoil.uasset`; the existing grass and
+rock palette remains in place. Generated terrain patches assign the terrain
+instance before the `-KalmalaBiomeDebug` override, while player cloth continues
+to use the terrain parent. The shore instance uses the common lit parent and
+retains the prior base color and roughness.
 Vertex alpha blends a pale snow tone over Freezing Tundra by continuous biome
 weight and final slope, and over Thunder Mountains only above the named
 highland threshold, with continuous height and slope coverage; Mountain storm

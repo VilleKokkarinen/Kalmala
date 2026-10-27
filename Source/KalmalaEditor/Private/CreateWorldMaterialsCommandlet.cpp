@@ -19,6 +19,7 @@
 #include "Materials/MaterialExpressionVectorParameter.h"
 #include "Materials/MaterialExpressionWorldPosition.h"
 #include "Materials/MaterialFunction.h"
+#include "Materials/MaterialInstanceConstant.h"
 #include "Misc/PackageName.h"
 #include "UObject/SavePackage.h"
 #include "UObject/UObjectGlobals.h"
@@ -396,7 +397,72 @@ namespace KalmalaWorldMaterials
         return true;
     }
 
-    static bool CreateTerrainGroundBlendMaterial(const FString& PackageName, const float Roughness)
+    static bool CreateMaterialInstance(const FString& PackageName, const FString& ParentPath,
+        const FLinearColor BaseTint, const float Roughness)
+    {
+        FString Filename;
+        if (!FPackageName::TryConvertLongPackageNameToFilename(PackageName, Filename, FPackageName::GetAssetPackageExtension()))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not resolve material instance package %s."), *PackageName);
+            return false;
+        }
+
+        const FString AssetName = FPackageName::GetLongPackageAssetName(PackageName);
+        if (IFileManager::Get().FileExists(*Filename))
+        {
+            UMaterialInstanceConstant* Existing = LoadObject<UMaterialInstanceConstant>(nullptr,
+                *FString::Printf(TEXT("%s.%s"), *PackageName, *AssetName));
+            if (Existing == nullptr)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Could not load existing material instance %s."), *PackageName);
+                return false;
+            }
+            UE_LOG(LogTemp, Display, TEXT("World material instance already exists at %s."), *PackageName);
+            return true;
+        }
+
+        UMaterialInterface* Parent = LoadObject<UMaterialInterface>(nullptr, *ParentPath);
+        if (Parent == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not load material instance parent %s for %s."), *ParentPath, *PackageName);
+            return false;
+        }
+
+        IFileManager::Get().MakeDirectory(*FPaths::GetPath(Filename), true);
+        UPackage* Package = CreatePackage(*PackageName);
+        if (Package == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not create material instance package %s."), *PackageName);
+            return false;
+        }
+        UMaterialInstanceConstant* Instance = NewObject<UMaterialInstanceConstant>(Package,
+            FName(*AssetName), RF_Public | RF_Standalone);
+        if (Instance == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not create material instance %s."), *PackageName);
+            return false;
+        }
+
+        Instance->SetParentEditorOnly(Parent);
+        Instance->SetVectorParameterValueEditorOnly(FMaterialParameterInfo(FName(TEXT("BaseTint"))), BaseTint);
+        Instance->SetScalarParameterValueEditorOnly(FMaterialParameterInfo(FName(TEXT("Roughness"))), Roughness);
+        Instance->PostEditChange();
+        Package->MarkPackageDirty();
+
+        FSavePackageArgs SaveArgs;
+        SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+        if (!UPackage::SavePackage(Package, Instance, *Filename, SaveArgs))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not save material instance %s."), *PackageName);
+            return false;
+        }
+
+        UE_LOG(LogTemp, Display, TEXT("Created project-owned material instance %s from %s."), *PackageName, *ParentPath);
+        return true;
+    }
+
+    static bool CreateTerrainGroundBlendMaterial(const FString& PackageName, const float Roughness,
+        UMaterialFunction* SurfaceResponse)
     {
         FString Filename;
         if (!FPackageName::TryConvertLongPackageNameToFilename(PackageName, Filename, FPackageName::GetAssetPackageExtension()))
@@ -419,7 +485,7 @@ namespace KalmalaWorldMaterials
             Package = CreatePackage(*PackageName);
             Material = NewObject<UMaterial>(Package, FName(*AssetName), RF_Public | RF_Standalone);
         }
-        if (Material == nullptr || Material->GetEditorOnlyData() == nullptr || Package == nullptr)
+        if (Material == nullptr || Material->GetEditorOnlyData() == nullptr || Package == nullptr || SurfaceResponse == nullptr)
         {
             UE_LOG(LogTemp, Error, TEXT("Could not prepare terrain blend material %s."), *PackageName);
             return false;
@@ -503,12 +569,80 @@ namespace KalmalaWorldMaterials
         UMaterialExpression* SnowWeight = CreateWeightChannel(false, false, false, true);
         UMaterialExpression* SnowColorExpression = CreateColor(TerrainSnowColor);
         UMaterialExpression* GroundAndSnowColor = CreateBlend(GroundColor, SnowColorExpression, SnowWeight);
-        UMaterialExpressionConstant* RoughnessExpression = NewObject<UMaterialExpressionConstant>(Material);
-        RoughnessExpression->R = Roughness;
-        EditorOnlyData->ExpressionCollection.Expressions.Add(RoughnessExpression);
+        const auto CreateSurfaceScalarParameter = [Material, EditorOnlyData](const FName Name,
+            const float DefaultValue, const float SliderMin, const float SliderMax, const int32 SortPriority,
+            const int32 Y, const TCHAR* Description)
+        {
+            UMaterialExpressionScalarParameter* Parameter = NewObject<UMaterialExpressionScalarParameter>(Material);
+            Parameter->ParameterName = Name;
+            Parameter->Group = TEXT("Kalmala Surface");
+            Parameter->SortPriority = SortPriority;
+            Parameter->DefaultValue = DefaultValue;
+            Parameter->SliderMin = SliderMin;
+            Parameter->SliderMax = SliderMax;
+            Parameter->Desc = Description;
+            Parameter->MaterialExpressionEditorX = -900;
+            Parameter->MaterialExpressionEditorY = Y;
+            EditorOnlyData->ExpressionCollection.Expressions.Add(Parameter);
+            return Parameter;
+        };
+        UMaterialExpressionVectorParameter* BaseTint = NewObject<UMaterialExpressionVectorParameter>(Material);
+        BaseTint->ParameterName = TEXT("BaseTint");
+        BaseTint->Group = TEXT("Kalmala Surface");
+        BaseTint->SortPriority = 0;
+        BaseTint->DefaultValue = FLinearColor::White;
+        BaseTint->Desc = TEXT("Neutral-white multiplier for the vertex-weighted ground color.");
+        BaseTint->MaterialExpressionEditorX = -900;
+        BaseTint->MaterialExpressionEditorY = -460;
+        EditorOnlyData->ExpressionCollection.Expressions.Add(BaseTint);
+        UMaterialExpressionScalarParameter* RoughnessParameter = CreateSurfaceScalarParameter(TEXT("Roughness"),
+            Roughness, 0.0f, 1.0f, 1, -320, TEXT("Terrain surface microfacet roughness."));
+        UMaterialExpressionScalarParameter* NormalStrength = CreateSurfaceScalarParameter(TEXT("NormalStrength"),
+            1.0f, 0.0f, 1.0f, 2, 0, TEXT("Blend from a flat tangent normal to the input normal."));
+        UMaterialExpressionScalarParameter* ColorVariation = CreateSurfaceScalarParameter(TEXT("ColorVariation"),
+            0.05f, 0.0f, 0.12f, 3, 320, TEXT("Subtle broad absolute-world color variation."));
+        UMaterialExpressionScalarParameter* MappingScale = CreateSurfaceScalarParameter(TEXT("MappingScale"),
+            0.001f, 0.0001f, 0.01f, 4, 460, TEXT("Absolute-world-position multiplier in inverse centimeters."));
+        UMaterialExpressionConstant3Vector* FlatNormal = NewObject<UMaterialExpressionConstant3Vector>(Material);
+        FlatNormal->Constant = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f);
+        FlatNormal->MaterialExpressionEditorX = -900;
+        FlatNormal->MaterialExpressionEditorY = 160;
+        EditorOnlyData->ExpressionCollection.Expressions.Add(FlatNormal);
+        UMaterialExpressionWorldPosition* WorldPosition = NewObject<UMaterialExpressionWorldPosition>(Material);
+        WorldPosition->MaterialExpressionEditorX = -900;
+        WorldPosition->MaterialExpressionEditorY = 600;
+        EditorOnlyData->ExpressionCollection.Expressions.Add(WorldPosition);
 
-        EditorOnlyData->BaseColor.Expression = GroundAndSnowColor;
-        EditorOnlyData->Roughness.Expression = RoughnessExpression;
+        UMaterialExpressionMaterialFunctionCall* FunctionCall = NewObject<UMaterialExpressionMaterialFunctionCall>(Material);
+        FunctionCall->MaterialExpressionEditorX = -380;
+        FunctionCall->MaterialExpressionEditorY = 40;
+        EditorOnlyData->ExpressionCollection.Expressions.Add(FunctionCall);
+        if (!FunctionCall->SetMaterialFunction(SurfaceResponse))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not bind the shared surface response to terrain material %s."), *PackageName);
+            return false;
+        }
+        const bool bInputsConnected =
+            ConnectFunctionInput(FunctionCall, TEXT("BaseColor"), GroundAndSnowColor) &&
+            ConnectFunctionInput(FunctionCall, TEXT("BaseTint"), BaseTint) &&
+            ConnectFunctionInput(FunctionCall, TEXT("Roughness"), RoughnessParameter) &&
+            ConnectFunctionInput(FunctionCall, TEXT("Normal"), FlatNormal) &&
+            ConnectFunctionInput(FunctionCall, TEXT("NormalStrength"), NormalStrength) &&
+            ConnectFunctionInput(FunctionCall, TEXT("ColorVariation"), ColorVariation) &&
+            ConnectFunctionInput(FunctionCall, TEXT("MappingScale"), MappingScale) &&
+            ConnectFunctionInput(FunctionCall, TEXT("WorldPosition"), WorldPosition);
+        const int32 BaseColorOutput = FindFunctionOutputIndex(FunctionCall, TEXT("BaseColor"));
+        const int32 RoughnessOutput = FindFunctionOutputIndex(FunctionCall, TEXT("Roughness"));
+        const int32 NormalOutput = FindFunctionOutputIndex(FunctionCall, TEXT("Normal"));
+        if (!bInputsConnected || BaseColorOutput == INDEX_NONE || RoughnessOutput == INDEX_NONE || NormalOutput == INDEX_NONE)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Terrain material %s could not connect the shared surface response interface."), *PackageName);
+            return false;
+        }
+
+        EditorOnlyData->BaseColor.Connect(BaseColorOutput, FunctionCall);
+        EditorOnlyData->Roughness.Connect(RoughnessOutput, FunctionCall);
+        EditorOnlyData->Normal.Connect(NormalOutput, FunctionCall);
         Material->PostEditChange();
         Package->MarkPackageDirty();
 
@@ -586,12 +720,20 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
     const bool bSurfaceBaseCreated = SurfaceResponse != nullptr && CreateSurfaceBaseMaterial(
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase"), SurfaceResponse);
     const bool bSoilCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedSoil"), TerrainSoilColor, 0.96f);
-    const bool bTerrainCreated = CreateTerrainGroundBlendMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain"), 0.92f);
+    const bool bTerrainCreated = CreateTerrainGroundBlendMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain"), 0.92f, SurfaceResponse);
+    const bool bTerrainInstanceCreated = bTerrainCreated && CreateMaterialInstance(
+        TEXT("/Game/Kalmala/World/Materials/MI_GeneratedTerrain"),
+        TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain.M_GeneratedTerrain"),
+        FLinearColor::White, 0.92f);
     const bool bWaterCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedWater"), FLinearColor(0.05f, 0.24f, 0.38f), 0.28f);
-    const bool bLakeShoreCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedLakeShore"), FLinearColor(0.30f, 0.46f, 0.35f), 0.78f);
+    const bool bLakeShoreInstanceCreated = CreateMaterialInstance(
+        TEXT("/Game/Kalmala/World/Materials/MI_GeneratedLakeShore"),
+        TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
+        FLinearColor(0.30f / 0.48f, 0.46f / 0.70f, 0.35f / 0.67f), 0.78f);
     const bool bRockCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedRock"), TerrainRockColor, 0.95f);
     const bool bBarkCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark"), FLinearColor(0.20f, 0.13f, 0.09f), 0.88f);
     const bool bCanopyCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy"), FLinearColor(0.12f, 0.30f, 0.14f), 0.82f);
     const bool bBiomeDebugTerrainCreated = CreateVertexColorMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrainBiomeDebug"));
-    return bSurfaceBaseCreated && bTerrainCreated && bSoilCreated && bWaterCreated && bLakeShoreCreated && bRockCreated && bBarkCreated && bCanopyCreated && bBiomeDebugTerrainCreated ? 0 : 1;
+    return bSurfaceBaseCreated && bTerrainCreated && bTerrainInstanceCreated && bLakeShoreInstanceCreated
+        && bSoilCreated && bWaterCreated && bRockCreated && bBarkCreated && bCanopyCreated && bBiomeDebugTerrainCreated ? 0 : 1;
 }
