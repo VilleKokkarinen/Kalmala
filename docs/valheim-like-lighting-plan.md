@@ -1468,6 +1468,49 @@ stopped; no map/assets or production code were changed. L06c fixed-view and
 default-camera/HUD checks are complete; L06d and the L06e final verification
 remain open.
 
+### L06d — Combined lighting regression review (2026-10-27)
+
+The review covered the integrated lighting/runtime changes and retained evidence,
+with no source defect or confirmed L06 regression requiring repair.
+
+- **Integrated implementation:** The project keeps Compatibility as the RT-off
+  startup profile while compiling optional on-demand RT support. The capability
+  gate requires project/runtime support plus Windows D3D12, SM6, shader-platform,
+  and RHI capabilities. Balanced and High capture logs report post-apply
+  r.RayTracing.Enable=1, r.Lumen.HardwareRayTracing=1, and
+  IsRayTracingEnabled=1 for all ten views each. Compatibility has ten explicit
+  profile markers and startup config lines for RT/Lumen off; the later L06b
+  rendered Compatibility smoke independently reports effective 0/0/0. The ten
+  older Compatibility measurement logs predate the post-apply diagnostic, so
+  they do not each report effective runtime state.
+- **Build and focused checks:** The integrated UE 5.8 Editor build passed 56
+  actions in the isolated k06b mirror. The corrected focused automation rerun
+  passed all six named RT, material, hearth, and weather tests with exit 0.
+  The first queue wrapper invocation was a false negative caused by assuming
+  marker order; after the wrapper was corrected, the same queue passed. Two
+  generic Condition failed diagnostics appear before the named automation queue
+  and match earlier successful runs; no named failure, fatal, assertion, or
+  ensure was recorded.
+- **Rendered/performance evidence:** The Compatibility smoke validated its
+  profile marker, D3D12/SM6 startup, PNG signature, 1024x768 output, and
+  nonblank image. The ten-view RTX 5090 captures preserve 120 positive GPUTime
+  samples and 1024x768 images for each scene/profile; Balanced and High have
+  post-apply state evidence. No project performance threshold or release
+  hardware floor is defined. These measurements do not establish one.
+- **L06c findings:** Cross-tier review found the clearest change in seed-418
+  ForestShade; no fixed-view tier-specific readability regression was confirmed.
+  PIE inspection found no default-camera/HUD defect. Dynamic walking and
+  exposure/post-process transitions were not exercised.
+
+No production fix was needed, and no build or automation was rerun in L06d.
+Known evidence limits remain for L06e: dynamic exposure transitions were not
+tested; Compatibility's ten measurement logs lack post-apply state diagnostics
+although the later smoke verifies 0/0/0; the seed-418 rain silhouette remains
+unidentified without a temporal acceptance threshold; seed-419 ForestShade and
+OvercastRain are composition-limited; only the RTX 5090 has measurements, with
+lower-tier/AMD hardware still pending selection. Do not infer a support floor.
+The full milestone verification remains L06e.
+
 ## Acceptance checks
 
 - Fixed-camera captures show a consistent lighting direction and readable

@@ -1,3 +1,15 @@
+## L06d — Combined lighting regression review — 2026-10-27
+
+- **Selected task:** L06d, review the integrated lighting changes and repair confirmed milestone-related regressions.
+- **Work completed:** Reviewed the integrated runtime/config diff, L06a implementation audit, L06b build and focused-check logs, L05e2 profile-capture evidence, and L06c static/PIE findings. No confirmed L06 build, rendering, temporal, fallback, or performance regression requiring repair remains; no production code or asset change was made. The plan now records the evidence and limitations.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Checks and evidence:** Read the existing UE 5.8 integrated build log (56 actions, Result Succeeded) and rerun automation log (six named tests completed successfully, prior process exit 0). The wrapper's first marker-order false negative was fixed before that rerun. Two generic pre-queue Condition failed diagnostics remain in logs, matching prior successful runs; no named test failure or fatal was recorded. Balanced/High have ten per-view effective 1/1/1 logs each. Compatibility has ten profile markers and RT-off config entries, plus the later L06b 0/0/0 rendered smoke; its original ten measurement logs do not include the later post-apply diagnostic. Reviewed fixed-view and camera/HUD findings already recorded under L06c. git diff --check passed after the review record.
+- **Full verification:** Deferred to L06e, the milestone-final gate. No build, automation, packaging, or broad suite was rerun in this normal L06d increment.
+- **Observable impact:** Review and backlog handoff only; no runtime behavior changed. The prior build, focused tests, and capture repairs have successful evidence; no new repair was necessary.
+- **Networking/authority:** No production gameplay, replication, RPC, save, or authority code changed in this increment.
+- **Known limitations / remaining scope:** Dynamic exposure/post-process transitions were not exercised in PIE. Compatibility per-view logs lack post-apply effective-state diagnostics, though the later smoke confirms 0/0/0. The seed-418 OvercastRain silhouette has no identified source or project threshold; seed-419 ForestShade and OvercastRain are weak composition anchors. GPU measurements are from the RTX 5090 only; lower-tier/AMD hardware awaits selection, and no release support floor or performance threshold is inferred. L06e must perform final verification and record these limits.
+- **Next eligible task:** L06e — final lighting verification and handoff. L06 remains open until that gate succeeds.
+
 ## L06c2 — Third-person camera/HUD PIE spot-check — 2026-10-27
 
 - **Selected task:** L06c2, inspect the default third-person camera and HUD through the integrated rendered game.

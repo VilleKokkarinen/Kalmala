@@ -291,9 +291,9 @@ do not mark the lighting milestone complete before it passes.
       the integrated L_Prototype viewport. No static-view exposure, lens, or
       bloom issue was observed; dynamic exposure transitions remain unverified
       for L06e.
-  - [ ] **L06d — Repair lighting regressions.** Fix milestone-related build,
-    rendering, temporal stability, fallback, or performance-check failures, then
-    rerun affected checks and the required full verification.
+  - [x] **L06d — Review and repair lighting regressions.** Reviewed the
+    integrated build, focused checks, profile captures, and L06c findings. No
+    confirmed L06 regression required repair; L06e owns milestone-final verification.
   - [ ] **L06e — Finalize the handoff.** Record tested hardware, per-tier GPU
     costs, accepted captures, remaining limitations, and the actual release
     support statement in the lighting plan and `PROGRESS.md`. Mark L06 and the
