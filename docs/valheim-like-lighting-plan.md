@@ -1209,8 +1209,70 @@ the requested tier. The existing L03 path and ordinary saved graphics settings
 are unchanged. The capture runner's isolated `-UserDir` keeps each requested
 profile out of the user's normal settings.
 
-This adds the repeatable capture control only. No Editor build or GPU capture
-has run yet; L05e2 remains blocked until L06b's integrated Editor build.
+This adds the repeatable capture control. L06b supplied the integrated Editor
+build, and L05e2a has now measured the Compatibility tier on the selected RTX
+5090 reference PC. Balanced and High captures remain in L05e2b/c. Lower-tier
+and AMD hardware coverage remains pending selection; no release hardware floor
+is inferred from the reference-PC measurements.
+
+### L05e2a — Compatibility reference capture (2026-10-27)
+
+The integrated UE 5.8.2 Editor mirror at `C:\Users\Ville\AppData\Local\Temp\k06b`
+captured the ten fixed views from the seed-418/419 lighting manifest using
+`Scripts/Tests/World/BiomeBaselineCapture.ps1`. Each view explicitly requested
+`-RayTracingQuality Compatibility`, `-GpuCaptureFrames 120`,
+`-TemporalFrames 8`, and `-TemporalIntervalSeconds 0.5`; the runner accepted each
+capture only after checking its profile-applied marker. Output screenshots are
+1024x768. The machine reported an NVIDIA GeForce RTX 5090, driver 610.88, and
+32,607 MiB device VRAM. `nvidia-smi` telemetry was sampled about once per second
+before, during, and after each view; the capture samples report temperature,
+utilization, device-used VRAM, and board power. The GPU CSVs also retain Unreal
+physical/virtual/shader memory fields. The capture path reports output size but
+does not report a separate internal render resolution.
+
+Per-view GPUTime is whole-view total frame GPU time, not material attribution.
+Each raw GPU CSV contains 120 positive GPUTime samples plus profiler metadata.
+The table records the 120-sample mean/min/max, device-used VRAM peak, and the
+whole-frame temporal RGB metric. Full per-view UE memory telemetry and device
+samples are in `TestResults/L05e2/Compatibility/GpuSummary.csv` and
+`NvidiaSmiTelemetry.csv`; raw GPU captures and screenshots are in the adjacent
+`Seed418/` and `Seed419/` folders. The full temporal sequences remain in the
+temporary capture output; seed-418 OvercastRain T01/T06/T07 are also retained
+beside its base screenshot so L06c can review the transient silhouette. The
+computed temporal summary is preserved in `TemporalStability.csv`.
+
+| Seed | View | Mean GPUTime ms | Min–max GPUTime ms | Peak device-used VRAM MiB | Mean temporal RGB delta | Max adjacent delta |
+|---:|---|---:|---:|---:|---:|---:|
+| 418 | MeadowsDaylight | 0.8147 | 0.7542–1.0917 | 3,858 | 0.2372 | 0.2429 |
+| 418 | ForestShade | 0.8448 | 0.8028–1.0819 | 3,758 | 0.2528 | 0.2721 |
+| 418 | OpenWater | 0.7654 | 0.7370–0.9605 | 3,678 | 0.1873 | 0.2077 |
+| 418 | OvercastRain | 0.7777 | 0.7390–1.0135 | 3,792 | 0.2706 | 0.4492 |
+| 418 | FireDusk | 0.8382 | 0.7770–1.2283 | 4,068 | 0.1747 | 0.2237 |
+| 419 | MeadowsDaylight | 0.8503 | 0.7756–1.3773 | 3,849 | 0.2239 | 0.2550 |
+| 419 | ForestShade | 0.7584 | 0.7204–0.9558 | 3,877 | 0.2053 | 0.2161 |
+| 419 | OpenWater | 0.7867 | 0.7473–1.0181 | 3,758 | 0.2046 | 0.2238 |
+| 419 | OvercastRain | 0.7808 | 0.7423–0.9876 | 3,760 | 0.2140 | 0.2567 |
+| 419 | FireDusk | 0.8142 | 0.7756–1.0510 | 3,950 | 0.1583 | 0.1844 |
+
+Across the ten views, mean GPUTime ranged from 0.7584 to 0.8503 ms. `nvidia-smi`
+device-used VRAM ranged from 3,060–3,205 MiB before capture, 3,471–3,741 MiB
+mean during capture, and 3,678–4,068 MiB peak during capture. Unreal's recorded
+mean physical usage ranged from 2,591.02–2,678.99 MB; peak virtual usage ranged
+from 3,251.72–3,535.32 MB. These values describe this one machine and fixed
+editor view, not minimum hardware requirements. The seed-418 OvercastRain row
+has an 8.6383 ms mean queue-unaccounted value while its mean GPUTime is 0.7777
+ms; this separate queue metric is retained as an outlier rather than folded
+into GPUTime.
+
+Image review found stable sampled water and fire compositions between temporal
+endpoints. A tiny distant silhouette appears in seed-418 OvercastRain frames
+T06/T07 but is absent from T01–T04; its cause is unidentified and L06c should
+review it. Several fixed views include broad black distant-horizon/empty-sky
+areas, and seed-419 ForestShade faces mostly open water rather than dense
+foliage. These are composition limitations to keep in mind during integrated
+visual review, not a visual-acceptance result. No temporal pass threshold is
+defined. Only Compatibility is measured here; Balanced, High, and lower-tier/
+AMD hardware remain open, and no release floor is claimed.
 
 ## Acceptance checks
 

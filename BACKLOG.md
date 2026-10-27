@@ -237,12 +237,23 @@ do not mark the lighting milestone complete before it passes.
       and label the GPU CSVs by tier. Keep the override gated to non-Shipping
       baseline captures with an isolated user directory; leave normal sessions
       on their saved quality setting.
-    - [ ] **L05e2 — Measure integrated reference-PC profiles.** After L06b's
-      Editor build, run the ten seed-418/419 fixed views at Compatibility,
-      Balanced, and High on the RTX 5090. Record frame time, resolution, memory,
-      and visible image/temporal artifacts for the L06c visual review. L06b has
-      now supplied the integrated Editor build, so this task is unblocked;
-      lower-tier/AMD measurements remain pending hardware selection.
+    - [ ] **L05e2 — Measure integrated reference-PC profiles.** Measure the ten
+      seed-418/419 fixed views at Compatibility, Balanced, and High on the RTX
+      5090. Record per-view GPU frame time, output resolution, memory, and
+      visible/temporal artifacts for L06c. Split the captures into ordered
+      tier children and retain evidence under `TestResults/L05e2/`. Lower-tier
+      and AMD measurements remain pending hardware selection; do not infer a
+      release floor from the RTX 5090 pass.
+      - [x] **L05e2a — Capture Compatibility tier.** Capture all ten fixed
+        views at 1024x768 with 120 GPUTime samples and eight temporal frames at
+        0.5-second intervals. Record RTX 5090 memory telemetry and inspected
+        scene/artifact notes. See the L05e2a plan entry and preserved evidence.
+      - [ ] **L05e2b — Capture Balanced tier.** Repeat all ten fixed views and
+        the same GPU-time, temporal, resolution, memory, and visual recording
+        for Balanced on the RTX 5090.
+      - [ ] **L05e2c — Capture High tier.** Repeat all ten fixed views and the
+        same GPU-time, temporal, resolution, memory, and visual recording for
+        High on the RTX 5090.
   - [x] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
     separate from ray tracing. Add no vendor plugin/dependency or Frame
     Generation path in this goal; seek a separate user-approved plan if they
