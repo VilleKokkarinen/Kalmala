@@ -110,7 +110,7 @@ do not mark the lighting milestone complete before it passes.
 - [ ] **L04 — Add supported weather and environment effects.** Use only existing
   client presentation signals and effects; keep this cosmetic, gradual, and
   outside gameplay, save, RPC, and replicated-state contracts.
-  - [ ] **L04a — Map existing weather inputs.** Trace currently available
+  - [x] **L04a — Map existing weather inputs.** Trace currently available
     client-side precipitation, wetness, snow/biome, sky, fog, and world-space
     effect inputs. Record which plan effects have valid inputs; do not add a new
     weather type or network/save field to supply a missing one.

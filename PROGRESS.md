@@ -1,3 +1,33 @@
+## L04a - map existing weather and environment inputs - 2026-10-27
+
+- **Selected task:** L04a, mapping existing presentation inputs for the
+  explicitly requested weather/environment-effects goal.
+- **Work completed:** Traced replicated weather, local audio/fog presentation,
+  biome weights, generated-terrain vertex channels, and generated material
+  inputs. Recorded supported and unsupported combinations in the lighting plan.
+  Existing terrain snow coverage uses biome/height inputs and is not snowfall;
+  precipitation is available for future cosmetic wet response; moss/lichen has
+  no material layer, weather-driven sky color is unwired, and rain/snow/mist/
+  ember particle effects are absent.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected the referenced source and existing content
+  inventory; `git diff --check` passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code,
+  material asset, or visual behavior changed.
+- **Networking/authority:** Weather inputs remain server-owned and replicated.
+  The existing mountain fog and rain/wind audio are local presentation; no RPC,
+  replicated state, save, or gameplay authority changed.
+- **Known limitations / remaining scope:** Wet material response remains for
+  L04b. Snow coverage already applies only to generated terrain; other surfaces
+  lack a snow mask. Moss/lichen material layers and weather-linked sky color
+  remain unwired. No world-space weather particles are available to tune.
+  L04b-L04g remain unchecked.
+- **Next eligible task:** L01a remains the first incomplete child in this
+  master-based worktree's ordered global backlog; within the requested L04
+  track, L04b is next after material support is available.
+
 ## DC20 - Operator setup and command reference, 2026-10-26
 
 - Added concrete per-command help and existing architecture/setup documentation

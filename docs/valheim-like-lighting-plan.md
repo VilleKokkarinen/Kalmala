@@ -51,12 +51,16 @@ cases that need them. ([UE 5.8 shading models](https://dev.epicgames.com/documen
 ## Kalmala starting point
 
 Kalmala uses Unreal Engine 5.8. Generated terrain, water, shore, rock, bark, and
-canopy components currently resolve project-owned materials under
-`Content/Kalmala/World/Materials/`. `CreateWorldMaterialsCommandlet` creates a
-simple constant base-color/roughness material for those surfaces and a separate
-vertex-color biome-debug material. The runtime terrain patch assigns those
-materials to its procedural mesh components. The project brief's established
-mood is a northern wilderness shaped by forests, lakes, and long twilight.
+canopy components resolve project-owned materials under
+`Content/Kalmala/World/Materials/`. `CreateWorldMaterialsCommandlet` generates
+the terrain ground-blend material from vertex RGB weights for grass, soil, and
+rock, plus vertex alpha for cold-biome snow coverage. The other generated
+surface materials use constant base color and roughness, and a separate
+vertex-color biome-debug material remains available. The terrain patch assigns
+these materials to its procedural mesh components. The current snow blend is
+biome/height-driven rather than driven by a snow-weather state. The project
+brief's established mood is a northern wilderness shaped by forests, lakes, and
+long twilight.
 
 Before selecting values, inspect the actual prototype map's lights, sky, fog,
 exposure, and any level post-process settings in Unreal Editor. The project
@@ -153,6 +157,31 @@ Drive these only from weather or surface information already available to the
 client for presentation. Keep them cosmetic: do not add gameplay queries, save
 fields, RPCs, or replicated state for shader effects. Add a separate design
 decision if a required visual signal is not already available.
+
+#### Existing weather and environment inputs (L04a, source audit 2026-10-27)
+
+This is a map of the current inputs and effects, not a new weather contract.
+Weather remains server-owned; clients may use the existing replicated values
+for local presentation.
+
+| Plan effect | Existing input and path | Support and limits |
+| --- | --- | --- |
+| Rain and wet-surface response | `FKalmalaWeatherState` exposes normalized `PrecipitationIntensity` and `WindStrength`, plus derived `StormIntensity`, through the replicated `AKalmalaWorldGenerationGameState`. `UKalmalaAmbientAudioSubsystem` already fades the local `RainBed` and `WindBed` from those values. | Replicated precipitation is a valid cosmetic rain/wet-material input. The authoritative interaction-grid surface moisture and per-player wetness remain gameplay state, not shared material inputs. Current wood/rock materials have no weather-wet response. The weather state has no precipitation-kind field, so rain cannot be distinguished from snow by type. |
+| Snow and biome coverage | `FKalmalaWorldGenerationConfig` is replicated; clients can derive deterministic biome weights through `FKalmalaRegionalGeneration`. `AKalmalaGeneratedTerrainPatch` writes a cold-biome snow mask to terrain vertex alpha through `FKalmalaTerrainGroundBlend`; `CreateWorldMaterialsCommandlet` consumes that alpha in `M_GeneratedTerrain`. | Biome/height-driven snow coverage already exists on generated terrain. It is not driven by snowfall. Generated rock, bark, canopy, shore, and water do not receive this snow mask, so coverage on those surfaces is unsupported by the current material inputs. No snow particle system exists. |
+| Moss and lichen | The regional sampler can identify `MossyMire`, and terrain generation already samples humidity. | No moss/lichen weight is carried to the current material: terrain RGB stores grass/soil/rock weights, alpha stores snow coverage, and humidity only affects the soil blend. There is no distinct moss/lichen layer input on terrain or other generated surfaces; treat those combinations as N/A unless an existing presentation signal is made available by the planned material integration. |
+| Sky and weather color | `Scripts/Setup-PrototypeEnvironment.py` creates the existing directional sun, `SkyAtmosphere`, and movable real-time-capture skylight. Replicated precipitation, fog, wind, and storm values are also readable by clients. | The setup script does not create cloud actors; the available sky actors can be tuned, but no current weather-driven sky/color treatment is wired to the weather state. A new sky model or weather type is outside this plan. |
+| Local fog | `FogIntensity` is present in replicated weather. `UKalmalaWeatherActivitySubsystem` currently spawns a nonreplicated local `AExponentialHeightFog` and fades it using `StormIntensity` multiplied by the `ThunderMountains` biome weight. | The existing mountain-storm fog is a valid client-local atmospheric effect and already transitions gradually. It does not currently consume `FogIntensity`; no other weather-linked local fog treatment is present. |
+| World-space rain, snow, mist, or embers | The project has local `RainBed`/`WindBed` ambience and the local mountain-storm fog. | `RainBed` is played with `CreateSound2D`, not a particle effect. No runtime Niagara/particle-system path or authored rain, snow, mist, or ember particle asset was found in the inspected source and content inventory. These particle combinations are N/A for tuning existing effects. |
+
+Source anchors:
+- `Source/KalmalaWorld/Public/KalmalaWeatherState.h` and `Source/KalmalaWorld/Public/KalmalaWeatherCycle.h`
+- `Source/KalmalaWorld/Public/KalmalaWorldGenerationGameState.h` and `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp`
+- `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp` and `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp`
+- `Source/KalmalaWorld/Public/KalmalaTerrainGroundBlend.h` and `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`
+- `Source/KalmalaWorld/Public/KalmalaRegionalGeneration.h` and `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`
+- `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`
+- `Source/KalmalaGameplay/Private/KalmalaInteractionGrid.cpp` and `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`
+- `Scripts/Setup-PrototypeEnvironment.py`.
 
 ### 5. Tune and accept the complete look
 
