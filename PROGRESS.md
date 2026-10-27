@@ -1,3 +1,15 @@
+## L04f - world-space weather particle inventory - 2026-10-27
+
+- **Selected task:** L04f, checking for existing rain, snow, mist, or ember particle systems and assets.
+- **Work completed:** Reviewed production source and the Content asset inventory. Found no Niagara/legacy ParticleSystem emitter APIs, weather-specific world-space particle paths, or rain/snow/mist/ember particle assets. RainBed is 2D audio, generated terrain snow is a material blend, and L04e's highland fog is a local non-particle effect. Recorded all four L04f effects as N/A and checked L04f complete without creating assets or dependencies.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed source and Content inventory; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime, material, particle, or visual behavior changed.
+- **Networking/authority:** No network, save, RPC, or gameplay authority changed. No new client or replicated effect state was added.
+- **Known limitations / remaining scope:** Rain, snow, mist, and ember world-space particles remain N/A until an existing system is available. L04b remains blocked pending L02c/L02d; L04g remains incomplete.
+- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04g is the next currently unblocked child.
+
 ## L04e - existing local fog and sky-path tuning - 2026-10-27
 
 - **Selected task:** L04e, tuning the existing weather-linked local fog and auditing available sky paths.

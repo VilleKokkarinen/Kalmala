@@ -171,7 +171,7 @@ for local presentation.
 | Moss and lichen | The regional sampler can identify `MossyMire`, and terrain generation already samples humidity. | No moss/lichen weight is carried to the current material: terrain RGB stores grass/soil/rock weights, alpha stores snow coverage, and humidity only affects the soil blend. There is no distinct moss/lichen layer input on terrain or other generated surfaces; treat those combinations as N/A unless an existing presentation signal is made available by the planned material integration. |
 | Sky and weather color | Setup-PrototypeEnvironment.py creates the directional sun, SkyAtmosphere, and movable real-time-capture skylight. | No cloud actor is created and no weather-linked sky/color treatment is wired; cloud and weather-color treatments are N/A for this increment. Do not add a new color pipeline or sky model. |
 | Local fog | Replicated FogIntensity and world-generation config feed the local player ThunderMountains weight. KalmalaWeatherActivitySubsystem spawns a nonreplicated AExponentialHeightFog during valid weather intervals and probes the FogIntensity multiplied by that weight once per second. | Existing regional fog now follows FogIntensity independently of rain/wind storm intensity and fades gradually. Density, opacity, start distance, and cool in-scattering remain bounded; the effect is client-local and cosmetic. |
-| World-space rain, snow, mist, or embers | The project has local `RainBed`/`WindBed` ambience and the local mountain-storm fog. | `RainBed` is played with `CreateSound2D`, not a particle effect. No runtime Niagara/particle-system path or authored rain, snow, mist, or ember particle asset was found in the inspected source and content inventory. These particle combinations are N/A for tuning existing effects. |
+| World-space rain, snow, mist, or embers | Existing local rain/wind audio and FogIntensity-driven highland fog. | RainBed is played with CreateSound2D, not as a particle effect. No runtime Niagara/ParticleSystem path or authored rain, snow, mist, or ember particle asset was found in the source/content inventory. These world-space particle effects are N/A for tuning existing systems. |
 
 Source anchors:
 - `Source/KalmalaWorld/Public/KalmalaWeatherState.h` and `Source/KalmalaWorld/Public/KalmalaWeatherCycle.h`
@@ -231,6 +231,21 @@ The fog actor remains transient, nonreplicated, and absent on dedicated servers.
 Setup-PrototypeEnvironment.py creates the directional sun, SkyAtmosphere, and movable real-time-capture skylight. Source review found no cloud actor and no weather-linked sky-color treatment; cloud and weather-color treatments are N/A for the current pipeline. No new sky model, cloud actor, or color pipeline was added.
 
 Source anchors: KalmalaWeatherCycle.h, KalmalaWeatherState.h, KalmalaWorldGenerationGameState.h/.cpp, KalmalaWeatherActivitySubsystem.h/.cpp, and Scripts/Setup-PrototypeEnvironment.py.
+
+#### L04f — World-space weather effects inventory (2026-10-27)
+
+The source/content inventory contains no existing world-space rain, snow, mist, or ember particle system. Production-source search found no Niagara or legacy ParticleSystem emitter API or weather-specific particle path. RainBed is an audio asset played with CreateSound2D; the existing cold-biome snow is a terrain material blend, and the L04e regional AExponentialHeightFog is a local atmospheric effect rather than a world-space particle system.
+
+| Effect | L04f status | Existing support |
+| --- | --- | --- |
+| Rain | N/A | RainBed is local 2D audio; there is no rain emitter path or particle asset. |
+| Snow | N/A | Existing terrain snow is biome/height material coverage, not falling-snow particles; no snow emitter path or asset exists. |
+| Mist | N/A | L04e's local highland fog is non-particle; no world-space mist emitter path or asset exists. |
+| Embers | N/A | No ember emitter path or particle asset exists in the current source/content inventory. |
+
+All L04f world-space particle combinations are N/A because there is no existing system or asset to tune. No particle system, screen-space overlay, asset, or dependency was added.
+
+Source anchors: KalmalaAmbientAudioSubsystem.cpp, KalmalaWeatherActivitySubsystem.cpp, KalmalaTerrainGroundBlend.h, KalmalaGeneratedTerrainPatch.cpp, CreateWorldMaterialsCommandlet.cpp, and the current Content asset inventory.
 
 ### 5. Tune and accept the complete look
 

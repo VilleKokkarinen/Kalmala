@@ -127,7 +127,7 @@ do not mark the lighting milestone complete before it passes.
   - [x] **L04e — Tune existing sky and atmospheric effects.** Adjust available
     cloud, local fog, and weather color treatments through the existing pipeline;
     add no new sky model or weather type.
-  - [ ] **L04f — Tune existing world-space weather effects.** Adjust available
+  - [x] **L04f — Tune existing world-space weather effects.** Adjust available
     rain, snow, mist, or ember particles and keep them out of key sight lines.
     Add no full-screen droplets or overlays.
   - [ ] **L04g — Pass the environment-effects gate.** Review daylight, rain,
