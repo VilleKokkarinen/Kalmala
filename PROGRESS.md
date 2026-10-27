@@ -1,3 +1,30 @@
+## L05c console-variable priority repair — 2026-10-27
+
+- **Selected repair:** Ensure local Compatibility/Balanced choices override
+  the project and system INI defaults they are meant to control.
+- **Work completed:** UE 5.8 `IConsoleManager.h` defines
+  `ECVF_SetByGameSetting=0x03000000`, below project settings
+  (`0x04000000`) and system settings (`0x05000000`). Those priorities let the
+  Compatibility defaults win over the user's selected quality profile. Changed
+  all six profile CVar writes to `ECVF_SetByGameOverride=0x09000000`, which UE
+  documents for user-settable game overrides.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`
+  and `PROGRESS.md`.
+- **Lightweight checks:** Verified priority values and ordering directly in the
+  installed UE 5.8 `IConsoleManager.h`; inspected all six CVar writes;
+  `git diff --check`, source-priority assertions, and changed-path length checks
+  passed. No automation or Unreal build was run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** Saved Compatibility and Balanced profiles now override
+  project/system INI CVar values when applied.
+- **Networking/authority:** Local renderer settings only; no RPC, replication,
+  gameplay authority, or save schema changed.
+- **Known limitations / remaining scope:** No Editor build or rendered
+  RT-off/Balanced comparison was run; L06c remains the visual comparison gate.
+- **Main-checkout handoff:** Deferred while the parent coordinates the other
+  L05 worktree changes; only backlog/progress state will be reconciled then.
+- **Next eligible task:** L05d, selective High quality and key-light shadows.
+
 ## L05c local Balanced ray-tracing tier — 2026-10-27
 
 - **Selected increment:** L05c, the next child in the user-directed L05 track.

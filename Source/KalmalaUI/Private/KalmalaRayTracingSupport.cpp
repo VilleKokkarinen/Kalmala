@@ -31,14 +31,14 @@ namespace
 
         // Set up Lumen's method before enabling RT; disabling RT last keeps a
         // return to Compatibility from briefly rendering through hardware RT.
-        LumenHardwareRayTracing->Set(Profile.LumenHardwareRayTracing, ECVF_SetByGameSetting);
-        DynamicGlobalIllumination->Set(Profile.DynamicGlobalIllumination, ECVF_SetByGameSetting);
-        ReflectionMethod->Set(Profile.ReflectionMethod, ECVF_SetByGameSetting);
-        LumenLightingMode->Set(Profile.LumenLightingMode, ECVF_SetByGameSetting);
-        HitLightingAllowed->Set(Profile.HitLightingAllowed, ECVF_SetByGameSetting);
+        LumenHardwareRayTracing->Set(Profile.LumenHardwareRayTracing, ECVF_SetByGameOverride);
+        DynamicGlobalIllumination->Set(Profile.DynamicGlobalIllumination, ECVF_SetByGameOverride);
+        ReflectionMethod->Set(Profile.ReflectionMethod, ECVF_SetByGameOverride);
+        LumenLightingMode->Set(Profile.LumenLightingMode, ECVF_SetByGameOverride);
+        HitLightingAllowed->Set(Profile.HitLightingAllowed, ECVF_SetByGameOverride);
         if (RayTracingEnable != nullptr)
         {
-            RayTracingEnable->Set(Profile.RayTracingEnable, ECVF_SetByGameSetting);
+            RayTracingEnable->Set(Profile.RayTracingEnable, ECVF_SetByGameOverride);
         }
         return true;
     }
