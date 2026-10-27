@@ -281,6 +281,16 @@ do not mark the lighting milestone complete before it passes.
   - [ ] **L06c — Capture integrated visual acceptance.** Repeat the ten L01
     fixed views with the final material/effect stack for RT-off, Balanced, and
     High where supported; inspect regular third-person camera movement and UI.
+    - [x] **L06c1 — Review cross-tier fixed-view evidence.** Compare the ten
+      seed-418/419 Compatibility, Balanced, and High captures and selected
+      temporal frames; record accepted evidence, visible tier changes, artifacts,
+      and composition limitations in the lighting plan and PROGRESS.md. This
+      child covers static fixed-view review only.
+    - [ ] **L06c2 — Inspect default third-person camera and UI.** Use a normal
+      rendered game/editor workflow to inspect camera movement, exposure
+      transitions, lens effects, and UI/traversal/creature readability. The
+      scripted PlayerControls screenshots cover minimap widgets, not full
+      gameplay viewport acceptance.
   - [ ] **L06d — Repair lighting regressions.** Fix milestone-related build,
     rendering, temporal stability, fallback, or performance-check failures, then
     rerun affected checks and the required full verification.

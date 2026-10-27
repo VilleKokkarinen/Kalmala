@@ -1395,6 +1395,52 @@ unidentified. Retain the evidence for L06c, which owns integrated visual
 acceptance. High is now measured; lower-tier/AMD hardware selection, L06c
 acceptance, and L06e verification remain open.
 
+### L06c1 — Cross-tier fixed-view review (2026-10-27)
+
+The fixed-view review used the already integrated UE 5.8.2 L05e2 evidence; no
+new capture or build was needed. All 30 base screenshots were reviewed
+side-by-side by scene across Compatibility, Balanced, and High. Each tier
+contains both seed sets for MeadowsDaylight, ForestShade, OpenWater,
+OvercastRain, and FireDusk:
+
+| Tier | Seed 418 | Seed 419 |
+| --- | --- | --- |
+| Compatibility | TestResults/L05e2/Compatibility/Seed418/{MeadowsDaylight,ForestShade,OpenWater,OvercastRain,FireDusk}.png | TestResults/L05e2/Compatibility/Seed419/{MeadowsDaylight,ForestShade,OpenWater,OvercastRain,FireDusk}.png |
+| Balanced | TestResults/L05e2/Balanced/Seed418/{MeadowsDaylight,ForestShade,OpenWater,OvercastRain,FireDusk}.png | TestResults/L05e2/Balanced/Seed419/{MeadowsDaylight,ForestShade,OpenWater,OvercastRain,FireDusk}.png |
+| High | TestResults/L05e2/High/Seed418/{MeadowsDaylight,ForestShade,OpenWater,OvercastRain,FireDusk}.png | TestResults/L05e2/High/Seed419/{MeadowsDaylight,ForestShade,OpenWater,OvercastRain,FireDusk}.png |
+
+These 30 files are accepted as the cross-tier static lighting evidence set,
+not as complete L06c acceptance. The nine retained temporal stills were also
+reviewed: Seed418/OvercastRain_T01.png, T06.png, and T07.png under each tier
+directory. A PowerShell image check confirmed that all 39 retained PNGs are
+1024x768. All three TemporalStability.csv files contain ten 8-frame,
+0.5-second rows; no temporal acceptance threshold is defined.
+
+The clearest tier difference is in seed-418 ForestShade: Balanced and High
+show darker, higher-contrast trunk and ground shadows than Compatibility while
+the tree silhouettes remain readable. The other fixed comparisons show no
+obvious new tier-specific readability loss; Balanced and High look broadly
+similar. FireDusk retains a warm, localized ground pool without washing out
+the nearby ground. No fixed-view tier introduced a confirmed rendering
+regression.
+
+In seed-418 OvercastRain, T01 has no distant silhouette; a tiny silhouette
+appears in T06 and remains in T07 in all three tiers. The corresponding maximum
+adjacent sampled RGB deltas are 0.4492 for Compatibility, 0.4389 for Balanced,
+and 0.4470 for High. The static stills do not identify the silhouette's source,
+and the measurements do not separate world motion from shader change; this is
+recorded as an unexplained scene change, not a confirmed shader shimmer defect.
+The sampled frames show no other obvious temporal artifact.
+
+Composition limits remain: seed-419 ForestShade is mostly open water/horizon,
+and seed-419 OvercastRain is nearly all flat water/sky. Those captures cannot
+establish dense-foliage or rain-material readability. Several views also have
+large black/empty sky or distant-frame regions. These are limits of the fixed
+anchors; this review does not establish whether they reflect a production
+camera or world-bound issue. Normal third-person movement, exposure transitions,
+lens effects, and UI readability remain for L06c2. No gameplay, network, save,
+or runtime code changed. Full lighting verification remains for L06e.
+
 ## Acceptance checks
 
 - Fixed-camera captures show a consistent lighting direction and readable

@@ -1,3 +1,15 @@
+## L06c1 — Cross-tier fixed-view visual review — 2026-10-27
+
+- **Selected task:** L06c1, review the ten integrated seed-418/419 fixed views across Compatibility, Balanced, and High, including retained temporal stills.
+- **Work completed:** Visually compared all 30 base screenshots by scene/tier and the nine retained seed-418 OvercastRain frames (T01/T06/T07 in each tier). Accepted the 30 base images as the static cross-tier evidence set only; recorded visible differences, temporal observations, and weak anchor compositions in docs/valheim-like-lighting-plan.md.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md. No capture artifacts or runtime files changed.
+- **Checks:** A PowerShell inspection confirmed 13 PNGs per tier (10 base plus 3 temporal stills), all 39 at 1024x768. Read all three ten-row TemporalStability.csv summaries. git diff --check passed after the bookkeeping edits. No capture rerun, build, or automation suite was needed.
+- **Full verification:** Deferred to L06e. L06c1 is a visual evidence review, not the final milestone verification; default-camera/UI inspection remains for L06c2.
+- **Observable impact:** The RT tiers add their clearest visible change in seed-418 ForestShade, where trunk/ground shadows deepen while silhouettes remain readable. FireDusk retains localized warm illumination. No fixed-view tier-specific readability regression was confirmed.
+- **Networking/authority:** No runtime or gameplay code changed; authority and replication are unaffected.
+- **Known limitations / remaining scope:** Seed-419 ForestShade is water/horizon-dominated and seed-419 OvercastRain is nearly all water/sky, so these do not establish dense-foliage or rain-material readability. The seed-418 rain silhouette appears by T06 and persists in T07 across all tiers; its source is unknown, and the CSV metrics have no acceptance threshold. Several captures have large black/empty frame regions. Normal third-person camera motion, exposure changes, lens effects, and UI/traversal/creature readability are not covered by the fixed captures.
+- **Next eligible task:** L06c2 — inspect default third-person camera movement and UI in a rendered gameplay/editor workflow. L06 remains open; L06e final verification has not run.
+
 ## L05e2c — RTX 5090 High reference capture — 2026-10-27
 
 - **Selected task:** L05e2c, repeat the ten seed-418/419 fixed views at High with 120 GPUTime samples, eight temporal frames, memory telemetry, and artifact review.
