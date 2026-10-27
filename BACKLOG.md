@@ -117,7 +117,8 @@ do not mark the lighting milestone complete before it passes.
   - [ ] **L04b — Add subtle wet-surface response.** Apply rain/wet darkening and
     roughness changes to the plan-selected wood/rock materials using only an
     existing presentation signal; smooth state changes to avoid popping.
-  - [ ] **L04c — Add eligible snow coverage.** Apply it only to suitable
+    Blocked pending L02c rock and L02d wood/bark material integration.
+  - [x] **L04c — Add eligible snow coverage.** Apply it only to suitable
     surfaces with an existing client snow/biome signal. Mark unsupported
     combinations N/A rather than inventing a signal.
   - [ ] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable

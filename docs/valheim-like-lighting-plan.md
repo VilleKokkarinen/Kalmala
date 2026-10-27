@@ -183,6 +183,25 @@ Source anchors:
 - `Source/KalmalaGameplay/Private/KalmalaInteractionGrid.cpp` and `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`
 - `Scripts/Setup-PrototypeEnvironment.py`.
 
+#### L04c — Existing snow coverage and surface limits (source review 2026-10-27)
+
+The L04c terrain requirement is already met by the generated-terrain path. Clients receive the replicated world-generation config and can derive deterministic regional biome weights and final height. Terrain patch generation supplies the FreezingTundra and ThunderMountains weights, final height, and surface-normal Z for every terrain vertex. The existing mask combines tundra weight with mountain weight gated by the configured highland height transition, attenuates coverage by surface-normal Z, and clamps it to [0, 1].
+
+Generated terrain stores that mask in vertex-color alpha. The generated terrain material reads alpha and blends the existing grass, soil, and rock ground color toward its pale snow color. This coverage is biome/height-driven, not driven by snowfall or precipitation. The eligible generated-terrain surface therefore already has the existing client-derived signal and snow blend required by L04c; this increment adds no signal or material contract.
+
+| Surface | L04c status | Existing support |
+| --- | --- | --- |
+| Generated terrain | Supported; coverage already present | Replicated generation config feeds deterministic biome/height sampling; terrain vertex alpha carries the mask consumed by the generated terrain material. |
+| Generated rocks | N/A | The generated rock material uses constant base color and roughness; no snow mask is supplied. |
+| Generated trunks and bark | N/A | The generated bark material uses constant base color and roughness; no snow mask is supplied. |
+| Generated canopy | N/A | The generated canopy material uses constant base color and roughness; no snow mask is supplied. |
+| Generated lake shore | N/A | The generated lake-shore material uses constant base color and roughness; no snow mask is supplied. |
+| Generated water | N/A | The generated water material uses constant base color and roughness; no snow mask is supplied. |
+
+No existing snow/biome signal for those separate non-terrain materials was proven in the inspected source. Keep them N/A unless a suitable existing presentation input is later established; do not infer coverage from a global weather or biome state.
+
+Source anchors: KalmalaWorldGenerationGameState.h/.cpp (replicated config), KalmalaRegionalGeneration.h, KalmalaTerrainGroundBlend.h, KalmalaGeneratedTerrainPatch.cpp, and CreateWorldMaterialsCommandlet.cpp.
+
 ### 5. Tune and accept the complete look
 
 Compare smooth and banded variants on terrain, rocks, bark, canopy, creatures,

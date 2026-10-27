@@ -1,3 +1,15 @@
+## L04c - existing terrain snow coverage - 2026-10-27
+
+- **Selected task:** L04c, checking existing snow/biome coverage and supported surfaces.
+- **Work completed:** Verified that replicated world-generation config provides deterministic biome weights and height inputs; generated terrain computes a cold-biome/highland mask per vertex, writes it to vertex-color alpha, and the generated terrain material consumes that channel. Recorded existing terrain coverage as supported and generated rock, trunks/bark, canopy, lake shore, and water as N/A because their current materials have no snow mask. Checked L04c complete based on the existing eligible coverage and explicit unsupported-surface limits. L04b remains blocked pending L02c rock and L02d wood/bark material integration.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
+- **Networking/authority:** Clients can derive the cosmetic terrain mask from the replicated world-generation config. No RPC, replicated field, save field, or gameplay authority changed; the server-owned weather contract remains unchanged.
+- **Known limitations / remaining scope:** Terrain coverage is biome/height-driven rather than snowfall-driven. The listed non-terrain surfaces remain N/A without an existing snow signal. L04b waits on L02c/L02d; L04e-L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02a. Within L04, L04b remains blocked by L02c/L02d; L04d is the next currently unblocked child.
+
 ## L04a - map existing weather and environment inputs - 2026-10-27
 
 - **Selected task:** L04a, mapping existing presentation inputs for the
