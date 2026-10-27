@@ -143,9 +143,10 @@ do not mark the lighting milestone complete before it passes.
     labelled as the reference system, not a minimum-spec test. UE 5.8's
     Windows Lumen path requires Windows 10 build 1909.1350 or newer, DX12, and
     SM6; the hardware-RT-specific GPU list is NVIDIA RTX 2000-series+ or AMD
-    RX 6000-series+. Tracked project configuration does not pin the effective
-    RHI, SM6, Lumen, or hardware-RT state, so active settings remain unverified.
-    These are engine capabilities, not a Kalmala release hardware floor; see
+    RX 6000-series+. The 2026-10-26 L01a Editor/PIE audit observed D3D12/SM5,
+    dynamic GI off, Lumen reflections, and hardware RT off on the RTX 5090;
+    tracked project settings do not pin those observed values. This is dated
+    baseline evidence, not a Kalmala release hardware floor; see
     `docs/valheim-like-lighting-plan.md` for source links and audit details.
   - [ ] **L05b — Preserve the RT-off compatibility path.** Confirm the baseline
     lighting works without hardware RT, using supported Lumen software tracing

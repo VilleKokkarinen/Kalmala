@@ -192,10 +192,17 @@ The tracked config, target rules, and source contain no explicit graphics RHI,
 targeted shader format/SM6, Lumen GI/reflections, Support Hardware Ray Tracing,
 Support Compute Skin Cache, or `Use Hardware Ray Tracing when available`
 selection. The prototype map package was not decoded for world-setting values.
-The checked-in project therefore does not pin its effective RHI, SM6 state,
-Lumen method, or hardware-RT state; active Editor/runtime settings remain
-unverified. Missing config keys do not prove that hardware ray tracing is
-enabled or disabled.
+The checked-in project does not pin these effective settings. The existing
+2026-10-26 L01a live map/renderer audit did observe the Editor/PIE baseline on
+the RTX 5090: D3D12 RHI with active feature level SM5,
+`r.DynamicGlobalIlluminationMethod=0` (no dynamic GI), `r.ReflectionMethod=2`
+(Lumen reflections), and `r.RayTracing=0` (hardware RT off). This is recorded
+in the 2026-10-26 L01a live map/renderer audit in the main-checkout
+`PROGRESS.md` and commit `de201f5`.
+These are dated observed values, not project defaults or a guarantee of the
+effective renderer state after later changes; recheck after any renderer
+configuration update. The observed SM5 session did not qualify for the planned
+DX12/SM6 hardware-RT path.
 
 For the planned Windows path, UE 5.8's Lumen requirements specify Windows 10
 build 1909.1350 or newer, DirectX 12, and SM6 enabled. Epic's hardware-RT
