@@ -6,11 +6,11 @@ Re-read relevant context if repository state changes during a run.
 
 ## Autonomous run protocol
 
-Only one autonomous development run may modify the Kalmala repository at a time.
+Concurrency is scoped to a checked-out working tree, not to the Kalmala repository as a whole. Multiple autonomous runs may proceed in parallel when each uses a distinct Git worktree/checkout and branch, including worktrees created from the same master commit. Only one autonomous run may modify a given checkout at a time.
 
-Before changing anything, determine whether another autonomous Kalmala run is actively working on the same workspace or repository state. If so, stop immediately without modifying files.
+Changes limited to `BACKLOG.md` and `PROGRESS.md` bookkeeping do not by themselves count as concurrent implementation work and do not block an implementation run in a separate worktree. Before synchronizing or merging these shared files, reread the destination version and preserve all other changes; apply only this run's non-overlapping entries. If an actual content conflict remains, serialize that file's reconciliation and report it; independent implementation in other worktrees may continue.
 
-Ignore stale processes, completed runs, and unrelated development activity.
+Before changing files, determine whether another autonomous Kalmala run is actively modifying the same checkout. If so, stop modifying that checkout. An active run in a distinct worktree is not a conflict. Ignore stale processes, completed runs, and unrelated development activity.
 
 For each run:
 

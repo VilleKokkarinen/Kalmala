@@ -1,7 +1,8 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** Research and implementation plan. This file records no runtime
-change. The ordered L01–L06 lighting goals are now queued in `BACKLOG.md`.
+**Status:** L01 is complete. L02 is in progress with its shared material
+interface authored; L03–L06 remain queued in `BACKLOG.md`.
+This file records the research, implementation choices, and verification evidence.
 
 ## Goal
 
@@ -52,15 +53,328 @@ cases that need them. ([UE 5.8 shading models](https://dev.epicgames.com/documen
 
 Kalmala uses Unreal Engine 5.8. Generated terrain, water, shore, rock, bark, and
 canopy components currently resolve project-owned materials under
-`Content/Kalmala/World/Materials/`. `CreateWorldMaterialsCommandlet` creates a
-simple constant base-color/roughness material for those surfaces and a separate
-vertex-color biome-debug material. The runtime terrain patch assigns those
-materials to its procedural mesh components. The project brief's established
+`Content/Kalmala/World/Materials/`. The commandlet source builds M_GeneratedTerrain as a vertex-color blend of
+grass, soil, rock, and snow; other generated surfaces use the simple
+constant-color/roughness creation path, and the separate biome-debug material
+passes vertex color to base and emissive. M_GeneratedSoil is generated as an
+asset but is not assigned by the terrain-patch constructor. Existing generic
+material packages are left untouched by the creator, so these are source
+generation facts rather than confirmed loaded asset graphs. See the source
+audit below for assignments and limits. The project brief's established
 mood is a northern wilderness shaped by forests, lakes, and long twilight.
 
 Before selecting values, inspect the actual prototype map's lights, sky, fog,
 exposure, and any level post-process settings in Unreal Editor. The project
 defaults alone do not define a complete scene lighting rig.
+
+### L01a source audit — 2026-10-26
+
+The table below records source-derived facts and limits. Live map and renderer
+observations follow in the L01a Editor inspection section.
+This is an L01a snapshot; later capture-only changes are recorded separately.
+
+| Area | Source-derived facts and limits |
+| --- | --- |
+| Active prototype map | Config/DefaultEngine.ini:3-4 sets both EditorStartupMap and GameDefaultMap to /Game/Kalmala/Maps/Prototype/L_Prototype; Content/Kalmala/Maps/Prototype/L_Prototype.umap is tracked. Kalmala.uproject:3 associates the project with Unreal Engine 5.8. This establishes project defaults, not the current Editor session's loaded map. |
+| Prototype map object paths | A raw scan of the tracked `.umap` finds `PersistentLevel.DirectionalLight_0`, `SkyAtmosphere_0`, and `SkyLight_0`, along with two PlayerStarts and `KalmalaInteractionTestActor_0`; the package also contains the `KalmalaEnvironmentSun`, `KalmalaEnvironmentAtmosphere`, and `KalmalaEnvironmentSkyLight` tag strings. No post-process, exponential-fog, or campfire actor path appeared in this scan. This is string-level package evidence, not a parsed actor/property report; absence in the scan does not establish the loaded level contents or component values. |
+| Renderer | The tracked Config/*.ini files contain no explicit RHI, Lumen GI/reflection, exposure, or post-process selection. Kalmala.uproject records the engine association and plugins, not the resolved renderer. Active RHI and effective GI/reflection methods remain unknown. |
+| Environment actor setup | Scripts/Setup-PrototypeEnvironment.py:8-39 finds actors by tag or spawns them, then sets the tagged directional light to rotation (-40, -35, 0), movable, atmosphere-sun enabled, intensity 10.0; it ensures a SkyAtmosphere without setting its properties; and sets a tagged SkyLight to movable, real-time capture, intensity 1.0. Other light, atmosphere, and sky properties are not set by this script. Because tagged existing actors are reused and the script's save action was not run for this audit, serialized actor values remain unknown. |
+| Runtime weather fog | Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp:17-110 creates a transient, nonreplicated ExponentialHeightFog only in a game world with a local player, not on a dedicated server. It probes every 1 second and scales coverage by storm intensity times Thunder Mountains biome weight, fades at speed 1.5, and scales density to 0.005 and max opacity to 0.24; start distance is 2500 and the color shifts from white toward (0.32, 0.34, 0.41). This client presentation effect is not a serialized map actor; whether it is active at any baseline view is unverified. The code does not set volumetric fog or other component properties. |
+| Fog, exposure, post-process | The setup script does not configure fog, exposure, or post-process. A search of tracked configuration and production C++ found no explicit post-process volume/settings or auto-exposure writer. The runtime storm fog above is the source-level exception for fog. Serialized level volumes, effective exposure, and other fog actors remain uninspected. |
+| Time and weather controls | `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1014-1045` initializes weather cycle 0 from the world seed and current game elapsed time; `Source/KalmalaWorld/Public/KalmalaWeatherCycle.h:10-54` derives each interval deterministically from the seed and cycle index. The baseline runner supplies the seed but has no weather-cycle or time-of-day selector. The environment setup script sets one fixed sun rotation; no tracked production time-of-day driver was found. |
+| Generated material assignments | Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp assigns MI_GeneratedTerrain to terrain (or M_GeneratedTerrainBiomeDebug in debug mode), M_GeneratedWater to ocean and lake water, MI_GeneratedLakeShore to lake shore, MI_GeneratedRock to Meadow rocks, M_GeneratedBark to Meadow trunks, and M_GeneratedCanopy to Meadow canopies. M_GeneratedTerrain remains the layered parent and the cloth material; M_GeneratedRock remains assigned to the player model and campfire ring. M_GeneratedSoil is not among the terrain-patch constructor's assignments. The commandlet builds M_GeneratedTerrain from vertex-color R/G/B weights for grass/soil/rock plus alpha snow, then routes that blend through MF_KalmalaSurfaceResponse. MI_GeneratedLakeShore and MI_GeneratedRock use M_KalmalaSurfaceBase; their instance tints preserve their prior base palettes and roughness values. M_GeneratedLakeShore is retained as an unassigned legacy package. The separate biome-debug material feeds vertex color to base and emissive. These are source-generation and constructor facts; rendered results and any map overrides were not inspected. |
+| Campfire baseline support | `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp:20-67,263-268` builds an original procedural stone ring using `M_GeneratedRock` and an orange point light with 600 cm radius; the light is off until the hearth is lit, then scales to 2500 × effective warmth. The baseline capture helper does not spawn or light a hearth, and the setup script does not place one. Whether the serialized map contains a placed hearth remains unknown. |
+| Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. An earlier launch through UnrealEditor.exe returned exit code 0 without a log or image; L01b succeeded when the runner's `-Editor` parameter selected UnrealEditor-Cmd.exe. |
+
+Existing world-generation records provide provisional camera poses for three
+lighting-scene classes. They use the same 65-degree, +Y-facing camera convention
+and seed-418 generator sites, but the old captures did not lock time, weather,
+or exposure. The screenshots were for terrain review, are not present in this
+checkout, and do not establish lighting/material acceptance.
+
+| Scene candidate | Seed-418 site and pose | Source evidence and limit |
+| --- | --- | --- |
+| Meadows daylight | Starter Meadows at `(-781.6, -781.6)` cm; `ViewZ=528.94458`; camera `(-781.6, -3181.6, 1728.94458)`; aim `(-781.6, -781.6, 678.94458)`; FOV 65 degrees. | `docs/biome-height-rework.md` records a prior smoke capture and visual review of terrain, trees, shadows, and sky. It does not establish daylight time or exposure. Provisional only. |
+| Forest shade | Wooded Elderwood at `(207132.4, -325940.4)` cm; `ViewZ=15.1806488`; camera `(207132.4, -328340.4, 1215.1806488)`; aim `(207132.4, -325940.4, 165.1806488)`; FOV 65 degrees. | `Scripts/Tests/World/BiomeBaseline418419.csv` records 26 forest descriptors at this site, and the prior terrain capture was visually reviewed. Actual shade in this fixed view is unverified. Provisional only. |
+| Water | Shimmering Lakes at `(100830.5, -143038.6)` cm; water-level `ViewZ=356.950745`; camera `(100830.5, -145438.6, 1556.950745)`; aim `(100830.5, -143038.6, 506.950745)`; FOV 65 degrees. | The numeric baseline records water at this site. This is an inland-lake view, not a coast view; water/material appearance is not accepted. Provisional only. |
+| Coast | Source-coast land-side site `(691744.0, -107083.5)` cm. | The numeric baseline marks the sample wet, but the prior rendered source-coast frame did not show a separate water surface. Do not use this pose as the coast/water view without a better framing. |
+| Overcast/rain and fire-lit dusk/night | No accepted fixed poses. | The capture helper has no named-scene-to-coordinate map and does not control time or weather. Select locations and conditions only after live scene review. |
+
+### L01a live Editor inspection — 2026-10-26
+
+The project was built as `KalmalaEditor` in an isolated short mirror and opened
+in Unreal Editor 5.8. The loaded map was
+`/Game/Kalmala/Maps/Prototype/L_Prototype`. The editor Outliner showed six
+serialized actors: the tagged environment sun, SkyLight and SkyAtmosphere, two
+PlayerStarts, and `KalmalaInteractionTestActor0`. No serialized fog or
+PostProcessVolume actor was present. Starting PIE produced 44 runtime actors,
+including nine generated terrain patches; the map had no terrain surface in the
+static editor viewport before those runtime patches were generated. No map
+changes were saved.
+
+| Live area | Observed state and limit |
+| --- | --- |
+| Renderer | The session log reports D3D12 and active feature level SM5 on an RTX 5090. Live Editor console queries returned `r.DynamicGlobalIlluminationMethod=0` (no dynamic GI), `r.ReflectionMethod=2` (Lumen reflections), `r.RayTracing=0`, `r.DefaultFeature.AutoExposure=1`, and `r.EyeAdaptationQuality=2`. Scalability was at quality 3 for global illumination, reflections, and post process; these quality values do not select the GI method. |
+| Directional light | `KalmalaEnvironmentSun`: movable, transform location `(0,0,2000)`, rotation `(-40,-35,0)`, scale `(2.5,2.5,2.5)`; 10 lux, white, source angle 0.5357 degrees, source soft angle 0, temperature disabled, world illumination and shadows enabled. |
+| Sky fill | `KalmalaEnvironmentSkyLight`: movable, real-time capture enabled, captured-scene source, no cubemap, resolution 128, intensity scale 1.0, white, sky distance threshold 150000. |
+| Atmosphere | `KalmalaEnvironmentAtmosphere`: movable, planet top at absolute world origin, ground radius 6360 km, atmosphere height 60 km, multiscattering 1.0. |
+| Fog, exposure and post process | No fog or post-process volume actor appeared in the loaded map. The meadow PIE view had no visible storm fog. Tracked runtime source creates transient client-local exponential fog only for storm activity weighted by Thunder Mountains. Auto exposure is enabled and eye-adaptation quality is 2, but no active volume or tracked runtime writer establishes compensation or min/max EV; those effective exposure bounds remain unknown. |
+| Generated materials | PIE Details verified `M_GeneratedTerrain` in a generated patch terrain slot and `M_GeneratedWater` in its surface-water slot. The source-derived constructor assignments for lake shore, rock, bark, and canopy remain listed above; their loaded runtime slots and material graphs were not individually inspected. `M_GeneratedSoil` remains unassigned by that constructor. |
+| Capture settings | The existing helper uses seed 418 or 419, caller-supplied site/coordinates, `-game -windowed -RenderOffscreen -ForceRes`, 1024x768, a separate log/UserDir, a 65-degree transient camera, and one screenshot. It does not pin time, weather, or exposure, nor spawn/light a hearth. The user-requested isolated `KalmalaEditor` build completed 55/55 actions. Its default UnrealEditor.exe launch failed to create a log or PNG; the L01b run succeeded with `-Editor UnrealEditor-Cmd.exe`. |
+
+The following five seed-418 camera anchors are selected as repeatable inputs to
+the next baseline captures. Camera position and aim use the helper's existing
+`(X, Y-2400, ViewZ+1200)` and `(X, Y, ViewZ+150)` convention with 65-degree
+FOV. Selection records stable world locations; it does not claim that all five
+frames or scene conditions have passed visual acceptance.
+
+| Baseline scene | Site and fixed camera / aim (cm) | Capture note |
+| --- | --- | --- |
+| Meadows daylight | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Existing seed-418 terrain review site. Time and exposure are not pinned. |
+| Forest shade | Wooded Elderwood `(207132.4,-325940.4)`, `ViewZ=15.1806488`; camera `(207132.4,-328340.4,1215.1806488)`, aim `(207132.4,-325940.4,165.1806488)`. | CSV records 26 forest descriptors. Shade and framing require the baseline image review. |
+| Coast and water | Source-coast land-side `(691744.0,-107083.5)`, `ViewZ=0`; camera `(691744.0,-109483.5,1200)`, aim `(691744.0,-107083.5,150)`. | Fixed seed-418 coastal candidate. A prior frame at this site did not show a separate water surface; L01b must review/replace the framing. |
+| Overcast / rain | Thunder Mountains `(-970004.9,-243087.4)`, `ViewZ=768.734985`; camera `(-970004.9,-245487.4,1968.734985)`, aim `(-970004.9,-243087.4,918.734985)`. | Chosen to exercise the Thunder Mountains storm-fog presentation. The helper cannot select a storm/weather cycle. |
+| Fire-lit dusk / night | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Shares the daylight anchor; the point at `(-781.6,-781.6,528.9)` cm is the intended hearth center. The map has no placed hearth, and the helper cannot spawn/light one or select dusk/night. |
+
+L01a's map, renderer, light, exposure, fog, material-assignment, capture-input,
+and five-anchor audit is recorded. L01b reviewed the daylight, forest, and water
+framing. L01c added the weather/hearth capture controls and rendered the two
+remaining seed-418 conditions. All five seed-418 views are present; the fire
+frame remains too dark to judge surrounding illumination. Exposure remains
+automatic with unknown effective EV bounds; FireDusk has a capture-only +1.5 EV bias.
+
+### L01b seed-418 capture set — 2026-10-26
+
+Used the already-built UE 5.8 mirror and
+`Scripts/Tests/World/BiomeBaselineCapture.ps1` with
+`-Editor C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe`.
+The runner passed its PNG signature, 1024x768 dimensions, nonblank-sample, and
+seed/site log checks for the retained images. The default `UnrealEditor.exe`
+launch had exited before logging; the command-line Editor override was needed.
+
+| Capture | Site and camera inputs | Review |
+| --- | --- | --- |
+| `Seed418_MeadowsDaylight.png` | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; FOV 65. | Generated ground is pale neutral gray with visible patch lines; sparse triangular rocks/trees cast long cool shadows. Daylight is visible, but this is an ungraded baseline. |
+| `Seed418_ForestShade.png` | Wooded Elderwood `(207132.4,-325940.4)`, `ViewZ=15.1806488`; FOV 65. | Dense tree silhouettes are present, but foliage and ground are bright neutral gray. The fixed view does not read as dark forest shade. |
+| `Seed418_OpenWater.png` | Ocean sample `(970004.9,-243087.4)`, `ViewZ=0`; FOV 65. | A broad flat gray water surface fills the frame; no shoreline is visible. Use this as the water reference, not as a combined coast-and-water frame. |
+| `Seed418_CoastCandidate.png` (supplemental) | Source-coast land-side `(691744.0,-107083.5)`, `ViewZ=0`; FOV 65. | The selected coast pose shows terrain but no distinct water surface. Retained as a framing diagnostic; the ocean pose supplies the water image for this set. |
+
+Capture files and `manifest.json` are under
+`TestResults/LightingBaseline/`. The manifest records exact camera and aim,
+resolution, renderer, GPU, exposure CVars/limits, per-image byte count, SHA-256,
+and the runner's checks. D3D12/SM5 on an RTX 5090 was resolved in the capture
+logs. Auto exposure remains enabled with eye-adaptation quality 2; compensation
+and EV bounds were not pinned. The Shimmering Lakes candidate was reviewed but
+not retained because its image did not provide a clearer water/shore distinction.
+
+L01b's seed-418 daylight, forest, and water images are captured and recorded.
+The source-coast framing and dark forest condition remain limitations for later
+scene review; this capture increment does not tune lighting or materials.
+
+### L01c1 capture-only condition controls — 2026-10-26
+
+`BiomeBaselineCapture.ps1` accepts `-Condition Default`, `OvercastRain`, or
+`FireDusk` and passes the value to the Development-only baseline capture path.
+The selected seed-418 Thunder Mountains view sets precipitation and fog to 0.8,
+wind to 0.75, reduces sun intensity to 2.0, retains sky intensity 1.0, moves
+the local pawn to the fixed sample site for the existing storm-fog probe, and
+delays the screenshot three seconds for its one-second probe and fade. The
+Meadows dusk view clears weather, turns the sun off at rotation `(8,-35,0)`,
+sets sky intensity to 0.12, and spawns a transient lit hearth at the fixed
+anchor. Both use the existing 65-degree camera and automatic exposure CVars.
+
+These branches run only with the non-Shipping `-KalmalaBiomeBaselineCapture`
+fixture. The hearth state is initialized by a server-checked Development-only
+method; the weather override uses the existing authoritative world-generation
+game state. No map is saved, and no ordinary gameplay session or Shipping build
+uses these test overrides. The existing project has no visible rain particle
+system or flame mesh; the planned captures show storm-state fog and the hearth's
+warm point-light response, not precipitation particles or a modeled flame.
+Exposure compensation and EV bounds remain unknown.
+
+At the L01c1 checkpoint, PowerShell parsing and diff whitespace checks had
+passed, while the initial mirror builds were stopped before the changed module
+compiled. L01c2 subsequently compiled and rendered the fixture as recorded
+below.
+
+### L01c2 seed-418 weather and fire captures — 2026-10-26
+
+The fixture was compiled in the short `C:/Users/Ville/AppData/Local/Temp/klc`
+mirror with UE 5.8. The first compile exposed missing concrete light-component
+headers and an actor/component `RecaptureSky` call mismatch; both were fixed.
+The Editor target then built successfully in 216 actions, with later
+capture-only adjustments rebuilding in four or five actions. The headless
+runner retained its fixed 65-degree cameras, 1024x768 output, separate user
+directories, and condition log checks. Default captures request screenshots
+immediately as before; weather waits three seconds and FireDusk waits five.
+
+| Capture | Final fixture values | Visual review |
+| --- | --- | --- |
+| `Seed418_OvercastRain.png` | Thunder Mountains at the fixed L01a anchor; precipitation 0.8, fog 0.8, wind 0.75; sun 2.0, sky 1.0; default camera compensation. | Gray sky and distance haze over a bright shoreline/water band. No rain particles appear. The frame records storm-state fog and lighting, not visible precipitation. |
+| `Seed418_FireDusk.png` | Meadows at the fixed L01a anchor; clear weather; sun 0.6, sky 0.25, default sky captured before dimming, sky real-time capture disabled, and +1.5 EV capture-camera compensation. The transient test hearth uses a 4500 cm point-light radius; ordinary campfires remain at 600 cm. | Blue-black frame with only the small procedural stone ring visible. Ground and firelight spill are not readable at this wide pose, and the project has no modeled flame or time-of-day controller. This is a captured baseline limitation, not a visual acceptance result. |
+
+Both retained frames passed PNG signature, 1024x768 dimensions, nonblank-sample,
+and requested seed/site/condition log checks. The manifest now contains the three
+previous primary scenes plus these weather and fire views; the coast candidate
+remains supplemental. Global auto exposure remains enabled, effective EV bounds
+remain unknown, and FireDusk's +1.5 EV override is capture-only. The lack of
+visible rain particles, a modeled flame, and readable firelight at the fixed
+wide shot remain for later lighting work.
+
+### L01d seed-419 daylight, forest and water captures — 2026-10-26
+
+Reused the seed-418 fixed sample points, camera offsets and 65-degree FOV for
+seed 419. The headless UE 5.8 runner produced 1024x768 images under
+`TestResults/LightingBaseline/`; the manifest records coordinates, aims, byte
+counts, hashes and per-frame review. Logs resolve D3D12/SM5 on an RTX 5090.
+These default-condition captures used sun intensity 10, sky intensity 1,
+automatic exposure at adaptation quality 2 and 0 EV capture-camera compensation.
+
+| Capture | Site and camera inputs | Visual review |
+| --- | --- | --- |
+| `Seed419_MeadowsDaylight.png` | Starter Meadows `(-781.6,-781.6)`, `ViewZ=528.94458`; camera `(-781.6,-3181.6,1728.94458)`, aim `(-781.6,-781.6,678.94458)`. | Pale generated ground with patch seams, scattered rocks and sparse stylized tree geometry. A wide black horizon band remains; this is an ungraded baseline. |
+| `Seed419_ForestShade.png` | Wooded Elderwood `(207132.4,-325940.4)`, `ViewZ=15.1806488`; camera `(207132.4,-328340.4,1215.1806488)`, aim `(207132.4,-325940.4,165.1806488)`. | The fixed frame shows a checkerboard-like gray surface and black horizon, with no visible forest silhouette. It does not read as forest shade. |
+| `Seed419_OpenWater.png` | Ocean sample `(970004.9,-243087.4)`, `ViewZ=0`; camera `(970004.9,-245487.4,1200)`, aim `(970004.9,-243087.4,150)`. | A broad checkerboard-like gray water surface sits below a blue-gray sky and black horizon; no shoreline is visible. This does not establish an accepted water look. |
+
+All three frames passed the runner's PNG signature, 1024x768 dimensions,
+nonblank-sample and seed/site/condition log checks. The manifest now records
+primary daylight, forest and open-water captures for both seeds. The fixed
+seed-418 poses were retained as required, so the seed-419 forest and water
+content differences remain visible baseline limitations for L01e/L01f review;
+L01d does not retune scene anchors, lighting or materials.
+
+### L01e seed-419 weather and fire captures — 2026-10-26
+
+Reused the fixed L01a weather and fire anchors with seed 419, the same capture
+fixture, 65-degree camera and 1024x768 output. The headless UE 5.8 runner
+resolved D3D12/SM5 on the RTX 5090; both logs report eye-adaptation quality 2.
+OvercastRain used default camera compensation; FireDusk retained its capture-only
++1.5 EV bias.
+
+| Capture | Site and capture | Visual review |
+| --- | --- | --- |
+| Seed419_OvercastRain.png | Thunder Mountains (-970004.9,-243087.4), ViewZ=768.734985; camera (-970004.9,-245487.4,1968.734985), aim (-970004.9,-243087.4,918.734985); precipitation 0.8, fog 0.8, wind 0.75; sun 2.0, sky 1.0. | The frame has a dark sky/horizon and broad cyan surface with only a tiny centered avatar. No rain particles, readable mountain silhouettes or clear terrain framing appear. It is retained as a baseline limitation, not a visually accepted overcast scene. |
+| Seed419_FireDusk.png | Starter Meadows (-781.6,-781.6), ViewZ=528.94458; camera (-781.6,-3181.6,1728.94458), aim (-781.6,-781.6,678.94458); clear weather, sun 0.6, sky 0.25, default sky captured before dimming, and +1.5 EV camera compensation. The transient test hearth uses a 4500 cm point-light radius; ordinary campfires remain at 600 cm. | The frame is almost entirely black, with only a tiny procedural stone ring visible at center. Surrounding ground and firelight spill are unreadable, and no modeled flame exists. This is baseline evidence, not visual acceptance. |
+
+Both captures passed the runner's PNG signature, 1024x768 dimensions,
+nonblank-sample and requested seed/site/condition checks. The shared manifest
+now contains all five primary scene roles for seeds 418 and 419 plus the
+supplemental seed-418 coast candidate. The lack of visible rain, the unreadable
+fire-light view, and unknown effective EV bounds remain for later lighting
+review; L01e did not change anchors, lighting, or materials.
+
+### L01f scene-wide rig and grade — 2026-10-26
+
+L01f retains Default Lit surfaces and the original pale northern daylight mood.
+The startup map now has a tagged, enabled, unbound
+`KalmalaEnvironmentPostProcess` volume (priority 0, blend radius 0, weight 1).
+The existing directional sun is 9.0 and the movable sky fill is 1.5. Built-in
+post-processing is neutral and restrained: contrast 1.02, saturation 1.04,
+BloomIntensity 0.30, and no custom post-process material or color tint.
+
+UE 5.8 readback from the saved volume confirmed `AutoExposureMinBrightness=0.03`
+and `AutoExposureMaxBrightness=2.0`, with both override flags true. The
+histogram range is 10–90 percent and adaptation speeds are 2.0/2.0. These are
+UE brightness settings, not an EV interval; the effective EV limits remain
+unknown, and continuous exposure transitions were not tested.
+
+| Exposure trial | Saved-volume readback and fixed-anchor result |
+| --- | --- |
+| 0.1–4.0 | Both min/max overrides read back true. Seed-418 Meadows daylight produced a uniform black capture (10 sampled colors, 0 nonblack samples); rejected. |
+| 0.03–2.0 (selected) | The unchanged minimum and lower maximum preserve the daylight, forest, water and overcast frames within small luminance changes. At the correct Meadows FireDusk anchor, only the baseline-sized procedural ring remains visible; the scene is still not readable. |
+| 0.1–8.0 | Both overrides read back true. At the correct Meadows FireDusk anchor, the frame was entirely black (11 sampled colors, 0 nonblack samples); rejected. |
+
+The seed-418 and seed-419 after captures use the same fixed poses and conditions
+as their baselines. The ten image hashes, byte counts, scene labels and review
+notes are in `TestResults/LightingBaseline/manifest.json`; images are named
+`L01f_After_Seed{418|419}_<Scene>.png`.
+
+| Scene pair | Visual review |
+| --- | --- |
+| Meadows daylight | Terrain remains pale with visible seams, sparse angular trees and hard shadows; the broad black horizon remains. |
+| Forest shade | Seed 418 retains pale gray trees and hard shadows. Seed 419 has a checkerboard-like ground at the reused anchor and no readable forest silhouette. |
+| Open water | Both seeds show a flat checkerboard-like gray surface under a black horizon, with no shoreline. |
+| Overcast/rain | Seed 418 shows a gray sky and bright ground with a cyan water band; seed 419 shows a dark horizon and broad cyan surface. Neither has visible rain or readable mountain framing. |
+| FireDusk | Both frames remain almost black, with only a tiny procedural stone ring visible; surrounding ground and firelight spill are unreadable, and there is no modeled flame. FireDusk remains unresolved for L01h. |
+
+The existing client-local storm-fog source limits changed from maximum density
+0.005 to 0.004 and maximum opacity 0.24 to 0.20. The mirror was not rebuilt, so
+these source-only fog edits are not reflected in the captured runtime. No
+material families, gameplay, networking, authority or save behavior changed.
+The headless map setup commandlet and saved-volume readback, plus the UnrealEditor-Cmd.exe capture helper
+passed; full build, movement and exposure-transition verification remain
+deferred to L06.
+
+### L01g local post-process volumes — N/A — 2026-10-26
+
+No bounded local post-process volume is justified in the current prototype.
+`Content/Kalmala/Maps` contains only `Prototype/L_Prototype.umap`, and
+`Config/DefaultEngine.ini:3-4` sets it as both the game and editor startup map.
+The project brief (`docs/00-project-brief.md:30`) describes this slice as
+seed-generated biomes rather than authored areas. The L01a live map inspection
+recorded the original map's six serialized actors (environment sun, SkyLight,
+SkyAtmosphere, two PlayerStarts and the interaction-test actor), with no
+serialized location-specific volume or authored scene; starting PIE generated
+nine terrain patches. `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:11329-11341`
+confirms that terrain patches are spawned dynamically from patch coordinates.
+
+L01f added one scene-wide `KalmalaEnvironmentPostProcess` volume. The setup
+script sets it `bUnbound=true`, priority 0, blend radius 0 and blend weight 1
+(`Scripts/Setup-PrototypeEnvironment.py:38-43`), so it is the global baseline,
+not a bounded location treatment. The prototype exposes generated biome samples
+and capture-only weather/fire conditions, not an existing authored interior or
+other location with a distinct look. L01g is therefore N/A; no local volume was
+added, so there is no local boundary or UI/text treatment to validate. Revisit
+this only if an authored location is added. L01g is complete; L01h's final
+milestone verification and visual review are recorded below.
+
+### L01h milestone-final verification — complete — 2026-10-27
+
+The UE 5.8 `KalmalaEditor Win64 Development` build passed against the fresh
+short-path source mirror at `C:/Users/Ville/AppData/Local/Temp/klh1`. The final
+incremental build compiled `KalmalaPlayerControlsTest.cpp` and linked
+KalmalaGameplay; earlier final-state rebuilds compiled the changed
+`KalmalaGameMode.cpp` and `KalmalaCampfire.cpp`. UnrealBuildTool used the normal
+per-user location. The final unattended, null-RHI `Automation RunTests Kalmala`
+queue passed 228 tests, 0 failures, exit code 0; log:
+`C:/Users/Ville/AppData/Local/Temp/klh1auto3/tests.log`.
+
+All ten fixed seed/site views were freshly rendered from that built mirror with
+`Scripts/Tests/World/BiomeBaselineCapture.ps1` and `UnrealEditor-Cmd.exe`. They
+passed PNG signature, 1024x768, nonblank-sample and seed/site/condition checks,
+then were visually reviewed as a set. The five captures that changed from
+L01f—the slightly different seed-418 daylight frame, both compiled storm-fog
+frames and both FireDusk frames—are preserved with the two movement frames in
+`TestResults/LightingBaseline/`; the other five final images byte-match their
+preserved L01f counterparts.
+
+The FireDusk fixture now keeps its fixed XY site but samples the terrain height
+for each seed before positioning the transient player and hearth. It uses a
+close camera (500 cm horizontal distance, 250 cm high, aiming 80 cm above the
+surface), the campfire's ordinary 600 cm light radius, and 0.0 EV additional
+compensation. Both dusk renders show the player silhouette, the procedural
+stone ring, and a readable warm pool on nearby ground. The first final attempt
+still failed the seed-419 nonblank-sample threshold because it reused seed-418's
+terrain height; the per-seed surface sample fixed that issue and the full ten
+views passed on rerun. There is no modeled flame.
+
+For ordinary third-person movement, the development-only player-controls
+fixture captured the local view immediately before and after its normal bound
+sprint, move and jump inputs. The `Controls local result` passed. The attached
+spring-arm camera follows the moved pawn. Across those frames, sampled sky mean
+luminance changed 102→107/255 and sampled lower-frame mean changed 190.2→180.7
+with the new view composition; neither sample region had a channel at or above
+250. This supports stable exposure for this short movement check; the global
+auto-exposure EV limits remain unknown.
+
+The visual review found readable daylight and seed-418 forest silhouettes,
+visible warm firelight, and no clipped highlights in the retained views. The
+seed-419 ForestShade anchor still has checkerboard-like ground and no forest;
+both water anchors remain checkerboard-like without a shore; overcast lacks
+rain particles and has weak framing; the generated prototype has a broad black
+horizon and pale, sparse terrain. These are pre-existing scene/content limits,
+not regressions from L01h. L01h and L01 are complete; the next eligible task is
+L02a after integrating L01 to master.
 
 ## Proposed implementation stages
 
@@ -132,6 +446,47 @@ Expose only useful artist controls: base tint, roughness, normal strength, broad
 color variation, and mapping scale. Test world-space/triplanar mapping only on
 generated meshes that lack suitable UVs. Keep the base response lit so direct
 lights, shadows, and indirect fill continue to work.
+
+#### L02a — Shared surface response interface — 2026-10-27
+
+`M_KalmalaSurfaceBase` is the opaque, Default Lit parent for later surface
+instances. Its `Kalmala Surface` group exposes a neutral-white `BaseTint`,
+`Roughness` (0–1, default 0.92), `NormalStrength` (0–1, default 1),
+`ColorVariation` (0–0.12, default 0.05), and `MappingScale` (0.0001–0.01
+inverse centimeters, default 0.001). The parent consumes vertex color as its
+input base color, so terrain blending remains available when L02b adopts it.
+
+`Functions/MF_KalmalaSurfaceResponse` applies tint, centered low-cost gradient
+noise in absolute world space, roughness passthrough, and a normalized blend
+between the flat tangent normal and the supplied normal. At the default mapping
+scale, variation is broad (roughly ten-meter features) and consistent across
+mesh and terrain-patch boundaries. The parent is not assigned to existing
+runtime surfaces in L02a; integration and visual acceptance remain in L02b–g.
+
+#### L02b — Terrain and shore integration — 2026-10-27
+
+`CreateWorldMaterials` now builds the existing grass/soil/rock and snow blend
+as the terrain parent, then applies the shared surface-response function to its
+final blended color. `MI_GeneratedTerrain` is assigned to terrain patches; the
+cloth component deliberately keeps using the parent. `MI_GeneratedLakeShore`
+uses `M_KalmalaSurfaceBase` with a tint that offsets the shore mesh's existing
+procedural vertex color to preserve its former flat material color and roughness
+0.78. The terrain constructor assigns these instances before the optional
+`-KalmalaBiomeDebug` material override, so the debug path still replaces the
+normal terrain presentation. Source and asset-generation checks passed; the
+default-off lake-basin presentation and rendered surface response remain for
+the L02g material-family gate.
+
+#### L02c — Generated rock integration — 2026-10-27
+
+The deterministic Meadow rock mesh keeps its geometry, normals, UVs, and
+vertex-color values. `MI_GeneratedRock` uses `M_KalmalaSurfaceBase`, retains
+roughness 0.95, and tints the mesh's existing vertex-color mean back to the
+former flat `TerrainRockColor`; its per-vertex facet contrast and subtle shared
+world variation are now visible. Only the `MeadowRocks` procedural component
+uses this instance. Player presentation and campfire stone continue to use
+`M_GeneratedRock`. Source, instance-generation, and presentation ownership
+checks passed; rendered shape and baseline separation remain for L02g.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an
@@ -256,10 +611,12 @@ game's frame-time target are agreed.
 - Decide after the prototype whether lighting should remain smoothly lit or use
   a subtle banded direct component, and whether weather layers belong on all
   surfaces or only selected materials.
-- The lighting work is queued as six ordered, worktree-sized goals (L01–L06) in
-  `BACKLOG.md`. Assign each goal to one agent in a fresh worktree after the
-  previous goal is integrated; run them sequentially under the repository's
-  single-writer rule. L06 is the integrated milestone-final verification gate.
+- The lighting work is queued as six ordered, worktree-sized goals (L01–L06)
+  in `BACKLOG.md`. Assign each goal to one agent in a dedicated worktree
+  after the preceding lighting goal has been integrated. Independent Kalmala
+  runs may proceed concurrently in distinct worktrees under `AGENTS.md`; these
+  lighting stages remain ordered because each depends on earlier lighting
+  outputs. L06 is the integrated milestone-final verification gate.
 
 ## References
 

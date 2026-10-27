@@ -2760,17 +2760,25 @@ foothills stay clear and steep faces receive less snow.
 `M_GeneratedTerrain` blends the established grass and rock colors with the
 original muted soil color from `M_GeneratedSoil`, then blends the existing
 terrain color toward a pale snow tone using alpha; the packages are generated
-by `CreateWorldMaterialsCommandlet`. The blend adds no world-field sample or
-mesh budget; clipped edge vertices derive regional weights from their existing
-field samples. Player cloth selects the established grass channel with snow alpha zero
-so the shared terrain material retains its original clothing color. No grass
-texture or reed presentation asset is introduced. The client-local Mountain
+by `CreateWorldMaterialsCommandlet`. Its final color, roughness and flat normal
+pass through the shared opaque-surface response, and generated patches use the
+`MI_GeneratedTerrain` instance. The blend adds no world-field sample or mesh
+budget; clipped edge vertices derive regional weights from their existing field
+samples. Player cloth deliberately retains the parent material and selects the
+established grass channel with snow alpha zero so its original clothing color
+remains available. The compiled default-off lake treatment uses
+`MI_GeneratedLakeShore`, whose shared lit parent preserves the prior shore tint
+and roughness. The biome-debug material remains a separate constructor-time
+override. No grass texture or reed presentation asset is introduced. The client-local Mountain
 storm fog fades with the existing replicated storm intensity multiplied by the
 continuous Thunder Mountains weight at the owning pawn. It adds no replicated
 actor, field or RPC, and no gameplay effect; Tundra snow and player-cloth
 material behavior are unchanged.
 Generated Meadow rock bases use the shared final terrain height and surface
-normal; the terrain patch remains their gameplay surface.
+normal with `MI_GeneratedRock`; geometry, vertex colors and roughness stay
+within their generated presentation contract. The player model and campfire
+ring retain `M_GeneratedRock`. The terrain patch remains their gameplay
+surface.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered

@@ -1,6 +1,10 @@
 #include "KalmalaGameMode.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/DirectionalLightComponent.h"
+#include "Components/SkyLightComponent.h"
+#include "Engine/DirectionalLight.h"
+#include "Engine/SkyLight.h"
 #include "UnrealClient.h"
 
 #include "GameFramework/Controller.h"
@@ -10209,6 +10213,8 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
 
     FString Site;
     FString ScreenshotPath;
+    FString Condition = TEXT("Default");
+    float ExposureCompensationEV = 0.0f;
     float Xcm = 0.0f;
     float Ycm = 0.0f;
     float ViewZcm = 0.0f;
@@ -10224,11 +10230,145 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: arguments or output path are invalid."));
         return;
     }
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCondition="), Condition);
+    const bool bOvercastRain = Condition.Equals(TEXT("OvercastRain"), ESearchCase::IgnoreCase);
+    const bool bFireDusk = Condition.Equals(TEXT("FireDusk"), ESearchCase::IgnoreCase);
+    if (!Condition.Equals(TEXT("Default"), ESearchCase::IgnoreCase) && !bOvercastRain && !bFireDusk)
+    {
+        bBiomeBaselineCaptureRequested = true;
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: unsupported condition '%s'."), *Condition);
+        return;
+    }
     bBiomeBaselineCaptureRequested = true;
+    float CaptureViewZcm = ViewZcm;
+    if (bFireDusk)
+    {
+        CaptureViewZcm = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, FVector2D(Xcm, Ycm));
+        if (!FMath::IsFinite(CaptureViewZcm))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Biome baseline fire capture failed to sample terrain at its fixed site."));
+            return;
+        }
+    }
     ActivateTerrainPatchNeighborhood(FVector2D(Xcm, Ycm));
 
-    const FVector CameraLocation(Xcm, Ycm - 2400.0f, ViewZcm + 1200.0f);
-    const FVector ViewTarget(Xcm, Ycm, ViewZcm + 150.0f);
+    // Keep the local pawn in the capture terrain neighborhood; overcast presentation also samples local weather there.
+    // This branch only runs in non-Shipping baseline captures.
+    if (bOvercastRain || bFireDusk)
+    {
+        if (APawn* CapturePawn = LocalController->GetPawn())
+        {
+            CapturePawn->SetActorLocation(FVector(Xcm, Ycm, CaptureViewZcm + 100.0f), false, nullptr,
+                ETeleportType::TeleportPhysics);
+        }
+    }
+
+    float SunIntensity = 0.0f;
+    float SkyIntensity = 0.0f;
+    ADirectionalLight* CaptureSun = nullptr;
+    ASkyLight* CaptureSky = nullptr;
+    for (TActorIterator<ADirectionalLight> It(GetWorld()); It; ++It)
+    {
+        if (It->ActorHasTag(TEXT("KalmalaEnvironmentSun"))) CaptureSun = *It;
+    }
+    for (TActorIterator<ASkyLight> It(GetWorld()); It; ++It)
+    {
+        if (It->ActorHasTag(TEXT("KalmalaEnvironmentSkyLight"))) CaptureSky = *It;
+    }
+    if (CaptureSun != nullptr && CaptureSun->GetLightComponent() != nullptr)
+        SunIntensity = CaptureSun->GetLightComponent()->Intensity;
+    if (CaptureSky != nullptr && CaptureSky->GetLightComponent() != nullptr)
+        SkyIntensity = CaptureSky->GetLightComponent()->Intensity;
+
+    if (bOvercastRain || bFireDusk)
+    {
+        if (CaptureSun == nullptr || CaptureSun->GetLightComponent() == nullptr
+            || CaptureSky == nullptr || CaptureSky->GetLightComponent() == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Biome baseline capture condition failed: tagged sun or sky light is missing."));
+            return;
+        }
+        if (bOvercastRain)
+        {
+            CaptureSun->GetLightComponent()->SetIntensity(2.0f);
+            CaptureSky->GetLightComponent()->SetIntensity(1.0f);
+        }
+        else
+        {
+            CaptureSky->GetLightComponent()->RecaptureSky();
+            CaptureSky->GetLightComponent()->bRealTimeCapture = false;
+            CaptureSun->SetActorRotation(FRotator(-40.0f, -35.0f, 0.0f));
+            CaptureSun->GetLightComponent()->SetIntensity(0.6f);
+            CaptureSky->GetLightComponent()->SetIntensity(0.25f);
+
+            FActorSpawnParameters HearthParameters;
+            HearthParameters.ObjectFlags |= RF_Transient;
+            HearthParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            // The stone ring extends 50 cm below its root; place its base on sampled terrain so its light is not buried.
+            constexpr float BaselineHearthGroundOffsetCm = 50.0f;
+            const FVector HearthLocation(Xcm, Ycm, CaptureViewZcm + BaselineHearthGroundOffsetCm);
+            AKalmalaCampfire* CaptureHearth = GetWorld()->SpawnActor<AKalmalaCampfire>(
+                AKalmalaCampfire::StaticClass(), HearthLocation, FRotator::ZeroRotator,
+                HearthParameters);
+            if (CaptureHearth == nullptr)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Biome baseline fire capture failed to spawn its transient hearth."));
+                return;
+            }
+            CaptureHearth->InitializeLitForBaselineCaptureFromServer();
+        }
+        if (bOvercastRain) CaptureSky->GetLightComponent()->RecaptureSky();
+    }
+
+    if (bOvercastRain)
+    {
+        AKalmalaWorldGenerationGameState* WorldState = GetGameState<AKalmalaWorldGenerationGameState>();
+        if (WorldState == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Biome baseline overcast/rain capture failed: world-generation state is missing."));
+            return;
+        }
+        FKalmalaWeatherState Weather = WorldState->GetWeatherState();
+        Weather.WeatherCycleIndex = 0;
+        Weather.ServerStartTimeSeconds = GetWorld()->GetTimeSeconds();
+        Weather.DurationSeconds = 120.0f;
+        Weather.PrecipitationIntensity = 0.8f;
+        Weather.FogIntensity = 0.8f;
+        Weather.WindDirectionDegrees = 0;
+        Weather.WindStrength = 0.75f;
+        Weather.RefreshActivityLevel();
+        WorldState->SetWeatherStateFromServer(Weather);
+    }
+    else if (bFireDusk)
+    {
+        AKalmalaWorldGenerationGameState* WorldState = GetGameState<AKalmalaWorldGenerationGameState>();
+        if (WorldState == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Biome baseline fire capture failed: world-generation state is missing."));
+            return;
+        }
+        FKalmalaWeatherState Weather = WorldState->GetWeatherState();
+        Weather.WeatherCycleIndex = 0;
+        Weather.ServerStartTimeSeconds = GetWorld()->GetTimeSeconds();
+        Weather.DurationSeconds = 120.0f;
+        Weather.PrecipitationIntensity = 0.0f;
+        Weather.FogIntensity = 0.0f;
+        Weather.WindDirectionDegrees = 0;
+        Weather.WindStrength = 0.0f;
+        Weather.RefreshActivityLevel();
+        WorldState->SetWeatherStateFromServer(Weather);
+    }
+
+    if (CaptureSun != nullptr && CaptureSun->GetLightComponent() != nullptr)
+        SunIntensity = CaptureSun->GetLightComponent()->Intensity;
+    if (CaptureSky != nullptr && CaptureSky->GetLightComponent() != nullptr)
+        SkyIntensity = CaptureSky->GetLightComponent()->Intensity;
+
+    const float CameraDistanceCm = bFireDusk ? 500.0f : 2400.0f;
+    const float CameraHeightCm = bFireDusk ? 250.0f : 1200.0f;
+    const float CameraAimHeightCm = bFireDusk ? 80.0f : 150.0f;
+    const FVector CameraLocation(Xcm, Ycm - CameraDistanceCm, CaptureViewZcm + CameraHeightCm);
+    const FVector ViewTarget(Xcm, Ycm, CaptureViewZcm + CameraAimHeightCm);
     FActorSpawnParameters CameraParameters;
     CameraParameters.ObjectFlags |= RF_Transient;
     CameraParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -10240,13 +10380,34 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
             WorldGenerationConfig.WorldSeed, *Site);
         return;
     }
-    CaptureCamera->GetCameraComponent()->SetFieldOfView(65.0f);
+    UCameraComponent* CameraComponent = CaptureCamera->GetCameraComponent();
+    CameraComponent->SetFieldOfView(65.0f);
+    if (bFireDusk)
+    {
+        ExposureCompensationEV = 0.0f;
+        CameraComponent->PostProcessSettings.bOverride_AutoExposureBias = true;
+        CameraComponent->PostProcessSettings.AutoExposureBias = ExposureCompensationEV;
+    }
     LocalController->SetViewTarget(CaptureCamera);
-    FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+    FTimerHandle ScreenshotHandle;
+    const float CaptureDelaySeconds = bOvercastRain ? 3.0f : bFireDusk ? 5.0f : 0.0f;
+    if (CaptureDelaySeconds <= 0.0f)
+    {
+        FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+    }
+    else
+    {
+        GetWorldTimerManager().SetTimer(ScreenshotHandle,
+            FTimerDelegate::CreateLambda([ScreenshotPath]()
+            {
+                FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+            }), CaptureDelaySeconds, false);
+    }
     UE_LOG(LogTemp, Display,
-        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 Output=%s."),
-        WorldGenerationConfig.WorldSeed, *Site, Xcm, Ycm, ViewZcm,
-        *CameraLocation.ToCompactString(), *ViewTarget.ToCompactString(), *ScreenshotPath);
+        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 ExposureCompensationEV=%.2f Output=%s."),
+        WorldGenerationConfig.WorldSeed, *Site, *Condition, Xcm, Ycm, ViewZcm,
+        *CameraLocation.ToCompactString(), *ViewTarget.ToCompactString(), SunIntensity, SkyIntensity,
+        CaptureDelaySeconds, ExposureCompensationEV, *ScreenshotPath);
 #endif
 }
 

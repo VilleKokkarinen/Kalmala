@@ -16,11 +16,11 @@ optional presentation features; the RT-off tier must retain the complete visual
 baseline. Default Lit remains the production shading path unless a later visual
 review accepts a different look.
 
-**Worktree sequence:** L01–L06 are ordered worktree-sized goals. Assign one goal
-to one agent in a dedicated worktree, starting from local `master` after the
-previous goal's commit has been integrated. The repository allows one active
-Kalmala write run at a time, so use separate worktrees for isolation but run the
-goals sequentially, not concurrently.
+**Worktree sequence:** L01–L06 are ordered, dependent goals. Assign each goal
+one agent in a dedicated worktree based on integrated `master` after the preceding
+lighting goal has been integrated. Independent Kalmala runs may proceed concurrently
+in distinct worktrees under `AGENTS.md`; this lighting sequence remains ordered
+because later stages depend on earlier lighting outputs.
 
 **Run rule:** In the first unchecked goal, complete exactly its first unchecked
 child in order; split it before coding if it exceeds one turn. Run applicable
@@ -28,53 +28,86 @@ lightweight checks, update backlog and progress, commit only run-owned changes,
 and stop. L06 is the integrated milestone-final verification and repair goal;
 do not mark the lighting milestone complete before it passes.
 
-- [ ] **L01 — Establish the lighting baseline and core post-process look.**
+- [x] **L01 — Establish the lighting baseline and core post-process look.**
   Record repeatable scene captures, stabilize the existing light/sky/fog/exposure
   stack, and use built-in post-process volume controls before custom passes.
-  - [ ] **L01a — Inspect the active prototype map and renderer.** Record the
+  - [x] **L01a — Inspect the active prototype map and renderer.** Record the
     active RHI, GI/reflection method, directional/sky lights, fog, exposure,
     post-process volumes, generated material assignments, and capture settings
     in the existing lighting plan. Select and record fixed camera positions for
     all five baseline scenes. Do not change project behavior in this audit.
-  - [ ] **L01b — Capture seed-418 daylight, forest, and water.** Use the fixed
+    The live map/renderer audit and five fixed camera anchors are recorded in
+    `docs/valheim-like-lighting-plan.md`; L01b reviewed the daylight, forest,
+    and water images. L01c1 added capture-only condition controls; L01c2
+    rendered both conditions and verified the five-scene seed-418 set. The
+    plan records the missing rain/flame visuals and unreadable wide fire view.
+  - [x] **L01b — Capture seed-418 daylight, forest, and water.** Use the fixed
     camera poses for Meadows daylight, forest shade, and coast/water. Preserve
     captures and manifest under `TestResults/LightingBaseline/`; record
     resolution, exposure, hardware, and renderer settings. Do not write under
     `Saved/`, `Intermediate/`, or `DerivedDataCache/`.
-  - [ ] **L01c — Capture seed-418 weather and fire scenes.** Capture
+  - [x] **L01c — Capture seed-418 weather and fire scenes.** Capture
     overcast/rain and fire-lit dusk/night using L01a's matching camera and
     exposure records; verify all five seed-418 scenes are present.
-  - [ ] **L01d — Capture seed-419 daylight, forest, and water.** Reuse L01a's
+    - [x] **L01c1 — Add capture-only condition controls.** Add deterministic
+      non-Shipping overcast/rain and fire-lit dusk/night options to the existing
+      baseline capture runner; keep default captures and ordinary game sessions
+      unchanged.
+    - [x] **L01c2 — Render and review the weather and fire frames.** Compiled the
+      capture fixture in an isolated short mirror, preserved both fixed views
+      and manifest entries, and verified all five seed-418 scenes. Recorded no
+      rain particles or modeled flame, the unreadable wide fire-light view, and
+      unknown effective EV bounds in the lighting plan.
+  - [x] **L01d — Capture seed-419 daylight, forest, and water.** Reused L01a's
     fixed views and the seed-418 manifest for Meadows daylight, forest shade,
-    and coast/water.
-  - [ ] **L01e — Capture seed-419 weather and fire scenes.** Capture the
+    and open water. Recorded that the forest anchor has no visible forest and
+    the water frame shows a checkerboard surface; these remain baseline
+    limitations, not accepted scene looks.
+  - [x] **L01e — Capture seed-419 weather and fire scenes.** Capture the
     matching overcast/rain and fire-lit dusk/night views; verify the full
-    two-seed baseline set before changing the rig.
-  - [ ] **L01f — Tune the scene-wide rig and grade.** Keep solid surfaces on
+    two-seed baseline set before changing the rig. Both fixed views passed the
+    capture checks and are recorded in the shared manifest; the images retain
+    the missing-rain and unreadable-fire baseline limitations.
+  - [x] **L01f — Tune the scene-wide rig and grade.** Keep solid surfaces on
     Default Lit. Stabilize exposure, balance the existing directional key and
     sky fill, tune existing fog, then apply a restrained global grade and bloom
     using built-in settings. Save the selected values with before/after captures.
-  - [ ] **L01g — Add only justified local post-process volumes.** Use bounded
+  - [x] **L01g — Add only justified local post-process volumes.** Use bounded
     volumes only for an existing authored location needing a distinct look;
     set explicit priority/blend radius and confirm no visible boundary or UI/text
     treatment. If no such location exists, record this child N/A in the plan.
-  - [ ] **L01h — Pass the core-lighting gate.** Compare all ten fixed views and
-    ordinary third-person movement; confirm readable silhouettes, stable
-    exposure, legible firelight, and no crushed shadows or clipped highlights.
+  - [x] **L01h — Pass the core-lighting gate.** Reviewed all ten rebuilt-source
+    views and rendered before/after frames from normal third-person sprint/jump
+    input. Both seed-specific dusk scenes show a readable silhouette and warm
+    ground light using the ordinary 6 m campfire radius and no exposure boost;
+    movement-frame exposure remained stable. The final Editor build, 228-case
+    automation queue and ten capture checks passed. Documented pre-existing
+    seed-419 forest, water, rain and world-horizon limitations in the lighting
+    plan and L01h evidence manifest.
 
 - [ ] **L02 — Build and integrate the shared surface-material family.** Replace
   flat generated surface materials through project-owned parents and instances,
   retaining direct light, shadow, indirect fill, water clipping, and runtime
   material assignment behavior.
-  - [ ] **L02a — Define the shared material interface.** Use the existing
+  - [x] **L02a — Define the shared material interface.** Use the existing
     `Content/Kalmala/World/Materials/` path and the lighting plan's bounded
     controls: base tint, roughness, normal strength, broad color variation, and
-    mapping scale. Keep common surface functions in Material Functions.
-  - [ ] **L02b — Integrate terrain and shore.** Replace flat generated terrain
-    and shore expressions with instances of the shared lit parent; verify
-    procedural assignment and biome-debug material override still work.
-  - [ ] **L02c — Integrate rock.** Assign the opaque lit parent to generated
-    rocks and verify visible shape, roughness, and baseline material separation.
+    mapping scale. Keep common surface functions in Material Functions. Created
+    the Default Lit `M_KalmalaSurfaceBase` parent and the reusable
+    `Functions/MF_KalmalaSurfaceResponse` graph with those five artist controls;
+    existing runtime material assignments remain unchanged for L02b.
+  - [x] **L02b — Integrate terrain and shore.** Route the existing grass/soil/
+    rock/snow blend through the shared surface response and assign its terrain
+    material instance. Assign the lake-shore instance of the shared lit parent
+    with the former base tint and roughness preserved. Confirm procedural
+    material references load and the biome-debug override remains after normal
+    terrain assignment.
+  - [x] **L02c — Integrate rock.** Assign `MI_GeneratedRock`, an instance of
+    the shared opaque lit parent, only to generated Meadow rocks. Keep roughness
+    at 0.95 and compensate their existing vertex-color mean to retain the prior
+    rock palette while exposing its subtle facet variation. Preserve the mesh
+    geometry/normals and the existing player/campfire material assignments;
+    source and asset checks passed, with rendered comparison remaining for L02g.
   - [ ] **L02d — Integrate wood and bark.** Assign appropriate instances to
     generated trunks and authored wood without creating material graphs at runtime.
   - [ ] **L02e — Add the foliage family.** Use a separate masked/two-sided canopy
