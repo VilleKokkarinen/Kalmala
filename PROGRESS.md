@@ -1,3 +1,36 @@
+## L05e RTX 5090 measurement scope — 2026-10-27
+
+- **Selected increment:** L05e, after the user selected the RTX 5090 reference
+  PC as the current measurement target and left lower-tier coverage pending.
+- **Work completed:** Recorded the user-directed reference-only measurement
+  scope and retained lower-tier/AMD testing as open future coverage. Checked for
+  an existing project Editor in both this worktree and the main checkout; none
+  is available. Actual RT-off/Balanced/High frame-time, memory, resolution, and
+  image-quality captures need an Editor build. Repository run rules reserve a
+  full Editor build for L06, although L05e must precede that gate.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Confirmed neither checkout contains
+  `Binaries/Win64/KalmalaEditor.exe`; no `UnrealEditor` process was running.
+  No build, test, or capture ran.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** The accepted measurement scope now names the RTX 5090
+  as the current reference only; no release hardware floor or performance
+  result is claimed.
+- **Networking/authority:** Planning and availability record only; no runtime,
+  networking, authority, or save behavior changed.
+- **Known limitations / remaining scope:** L05e remains unchecked until
+  same-scene RT-off/Balanced/High captures are recorded on the reference PC.
+  Lower-tier/AMD coverage is explicitly pending. The repository's build timing
+  policy and L05e-before-L06 order need resolution before captures can run.
+  L06 is still required before the lighting milestone can be marked verified.
+- **Main-checkout handoff:** L05 bookkeeping is already synchronized to the
+  main checkout; this update will be synchronized after commit, preserving its
+  unrelated edits.
+- **Next eligible task:** Resolve the L05e/L06 build timing, then record the
+  reference PC captures; keep lower-tier/AMD coverage pending until actual
+  devices are chosen.
+
 ## L05f DLSS/upscaling separation — 2026-10-27
 
 - **Selected increment:** L05f, the first unblocked L05 child after the L05e
