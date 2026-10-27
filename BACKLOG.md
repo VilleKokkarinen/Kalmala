@@ -132,20 +132,19 @@ do not mark the lighting milestone complete before it passes.
     experimental ramp-based shading only if the project's configured renderer,
     build targets, and materials support it; do not add an engine fork or make
     the experimental feature a production dependency.
-  - [ ] **L03c — Check lighting integration.** Confirm each candidate preserves
-    cast shadows, indirect fill, camp-light response, silhouette readability,
-    and temporal stability; record per-view GPU cost.
-    Evidence remains pending: the worktree has no Editor binary or generated
-    map, the mirror build expanded to 205 actions and failed in mixed-version
-    console code, and the fixture has no local-light, temporal, or GPU
-    timing capture. Keep unchecked until scene evidence is recorded.
-  - [x] **L03d — Record the review recommendation.** Keep Default Lit as the
-    production path and report the captures, tradeoffs, and recommended next
-    choice. Any change to the game's overall visual identity requires explicit
-    user review before broad adoption.
-    Current recommendation: keep production on Default Lit and the Substrate
-    Toon candidate unadopted until L03c records captures and GPU cost.
-
+  - [x] **L03c — Check lighting integration.** Record the fixed-view captures,
+    projected sample temporal crops, and 120-frame per-view GPUTime summaries in
+    `TestResults/L03c/` and the lighting plan. The test-only Toon candidate shows
+    a dim FireDusk response and reduced sample readability. A ForestShade sun-off
+    test with the Engine GrayTextureCube confirms skylight fill reaches Toon, but
+    all six projected crops are dimmer; world-bounce/GI remains untested. This
+    completes the evidence check, not an adoption pass.
+  - [ ] **L03d — Record the final review recommendation.** Keep Default Lit as
+    the production path while reviewing L03c's captures, measured tradeoffs, and
+    remaining limits in a separate increment. Any change to the overall visual
+    identity still requires explicit user review before broad adoption.
+    Reopened 2026-10-27: the earlier no-evidence holding note is stale; the final
+    recommendation must incorporate L03c's captured results.
 - [ ] **L04 — Add supported weather and environment effects.** Use only existing
   client presentation signals and effects; keep this cosmetic, gradual, and
   outside gameplay, save, RPC, and replicated-state contracts.

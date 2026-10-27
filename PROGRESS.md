@@ -1,63 +1,74 @@
-## L03d direct-light review recommendation — 2026-10-27
+## L03c rendered integration evidence — 2026-10-27
 
-- **Selected task:** L03d, record the review recommendation for the stylized
-  direct-light candidate.
-- **Work completed:** Recorded a holding recommendation: retain Default Lit as
-  the production path and keep the UE 5.8 Substrate Toon candidate test-only
-  until L03c's rendered integration and per-view GPU-cost evidence is available.
-  L03d is checked; L03c and the L03 parent remain unchecked.
-- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
-  PROGRESS.md. No production renderer settings or material assignments changed.
-- **Lightweight checks:** Reviewed the L03a–L03c records and verified that the
-  recommendation states the absence of comparison captures and measured
-  tradeoffs. Ran git diff --check.
-- **Full verification:** Deferred. No Editor build, fixture generation, material
-  compilation, rendered capture, or GPU-cost measurement ran in this increment.
-- **Observable impact:** The production choice and the reason for deferring
-  adoption are explicit; there is no runtime or visual change.
-- **Networking/authority:** Documentation only; gameplay, networking, authority,
-  persistence, and save behavior are unchanged.
-- **Known limitations / remaining scope:** No captures or measured quality,
-  integration, stability, or performance tradeoffs exist. This recommendation
-  does not establish that the Toon candidate is worse; it remains unadopted
-  because L03c evidence is incomplete.
-- **Next eligible task:** L03c remains unchecked for the permitted scene-level
-  comparison and per-view GPU measurement. L03 is not complete.
+- **Selected task:** L03c, check stylized direct-light integration.
+- **Work completed:** Built and ran the isolated UE 5.8 comparison fixture across
+  MeadowsDaylight, ForestShade, OpenWater, OvercastRain, and FireDusk. Captured
+  five paired 8-frame sequences at 0.5-second intervals and ten isolated
+  DefaultLit/Toon views with 120 UE GPUTime frames each. Reviewed the updated
+  pawn-free FireDusk frame and measured sample-region luminance and temporal
+  changes. Results and limits are in `docs/valheim-like-lighting-plan.md` and
+  `TestResults/L03c/`. The Toon candidate was much darker in FireDusk. The
+  ForestShade sun-off GrayTextureCube pair rendered both variants; all six Toon
+  projected crops were dimmer, confirming skylight fill reaches the candidate
+  without testing world-bounce/GI. L03c is evidence-complete, not an adoption
+  pass; L03d was reopened for a separate
+  final recommendation.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
+  `Scripts/Tests/Presentation/LightingComparison.ps1`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`, the lighting plan, `BACKLOG.md`,
+  `PROGRESS.md`, and the retained L03c evidence CSVs/variant PNGs, including
+  `ForestShade_SkyOnly_DefaultLit.png`, `ForestShade_SkyOnly_Toon.png`, and
+  `SkyOnlyFill.csv`.
+- **Lightweight checks:** PowerShell parser checks passed for both capture
+  scripts. The focused UE 5.8 `KalmalaEditor Win64 Development` incremental build
+  passed with 4 UBT actions and normal `%LOCALAPPDATA%\UnrealBuildTool` access.
+  The fixture commandlet had generated the isolated map/profile/materials
+  successfully earlier in the focused session. Five-view temporal capture and
+  all ten isolated profiles completed; each profile CSV had 120 positive
+  `GPUTime` frames. `git diff --check` passed.
+- **Full verification:** Deferred. This was not a milestone-final run; the user
+  explicitly authorized the focused Editor build and captures outside the usual
+  L06 gate. No full project build, test suite, packaging, or broad L06 check ran.
+- **Observable impact:** Developers now have fixed-view comparison images,
+  projected proxy-pixel temporal summaries, FireDusk crop measurements, and
+  per-view whole-frame GPUTime data. Default Lit remains the production path;
+  Substrate is enabled only in the test process.
+- **Networking/authority:** Non-Shipping capture tooling and editor fixture
+  only. The capture pawn is hidden only under the L03 fixture flag; gameplay,
+  networking, server authority, replication, save state, and persistence are
+  unchanged.
+- **Known limitations / remaining scope:** Samples are UE BasicShapes proxies.
+  Fixture framing shortens non-FireDusk camera distance/height to 1000/500 cm
+  while retaining L01 anchors, conditions, exposure, FOV, and direction. The
+  paired surfaces occupy different positions, crop measurements include some
+  scene-edge pixels, and only one RTX 5090 was profiled. The controlled
+  GrayTextureCube skylight pair also showed lower Toon crop luma for all six
+  classes; it does not measure world-bounce/GI, and paired crops sample different
+  positions. Toon FireDusk samples were dimmer for all six classes; the candidate
+  remains unadopted pending final review. Full verification remains deferred to
+  the lighting milestone gate.
+- **Next eligible task:** L03d final review recommendation, reopened to use these
+  measurements; L03 remains incomplete.
 
-## L03c direct-light integration evidence audit — incomplete — 2026-10-27
+## L03d provisional direct-light recommendation — reopened — 2026-10-27
 
-- **Selected task:** L03c, check the candidate's lighting integration.
-- **Work completed:** Audited the existing fixture and capture workflow against
-  the requested shadow, indirect-fill, local camp-light, silhouette, temporal
-  stability, and GPU-cost criteria. Recorded the specific missing scene/runtime
-  evidence and left L03c unchecked.
-- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
-  PROGRESS.md. No fixture assets, capture files, or production materials changed.
-- **Lightweight checks:** Confirmed this worktree has no
-  Binaries/Win64/KalmalaEditor.exe, UnrealEditor-KalmalaEditor.dll, or generated
-  L_LightingComparison.umap. Inspected the fixture's movable sun/skylight,
-  Toon Profile scales, proxy meshes, and capture helper; parsed both fixture
-  PowerShell scripts and ran git diff --check.
-- **Incremental compile attempt:** Refreshed 31 current Source/Config/project/
-  script files into the external kdc1 mirror. UnrealBuildTool scheduled 205
-  Editor-target actions; stopped at 38/205 after errors in
-  KalmalaConsoleComponent.cpp and KalmalaConsolePeerFixture.cpp where the
-  partially refreshed mirror mixed current headers with another source version.
-  No successful L03 commandlet compile resulted; the Editor target did not
-  complete and no render ran.
-- **Full verification:** Deferred. No full build, commandlet asset generation,
-  material compilation, render, test suite, or GPU capture completed.
-- **Observable impact:** No runtime or visual change. The remaining integration
-  gates and the fixture gaps are now explicit.
-- **Networking/authority:** Documentation/source audit only; gameplay,
-  networking, authority, persistence, and save behavior are unchanged.
-- **Known limitations / remaining scope:** No visual evidence exists for cast
-  shadows, indirect fill, local camp-light response, silhouettes, or temporal
-  stability; per-view GPU cost is unmeasured. The current fixture lacks a local
-  light and multi-frame/GPU timing capture path, and uses primitive proxies.
-- **Next eligible task:** L03c remains open. Generate and render the comparison
-  fixture with local-light coverage and review fixed-view images/temporal
-  behavior. L03d was not started in this increment.
+- **Earlier work:** A holding recommendation kept Default Lit in production and
+  the experimental Substrate Toon candidate test-only because L03c had no
+  captures or measured costs.
+- **Current status:** L03c now contains a focused capture matrix and measured
+  results. The earlier no-evidence rationale is superseded; L03d is reopened
+  for a separate final recommendation run.
+- **Production impact:** No renderer setting or production material assignment
+  changed.
+- **Next eligible task:** L03d final review using the new L03c evidence. L03
+  remains incomplete.
+
+## L03c pre-capture source audit — superseded — 2026-10-27
+
+The earlier audit recorded the fixture gaps and failed mixed-mirror compile
+attempt before the user-authorized clean UE 5.8 build and captures. Its
+no-render/no-GPU conclusion is superseded by the current L03c evidence entry.
 
 ## L03b UE 5.8 Substrate NPR support audit — 2026-10-27
 

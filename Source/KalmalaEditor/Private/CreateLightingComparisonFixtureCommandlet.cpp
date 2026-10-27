@@ -1,10 +1,11 @@
 #include "CreateLightingComparisonFixtureCommandlet.h"
 
 #include "Components/DirectionalLightComponent.h"
+#include "Components/SkyLightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/DirectionalLight.h"
-#include "Engine/PlayerStart.h"
-#include "Engine/SkyAtmosphere.h"
+#include "GameFramework/PlayerStart.h"
+#include "Components/SkyAtmosphereComponent.h"
 #include "Engine/SkyLight.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
@@ -36,7 +37,7 @@ namespace
 
     const FSurfaceSample Samples[] =
     {
-        { TEXT("Ground"), FLinearColor(0.22f, 0.34f, 0.17f), 0.94f, TEXT("/Engine/BasicShapes/Plane.Plane"), FVector(1.35f, 1.0f, 1.0f) },
+        { TEXT("Ground"), FLinearColor(0.22f, 0.34f, 0.17f), 0.94f, TEXT("/Engine/BasicShapes/Plane.Plane"), FVector(1.2f, 1.0f, 1.0f) },
         { TEXT("Rock"), FLinearColor(0.24f, 0.27f, 0.23f), 0.96f, TEXT("/Engine/BasicShapes/Sphere.Sphere"), FVector(0.58f, 0.72f, 0.48f) },
         { TEXT("Wood"), FLinearColor(0.34f, 0.26f, 0.17f), 0.90f, TEXT("/Engine/BasicShapes/Cylinder.Cylinder"), FVector(0.25f, 0.25f, 0.82f) },
         { TEXT("Canopy"), FLinearColor(0.16f, 0.30f, 0.11f), 0.91f, TEXT("/Engine/BasicShapes/Sphere.Sphere"), FVector(0.72f, 0.72f, 0.62f) },
@@ -75,7 +76,8 @@ namespace
             for (int32 Index = 0; Index < UE_ARRAY_COUNT(Times); ++Index)
             {
                 const FKeyHandle Key = Curve.AddKey(Times[Index], Values[Index]);
-                Curve.SetKeyInterpMode(Key, RCIM_CubicAuto);
+                Curve.SetKeyInterpMode(Key, RCIM_Cubic);
+                Curve.SetKeyTangentMode(Key, RCTM_Auto);
             }
         }
         Profile->Settings.DiffuseIndirectScale = 1.0f;
@@ -101,8 +103,8 @@ namespace
         const FName Name(*FPackageName::GetLongPackageAssetName(PackageName));
         UMaterial* Material = NewObject<UMaterial>(Package, Name, RF_Public | RF_Standalone);
         if (Material == nullptr || Material->GetEditorOnlyData() == nullptr) return nullptr;
-        Material->SetMaterialDomain(MD_Surface);
-        Material->SetBlendMode(BLEND_Opaque);
+        Material->MaterialDomain = MD_Surface;
+        Material->BlendMode = BLEND_Opaque;
 
         UMaterialExpressionConstant3Vector* Color = NewObject<UMaterialExpressionConstant3Vector>(Material);
         Color->Constant = Sample.Color;
@@ -158,11 +160,11 @@ namespace
         Sun->Tags.Add(TEXT("KalmalaEnvironmentSun"));
         Sun->GetLightComponent()->SetMobility(EComponentMobility::Movable);
         Sun->GetLightComponent()->SetIntensity(10.0f);
-        Sun->GetLightComponent()->SetAtmosphereSunLight(true);
+        CastChecked<UDirectionalLightComponent>(Sun->GetLightComponent())->SetAtmosphereSunLight(true);
         Sky->Tags.Add(TEXT("KalmalaEnvironmentSkyLight"));
         Sky->GetLightComponent()->SetMobility(EComponentMobility::Movable);
         Sky->GetLightComponent()->SetIntensity(1.0f);
-        Sky->GetLightComponent()->SetSourceType(SLS_CapturedScene);
+        Sky->GetLightComponent()->SourceType = SLS_CapturedScene;
         Sky->GetLightComponent()->bRealTimeCapture = true;
         return true;
     }
@@ -231,10 +233,15 @@ int32 UCreateLightingComparisonFixtureCommandlet::Main(const FString& Params)
         for (int32 Index = 0; Index < UE_ARRAY_COUNT(Samples); ++Index)
         {
             const FSurfaceSample& Sample = Samples[Index];
-            const double RowY = Anchor.Y + Index * 230.0;
+            // Two classes per row keep the fixed FireDusk camera's board legible.
+            // Three rows stay within the real campfire's 600 cm light radius.
+            const int32 RowIndex = Index / 2;
+            const int32 ColumnIndex = Index % 2;
+            const double RowY = Anchor.Y + RowIndex * 200.0;
+            const double GroupX = Anchor.X + (ColumnIndex == 0 ? -190.0 : 190.0);
             const double HalfHeight = Index == 0 ? 1.0 : Sample.Scale.Z * 50.0;
-            const FVector SmoothLocation(Anchor.X - 315.0, RowY, Anchor.Z + HalfHeight);
-            const FVector BandedLocation(Anchor.X + 315.0, RowY, Anchor.Z + HalfHeight);
+            const FVector SmoothLocation(GroupX - 65.0, RowY, Anchor.Z + HalfHeight);
+            const FVector BandedLocation(GroupX + 65.0, RowY, Anchor.Z + HalfHeight);
             if (AddMesh(World, Meshes[Index], Smooth[Index], SmoothLocation, Sample.Scale,
                     *FString::Printf(TEXT("L03Smooth_%s_%s"), Anchor.Site, Sample.Name)) == nullptr
                 || AddMesh(World, Meshes[Index], Banded[Index], BandedLocation, Sample.Scale,
