@@ -50,6 +50,10 @@ Saved/StagedBuilds/
 Thumbs.db
 Desktop.ini
 
+# Root-level local scratch and temporary verification output
+/_t/
+/.tmp/
+
 # JetBrains Rider UnrealLink cache
 .idea/.idea.Kalmala/.idea/
 

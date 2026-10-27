@@ -1,3 +1,14 @@
+## Backlog cleanup — 2026-10-27
+
+- **Selected task:** Remove completed goals from the active backlog.
+- **Work completed:** Moved the completed lighting and developer-console goals, including all checked children and their recorded limits, from Active queue to Completed post-roadmap work. The active queue now contains no completed goals.
+- **Files changed:** `BACKLOG.md` and `PROGRESS.md`.
+- **Lightweight checks:** Confirmed every checkbox in both archived goal blocks is checked and verified each block remains intact under Completed post-roadmap work. `git diff --check` passed. No build or tests were needed for this bookkeeping change.
+- **Full verification:** Not run; no implementation changed. Prior verification records remain with their goals.
+- **Observable impact:** The active queue is clear of completed goals while their detailed records remain available in the backlog.
+- **Networking/authority:** No gameplay or networking behavior changed.
+- **Known limitations / remaining scope:** Existing L05 lower-tier/AMD hardware limits remain recorded in the lighting goal; no status or acceptance claim was changed by this cleanup.
+- **Next eligible task:** None currently listed in Active queue.
 ## L05 closeout — available reference hardware scope — 2026-10-27
 
 - **Selected task:** L05 closeout after the user confirmed no AMD adapter is available for testing.
@@ -147,6 +158,71 @@
 - **Networking/authority:** Local presentation and capture tooling only. No server gameplay authority, RPCs, replicated state, save data, or simulation behavior changed.
 - **Known limitations / remaining scope:** No RTX 5090 profile measurements have been captured, so there are no frame-time, memory, image-quality, artifact, or release-hardware conclusions. L05e2 is blocked until L06b's integrated Editor build.
 - **Next eligible task:** L06a — inspect the combined lighting implementation. L05e2 remains blocked until L06b provides the integrated build.
+## L03d final direct-light review recommendation — 2026-10-27
+
+- **Selected task:** L03d, record the final recommendation from the L03c captures and tradeoffs.
+- **Work completed:** Reviewed the five-view Default Lit/Toon image matrix, FireDusk sample crops, controlled ForestShade GrayTextureCube pair, temporal sample-region summaries, and 120-frame per-view GPUTime table. Recommend keeping Default Lit in production and leaving the experimental Toon candidate isolated. FireDusk and controlled skylight crops were dimmer for all six proxy classes, including Construction at 72.190→7.973 luma in FireDusk. Temporal crop deltas were mixed. Toon had slightly lower whole-view GPUTime in three of five views and slightly higher time in two; differences were small and inconsistent. Checked L03d and L03 implementation state only; the lighting milestone remains open for L05/L06.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected the FireDusk and ForestShade sky-only PNG pairs and reviewed the recorded crop, temporal, and GPUTime values. `git diff --check` passed. Checked changed path lengths against the 260-character limit. No build, test suite, packaging, or L06 verification ran.
+- **Full verification:** Deferred to L06. This was not a milestone-final verification run.
+- **Observable impact:** Review documentation only. Default Lit remains the production path; no production material, renderer configuration, or runtime behavior changed.
+- **Networking/authority:** No gameplay, networking, server-authority, replication, save, or persistence behavior changed.
+- **Known limitations / remaining scope:** The fixture uses BasicShapes proxies; paired surfaces occupy different positions and crops include some surrounding pixels. The temporal observation covers eight frames at 0.5-second intervals with mixed deltas and no pass threshold. GPUTime is a total-view measurement on one RTX 5090, not material-only attribution or target-hardware qualification. The controlled GrayTextureCube result is not world-bounce/GI; production meshes and platform support for the experimental UE 5.8 Toon path remain unverified. L06 remains the integrated visual/build/performance gate.
+- **Next eligible task:** L05e — measure RT-off, Balanced, and High on the selected reference and lower-tier hardware after this L03d bookkeeping is integrated. L02g and L04g are complete on current master; L06 remains the final lighting verification gate.
+
+## L03c rendered integration evidence — 2026-10-27
+
+- **Selected task:** L03c, check stylized direct-light integration.
+- **Work completed:** Built and ran the isolated UE 5.8 comparison fixture across
+  MeadowsDaylight, ForestShade, OpenWater, OvercastRain, and FireDusk. Captured
+  five paired 8-frame sequences at 0.5-second intervals and ten isolated
+  DefaultLit/Toon views with 120 UE GPUTime frames each. Reviewed the updated
+  pawn-free FireDusk frame and measured sample-region luminance and temporal
+  changes. Results and limits are in `docs/valheim-like-lighting-plan.md` and
+  `TestResults/L03c/`. The Toon candidate was much darker in FireDusk. The
+  ForestShade sun-off GrayTextureCube pair rendered both variants; all six Toon
+  projected crops were dimmer, confirming skylight fill reaches the candidate
+  without testing world-bounce/GI. L03c is evidence-complete, not an adoption
+  pass; L03d was reopened for a separate
+  final recommendation.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
+  `Scripts/Tests/Presentation/LightingComparison.ps1`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`, the lighting plan, `BACKLOG.md`,
+  `PROGRESS.md`, and the retained L03c evidence CSVs/variant PNGs, including
+  `ForestShade_SkyOnly_DefaultLit.png`, `ForestShade_SkyOnly_Toon.png`, and
+  `SkyOnlyFill.csv`.
+- **Lightweight checks:** PowerShell parser checks passed for both capture
+  scripts. The focused UE 5.8 `KalmalaEditor Win64 Development` incremental build
+  passed with 4 UBT actions and normal `%LOCALAPPDATA%\UnrealBuildTool` access.
+  The fixture commandlet had generated the isolated map/profile/materials
+  successfully earlier in the focused session. Five-view temporal capture and
+  all ten isolated profiles completed; each profile CSV had 120 positive
+  `GPUTime` frames. `git diff --check` passed.
+- **Full verification:** Deferred. This was not a milestone-final run; the user
+  explicitly authorized the focused Editor build and captures outside the usual
+  L06 gate. No full project build, test suite, packaging, or broad L06 check ran.
+- **Observable impact:** Developers now have fixed-view comparison images,
+  projected proxy-pixel temporal summaries, FireDusk crop measurements, and
+  per-view whole-frame GPUTime data. Default Lit remains the production path;
+  Substrate is enabled only in the test process.
+- **Networking/authority:** Non-Shipping capture tooling and editor fixture
+  only. The capture pawn is hidden only under the L03 fixture flag; gameplay,
+  networking, server authority, replication, save state, and persistence are
+  unchanged.
+- **Known limitations / remaining scope:** Samples are UE BasicShapes proxies.
+  Fixture framing shortens non-FireDusk camera distance/height to 1000/500 cm
+  while retaining L01 anchors, conditions, exposure, FOV, and direction. The
+  paired surfaces occupy different positions, crop measurements include some
+  scene-edge pixels, and only one RTX 5090 was profiled. The controlled
+  GrayTextureCube skylight pair also showed lower Toon crop luma for all six
+  classes; it does not measure world-bounce/GI, and paired crops sample different
+  positions. Toon FireDusk samples were dimmer for all six classes; the candidate
+  remains unadopted pending final review. Full verification remains deferred to
+  the lighting milestone gate.
+- **Next eligible task:** L03d final review recommendation, reopened to use these
+  measurements; L03 remains incomplete.
+
 ## L04g — environment-effects visual gate review (2026-10-27; complete)
 
 - **Selected task:** L04g, the final unchecked child of L04.
@@ -159,101 +235,166 @@
 - **Known limitations / remaining scope:** The project has no world-space rain particles or modeled flame; those combinations remain N/A per L04f. The fixed ThunderMountains view is sparse and retains its broad horizon band, so it is useful for fog response rather than a polished composition. The wet response is intentionally subtle; it is visible in close-up review and interpolation logs. Full integrated lighting acceptance remains for L06.
 - **Next eligible task:** L05e in the main-checkout queue after the L03 merge.
 
+## L02g final material-family gate — 2026-10-27
 
-## L04b - local precipitation response on selected surfaces - 2026-10-27
+- **Selected task:** L02g, milestone-final verification of the integrated L02
+  terrain, shore, rock, bark, canopy and water material families.
+- **Work completed:** Fixed the non-Shipping baseline capture path so it moves
+  the local pawn to every requested site before waiting for terrain streaming
+  and exposure to settle (3 seconds for default/overcast, 5 seconds for dusk).
+  Reviewed all six fixed scene roles for seeds 418 and 419, actual runtime
+  instance values and representative generated mesh assignments, plus foliage
+  silhouette/shadow and temporal behavior. Updated the lighting plan and setup
+  handoff with results and limitations.
+- **Files changed in this run:**
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Milestone-final verification:** A fresh short-path mirror build with UE
+  5.8.2 passed the full `KalmalaEditor Win64 Development` target (55/55
+  actions) using `Build.bat KalmalaEditor Win64 Development
+  -Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload
+  -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`.
+  `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject -run=CreateWorldMaterials
+  -unattended -nop4 -nosplash -nosound` exited 0 with 0 errors and one existing
+  invalid `Default__KalmalaOceanSkiff:HullMesh` material-index warning.
+  `PresentationOwnership.ps1` passed for 16 assets and 34 source seams. The
+  fixed capture helper passed all twelve 1024x768 seed-418/419 outputs across
+  Meadows daylight, forest shade, open water, coast candidate, overcast/rain,
+  and fire dusk. Invocation form was
+  `BiomeBaselineCapture.ps1 -Project <mirror>/Kalmala.uproject
+  -Editor <UE>/UnrealEditor-Cmd.exe -Seed <418|419> -Site <fixed-site>
+  -Condition <Default|OvercastRain|FireDusk> -Xcm <plan-X> -Ycm <plan-Y>
+  -ViewZcm <plan-Z> -OutputPath <unique-temp-png>`. Preserved baseline images
+  were not overwritten.
+- **Runtime materials:** Loaded instance parameters are distinct: terrain
+  `MI_GeneratedTerrain` (`M_GeneratedTerrain`, white, roughness 0.92); shore
+  `MI_GeneratedLakeShore` (`M_KalmalaSurfaceBase`, tint 0.625/0.657143/0.522388,
+  0.78); rock `MI_GeneratedRock` (same parent, tint 0.903226/0.913793/0.904494,
+  0.95); bark `MI_GeneratedBark` (same parent, white, 0.88); wood
+  `MI_GeneratedWood` (same parent, tint 0.20/0.13/0.09, 0.88); canopy
+  `MI_GeneratedCanopy` (`M_KalmalaCanopyBase`, white, 0.82); water
+  `MI_GeneratedWater` (`M_KalmalaSurfaceBase`, white, 0.28). Runtime section
+  audit confirmed terrain, blue-vertex-color water and green-vertex-color canopy
+  assignments; source constructors confirm generated rock, bark, authored wood
+  and shore assignments.
+- **Rendered and temporal review:** Repaired seed-418 coast shows land with blue
+  water on both sides. Open water reads blue, but reflections/highlights were
+  not established in the fixed wide views. Seed-418 Meadow and forest views
+  show tan ground, green leaf shells, brown trunks, rock facets and hard shadows.
+  The temporary 16-frame pan launched `UnrealEditor-Cmd.exe
+  <mirror>/Kalmala.uproject /Game/Kalmala/Maps/Prototype/L_Prototype -game
+  -windowed -RenderOffscreen -ForceRes -ResX=1024 -ResY=768 -WorldSeed=418
+  -KalmalaBiomeBaselineCapture -KalmalaBiomeBaselinePanPrefix=<temp-prefix>`.
+  A 0.5 cm / 0.25 s camera pan was reviewed in daylight and shade under forced
+  TAA (`r.AntiAliasingMethod=2`) and configured TSR (`=4`); no obvious temporal
+  foliage shimmer appeared in the reviewed frames.
+- **Failures and repairs:** The original zero-delay default screenshots were
+  taken before terrain activation and exposure settled and byte-matched the
+  pre-L02 gray/white baseline; they were rejected as visual evidence. The
+  capture timing/pawn fix produced the valid rerun set. The commandlet's single
+  OceanSkiff invalid material-index warning is unrelated and remained
+  unchanged. No L02 material-assignment or build defect was found.
+- **Lightweight checks:** Cumulative and current `git diff --check` passed;
+  changed paths remain below 260 characters. Final captures and runtime
+  diagnostics are temporary under `%LOCALAPPDATA%\Temp\klgfinalcaps` and
+  `%LOCALAPPDATA%\Temp\klgcap`; no generated test files entered the repository.
+- **Observable impact:** Fixed baseline captures now render after the requested
+  terrain is active and exposure has warmed. Existing generated vertex colors,
+  clipping and shoreline geometry are preserved.
+- **Networking/authority:** The capture fix runs only in the non-Shipping
+  developer capture path. Material selection remains cosmetic; no gameplay,
+  network, collision or save authority changed.
+- **Known limitations:** The compiled default-off lake-basin policy produced
+  zero lake-shore triangles, so the shore instance is loaded and its component
+  reference verified but no lake-shore surface is visually claimed. Seed-419's
+  fixed forest site is open water; overcast lacks visible rain particles; dusk
+  has no flame mesh; and water reflections/highlights were not established at
+  the fixed wide angles. The short pan is a bounded visual check, not a GPU
+  performance or broader motion test.
+- **Final milestone status:** Complete. L02a–L02g implementation and all
+  applicable milestone-final build, commandlet, ownership, fixed-view and
+  temporal checks passed; limitations are recorded above and in the lighting
+  plan.
+- **Next eligible task:** L03a — create an isolated Default Lit versus banded
+  direct-light comparison fixture.
 
-- **Selected task:** L04b, adding a cosmetic wet-looking response to the plan-selected generated rock, bark, and held-wood materials.
-- **Work completed:** Added an opt-in `WeatherWetResponse` scalar to the shared surface parent and a world-local `MPC_KalmalaWeather` collection fed from the existing replicated `PrecipitationIntensity`. The selected instances darken linear base color by up to 8% and reduce roughness by up to 0.12 at full intensity; the existing `ULocalPlayer` weather presenter interpolates onset and release. The generator refreshes only the shared parent and opted-in instances. Terrain, shore, canopy, water, player, campfire, other gatherables, and construction materials remain opted out.
-- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `docs/valheim-like-lighting-plan.md`, `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`, `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`, and the new/updated `Content/Kalmala/World/Materials/MPC_KalmalaWeather.uasset`, `M_KalmalaSurfaceBase.uasset`, `MI_GeneratedRock.uasset`, `MI_GeneratedBark.uasset`, and `MI_GeneratedWood.uasset`.
-- **Lightweight checks:** Source review completed. The cached temporary-mirror `KalmalaEditor` incremental build passed after an initial linker error from a non-exported UE lookup was fixed by scanning the public parameter array; the rerun built four actions. The `CreateWorldMaterials` commandlet completed with result 0 and generated the collection, parent, and three selected instances. `git diff --check` passed; all 13 changed/untracked paths remain below MAX_PATH. No tests or rendered captures were run; the first uncached mirror build was stopped after 92 of 330 actions when the cached build was identified.
-- **Full verification:** Deferred to L06, the lighting milestone-final gate.
-- **Observable impact:** Existing generated Meadow rocks and tree bark/cut faces, plus held-tool wood, now gain a gradual local wet-looking appearance as active replicated precipitation rises. The material response does not accumulate surface moisture; it fades as the precipitation signal falls.
-- **Networking/authority:** The server remains the sole weather writer. Local presentation reads only existing replicated `PrecipitationIntensity` during its valid weather interval and updates a world-local collection. No RPC, replicated field, save field, or gameplay behavior changed; dedicated servers have no local presenter.
-- **Known limitations / remaining scope:** The weather state has no precipitation-kind field, so the generic response cannot distinguish rain from snow. Unsupported surfaces remain opted out, and rendered appearance remains for L02g and L04g. The parent L04 and L04g remain incomplete.
-- **Next eligible task:** Main-checkout global queue: L02g, the material-family gate. Within L04: L04g, the environment-effects gate.
 
+## L03d provisional direct-light recommendation — superseded — 2026-10-27
 
-## L04f - world-space weather particle inventory - 2026-10-27
+This earlier holding note is superseded by the final recommendation above.
+Captured direct-light and controlled skylight crops show a dimmer Toon response,
+while per-view GPUTime differences are small and mixed. Keep Default Lit in
+production; the experimental candidate remains test-only.
 
-- **Selected task:** L04f, checking for existing rain, snow, mist, or ember particle systems and assets.
-- **Work completed:** Reviewed production source and the Content asset inventory. Found no Niagara/legacy ParticleSystem emitter APIs, weather-specific world-space particle paths, or rain/snow/mist/ember particle assets. RainBed is 2D audio, generated terrain snow is a material blend, and L04e's highland fog is a local non-particle effect. Recorded all four L04f effects as N/A and checked L04f complete without creating assets or dependencies.
-- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
-- **Lightweight checks:** Reviewed source and Content inventory; git diff --check passed. No tests or builds were run.
-- **Full verification:** Deferred to L06, the lighting milestone-final gate.
-- **Observable impact:** Documentation and backlog state only; no runtime, material, particle, or visual behavior changed.
-- **Networking/authority:** No network, save, RPC, or gameplay authority changed. No new client or replicated effect state was added.
-- **Known limitations / remaining scope:** Rain, snow, mist, and ember world-space particles remain N/A until an existing system is available. L04b remains blocked pending L02c/L02d; L04g remains incomplete.
-- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04g is the next currently unblocked child.
+## L03c pre-capture source audit — superseded — 2026-10-27
 
+The earlier audit recorded the fixture gaps and failed mixed-mirror compile
+attempt before the user-authorized clean UE 5.8 build and captures. Its
+no-render/no-GPU conclusion is superseded by the current L03c evidence entry.
 
-## L04e - existing local fog and sky-path tuning - 2026-10-27
+## L03b UE 5.8 Substrate NPR support audit — 2026-10-27
 
-- **Selected task:** L04e, tuning the existing weather-linked local fog and auditing available sky paths.
-- **Work completed:** Retargeted the existing local highland fog from derived StormIntensity to the replicated FogIntensity multiplied by the local ThunderMountains weight. Preserved the active-interval gate, one-second probe, smooth interpolation, bounded fog values, nonreplicated local actor, and dedicated-server exclusion. Recorded cloud and weather-linked sky-color paths as N/A because the current setup contains only the sun, SkyAtmosphere, and skylight.
-- **Files changed:** BACKLOG.md, PROGRESS.md, docs/valheim-like-lighting-plan.md, docs/02-technical-architecture.md, KalmalaWeatherActivitySubsystem.h, and KalmalaWeatherActivitySubsystem.cpp.
-- **Lightweight checks:** Reviewed the weather cycle, replicated weather contract, fog subsystem, sky setup, and documentation; git diff --check passed. No tests or builds were run.
-- **Full verification:** Deferred to L06, the lighting milestone-final gate.
-- **Observable impact:** Foggy weather intervals now drive the existing client-local highland fog according to FogIntensity, including foggy calm intervals. No cloud, sky-color, or additional world-space effect was added.
-- **Networking/authority:** The server remains the sole weather writer; clients use the existing replicated FogIntensity and deterministic local biome weight. The fog actor remains transient and nonreplicated; no RPC, replicated field, save field, or gameplay behavior changed.
-- **Known limitations / remaining scope:** Cloud actors and weather-linked sky color are N/A in the current project pipeline. L04b remains blocked pending L02c/L02d; L04f-L04g remain incomplete. Rendered fog quality remains for the later environment-effects gate.
-- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04f is the next currently unblocked child.
+- **Selected task:** L03b, evaluate whether UE 5.8 Substrate NPR is supported by
+  the project's current renderer, build targets, and materials.
+- **Work completed:** Confirmed the installed UE 5.8 engine exposes experimental
+  UMaterialExpressionSubstrateToonBSDF and UToonProfile APIs. The project is
+  associated with UE 5.8, but DefaultEngine.ini has no Substrate renderer
+  opt-in; Game, Editor, and Server target files do not define a platform matrix.
+  Recorded the decision to keep the L03a Toon candidate test-only and leave
+  production renderer/material assignments unchanged.
+- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
+  PROGRESS.md.
+- **Lightweight checks:** Inspected the installed UE 5.8 Toon API and
+  RendererSettings.h, project descriptor/config, target declarations, and
+  L03a's commandlet/capture override. PowerShell parser checks for the two
+  fixture/capture scripts and git diff --check passed.
+- **Full verification:** Deferred. No Editor build, commandlet asset generation,
+  material compilation, or rendered capture was run.
+- **Observable impact:** Source/API availability and current project opt-in
+  status are documented; no runtime or production renderer behavior changed.
+- **Networking/authority:** Documentation and renderer support audit only; no
+  gameplay, networking, authority, persistence, or save behavior changed.
+- **Known limitations / remaining scope:** Candidate compilation/rendering,
+  target-platform support, visual integration, silhouette and temporal stability,
+  and per-view GPU cost remain unverified. UE's engine headers describe
+  Blendable GBuffer support across platforms, but the project did not select a
+  Substrate format and no target build was run.
+- **Next eligible task:** L03c, evaluate rendered lighting integration and
+  per-view GPU cost. L02d remains active in its separate worktree.
 
+## L03a isolated direct-light comparison fixture — 2026-10-27
 
-## L04d - moss and lichen signal audit - 2026-10-27
-
-- **Selected task:** L04d, checking whether existing client biome/surface signals reach suitable moss/lichen materials.
-- **Work completed:** Verified that regional generation identifies MossyMire and samples humidity, but neither is routed to a moss/lichen material input. Terrain vertex RGB carries grass/soil/rock weights and alpha carries snow coverage; humidity only contributes to the soil blend. The other generated surfaces have no biome/moss mask. Recorded L04d as N/A for generated terrain, rocks, trunks/bark, canopy, lake shore, water, and authored wood/building materials, then checked L04d complete without adding an input or material contract.
-- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
-- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
-- **Full verification:** Deferred to L06, the lighting milestone-final gate.
-- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
-- **Networking/authority:** No network, save, RPC, or gameplay authority changed. Existing deterministic biome and humidity samples remain world-generation inputs and are not newly exposed to materials.
-- **Known limitations / remaining scope:** Moss/lichen variation is unsupported for all currently supported surfaces until a suitable existing client presentation signal reaches a material. L04b remains blocked by L02c/L02d; L04e-L04g remain incomplete.
-- **Next eligible task:** Main-checkout global queue: L02c, integrate rock. Within L04, L04b remains blocked by L02c/L02d; L04e is the next currently unblocked child.
-
-
-## L04c - existing terrain snow coverage - 2026-10-27
-
-- **Selected task:** L04c, checking existing snow/biome coverage and supported surfaces.
-- **Work completed:** Verified that replicated world-generation config provides deterministic biome weights and height inputs; generated terrain computes a cold-biome/highland mask per vertex, writes it to vertex-color alpha, and the generated terrain material consumes that channel. Recorded existing terrain coverage as supported and generated rock, trunks/bark, canopy, lake shore, and water as N/A because their current materials have no snow mask. Checked L04c complete based on the existing eligible coverage and explicit unsupported-surface limits. L04b remains blocked pending L02c rock and L02d wood/bark material integration.
-- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
-- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
-- **Full verification:** Deferred to L06, the lighting milestone-final gate.
-- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
-- **Networking/authority:** Clients can derive the cosmetic terrain mask from the replicated world-generation config. No RPC, replicated field, save field, or gameplay authority changed; the server-owned weather contract remains unchanged.
-- **Known limitations / remaining scope:** Terrain coverage is biome/height-driven rather than snowfall-driven. The listed non-terrain surfaces remain N/A without an existing snow signal. L04b waits on L02c/L02d; L04e-L04g remain incomplete.
-- **Next eligible task:** Main-checkout global queue: L02a. Within L04, L04b remains blocked by L02c/L02d; L04d is the next currently unblocked child.
-
-
-## L04a - map existing weather and environment inputs - 2026-10-27
-
-- **Selected task:** L04a, mapping existing presentation inputs for the
-  explicitly requested weather/environment-effects goal.
-- **Work completed:** Traced replicated weather, local audio/fog presentation,
-  biome weights, generated-terrain vertex channels, and generated material
-  inputs. Recorded supported and unsupported combinations in the lighting plan.
-  Existing terrain snow coverage uses biome/height inputs and is not snowfall;
-  precipitation is available for future cosmetic wet response; moss/lichen has
-  no material layer, weather-driven sky color is unwired, and rain/snow/mist/
-  ember particle effects are absent.
-- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
-  `docs/valheim-like-lighting-plan.md`.
-- **Lightweight checks:** Inspected the referenced source and existing content
-  inventory; `git diff --check` passed. No tests or builds were run.
-- **Full verification:** Deferred to L06, the lighting milestone-final gate.
-- **Observable impact:** Documentation and backlog state only; no runtime code,
-  material asset, or visual behavior changed.
-- **Networking/authority:** Weather inputs remain server-owned and replicated.
-  The existing mountain fog and rain/wind audio are local presentation; no RPC,
-  replicated state, save, or gameplay authority changed.
-- **Known limitations / remaining scope:** Wet material response remains for
-  L04b. Snow coverage already applies only to generated terrain; other surfaces
-  lack a snow mask. Moss/lichen material layers and weather-linked sky color
-  remain unwired. No world-space weather particles are available to tune.
-  L04b-L04g remain unchecked.
-- **Next eligible task:** L01a remains the first incomplete child in this
-  master-based worktree's ordered global backlog; within the requested L04
-  track, L04b is next after material support is available.
+- **Selected task:** L03a, create an isolated comparison fixture.
+- **Work completed:** Added an Editor commandlet that generates a dedicated
+  test map, paired Default Lit and UE 5.8 Substrate Toon materials for ground,
+  rock, wood, canopy, creature, and construction proxies, and a soft three-band
+  Toon Profile. Added a fixed-view capture runner using the five seed-418 L01
+  camera contexts. Substrate is enabled by a command-line override only for the
+  test tooling; production maps/material assignments are untouched.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
+  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.h`,
+  `Scripts/Tests/Presentation/LightingComparison.ps1`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser checks and `git diff --check` passed;
+  UE 5.8 header/shader inspection confirmed the Toon BSDF/Profile API and that
+  shadow extinction controls transmittance-shadow depth. The fixture retains
+  UE's default extinction value and leaves indirect scales at 1.0.
+- **Full verification:** Deferred. No Editor build, commandlet asset generation,
+  or rendered capture was run in this normal child increment. The commandlet
+  and capture runner use a test-process-only `bEnableSubstrate=True` override.
+- **Observable impact:** Developers can generate a non-default, side-by-side
+  comparison map and capture it from L01's fixed viewpoints. No player-visible
+  change occurs until a developer explicitly generates and opens the test map.
+- **Networking/authority:** Editor-only test content; no runtime gameplay,
+  networking, authority, persistence, or save behavior changed.
+- **Known limitations / remaining scope:** The map uses engine primitive
+  proxies instead of production meshes, and no visual result or GPU cost was
+  observed. Substrate Toon shading remains experimental; target/platform
+  support, shadow/camp-light integration, and rendered stability remain open.
+- **Next eligible task:** L03b, evaluate UE 5.8 Substrate NPR support in this
+  user-directed L03 sequence; L02d remains active in its separate worktree.
 
 ## L05e RTX 5090 measurement scope — 2026-10-27
 
@@ -287,7 +428,6 @@
 - **Next eligible task:** Keep L05e open until L06 records the reference PC
   captures; keep lower-tier/AMD coverage pending until actual devices are
   chosen.
-
 ## L05f DLSS/upscaling separation — 2026-10-27
 
 - **Selected increment:** L05f, the first unblocked L05 child after the L05e
@@ -534,90 +674,95 @@
 - **Next eligible task:** L05b within the requested goal. This `master` snapshot
   still has L01 unchecked, so the global queue's next task remains L01a.
 
-## L02g final material-family gate — 2026-10-27
+## L04f - world-space weather particle inventory - 2026-10-27
 
-- **Selected task:** L02g, milestone-final verification of the integrated L02
-  terrain, shore, rock, bark, canopy and water material families.
-- **Work completed:** Fixed the non-Shipping baseline capture path so it moves
-  the local pawn to every requested site before waiting for terrain streaming
-  and exposure to settle (3 seconds for default/overcast, 5 seconds for dusk).
-  Reviewed all six fixed scene roles for seeds 418 and 419, actual runtime
-  instance values and representative generated mesh assignments, plus foliage
-  silhouette/shadow and temporal behavior. Updated the lighting plan and setup
-  handoff with results and limitations.
-- **Files changed in this run:**
-  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
-  `docs/valheim-like-lighting-plan.md`, `docs/07-development-setup.md`,
-  `BACKLOG.md`, and `PROGRESS.md`.
-- **Milestone-final verification:** A fresh short-path mirror build with UE
-  5.8.2 passed the full `KalmalaEditor Win64 Development` target (55/55
-  actions) using `Build.bat KalmalaEditor Win64 Development
-  -Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload
-  -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`.
-  `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject -run=CreateWorldMaterials
-  -unattended -nop4 -nosplash -nosound` exited 0 with 0 errors and one existing
-  invalid `Default__KalmalaOceanSkiff:HullMesh` material-index warning.
-  `PresentationOwnership.ps1` passed for 16 assets and 34 source seams. The
-  fixed capture helper passed all twelve 1024x768 seed-418/419 outputs across
-  Meadows daylight, forest shade, open water, coast candidate, overcast/rain,
-  and fire dusk. Invocation form was
-  `BiomeBaselineCapture.ps1 -Project <mirror>/Kalmala.uproject
-  -Editor <UE>/UnrealEditor-Cmd.exe -Seed <418|419> -Site <fixed-site>
-  -Condition <Default|OvercastRain|FireDusk> -Xcm <plan-X> -Ycm <plan-Y>
-  -ViewZcm <plan-Z> -OutputPath <unique-temp-png>`. Preserved baseline images
-  were not overwritten.
-- **Runtime materials:** Loaded instance parameters are distinct: terrain
-  `MI_GeneratedTerrain` (`M_GeneratedTerrain`, white, roughness 0.92); shore
-  `MI_GeneratedLakeShore` (`M_KalmalaSurfaceBase`, tint 0.625/0.657143/0.522388,
-  0.78); rock `MI_GeneratedRock` (same parent, tint 0.903226/0.913793/0.904494,
-  0.95); bark `MI_GeneratedBark` (same parent, white, 0.88); wood
-  `MI_GeneratedWood` (same parent, tint 0.20/0.13/0.09, 0.88); canopy
-  `MI_GeneratedCanopy` (`M_KalmalaCanopyBase`, white, 0.82); water
-  `MI_GeneratedWater` (`M_KalmalaSurfaceBase`, white, 0.28). Runtime section
-  audit confirmed terrain, blue-vertex-color water and green-vertex-color canopy
-  assignments; source constructors confirm generated rock, bark, authored wood
-  and shore assignments.
-- **Rendered and temporal review:** Repaired seed-418 coast shows land with blue
-  water on both sides. Open water reads blue, but reflections/highlights were
-  not established in the fixed wide views. Seed-418 Meadow and forest views
-  show tan ground, green leaf shells, brown trunks, rock facets and hard shadows.
-  The temporary 16-frame pan launched `UnrealEditor-Cmd.exe
-  <mirror>/Kalmala.uproject /Game/Kalmala/Maps/Prototype/L_Prototype -game
-  -windowed -RenderOffscreen -ForceRes -ResX=1024 -ResY=768 -WorldSeed=418
-  -KalmalaBiomeBaselineCapture -KalmalaBiomeBaselinePanPrefix=<temp-prefix>`.
-  A 0.5 cm / 0.25 s camera pan was reviewed in daylight and shade under forced
-  TAA (`r.AntiAliasingMethod=2`) and configured TSR (`=4`); no obvious temporal
-  foliage shimmer appeared in the reviewed frames.
-- **Failures and repairs:** The original zero-delay default screenshots were
-  taken before terrain activation and exposure settled and byte-matched the
-  pre-L02 gray/white baseline; they were rejected as visual evidence. The
-  capture timing/pawn fix produced the valid rerun set. The commandlet's single
-  OceanSkiff invalid material-index warning is unrelated and remained
-  unchanged. No L02 material-assignment or build defect was found.
-- **Lightweight checks:** Cumulative and current `git diff --check` passed;
-  changed paths remain below 260 characters. Final captures and runtime
-  diagnostics are temporary under `%LOCALAPPDATA%\Temp\klgfinalcaps` and
-  `%LOCALAPPDATA%\Temp\klgcap`; no generated test files entered the repository.
-- **Observable impact:** Fixed baseline captures now render after the requested
-  terrain is active and exposure has warmed. Existing generated vertex colors,
-  clipping and shoreline geometry are preserved.
-- **Networking/authority:** The capture fix runs only in the non-Shipping
-  developer capture path. Material selection remains cosmetic; no gameplay,
-  network, collision or save authority changed.
-- **Known limitations:** The compiled default-off lake-basin policy produced
-  zero lake-shore triangles, so the shore instance is loaded and its component
-  reference verified but no lake-shore surface is visually claimed. Seed-419's
-  fixed forest site is open water; overcast lacks visible rain particles; dusk
-  has no flame mesh; and water reflections/highlights were not established at
-  the fixed wide angles. The short pan is a bounded visual check, not a GPU
-  performance or broader motion test.
-- **Final milestone status:** Complete. L02a–L02g implementation and all
-  applicable milestone-final build, commandlet, ownership, fixed-view and
-  temporal checks passed; limitations are recorded above and in the lighting
-  plan.
-- **Next eligible task:** L03a — create an isolated Default Lit versus banded
-  direct-light comparison fixture.
+- **Selected task:** L04f, checking for existing rain, snow, mist, or ember particle systems and assets.
+- **Work completed:** Reviewed production source and the Content asset inventory. Found no Niagara/legacy ParticleSystem emitter APIs, weather-specific world-space particle paths, or rain/snow/mist/ember particle assets. RainBed is 2D audio, generated terrain snow is a material blend, and L04e's highland fog is a local non-particle effect. Recorded all four L04f effects as N/A and checked L04f complete without creating assets or dependencies.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed source and Content inventory; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime, material, particle, or visual behavior changed.
+- **Networking/authority:** No network, save, RPC, or gameplay authority changed. No new client or replicated effect state was added.
+- **Known limitations / remaining scope:** Rain, snow, mist, and ember world-space particles remain N/A until an existing system is available. L04b remains blocked pending L02c/L02d; L04g remains incomplete.
+- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04g is the next currently unblocked child.
 
+## L04b - local precipitation response on selected surfaces - 2026-10-27
+
+- **Selected task:** L04b, adding a cosmetic wet-looking response to the plan-selected generated rock, bark, and held-wood materials.
+- **Work completed:** Added an opt-in `WeatherWetResponse` scalar to the shared surface parent and a world-local `MPC_KalmalaWeather` collection fed from the existing replicated `PrecipitationIntensity`. The selected instances darken linear base color by up to 8% and reduce roughness by up to 0.12 at full intensity; the existing `ULocalPlayer` weather presenter interpolates onset and release. The generator refreshes only the shared parent and opted-in instances. Terrain, shore, canopy, water, player, campfire, other gatherables, and construction materials remain opted out.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `docs/valheim-like-lighting-plan.md`, `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`, `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`, and the new/updated `Content/Kalmala/World/Materials/MPC_KalmalaWeather.uasset`, `M_KalmalaSurfaceBase.uasset`, `MI_GeneratedRock.uasset`, `MI_GeneratedBark.uasset`, and `MI_GeneratedWood.uasset`.
+- **Lightweight checks:** Source review completed. The cached temporary-mirror `KalmalaEditor` incremental build passed after an initial linker error from a non-exported UE lookup was fixed by scanning the public parameter array; the rerun built four actions. The `CreateWorldMaterials` commandlet completed with result 0 and generated the collection, parent, and three selected instances. `git diff --check` passed; all 13 changed/untracked paths remain below MAX_PATH. No tests or rendered captures were run; the first uncached mirror build was stopped after 92 of 330 actions when the cached build was identified.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Existing generated Meadow rocks and tree bark/cut faces, plus held-tool wood, now gain a gradual local wet-looking appearance as active replicated precipitation rises. The material response does not accumulate surface moisture; it fades as the precipitation signal falls.
+- **Networking/authority:** The server remains the sole weather writer. Local presentation reads only existing replicated `PrecipitationIntensity` during its valid weather interval and updates a world-local collection. No RPC, replicated field, save field, or gameplay behavior changed; dedicated servers have no local presenter.
+- **Known limitations / remaining scope:** The weather state has no precipitation-kind field, so the generic response cannot distinguish rain from snow. Unsupported surfaces remain opted out, and rendered appearance remains for L02g and L04g. The parent L04 and L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02g, the material-family gate. Within L04: L04g, the environment-effects gate.
+
+## L04e - existing local fog and sky-path tuning - 2026-10-27
+
+- **Selected task:** L04e, tuning the existing weather-linked local fog and auditing available sky paths.
+- **Work completed:** Retargeted the existing local highland fog from derived StormIntensity to the replicated FogIntensity multiplied by the local ThunderMountains weight. Preserved the active-interval gate, one-second probe, smooth interpolation, bounded fog values, nonreplicated local actor, and dedicated-server exclusion. Recorded cloud and weather-linked sky-color paths as N/A because the current setup contains only the sun, SkyAtmosphere, and skylight.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/valheim-like-lighting-plan.md, docs/02-technical-architecture.md, KalmalaWeatherActivitySubsystem.h, and KalmalaWeatherActivitySubsystem.cpp.
+- **Lightweight checks:** Reviewed the weather cycle, replicated weather contract, fog subsystem, sky setup, and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Foggy weather intervals now drive the existing client-local highland fog according to FogIntensity, including foggy calm intervals. No cloud, sky-color, or additional world-space effect was added.
+- **Networking/authority:** The server remains the sole weather writer; clients use the existing replicated FogIntensity and deterministic local biome weight. The fog actor remains transient and nonreplicated; no RPC, replicated field, save field, or gameplay behavior changed.
+- **Known limitations / remaining scope:** Cloud actors and weather-linked sky color are N/A in the current project pipeline. L04b remains blocked pending L02c/L02d; L04f-L04g remain incomplete. Rendered fog quality remains for the later environment-effects gate.
+- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04f is the next currently unblocked child.
+
+## L04d - moss and lichen signal audit - 2026-10-27
+
+- **Selected task:** L04d, checking whether existing client biome/surface signals reach suitable moss/lichen materials.
+- **Work completed:** Verified that regional generation identifies MossyMire and samples humidity, but neither is routed to a moss/lichen material input. Terrain vertex RGB carries grass/soil/rock weights and alpha carries snow coverage; humidity only contributes to the soil blend. The other generated surfaces have no biome/moss mask. Recorded L04d as N/A for generated terrain, rocks, trunks/bark, canopy, lake shore, water, and authored wood/building materials, then checked L04d complete without adding an input or material contract.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
+- **Networking/authority:** No network, save, RPC, or gameplay authority changed. Existing deterministic biome and humidity samples remain world-generation inputs and are not newly exposed to materials.
+- **Known limitations / remaining scope:** Moss/lichen variation is unsupported for all currently supported surfaces until a suitable existing client presentation signal reaches a material. L04b remains blocked by L02c/L02d; L04e-L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02c, integrate rock. Within L04, L04b remains blocked by L02c/L02d; L04e is the next currently unblocked child.
+
+## L04c - existing terrain snow coverage - 2026-10-27
+
+- **Selected task:** L04c, checking existing snow/biome coverage and supported surfaces.
+- **Work completed:** Verified that replicated world-generation config provides deterministic biome weights and height inputs; generated terrain computes a cold-biome/highland mask per vertex, writes it to vertex-color alpha, and the generated terrain material consumes that channel. Recorded existing terrain coverage as supported and generated rock, trunks/bark, canopy, lake shore, and water as N/A because their current materials have no snow mask. Checked L04c complete based on the existing eligible coverage and explicit unsupported-surface limits. L04b remains blocked pending L02c rock and L02d wood/bark material integration.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
+- **Networking/authority:** Clients can derive the cosmetic terrain mask from the replicated world-generation config. No RPC, replicated field, save field, or gameplay authority changed; the server-owned weather contract remains unchanged.
+- **Known limitations / remaining scope:** Terrain coverage is biome/height-driven rather than snowfall-driven. The listed non-terrain surfaces remain N/A without an existing snow signal. L04b waits on L02c/L02d; L04e-L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02a. Within L04, L04b remains blocked by L02c/L02d; L04d is the next currently unblocked child.
+
+## L04a - map existing weather and environment inputs - 2026-10-27
+
+- **Selected task:** L04a, mapping existing presentation inputs for the
+  explicitly requested weather/environment-effects goal.
+- **Work completed:** Traced replicated weather, local audio/fog presentation,
+  biome weights, generated-terrain vertex channels, and generated material
+  inputs. Recorded supported and unsupported combinations in the lighting plan.
+  Existing terrain snow coverage uses biome/height inputs and is not snowfall;
+  precipitation is available for future cosmetic wet response; moss/lichen has
+  no material layer, weather-driven sky color is unwired, and rain/snow/mist/
+  ember particle effects are absent.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected the referenced source and existing content
+  inventory; `git diff --check` passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code,
+  material asset, or visual behavior changed.
+- **Networking/authority:** Weather inputs remain server-owned and replicated.
+  The existing mountain fog and rain/wind audio are local presentation; no RPC,
+  replicated state, save, or gameplay authority changed.
+- **Known limitations / remaining scope:** Wet material response remains for
+  L04b. Snow coverage already applies only to generated terrain; other surfaces
+  lack a snow mask. Moss/lichen material layers and weather-linked sky color
+  remain unwired. No world-space weather particles are available to tune.
+  L04b-L04g remain unchecked.
+- **Next eligible task:** L01a remains the first incomplete child in this
+  master-based worktree's ordered global backlog; within the requested L04
+  track, L04b is next after material support is available.
 
 ## L02f generated water integration — 2026-10-27
 
@@ -663,40 +808,13 @@
 ## L02e generated foliage family integration — 2026-10-27
 
 - **Selected task:** L02e, add and integrate the generated foliage family.
-- **Work completed:** Added the separate two-sided opaque parent
-  `M_KalmalaCanopyBase` using the shared surface response, plus
-  `MI_GeneratedCanopy` with white tint and roughness 0.82. Assigned the instance
-  only to generated Meadow tree canopies so existing birch/aspen vertex colors
-  remain the leaf palette. The canopy geometry is an open-bottom six-sided cone
-  shell with no opacity cutouts, so masked blending is not used. The existing
-  `M_GeneratedCanopy` remains generated but unassigned. No runtime material
-  graph or mesh change was added.
-- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
-  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
-  `Content/Kalmala/World/Materials/M_KalmalaCanopyBase.uasset`,
-  `Content/Kalmala/World/Materials/MI_GeneratedCanopy.uasset`,
-  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
-  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
-  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
-- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
-  build passed in the short temporary mirror (7 actions). `CreateWorldMaterials`
-  generated the two canopy assets; the repeat run loaded them with 0 errors and
-  1 known, unrelated ocean-skiff invalid material-slot warning. The first
-  generation's class startup reported the not-yet-created canopy-instance
-  reference; the repeat run had no missing canopy references.
-  `Scripts/Tests/Presentation/PresentationOwnership.ps1` passed for 15 project
-  assets and 34 source seams; `git diff --check` passed.
-- **Full verification:** Deferred to L02g, the material-family gate; the wider
-  lighting/materials checks remain for L06.
-- **Observable impact:** Generated tree canopies use lit two-sided shading and
-  their authored vertex-color palette, including underside views. Canopy shape,
-  vertex colors, and tree collision remain unchanged.
-- **Networking/authority:** Cosmetic material assignment only; no gameplay,
-  authority, replication, collision, or save behavior changed.
-- **Known limitations / remaining scope:** No forest render was captured, so
-  silhouette/shadow edge aliasing, temporal shimmer, and daylight-versus-shade
-  response remain unreviewed for L02g. Masked leaf-cutout behavior is not
-  applicable to the current solid cone mesh.
+- **Work completed:** Added the separate two-sided opaque parent M_KalmalaCanopyBase using the shared surface response, plus MI_GeneratedCanopy with white tint and roughness 0.82. Assigned the instance only to generated Meadow tree canopies so existing birch/aspen vertex colors remain the leaf palette. The canopy geometry is an open-bottom six-sided cone shell with no opacity cutouts, so masked blending is not used. The existing M_GeneratedCanopy remains generated but unassigned. No runtime material graph or mesh change was added.
+- **Files changed:** Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp, Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp, Content/Kalmala/World/Materials/M_KalmalaCanopyBase.uasset, Content/Kalmala/World/Materials/MI_GeneratedCanopy.uasset, Scripts/Tests/Presentation/PresentationOwnership.ps1, docs/02-technical-architecture.md, docs/07-development-setup.md, docs/valheim-like-lighting-plan.md, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Incremental UE 5.8 KalmalaEditor Win64 Development build passed in the short temporary mirror (7 actions). CreateWorldMaterials generated the two canopy assets; the repeat run loaded them with 0 errors and 1 known, unrelated ocean-skiff invalid material-slot warning. The first generation startup reported the not-yet-created canopy-instance reference; the repeat run had no missing canopy references. PresentationOwnership.ps1 passed for 15 project assets and 34 source seams; git diff --check passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider lighting/materials checks remain for L06.
+- **Observable impact:** Generated tree canopies use lit two-sided shading and their authored vertex-color palette, including underside views. Canopy shape, vertex colors, and tree collision remain unchanged.
+- **Networking/authority:** Cosmetic material assignment only; no gameplay, authority, replication, collision, or save behavior changed.
+- **Known limitations / remaining scope:** No forest render was captured, so silhouette/shadow edge aliasing, temporal shimmer, and daylight-versus-shade response remain unreviewed for L02g. Masked leaf-cutout behavior is not applicable to the current solid cone mesh.
 - **Next eligible task:** L02f — integrate water separately.
 
 ## L02d generated wood and bark integration — 2026-10-27
@@ -744,146 +862,6 @@
   water integration, temporal shimmer checks, and cross-family rendered review
   remain for L02e–L02g.
 - **Next eligible task:** L02e — add the foliage family.
-## L03d final direct-light review recommendation — 2026-10-27
-
-- **Selected task:** L03d, record the final recommendation from the L03c captures and tradeoffs.
-- **Work completed:** Reviewed the five-view Default Lit/Toon image matrix, FireDusk sample crops, controlled ForestShade GrayTextureCube pair, temporal sample-region summaries, and 120-frame per-view GPUTime table. Recommend keeping Default Lit in production and leaving the experimental Toon candidate isolated. FireDusk and controlled skylight crops were dimmer for all six proxy classes, including Construction at 72.190→7.973 luma in FireDusk. Temporal crop deltas were mixed. Toon had slightly lower whole-view GPUTime in three of five views and slightly higher time in two; differences were small and inconsistent. Checked L03d and L03 implementation state only; the lighting milestone remains open for L04–L06.
-- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/valheim-like-lighting-plan.md`.
-- **Lightweight checks:** Inspected the FireDusk and ForestShade sky-only PNG pairs and reviewed the recorded crop, temporal, and GPUTime values. `git diff --check` passed. Checked changed path lengths against the 260-character limit. No build, test suite, packaging, or L06 verification ran.
-- **Full verification:** Deferred to L06. This was not a milestone-final verification run.
-- **Observable impact:** Review documentation only. Default Lit remains the production path; no production material, renderer configuration, or runtime behavior changed.
-- **Networking/authority:** No gameplay, networking, server-authority, replication, save, or persistence behavior changed.
-- **Known limitations / remaining scope:** The fixture uses BasicShapes proxies; paired surfaces occupy different positions and crops include some surrounding pixels. The temporal observation covers eight frames at 0.5-second intervals with mixed deltas and no pass threshold. GPUTime is a total-view measurement on one RTX 5090, not material-only attribution or target-hardware qualification. The controlled GrayTextureCube result is not world-bounce/GI; production meshes and platform support for the experimental UE 5.8 Toon path remain unverified. L06 remains the integrated visual/build/performance gate.
-- **Next eligible task:** L04a — map the existing weather inputs on current master; L05e remains deferred to the integrated L06 gate.
-
-## L03c rendered integration evidence — 2026-10-27
-
-- **Selected task:** L03c, check stylized direct-light integration.
-- **Work completed:** Built and ran the isolated UE 5.8 comparison fixture across
-  MeadowsDaylight, ForestShade, OpenWater, OvercastRain, and FireDusk. Captured
-  five paired 8-frame sequences at 0.5-second intervals and ten isolated
-  DefaultLit/Toon views with 120 UE GPUTime frames each. Reviewed the updated
-  pawn-free FireDusk frame and measured sample-region luminance and temporal
-  changes. Results and limits are in `docs/valheim-like-lighting-plan.md` and
-  `TestResults/L03c/`. The Toon candidate was much darker in FireDusk. The
-  ForestShade sun-off GrayTextureCube pair rendered both variants; all six Toon
-  projected crops were dimmer, confirming skylight fill reaches the candidate
-  without testing world-bounce/GI. L03c is evidence-complete, not an adoption
-  pass; L03d was reopened for a separate
-  final recommendation.
-- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
-  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
-  `Scripts/Tests/Presentation/LightingComparison.ps1`,
-  `Scripts/Tests/World/BiomeBaselineCapture.ps1`, the lighting plan, `BACKLOG.md`,
-  `PROGRESS.md`, and the retained L03c evidence CSVs/variant PNGs, including
-  `ForestShade_SkyOnly_DefaultLit.png`, `ForestShade_SkyOnly_Toon.png`, and
-  `SkyOnlyFill.csv`.
-- **Lightweight checks:** PowerShell parser checks passed for both capture
-  scripts. The focused UE 5.8 `KalmalaEditor Win64 Development` incremental build
-  passed with 4 UBT actions and normal `%LOCALAPPDATA%\UnrealBuildTool` access.
-  The fixture commandlet had generated the isolated map/profile/materials
-  successfully earlier in the focused session. Five-view temporal capture and
-  all ten isolated profiles completed; each profile CSV had 120 positive
-  `GPUTime` frames. `git diff --check` passed.
-- **Full verification:** Deferred. This was not a milestone-final run; the user
-  explicitly authorized the focused Editor build and captures outside the usual
-  L06 gate. No full project build, test suite, packaging, or broad L06 check ran.
-- **Observable impact:** Developers now have fixed-view comparison images,
-  projected proxy-pixel temporal summaries, FireDusk crop measurements, and
-  per-view whole-frame GPUTime data. Default Lit remains the production path;
-  Substrate is enabled only in the test process.
-- **Networking/authority:** Non-Shipping capture tooling and editor fixture
-  only. The capture pawn is hidden only under the L03 fixture flag; gameplay,
-  networking, server authority, replication, save state, and persistence are
-  unchanged.
-- **Known limitations / remaining scope:** Samples are UE BasicShapes proxies.
-  Fixture framing shortens non-FireDusk camera distance/height to 1000/500 cm
-  while retaining L01 anchors, conditions, exposure, FOV, and direction. The
-  paired surfaces occupy different positions, crop measurements include some
-  scene-edge pixels, and only one RTX 5090 was profiled. The controlled
-  GrayTextureCube skylight pair also showed lower Toon crop luma for all six
-  classes; it does not measure world-bounce/GI, and paired crops sample different
-  positions. Toon FireDusk samples were dimmer for all six classes; the candidate
-  remains unadopted pending final review. Full verification remains deferred to
-  the lighting milestone gate.
-- **Next eligible task:** L03d final review recommendation, reopened to use these
-  measurements; L03 remains incomplete.
-
-## L03d provisional direct-light recommendation — superseded — 2026-10-27
-
-This earlier holding note is superseded by the final recommendation above.
-Captured direct-light and controlled skylight crops show a dimmer Toon response,
-while per-view GPUTime differences are small and mixed. Keep Default Lit in
-production; the experimental candidate remains test-only.
-
-## L03c pre-capture source audit — superseded — 2026-10-27
-
-The earlier audit recorded the fixture gaps and failed mixed-mirror compile
-attempt before the user-authorized clean UE 5.8 build and captures. Its
-no-render/no-GPU conclusion is superseded by the current L03c evidence entry.
-
-## L03b UE 5.8 Substrate NPR support audit — 2026-10-27
-
-- **Selected task:** L03b, evaluate whether UE 5.8 Substrate NPR is supported by
-  the project's current renderer, build targets, and materials.
-- **Work completed:** Confirmed the installed UE 5.8 engine exposes experimental
-  UMaterialExpressionSubstrateToonBSDF and UToonProfile APIs. The project is
-  associated with UE 5.8, but DefaultEngine.ini has no Substrate renderer
-  opt-in; Game, Editor, and Server target files do not define a platform matrix.
-  Recorded the decision to keep the L03a Toon candidate test-only and leave
-  production renderer/material assignments unchanged.
-- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
-  PROGRESS.md.
-- **Lightweight checks:** Inspected the installed UE 5.8 Toon API and
-  RendererSettings.h, project descriptor/config, target declarations, and
-  L03a's commandlet/capture override. PowerShell parser checks for the two
-  fixture/capture scripts and git diff --check passed.
-- **Full verification:** Deferred. No Editor build, commandlet asset generation,
-  material compilation, or rendered capture was run.
-- **Observable impact:** Source/API availability and current project opt-in
-  status are documented; no runtime or production renderer behavior changed.
-- **Networking/authority:** Documentation and renderer support audit only; no
-  gameplay, networking, authority, persistence, or save behavior changed.
-- **Known limitations / remaining scope:** Candidate compilation/rendering,
-  target-platform support, visual integration, silhouette and temporal stability,
-  and per-view GPU cost remain unverified. UE's engine headers describe
-  Blendable GBuffer support across platforms, but the project did not select a
-  Substrate format and no target build was run.
-- **Next eligible task:** L03c, evaluate rendered lighting integration and
-  per-view GPU cost. L02d remains active in its separate worktree.
-
-## L03a isolated direct-light comparison fixture — 2026-10-27
-
-- **Selected task:** L03a, create an isolated comparison fixture.
-- **Work completed:** Added an Editor commandlet that generates a dedicated
-  test map, paired Default Lit and UE 5.8 Substrate Toon materials for ground,
-  rock, wood, canopy, creature, and construction proxies, and a soft three-band
-  Toon Profile. Added a fixed-view capture runner using the five seed-418 L01
-  camera contexts. Substrate is enabled by a command-line override only for the
-  test tooling; production maps/material assignments are untouched.
-- **Files changed:** `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
-  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.h`,
-  `Scripts/Tests/Presentation/LightingComparison.ps1`,
-  `Scripts/Tests/World/BiomeBaselineCapture.ps1`,
-  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
-- **Lightweight checks:** PowerShell parser checks and `git diff --check` passed;
-  UE 5.8 header/shader inspection confirmed the Toon BSDF/Profile API and that
-  shadow extinction controls transmittance-shadow depth. The fixture retains
-  UE's default extinction value and leaves indirect scales at 1.0.
-- **Full verification:** Deferred. No Editor build, commandlet asset generation,
-  or rendered capture was run in this normal child increment. The commandlet
-  and capture runner use a test-process-only `bEnableSubstrate=True` override.
-- **Observable impact:** Developers can generate a non-default, side-by-side
-  comparison map and capture it from L01's fixed viewpoints. No player-visible
-  change occurs until a developer explicitly generates and opens the test map.
-- **Networking/authority:** Editor-only test content; no runtime gameplay,
-  networking, authority, persistence, or save behavior changed.
-- **Known limitations / remaining scope:** The map uses engine primitive
-  proxies instead of production meshes, and no visual result or GPU cost was
-  observed. Substrate Toon shading remains experimental; target/platform
-  support, shadow/camp-light integration, and rendered stability remain open.
-- **Next eligible task:** L03b, evaluate UE 5.8 Substrate NPR support in this
-  user-directed L03 sequence; L02d remains active in its separate worktree.
 
 ## L02c generated rock integration — 2026-10-27
 
@@ -1286,6 +1264,115 @@ no-render/no-GPU conclusion is superseded by the current L03c evidence entry.
 - **Networking/authority:** No gameplay, server-authority, RPC, save, or replicated-state changes.
 - **Known limitations:** No Unreal Editor window was open, so serialized level actor settings, actual renderer methods, current fog/exposure/post-process state, and scene-specific camera positions remain unverified. The setup script values and capture-helper values are not proof of current runtime settings.
 - **Next eligible task:** Complete L01a after opening the project in a usable Unreal Editor window; select and record five visually verified fixed scene views, then proceed to L01b.
+## DC21 — Developer console milestone-final verification, 2026-10-26
+
+- **Selected increment:** DC21, the final child of the user-requested developer
+  console goal.
+- **Work completed:** Finalized bounded generated-start terrain-patch retention
+  for dedicated login while retaining the 25-patch cap and normal player-neighbor
+  union; completed safe spawn/respawn movement restoration. Corrected the live
+  noclip fixture so its blocker is registered at the intended location. Fixed
+  commandlet console rendering by constructing its widget tree during
+  `NativeOnInitialized`, giving the anchored panel a bounded preferred size, and
+  opening it through the normal subsystem path. The grant reply is exactly
+  `Granted; normal persistence applies.` No save schema changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/Presentation/ConsolePeers.ps1`,
+  `Source/KalmalaEditor/Private/RenderMenuCommandlet.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaConsoleComponent.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaConsoleContract.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaConsolePeerFixture.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGpsSearch.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaMapAwarenessComponent.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaConsoleComponent.h`,
+  `Source/KalmalaGameplay/Public/KalmalaConsolePeerFixture.h`,
+  `Source/KalmalaGameplay/Public/KalmalaGpsSearch.h`,
+  `Source/KalmalaUI/Private/KalmalaConsoleOverlay.cpp`,
+  `Source/KalmalaUI/Private/KalmalaConsoleSubsystem.cpp`,
+  `Source/KalmalaUI/Private/KalmalaConsoleWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaConsoleOverlay.h`,
+  `Source/KalmalaUI/Public/KalmalaConsoleWidget.h`,
+  `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** PowerShell parser validation passed for the console
+  peer runner. The compiled external mirror matched the final worktree in 452
+  `Source`/`Config`/project files. `Validate-CatalogueReferences.py` passed
+  (61 JSON files, 152 item/buildable definitions, 776 resolved references and
+  152 runtime icon mappings); `Validate-CreatureCatalogues.py` passed (17
+  profiles); `Validate-UIIcons.ps1 -Category Catalogue` passed all 152
+  original/prepared/imported icon identities. Staged/committed paths were
+  checked against the Windows 260-character limit.
+- **Milestone-final verification:** In the external
+  `C:\Users\Ville\AppData\Local\Temp\kdc1` mirror, both
+  `Build.bat KalmalaEditor Win64 Development -Project=<mirror>/Kalmala.uproject`
+  and `Build.bat Kalmala Win64 Development -Project=<mirror>/Kalmala.uproject`
+  passed with `-WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4`.
+  The final full command used `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject`
+  with `-unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch
+  -DDC-ForceMemoryCache -stdout -FullStdOutLogOutput`, a fresh UserDir,
+  `-ExecCmds="Automation RunTests Kalmala; Quit"`, and
+  `-TestExit="Automation Test Queue Empty"`. It passed 234 tests, 0 failed,
+  exit code 0; final exact-source post-cleanup log:
+  C:\Users\Ville\AppData\Local\Temp\kdc1\console-final-automation-rerun3.log.
+  The first final-source full run passed 233 and failed once in
+  `FreshStartBronzeAndIron` at Forge station-context selection
+  (`console-final-automation.log`). The isolated command
+  `Automation RunTests Kalmala.Gameplay.Progression.FreshStartBronzeAndIron`
+  passed (`freshstart-final1.log`), then the complete queue passed on rerun.
+  No A10 test change was made and the cause of the single failure was not
+  confirmed.
+- **Peer and rendered checks:** Solo, listen, encrypted listen owner/observer,
+  dedicated encrypted peers, plaintext denial, disabled-opt-in denial, restart,
+  and movement/collision scenarios passed in `kdcpef-solo-final`,
+  `kdcpef-listen-final`, `kdcpef-dedicated-patched`, `kdcpef-plain`,
+  `kdc-nooptin-final`, `kdc-restart-final`, and `kdc-movement-rerun2`.
+  The focused GPS tracking scenarios also passed with encrypted Listen and
+  Dedicated peers. Listen output: C:\Users\Ville\AppData\Local\Temp\kdc-gps-listen-r5;
+  Dedicated output: C:\Users\Ville\AppData\Local\Temp\kdc-gps-dedicated-r10.
+  Both moved the selected live creature by 500 cm, observed the same stable ID
+  with its updated owner-replicated location, and resolved a generated harvest
+  descriptor whose exact ID/location was independently verified outside all
+  active terrain patches. Owner logout cleanup and observer privacy/denial
+  passed in both runs. These GPS-only fixtures skip mark/goto; the normal
+  encrypted console peers separately cover teleport safety.
+  Restart left no developer grant or debug creature; movement verified vertical
+  flight, flight collision, noclip traversal, unsafe exit denial, collision
+  restoration and ordinary movement after logout. Rendered panel, GPS-found and
+  no-match states were visually inspected in `kdc-console-initialized.png`,
+  `kdc-console-gps-found.png`, and `kdc-console-gps-none.png`.
+- **Failures and repairs:** The initial noclip movement peer failure was caused
+  by its fixture blocker being spawned before its root was registered; the
+  fixture now registers the collision root before positioning and the focused
+  rerun passed. The base console panel was initially blank in commandlet renders;
+  the widget initialization/layout repair produced a valid panel capture. The
+  one `FreshStartBronzeAndIron` failure passed in isolation and on full-queue
+  rerun; its timing/order cause remains unproven.
+- **Observable impact:** Developers can use the authenticated, server-owned
+  console and GPS overlay in solo, listen and dedicated sessions. Fly and
+  noclip keep collision and safe-exit rules; commands preserve normal save and
+  construction behavior. The first remote dedicated login retains generated
+  start collision patches until player streaming can supply its neighborhood.
+- **Networking/authority:** Remote secrets require encrypted transport;
+  unauthorized peers receive no privileged state. Command effects, grants,
+  spawn checks, movement overrides, GPS search and debug cleanup remain
+  server-authoritative; private state is owner-only and keys are absent from
+  logs/history.
+- **Known limitations:** The GPS unloaded-area peer assertion covered the
+  nearest eligible generated harvest descriptor selected from the active world
+  seed; it does not enumerate every biome/source combination. Earlier attempts
+  combining goto with GPS setup exposed a repeatable client/server transform
+  correction, so the focused GPS-only peers skip teleport while the separate
+  encrypted console peers cover mark/goto and safe-spawn rules. No Shipping
+  target/package build was run; Shipping-specific compilation/cook behavior
+  remains unverified.
+- **Final milestone status:** Complete on branch commit 802cef27; not merged to master. Required Editor/Game
+  builds, the final 234/234 automation queue, solo/listen/dedicated peer
+  acceptance, catalogue/reference/icon validators, rendered owner UI and
+  focused live-movement/unloaded-target GPS checks passed. The earlier
+  FreshStartBronzeAndIron failure passed in isolation and on the exact-source
+  full rerun. Shipping-specific evidence remains unverified as recorded above.
+- **Next eligible task in main checkout:** L01h — evaluate the core-lighting gate across all ten fixed views and ordinary third-person movement.
 
 ## DC20 - Operator setup and command reference, 2026-10-26
 
