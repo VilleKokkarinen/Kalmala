@@ -184,6 +184,38 @@ families. Hardware ray tracing is therefore not NVIDIA-exclusive, even though
 device matrix before promising a minimum card. ([Lumen Technical Details](https://dev.epicgames.com/documentation/en-us/unreal-engine/lumen-technical-details-in-unreal-engine),
 [Hardware Ray Tracing](https://dev.epicgames.com/documentation/en-us/unreal-engine/hardware-ray-tracing-in-unreal-engine))
 
+### L05a — Checked-in renderer support audit (2026-10-27)
+
+`Kalmala.uproject` targets UE 5.8 and the project brief targets Windows PC
+first. The tracked `Config/DefaultEngine.ini` has no Renderer Settings section.
+The tracked config, target rules, and source contain no explicit graphics RHI,
+targeted shader format/SM6, Lumen GI/reflections, Support Hardware Ray Tracing,
+Support Compute Skin Cache, or `Use Hardware Ray Tracing when available`
+selection. The prototype map package was not decoded for world-setting values.
+The checked-in project therefore does not pin its effective RHI, SM6 state,
+Lumen method, or hardware-RT state; active Editor/runtime settings remain
+unverified. Missing config keys do not prove that hardware ray tracing is
+enabled or disabled.
+
+For the planned Windows path, UE 5.8's Lumen requirements specify Windows 10
+build 1909.1350 or newer, DirectX 12, and SM6 enabled. Epic's hardware-RT
+specific Lumen list requires Windows 10 or newer with DirectX 12 and NVIDIA RTX
+2000-series or newer, or AMD RX 6000-series or newer. Epic's broader Lumen list
+also includes Intel Arc A-series, but the hardware-RT-specific list does not;
+this plan does not treat Arc as verified Lumen hardware-RT support. Project
+support also requires Support Hardware Ray Tracing and Compute Skin Cache, and
+Lumen requires `Use Hardware Ray Tracing when available` to select that path.
+When the GPU, RHI, or OS is unsupported, Unreal falls back to software ray
+tracing. Linux Vulkan support is documented as experimental and is outside this
+Windows-only plan. These are engine capability conditions, not Kalmala minimum
+or recommended specifications. ([UE 5.8 Hardware and Software Specifications](https://dev.epicgames.com/documentation/en-us/unreal-engine/hardware-and-software-specifications-for-unreal-engine),
+[Lumen Technical Details](https://dev.epicgames.com/documentation/en-us/unreal-engine/lumen-technical-details-in-unreal-engine),
+[Hardware Ray Tracing](https://dev.epicgames.com/documentation/en-us/unreal-engine/hardware-ray-tracing-in-unreal-engine))
+
+The recorded i7-14700K/RTX 5090 system remains a reference PC only; it does not
+establish a minimum or recommended GPU, performance tier, or release support
+floor. Device-level performance and image-quality measurements remain for L05e.
+
 | Quality level | Proposed rendering path | Intended support and limits |
 | --- | --- | --- |
 | **Compatibility — hardware RT off** | Keep the hardware ray tracing path disabled. Use Lumen software ray tracing only where the chosen renderer and GPU support it; otherwise use the project's selected non-hardware fallback. | This is the required visual baseline. The scene must retain readable lighting, shadows, and material separation without an RTX-capable GPU. Epic lists DX12/SM6 and GTX 1070-class requirements for Lumen software ray tracing, so verify the actual supported floor rather than assuming it runs on every PC. |

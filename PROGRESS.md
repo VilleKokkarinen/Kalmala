@@ -1,3 +1,39 @@
+## L05a renderer support-path audit — 2026-10-27
+
+- **Selected increment:** L05a under the user-requested hardware ray-tracing
+  goal.
+- **Work completed:** Audited the checked-in UE 5.8 project and found no
+  explicit RHI, targeted SM6, Lumen GI/reflections, hardware-ray-tracing, or
+  Compute Skin Cache selection in project config, target rules, or source.
+  Recorded Epic's UE 5.8 Windows/Lumen requirements and the narrower
+  hardware-RT GPU families in the lighting plan. Kept the i7-14700K/RTX 5090
+  record explicitly as a reference system, not a release hardware claim.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected `Kalmala.uproject`, `Config/DefaultEngine.ini`,
+  all tracked config/target/source files for renderer keys, and scanned the
+  prototype map package for serialized renderer-setting names. The package
+  scan did not decode world settings. `git diff --check` and changed-path length
+  checks passed. No build or test suite was run.
+- **Full verification:** Deferred. Active Editor RHI and effective project/map
+  settings require runtime inspection; no hardware profile or frame-time test
+  was part of this audit.
+- **Observable impact:** The plan now defines the documented Windows DX12/SM6
+  Lumen hardware-RT capability path and explicitly records that Kalmala's
+  checked-in effective renderer path is not pinned or verified. No runtime
+  behavior changed.
+- **Networking/authority:** No gameplay, networking, save, or authority
+  behavior changed; this increment records local renderer configuration only.
+- **Known limitations / remaining scope:** Epic's GPU families describe engine
+  eligibility, not a Kalmala minimum/recommended spec. Hardware support and
+  performance on specific devices remain unmeasured. The effective RHI, SM6,
+  Lumen method, and hardware-RT state need Editor/runtime confirmation.
+- **Main-checkout handoff:** Not synchronized while the earlier lighting run is
+  active; review and synchronize only the L05a backlog/progress updates after
+  that handoff clears.
+- **Next eligible task:** L05b within the requested goal. This `master` snapshot
+  still has L01 unchecked, so the global queue's next task remains L01a.
+
 ## DC20 - Operator setup and command reference, 2026-10-26
 
 - Added concrete per-command help and existing architecture/setup documentation

@@ -137,10 +137,16 @@ do not mark the lighting milestone complete before it passes.
   baseline, Lumen hardware ray tracing for supported Windows DX12/SM6 devices,
   and the measured levels in the lighting plan. Do not claim a minimum GPU until
   representative hardware has passed.
-  - [ ] **L05a — Verify the actual renderer support path.** Check project RHI,
+  - [x] **L05a — Verify the actual renderer support path.** Check project RHI,
     SM6, Lumen and hardware-ray-tracing settings; record the exact supported
     device/OS conditions and keep the current `RTX 5090` performance record
-    labelled as the reference system, not a minimum-spec test.
+    labelled as the reference system, not a minimum-spec test. UE 5.8's
+    Windows Lumen path requires Windows 10 build 1909.1350 or newer, DX12, and
+    SM6; the hardware-RT-specific GPU list is NVIDIA RTX 2000-series+ or AMD
+    RX 6000-series+. Tracked project configuration does not pin the effective
+    RHI, SM6, Lumen, or hardware-RT state, so active settings remain unverified.
+    These are engine capabilities, not a Kalmala release hardware floor; see
+    `docs/valheim-like-lighting-plan.md` for source links and audit details.
   - [ ] **L05b — Preserve the RT-off compatibility path.** Confirm the baseline
     lighting works without hardware RT, using supported Lumen software tracing
     or the project's selected non-hardware fallback. Make the fallback explicit
