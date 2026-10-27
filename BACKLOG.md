@@ -27,6 +27,21 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Meadows relief retune — 2026-10-27
+
+- **Selected task:** Apply a Valheim-informed Meadows height adjustment after
+  the user reported that the merged biome still looked flat.
+- **Work completed:** Increased compiled defaults from 4 / 0.6 / 0.1 m to
+  8 / 1.2 / 0.2 m for broad hills, rolling relief and floor detail; changed
+  floor scale from 8 m to 12 m. Updated the focused default assertion and the
+  current terrain contract. The prior settings remain in the historical
+  BH25 profile record.
+- **Checks:** Manually checked the defaults against the existing preview bounds
+  and one-factor sweep ranges; `git diff --check` passed. No build, test suite,
+  profile sweep or rendered review was run.
+- **Status:** Source implementation is complete. Fresh combined-profile and
+  rendered terrain acceptance remain pending.
+
 ## Scope and history
 
 The [roadmap](docs/04-roadmap.md) and [feature contracts](docs/game-features.md)

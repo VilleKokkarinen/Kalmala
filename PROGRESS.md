@@ -20139,6 +20139,44 @@ no-render/no-GPU conclusion is superseded by the current L03c evidence entry.
 - **Next eligible task on merged master:** S03 — add named monster-population tuning constants.
 - **Main-checkout handoff:** The progress record is appended without replacing local edits. `E:\dev\Kalmala\BACKLOG.md` was left unchanged because its BH25 checklist ends at BH25d, while merged master includes BH25e and BH26; the scope conflict remains for review.
 
+## Meadows relief retune — 2026-10-27
+
+- **Selected task:** Apply a Valheim-informed adjustment after the user reported
+  that the merged Meadows still looked very flat.
+- **Research:** The public reverse-engineered Valheim 1.0
+  [`WorldGenerator` height transcription](https://github.com/aritropaul/vegvisr/blob/main/web/crates/worldgen/src/heights.rs)
+  shows a layered Meadows detail term at approximately 100/50/20/10 m scales,
+  scaled by 0.1 before the 200 height multiplier, followed by roughness with
+  2 m amplitude at about 10 m scale and 0.6 m amplitude at about 2.5 m scale.
+  Its [height multiplier constant](https://github.com/aritropaul/vegvisr/blob/main/web/crates/worldgen/src/geo.rs)
+  confirms those are much larger source coefficients than Kalmala's old
+  4/0.6/0.1 m layers. The algorithms and noise distributions differ, so this
+  comparison informed direction and scale only; it was not a literal port.
+- **Work completed:** Changed compiled Meadows defaults to 8 m hills at 160 m,
+  1.2 m rolling relief at 45 m, and 0.2 m floor detail at 12 m. The amplitude
+  settings are represented in earlier one-factor sweeps; the combined profile
+  is new. Updated the focused floor-default assertion, terrain contract,
+  architecture summary, backlog and this handoff.
+- **Files changed:** `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `docs/meadows-plan.md`, `docs/biome-height-rework.md`,
+  `docs/02-technical-architecture.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Manually checked the selected values against the
+  preview bounds and the existing one-factor sweep ranges; `git diff --check`
+  passed. No build, test suite, profile sweep or rendered review was run.
+- **Full verification:** Deferred. The combined profile and rendered Meadows
+  acceptance still need a fresh Editor build and visual inspection.
+- **Observable impact:** New world generation uses stronger broad, rolling and
+  floor relief while preserving the existing biome blend, shoulder curve,
+  coast clearance and river shaping.
+- **Networking/authority:** No network or authority behavior changed. Terrain
+  remains a deterministic function of world seed and absolute position.
+- **Known limitations / remaining scope:** The three settings were previously
+  exercised separately, not as this combination. Visual effectiveness and
+  traversal slopes remain unverified for the retuned defaults.
+- **Next eligible task:** None currently listed in the `BACKLOG.md` Active
+  queue.
+
 ## Run 2026-10-24 — BH01a seed overviews and site selection
 
 - **Selected increment:** BH01a, the first ordered part of BH01 in the

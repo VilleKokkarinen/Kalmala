@@ -1,8 +1,11 @@
 # Biome height rework plan
 
-Status: implementation and BH26 integrated acceptance passed 2026-10-26; see
-[`PROGRESS.md`](../PROGRESS.md). The user confirmed the editor terrain/traversal
-inspection worked and had closed the editor before the final headless checks.
+Status: implementation and BH26 integrated acceptance passed 2026-10-26. On
+2026-10-27, a user-directed Meadows relief retune changed the compiled hill,
+rolling and floor settings; fresh profile and rendered acceptance for those
+new defaults remain pending. See [`PROGRESS.md`](../PROGRESS.md). The user
+confirmed the earlier editor terrain/traversal inspection worked and had closed
+the editor before the final headless checks.
 Implementation is tracked in `BACKLOG.md` after A10 acceptance and before
 Monster Population.
 The fixed baselines, basin policy, shared sampler, preview controls and Meadows
@@ -729,10 +732,10 @@ non-finite or out-of-range inputs. Bounds are the design ranges, inclusive:
 | `ReliefBroadScaleKm` | 1.0 km | 0.5–1.5 km |
 | `ReliefMiddleScaleKm` | 0.15 km | 0.08–0.25 km |
 | `ReliefLocalScaleKm` | 0.03 km | 0.01–0.05 km |
-| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 4 m selected in BH25a | 100–250 m / 4–10 m |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 m / 8 m (2026-10-27 retune; BH25a measured through 8 m) | 100–250 m / 4–10 m |
 | `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 m / 30 m | 6–16 m / 10–60 m |
-| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 0.6 m selected in BH25b1 | 30–70 m / 0.6–2 m |
-| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 8 m / 0.1 m selected in BH25c | 8–20 m / 0.1–0.35 m |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 m / 1.2 m (2026-10-27 retune; BH25b1 measured through 1.8 m) | 30–70 m / 0.6–2 m |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 m / 0.2 m (2026-10-27 retune; BH25c measured this pair) | 8–20 m / 0.1–0.35 m |
 
 Custom settings are accepted only by the headless preview route and reported in
 `LastRender.txt`; normal gameplay uses the compiled defaults. The fast

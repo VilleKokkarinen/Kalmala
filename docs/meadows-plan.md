@@ -1,7 +1,9 @@
 # Meadows terrain and biome plan
 
-Status: completed in BH26 on 2026-10-26; final integrated acceptance is recorded
-in [`PROGRESS.md`](../PROGRESS.md). BH25a selected the
+Status: BH26 integrated acceptance passed on 2026-10-26; a user-directed,
+Valheim-informed relief retune was applied on 2026-10-27. The retuned settings
+are source changes only and still need fresh profile and rendered acceptance;
+see [`PROGRESS.md`](../PROGRESS.md). BH25a selected the
 4 m broad-hill amplitude, BH25b1 selected 0.6 m rolling amplitude, and BH25b2
 selected 4 / 0.6 / 0.1 m shared Elderwood/Tundra amplitudes from fresh-source
 profiles. BH25c selected the 8 m / 0.1 m Meadows floor detail. BH10a/BH11a
@@ -107,6 +109,39 @@ Compare the low, middle and high settings separately with fixed seeds.
 | `MeadowRollingAmplitude` | 0.6 m selected (BH25b1) | 0.6–2 m | Smallest tested amplitude with measured 30–70 m profiles and the lowest sampled slope percentiles. |
 | `MeadowFloorScale` | 8 m selected (BH25c) | 8–20 m | Gentle forest-floor variation; sampled at least 6.4 times per scale on the 125 cm lattice. |
 | `MeadowFloorAmplitude` | 0.1 m selected (BH25c) | 0.1–0.35 m | Small rises and depressions beneath vegetation. |
+
+### Valheim-informed Meadows relief retune — 2026-10-27
+
+The user reported that the integrated Meadows still looked very flat. A
+reverse-engineered transcription of Valheim 1.0's `WorldGenerator` shows its
+Meadows candidate adding a layered detail signal at roughly 100/50/20/10 m
+scales, with a 0.1 normalized-height coefficient and a 200 height multiplier;
+it then adds 2 m roughness at roughly 10 m scale and 0.6 m roughness at about
+2.5 m scale. These are source coefficients, not directly comparable measured
+profile ranges, because Kalmala uses a
+different source-height field, signed noise and biome blending. The comparison
+indicates that the previous Kalmala 4 / 0.6 / 0.1 m amplitudes were especially
+restrained.
+
+The compiled defaults now use stronger but still bounded relief. Hill and
+rolling wavelengths remain unchanged, while the floor scale is lengthened to
+avoid sharp small-scale corrugation.
+
+| Control | Previous default | Retuned default | Reference rationale |
+| --- | ---: | ---: | --- |
+| `MeadowHillScale` / `MeadowHillAmplitude` | 160 m / 4 m | 160 m / 8 m | Use the upper hill amplitude already represented in the fixed-profile sweep. |
+| `MeadowRollingScale` / `MeadowRollingAmplitude` | 45 m / 0.6 m | 45 m / 1.2 m | Add a stronger intermediate layer at the tested middle setting. |
+| `MeadowFloorScale` / `MeadowFloorAmplitude` | 8 m / 0.1 m | 12 m / 0.2 m | Double the tested mid-setting while keeping local detail smooth. |
+
+The three per-control settings appeared in earlier one-factor trials, but their
+combined profile has not been sampled. No build or rendered review has been run
+for this retune; ordinary terrain validation remains necessary before treating
+these defaults as visually accepted. The architecture preserves continuous
+biome/coast blending, shoulder compression, source-land clearance and final
+river carving.
+
+Reference implementation: [Valheim 1.0 height-function transcription](https://github.com/aritropaul/vegvisr/blob/main/web/crates/worldgen/src/heights.rs)
+and its [height multiplier](https://github.com/aritropaul/vegvisr/blob/main/web/crates/worldgen/src/geo.rs).
 
 ### BH25a fresh-source hill measurements
 

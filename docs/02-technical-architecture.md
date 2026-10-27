@@ -334,9 +334,12 @@ This retains positive land clearance without flattening negative relief onto a
 constant shelf. Sea-side height remains constrained by source elevation.
 
 The Meadows candidate adds separate seed-derived absolute-world hill and
-rolling signals. BH25a selected a 4 m hill amplitude with the 160 m hill scale
-held fixed; BH25b1 selected a 0.6 m rolling amplitude at 45 m. Across the eight
-fixed profiles, the selected rolling trial's final-height min/mean/max ranges
+rolling signals. Following a user report of insufficient visible relief, the
+2026-10-27 Valheim-informed defaults are 8 m hills at 160 m, 1.2 m rolling
+relief at 45 m, and 0.2 m floor detail at 12 m. BH25a/BH25b1/BH25c retain the
+historical one-factor measurements for the 4 m hill, 0.6 m rolling and 8 m /
+0.1 m floor selections. Across the eight fixed profiles, the historical 0.6 m
+rolling trial's final-height min/mean/max ranges
 were 42.4/176.2/767.8 cm at 30 m, 49.5/226.8/935.1 cm at 45 m, and
 66.4/286.3/1,074.0 cm at 70 m; dry collision-slope p50/p90/p95/maximum was
 2.31/4.55/28.07/36.20 degrees. BH12a adds a third independently seeded floor
