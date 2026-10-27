@@ -239,7 +239,7 @@ the recorded L01a value was SSR, not Lumen.
 | --- | --- | --- |
 | **Compatibility — hardware RT off** | Keep hardware ray tracing off, dynamic GI off, and use screen-space reflections with the existing raster shadow path. This is the explicit non-hardware fallback for all supported Windows adapters. | Required visual baseline. The accepted L01h review used the observed RT-off baseline. The scene must retain readable lighting, shadows, and material separation without an RTX-capable GPU. |
 | **Ray Tracing Balanced** | On supported Windows DX12/SM6 hardware, use Lumen hardware ray tracing for global illumination and reflections with Surface Cache lighting. Keep Hit Lighting disabled. | Optional uplift gated by project, shader-platform, and RHI capability checks. Unsupported systems stay on Compatibility. The compiled project setting only makes the shaders available; the local Compatibility profile remains the startup default. |
-| **Ray Tracing High** | Raise Lumen GI/reflection quality only as measured performance allows. Test ray-traced shadows on selected key lights where they visibly improve contact or foliage shadows; keep other lights on their normal shadow method unless they pass the same test. | This is an opt-in high-quality preset, not a universal default. Cull ray tracing to relevant scene ranges and profile forests, water, camp lights, and moving creatures. Avoid Hit Lighting for gameplay unless a separate test proves its cost acceptable; Epic describes it as substantially more expensive. |
+| **Ray Tracing High** | On supported Windows DX12/SM6 hardware, use Lumen hardware ray tracing with Unreal's Epic (quality level 3) GI and reflection scalability groups. Keep Surface Cache lighting and force Hit Lighting off after applying scalability. | This is an opt-in high-quality preset, not a universal default. Ray-traced shadows remain disabled until a key-light comparison demonstrates visible benefit. Change generated-geometry visibility only where per-object controls preserve the scene. |
 | **Path-traced capture** | Use Unreal's Path Tracer for offline stills or slow cinematic captures when a converged reference image is useful. | A reference and presentation mode only. Do not use it to define runtime gameplay lighting, minimum hardware, or performance targets. |
 
 Build the first three levels around the existing art and post-process controls.
@@ -254,11 +254,27 @@ repeated meshes for ray-tracing visibility and culling before enabling it broadl
 
 The local Graphics-menu tier is stored in `GameUserSettings`. Compatibility
 applies `r.RayTracing.Enable=0`, `r.Lumen.HardwareRayTracing=0`,
-`r.DynamicGlobalIlluminationMethod=0`, and `r.ReflectionMethod=2`. Balanced is
-offered only when the runtime gate accepts the active Windows D3D12/SM6 adapter;
-it applies Lumen GI/reflections (`r.DynamicGlobalIlluminationMethod=1`,
-`r.ReflectionMethod=1`), enables hardware tracing, and forces Surface Cache
-lighting with Hit Lighting disallowed. Rendered visual comparison is reserved
+`r.DynamicGlobalIlluminationMethod=0`, and `r.ReflectionMethod=2`. Balanced and
+High are offered only when the runtime gate accepts the active Windows
+DX12/SM6 adapter. Both enable Lumen GI/reflections with Surface Cache lighting;
+Balanced applies Unreal's quality level 2 to the GI and reflection groups,
+while High applies quality level 3 to those groups only. The previous GI and
+reflection quality values are restored when returning to Compatibility. Since
+the Epic GI group enables Hit Lighting, the profile reapplies
+`r.Lumen.HardwareRayTracing.HitLighting.Allowed=0` after scalability. Ray-traced
+shadows remain disabled pending a rendered comparison at L06c.
+
+L05d's generated-geometry inspection found that Meadow tree trunks and canopies
+are each consolidated into one `UProceduralMeshComponent` per generated patch.
+No generated grass or sky mesh, or instanced static-mesh components, were found
+in the scanned project source. Procedural meshes retain UE's default
+ray-tracing visibility. Hiding either consolidated tree component would remove
+all trunks or canopies in a patch, so this increment changes no RT visibility
+flags; per-object forest culling needs a different generated-geometry layout.
+The level-authored directional sun is the only clear key-light candidate, but
+no RT-on/off comparison has established a visible shadow benefit. This
+increment adds no per-light or global ray-traced-shadow override; the
+project-wide default remains disabled. Rendered visual comparison is reserved
 for the integrated L06c gate.
 
 Keep NVIDIA DLSS separate from the ray-tracing levels. Super Resolution is an

@@ -1,3 +1,48 @@
+## L05d selective High ray-tracing tier — 2026-10-27
+
+- **Selected increment:** L05d, the next child in the user-directed L05 track.
+- **Work completed:** Added High to the local Graphics-menu selector and saved
+  quality enum, visible only when the existing Windows DX12/SM6 hardware-RT
+  gate passes. Balanced applies UE GI/reflection scalability level 2; High
+  applies level 3 to those groups only. The previous values are restored on
+  return to Compatibility. Hit Lighting is forced off after scalability, which
+  would otherwise enable it at the Epic GI level. Ray-traced shadows remain off.
+  The lighting plan records why generated-forest visibility cannot safely be
+  changed at the current component granularity and why no key-light shadow
+  benefit is established yet.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`,
+  `Source/KalmalaUI/Public/KalmalaRayTracingSupport.h`,
+  `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`, and
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`.
+- **Lightweight checks:** Compared UE 5.8 GI/reflection quality group behavior
+  and Hit Lighting defaults with the installed `BaseScalability.ini`; inspected
+  generated-terrain source and searched project source for generated grass,
+  sky geometry, instanced meshes, and ray-tracing visibility overrides. The
+  source review found consolidated procedural tree components per patch and no
+  safe per-tree visibility control. `git diff --check` and changed-path length
+  checks passed. No Unreal build, automation, or rendered capture was run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** Supported local users can select High for Epic Lumen GI
+  and reflection quality; Balanced uses UE quality level 2, and Compatibility
+  restores the user's prior GI/reflection quality values. Other scalability
+  groups are not raised by the ray-tracing tier.
+- **Networking/authority:** Local presentation settings only; no RPC,
+  replication, gameplay authority, or save schema changed.
+- **Known limitations / remaining scope:** The level-authored directional sun
+  is the only clear key-light candidate, but no RT-on/off comparison has
+  established visible shadow benefit, so shadows are not enabled. Generated
+  trunks and canopies are each one procedural mesh per patch; excluding either
+  would remove a whole patch component. No generated grass/sky mesh or instanced
+  static meshes were found in source, and procedural meshes retain engine
+  default RT visibility. Capture-based L06c review and L05e device performance
+  measurements remain outstanding.
+- **Main-checkout handoff:** Deferred while the parent coordinates active
+  Kalmala worktrees; only backlog/progress state will be reconciled after their
+  edits are safe to preserve.
+- **Next eligible task:** L05e, measure RT-off, Balanced, and High on supported
+  hardware.
+
 ## L05c console-variable priority repair — 2026-10-27
 
 - **Selected repair:** Ensure local Compatibility/Balanced choices override

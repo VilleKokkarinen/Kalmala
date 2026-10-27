@@ -161,10 +161,12 @@ do not mark the lighting milestone complete before it passes.
     hardware tracing for GI/reflections, Surface Cache lighting, and no Hit
     Lighting; the profile configures those settings separately from
     Compatibility. Rendered comparison remains in the L06c integration gate.
-  - [ ] **L05d — Implement the High tier selectively.** Scale GI/reflection
-    quality and test ray-traced shadows only on key lights with visible benefit.
-    Set ray-tracing culling/visibility for generated forest, grass, sky, and
-    repeated meshes; do not enable expensive features indiscriminately.
+  - [x] **L05d — Implement the High tier selectively.** High raises only Lumen
+    GI/reflection scalability to Epic quality and keeps Hit Lighting disabled.
+    No ray-traced shadow is enabled without visible-benefit evidence. Generated
+    forest trunks/canopies are each one procedural mesh per patch, so component
+    culling would remove whole patches; no generated grass/sky or instanced
+    repeated-mesh classes were found in source, so those cases are N/A.
   - [ ] **L05e — Measure supported hardware.** Compare RT-off, Balanced, and
     High on the reference PC and the actual lower-tier devices selected for
     release; include AMD hardware if it is within the support target. Record

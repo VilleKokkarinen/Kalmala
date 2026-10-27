@@ -7,11 +7,14 @@
 #include "RenderUtils.h"
 #include "RHI.h"
 #include "RHIGlobals.h"
+#include "Scalability.h"
 
 namespace
 {
     constexpr TCHAR RayTracingSettingsSection[] = TEXT("/Script/KalmalaUI.KalmalaSettingsWidget");
     constexpr TCHAR RayTracingQualityKey[] = TEXT("LocalRayTracingQuality");
+    Scalability::FQualityLevels PreviousScalabilityQuality(false);
+    bool bHasPreviousScalabilityQuality = false;
 
     bool ApplyRayTracingProfile(const KalmalaRendering::FRayTracingQualityProfile& Profile)
     {
@@ -29,8 +32,32 @@ namespace
             return false;
         }
 
-        // Set up Lumen's method before enabling RT; disabling RT last keeps a
-        // return to Compatibility from briefly rendering through hardware RT.
+        // Keep the Epic GI preset from briefly enabling Hit Lighting.
+        HitLightingAllowed->Set(Profile.HitLightingAllowed, ECVF_SetByGameOverride);
+        if (Profile.ScalabilityQualityLevel >= 0)
+        {
+            if (!bHasPreviousScalabilityQuality)
+            {
+                // Keep the RT-off path's actual user-selected baseline intact.
+                PreviousScalabilityQuality = Scalability::GetQualityLevels();
+                bHasPreviousScalabilityQuality = true;
+            }
+
+            // Balanced uses High (2); High uses Epic (3), never Cinematic.
+            // Only these two scalability groups are raised by the RT selector.
+            Scalability::FQualityLevels QualityLevels = Scalability::GetQualityLevels();
+            QualityLevels.GlobalIlluminationQuality = Profile.ScalabilityQualityLevel;
+            QualityLevels.ReflectionQuality = Profile.ScalabilityQualityLevel;
+            Scalability::SetQualityLevels(QualityLevels);
+        }
+        else if (bHasPreviousScalabilityQuality)
+        {
+            Scalability::SetQualityLevels(PreviousScalabilityQuality);
+            bHasPreviousScalabilityQuality = false;
+        }
+
+        // Set up Lumen's method before enabling RT. Apply the explicit Hit
+        // Lighting opt-out after scalability: UE's Epic GI preset enables it.
         LumenHardwareRayTracing->Set(Profile.LumenHardwareRayTracing, ECVF_SetByGameOverride);
         DynamicGlobalIllumination->Set(Profile.DynamicGlobalIllumination, ECVF_SetByGameOverride);
         ReflectionMethod->Set(Profile.ReflectionMethod, ECVF_SetByGameOverride);
@@ -94,7 +121,7 @@ namespace KalmalaRendering
 
     FRayTracingQualityProfile GetRayTracingQualityProfile(const ERayTracingQualityLevel QualityLevel)
     {
-        if (QualityLevel == ERayTracingQualityLevel::Balanced)
+        if (QualityLevel == ERayTracingQualityLevel::Balanced || QualityLevel == ERayTracingQualityLevel::High)
         {
             FRayTracingQualityProfile Profile;
             Profile.RayTracingEnable = 1;
@@ -103,6 +130,7 @@ namespace KalmalaRendering
             Profile.ReflectionMethod = 1;
             Profile.LumenLightingMode = 0;
             Profile.HitLightingAllowed = 0;
+            Profile.ScalabilityQualityLevel = QualityLevel == ERayTracingQualityLevel::High ? 3 : 2;
             return Profile;
         }
 
@@ -122,14 +150,17 @@ namespace KalmalaRendering
             GConfig->GetInt(RayTracingSettingsSection, RayTracingQualityKey,
                 StoredQuality, GGameUserSettingsIni);
         }
+        if (StoredQuality == static_cast<int32>(ERayTracingQualityLevel::High))
+        {
+            return ERayTracingQualityLevel::High;
+        }
         return StoredQuality == static_cast<int32>(ERayTracingQualityLevel::Balanced)
-            ? ERayTracingQualityLevel::Balanced
-            : ERayTracingQualityLevel::Compatibility;
+            ? ERayTracingQualityLevel::Balanced : ERayTracingQualityLevel::Compatibility;
     }
 
     bool SetRayTracingQualityLevel(const ERayTracingQualityLevel QualityLevel)
     {
-        if (QualityLevel == ERayTracingQualityLevel::Balanced && !IsBalancedRayTracingAvailable())
+        if (QualityLevel != ERayTracingQualityLevel::Compatibility && !IsBalancedRayTracingAvailable())
         {
             return false;
         }
@@ -152,7 +183,7 @@ namespace KalmalaRendering
     bool ApplySavedRayTracingQualityLevel()
     {
         ERayTracingQualityLevel QualityLevel = GetSavedRayTracingQualityLevel();
-        if (QualityLevel == ERayTracingQualityLevel::Balanced && !IsBalancedRayTracingAvailable())
+        if (QualityLevel != ERayTracingQualityLevel::Compatibility && !IsBalancedRayTracingAvailable())
         {
             QualityLevel = ERayTracingQualityLevel::Compatibility;
         }

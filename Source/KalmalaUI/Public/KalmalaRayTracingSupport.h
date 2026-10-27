@@ -13,7 +13,8 @@ namespace KalmalaRendering
     enum class ERayTracingQualityLevel : uint8
     {
         Compatibility,
-        Balanced
+        Balanced,
+        High
     };
 
     struct KALMALAUI_API FRayTracingQualityProfile
@@ -24,6 +25,7 @@ namespace KalmalaRendering
         int32 ReflectionMethod = 2;
         int32 LumenLightingMode = 0;
         int32 HitLightingAllowed = 0;
+        int32 ScalabilityQualityLevel = -1;
     };
 
     struct KALMALAUI_API FKalmalaRayTracingCapabilities

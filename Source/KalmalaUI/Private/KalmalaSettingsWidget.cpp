@@ -1837,16 +1837,23 @@ void UKalmalaSettingsWidget::ShowGraphicsTab()
     RayTracingQualityDropdown->OnSelectionChanged.AddDynamic(this,
         &ThisClass::HandleRayTracingQualityChanged);
     RayTracingQualityDropdown->AddOption(TEXT("Compatibility"));
-    if (KalmalaRendering::IsBalancedRayTracingAvailable())
+    const bool bHardwareRayTracingAvailable = KalmalaRendering::IsBalancedRayTracingAvailable();
+    if (bHardwareRayTracingAvailable)
     {
         RayTracingQualityDropdown->AddOption(TEXT("Balanced"));
+        RayTracingQualityDropdown->AddOption(TEXT("High"));
     }
     RayTracingQualityDropdown->SetToolTipText(FText::FromString(
-        TEXT("Balanced uses Lumen hardware ray tracing with Surface Cache lighting on supported Windows DX12/SM6 systems.")));
-    const bool bBalancedSelected = KalmalaRendering::GetSavedRayTracingQualityLevel()
-        == KalmalaRendering::ERayTracingQualityLevel::Balanced
-        && KalmalaRendering::IsBalancedRayTracingAvailable();
-    RayTracingQualityDropdown->SetSelectedOption(bBalancedSelected ? TEXT("Balanced") : TEXT("Compatibility"));
+        TEXT("Balanced uses Lumen hardware ray tracing. High raises Lumen GI and reflection quality. Hit Lighting and ray-traced shadows remain disabled.")));
+    const KalmalaRendering::ERayTracingQualityLevel SavedRayTracingQuality =
+        KalmalaRendering::GetSavedRayTracingQualityLevel();
+    const TCHAR* SelectedRayTracingQuality = bHardwareRayTracingAvailable
+        && SavedRayTracingQuality == KalmalaRendering::ERayTracingQualityLevel::High
+            ? TEXT("High")
+            : bHardwareRayTracingAvailable
+                && SavedRayTracingQuality == KalmalaRendering::ERayTracingQualityLevel::Balanced
+                    ? TEXT("Balanced") : TEXT("Compatibility");
+    RayTracingQualityDropdown->SetSelectedOption(SelectedRayTracingQuality);
 
     int32 RenderDistanceMeters = 576;
     if (APlayerController* OwningPlayer = GetOwningPlayer())
@@ -2316,10 +2323,16 @@ void UKalmalaSettingsWidget::UpdateVideoLabels()
     }
     if (RayTracingQualityDropdown != nullptr)
     {
-        const bool bBalancedSelected = KalmalaRendering::GetSavedRayTracingQualityLevel()
-            == KalmalaRendering::ERayTracingQualityLevel::Balanced
-            && KalmalaRendering::IsBalancedRayTracingAvailable();
-        RayTracingQualityDropdown->SetSelectedOption(bBalancedSelected ? TEXT("Balanced") : TEXT("Compatibility"));
+        const bool bHardwareRayTracingAvailable = KalmalaRendering::IsBalancedRayTracingAvailable();
+        const KalmalaRendering::ERayTracingQualityLevel SavedRayTracingQuality =
+            KalmalaRendering::GetSavedRayTracingQualityLevel();
+        const TCHAR* SelectedRayTracingQuality = bHardwareRayTracingAvailable
+            && SavedRayTracingQuality == KalmalaRendering::ERayTracingQualityLevel::High
+                ? TEXT("High")
+                : bHardwareRayTracingAvailable
+                    && SavedRayTracingQuality == KalmalaRendering::ERayTracingQualityLevel::Balanced
+                        ? TEXT("Balanced") : TEXT("Compatibility");
+        RayTracingQualityDropdown->SetSelectedOption(SelectedRayTracingQuality);
     }
     bUpdatingGraphicsControls = false;
 }
@@ -2452,7 +2465,7 @@ void UKalmalaSettingsWidget::CommitAccessibilitySliderValues()
     }
 }
 
-void UKalmalaSettingsWidget::ApplyVideoSettings() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ApplySettings(false); Settings->SaveSettings(); UpdateVideoLabels(); } }
+void UKalmalaSettingsWidget::ApplyVideoSettings() { if (UGameUserSettings* Settings = UGameUserSettings::GetGameUserSettings()) { Settings->ApplySettings(false); Settings->SaveSettings(); KalmalaRendering::ApplySavedRayTracingQualityLevel(); UpdateVideoLabels(); } }
 void UKalmalaSettingsWidget::HandleOptionsClicked() { ShowOptionsMenu(); }
 void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTime)
 {
@@ -2572,9 +2585,11 @@ void UKalmalaSettingsWidget::HandleRayTracingQualityChanged(const FString Select
 {
     if (bUpdatingGraphicsControls || SelectionType == ESelectInfo::Direct) return;
 
-    const KalmalaRendering::ERayTracingQualityLevel QualityLevel = SelectedOption == TEXT("Balanced")
-        ? KalmalaRendering::ERayTracingQualityLevel::Balanced
-        : KalmalaRendering::ERayTracingQualityLevel::Compatibility;
+    const KalmalaRendering::ERayTracingQualityLevel QualityLevel = SelectedOption == TEXT("High")
+        ? KalmalaRendering::ERayTracingQualityLevel::High
+        : SelectedOption == TEXT("Balanced")
+            ? KalmalaRendering::ERayTracingQualityLevel::Balanced
+            : KalmalaRendering::ERayTracingQualityLevel::Compatibility;
     if (!KalmalaRendering::SetRayTracingQualityLevel(QualityLevel))
     {
         if (RayTracingQualityDropdown != nullptr)
