@@ -139,10 +139,12 @@ do not mark the lighting milestone complete before it passes.
     map, the mirror build expanded to 205 actions and failed in mixed-version
     console code, and the fixture has no local-light, temporal, or GPU
     timing capture. Keep unchecked until scene evidence is recorded.
-  - [ ] **L03d — Record the review recommendation.** Keep Default Lit as the
+  - [x] **L03d — Record the review recommendation.** Keep Default Lit as the
     production path and report the captures, tradeoffs, and recommended next
     choice. Any change to the game's overall visual identity requires explicit
     user review before broad adoption.
+    Current recommendation: keep production on Default Lit and the Substrate
+    Toon candidate unadopted until L03c records captures and GPU cost.
 
 - [ ] **L04 — Add supported weather and environment effects.** Use only existing
   client presentation signals and effects; keep this cosmetic, gradual, and

@@ -1,9 +1,9 @@
 # Valheim-inspired material and lighting plan
 
 **Status:** L01 is complete. L02 is in progress with its shared material
-interface authored; L03 is in progress with its direct-light fixture and
-Substrate support audit; rendered integration evidence remains pending; L04–L06
-remain queued in BACKLOG.md.
+interface authored; L03 remains in progress with a holding recommendation;
+L03c rendered integration evidence remains pending; L04–L06 remain queued
+in BACKLOG.md.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -579,6 +579,23 @@ representative local camp-light response, render the paired samples in the fixed
 L01 views, review shadowing/indirect contribution/silhouettes across frames, and
 record per-view GPU timing. No production renderer or material assignment was
 changed. Do not make a support or performance claim from this source audit.
+
+#### L03d — review recommendation — 2026-10-27
+
+**Recommendation:** Keep the existing Default Lit material path in production
+and leave the Substrate Toon candidate unadopted and test-only until L03c has
+rendered the paired fixture and recorded the required integration and per-view
+GPU-cost evidence.
+
+No comparison captures or measured tradeoffs are available. The fixture was
+authored but not generated or rendered; shadows, indirect fill, camp-light
+response, silhouette readability, temporal stability, and GPU cost have not
+been observed. The UE 5.8 Toon path is experimental and the project remains
+configured for its existing non-Substrate production path. This is a holding
+recommendation based on missing evidence, not a measured finding that the
+candidate is visually or technically worse. Do not make a broad style change
+without the L03c evidence and the explicit review already required by this plan.
+No production renderer setting or material assignment changed.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an

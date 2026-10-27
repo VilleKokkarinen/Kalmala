@@ -1,3 +1,29 @@
+## L03d direct-light review recommendation — 2026-10-27
+
+- **Selected task:** L03d, record the review recommendation for the stylized
+  direct-light candidate.
+- **Work completed:** Recorded a holding recommendation: retain Default Lit as
+  the production path and keep the UE 5.8 Substrate Toon candidate test-only
+  until L03c's rendered integration and per-view GPU-cost evidence is available.
+  L03d is checked; L03c and the L03 parent remain unchecked.
+- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
+  PROGRESS.md. No production renderer settings or material assignments changed.
+- **Lightweight checks:** Reviewed the L03a–L03c records and verified that the
+  recommendation states the absence of comparison captures and measured
+  tradeoffs. Ran git diff --check.
+- **Full verification:** Deferred. No Editor build, fixture generation, material
+  compilation, rendered capture, or GPU-cost measurement ran in this increment.
+- **Observable impact:** The production choice and the reason for deferring
+  adoption are explicit; there is no runtime or visual change.
+- **Networking/authority:** Documentation only; gameplay, networking, authority,
+  persistence, and save behavior are unchanged.
+- **Known limitations / remaining scope:** No captures or measured quality,
+  integration, stability, or performance tradeoffs exist. This recommendation
+  does not establish that the Toon candidate is worse; it remains unadopted
+  because L03c evidence is incomplete.
+- **Next eligible task:** L03c remains unchecked for the permitted scene-level
+  comparison and per-view GPU measurement. L03 is not complete.
+
 ## L03c direct-light integration evidence audit — incomplete — 2026-10-27
 
 - **Selected task:** L03c, check the candidate's lighting integration.
