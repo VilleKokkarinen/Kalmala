@@ -171,11 +171,11 @@ do not mark the lighting milestone complete before it passes.
     High on the reference PC and the actual lower-tier devices selected for
     release; include AMD hardware if it is within the support target. Record
     frame time, resolution, memory, image quality, and artifacts. Do not infer
-    minimum/recommended hardware from UE's compatibility list alone. **Blocked:**
+    minimum/recommended hardware from UE's compatibility list alone. **Deferred to L06:**
     the user selected the RTX 5090 reference PC for the current measurement
-    pass and left lower-tier/AMD coverage pending. Neither checkout has a built
-    Editor. The project rules reserve the full Editor build for L06, so the
-    required reference captures need an explicit sequencing resolution.
+    pass and left lower-tier/AMD coverage pending. The user chose to keep L05e
+    open until L06, where the Editor build and RTX 5090 profile captures will
+    run; lower-tier/AMD coverage remains pending.
   - [x] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
     separate from ray tracing. Add no vendor plugin/dependency or Frame
     Generation path in this goal; seek a separate user-approved plan if they

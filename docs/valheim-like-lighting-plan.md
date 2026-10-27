@@ -308,12 +308,11 @@ game's frame-time target are agreed.
 L05e remains open. The user selected the RTX 5090 reference PC for the current
 measurement pass and explicitly left lower-tier coverage pending. `nvidia-smi`
 reports an RTX 5090 with 32,607 MiB VRAM and driver 610.88, but this is system
-telemetry rather than an in-game tier measurement. No Kalmala Editor build is
-available in the L05 worktree or main checkout. Repository run rules reserve a
-full Editor build for the L06 final verification, while L05e requires captures
-before L06; this is a sequencing dependency, not measurement evidence. Do not
-infer performance or a hardware floor from these observations. Lower-tier/AMD
-measurements remain future scope.
+telemetry rather than an in-game tier measurement. The user chose to keep L05e
+open until L06, where the Editor build and reference profile captures will run.
+No Kalmala Editor build is available in the L05 worktree or main checkout. Do
+not infer performance or a hardware floor from these observations.
+Lower-tier/AMD measurements remain future scope.
 
 ## Acceptance checks
 

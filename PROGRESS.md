@@ -6,8 +6,8 @@
   scope and retained lower-tier/AMD testing as open future coverage. Checked for
   an existing project Editor in both this worktree and the main checkout; none
   is available. Actual RT-off/Balanced/High frame-time, memory, resolution, and
-  image-quality captures need an Editor build. Repository run rules reserve a
-  full Editor build for L06, although L05e must precede that gate.
+  image-quality captures need an Editor build. The user chose to keep L05e open
+  until L06, so the build and reference captures are deferred to that gate.
 - **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
   `docs/valheim-like-lighting-plan.md`.
 - **Lightweight checks:** Confirmed neither checkout contains
@@ -22,14 +22,14 @@
 - **Known limitations / remaining scope:** L05e remains unchecked until
   same-scene RT-off/Balanced/High captures are recorded on the reference PC.
   Lower-tier/AMD coverage is explicitly pending. The repository's build timing
-  policy and L05e-before-L06 order need resolution before captures can run.
-  L06 is still required before the lighting milestone can be marked verified.
+  policy places the build at L06 per the user's direction. L06 is still
+  required before the lighting milestone can be marked verified.
 - **Main-checkout handoff:** Synchronized this L05e scope/blocker note into the
   main checkout's `BACKLOG.md` and `PROGRESS.md`, preserving its unrelated
   edits; no implementation files were synchronized.
-- **Next eligible task:** Resolve the L05e/L06 build timing, then record the
-  reference PC captures; keep lower-tier/AMD coverage pending until actual
-  devices are chosen.
+- **Next eligible task:** Keep L05e open until L06 records the reference PC
+  captures; keep lower-tier/AMD coverage pending until actual devices are
+  chosen.
 
 ## L05f DLSS/upscaling separation — 2026-10-27
 
