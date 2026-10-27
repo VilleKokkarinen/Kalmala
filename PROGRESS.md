@@ -8,7 +8,7 @@
 - **Observable impact:** L04's supported wet-material and regional-fog effects now have fresh, repeatable visual evidence. Rain-only captures isolate the precipitation response; overcast-only captures isolate the highland fog. The four-frame fixture records onset and release in one run. This increment adds no packaged gameplay behavior.
 - **Networking/authority:** Production weather remains server-authored through the existing replicated state. Material and fog presentation remain local and gradual. The capture fixture sets preset weather through SetWeatherStateFromServer only under the non-Shipping baseline-capture flag; diagnostic interpolation logs are gated by that same flag and compiled out of Shipping. No new RPC, replicated state, save data, or gameplay simulation was added.
 - **Known limitations / remaining scope:** The project has no world-space rain particles or modeled flame; those combinations remain N/A per L04f. The fixed ThunderMountains view is sparse and retains its broad horizon band, so it is useful for fog response rather than a polished composition. The wet response is intentionally subtle; it is visible in close-up review and interpolation logs. Full integrated lighting acceptance remains for L06.
-- **Next eligible task:** L02g in the main-checkout queue after this L04 handoff.
+- **Next eligible task:** L03c in the main-checkout queue after this L04 handoff.
 
 ## L04b - local precipitation response on selected surfaces - 2026-10-27
 
