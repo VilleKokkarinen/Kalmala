@@ -2769,16 +2769,17 @@ established grass channel with snow alpha zero so its original clothing color
 remains available. The compiled default-off lake treatment uses
 `MI_GeneratedLakeShore`, whose shared lit parent preserves the prior shore tint
 and roughness. The biome-debug material remains a separate constructor-time
-override. No grass texture or reed presentation asset is introduced. The client-local Mountain
-storm fog fades with the existing replicated storm intensity multiplied by the
-continuous Thunder Mountains weight at the owning pawn. It adds no replicated
-actor, field or RPC, and no gameplay effect; Tundra snow and player-cloth
-material behavior are unchanged.
+override. No grass texture or reed presentation asset is introduced. The
+client-local Mountain weather fog uses the existing replicated `FogIntensity`
+multiplied by the continuous Thunder Mountains weight at the owning pawn. A
+one-second local probe feeds a smooth interpolation; the fog actor is transient
+and nonreplicated. No gameplay, save, RPC, or replicated-state contract changed;
+Tundra snow and player-cloth material behavior are unchanged.
 Generated Meadow rock bases use the shared final terrain height and surface
-normal with `MI_GeneratedRock`; geometry, vertex colors and roughness stay
-within their generated presentation contract. The player model and campfire
-ring retain `M_GeneratedRock`. The terrain patch remains their gameplay
-surface.
+normal with `MI_GeneratedRock`; geometry and vertex colors remain unchanged,
+and dry roughness remains 0.95 before the local precipitation response. The
+player model and campfire ring retain `M_GeneratedRock`. The terrain patch
+remains their gameplay surface.
 Generated Meadow trunks and forest tree-resource meshes use `MI_GeneratedBark`
 from the same shared surface parent at roughness 0.88. Their existing vertex
 colors distinguish birch bark, pale aspen bark, foliage and exposed cut faces;
@@ -2799,6 +2800,17 @@ roughness 0.28. The tint preserves the existing ocean and lake vertex-color
 palettes. The legacy `M_GeneratedWater` package remains generated but
 unassigned. This material change leaves `FKalmalaWaterSurfaceMesh` clipping,
 water levels, and `MI_GeneratedLakeShore` geometry unchanged.
+
+The shared `M_KalmalaSurfaceBase` parent reads the world-local
+`MPC_KalmalaWeather` collection's `PrecipitationIntensity` value and gates it
+with the per-instance `WeatherWetResponse` scalar. Generated Meadow rock, bark, and
+held-tool wood instances opt in; terrain and lake shore remain opted out. The
+client-local weather subsystem smooths the existing replicated precipitation
+intensity into this collection during a valid weather interval. The graph
+applies at most 8% base-color darkening and a 0.12 roughness reduction. No
+surface-moisture, player-Wet, gameplay, save, RPC, or replicated-state input is
+used. Because weather has no precipitation-kind field, this is a generic
+precipitation appearance and does not distinguish rain from snow.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered

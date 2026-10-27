@@ -160,31 +160,35 @@ do not mark the lighting milestone complete before it passes.
     Production meshes, world-bounce/GI, and supported target platforms remain
     unverified. Any broad visual-identity change still requires explicit review.
 
-- [ ] **L04 — Add supported weather and environment effects.** Use only existing
+- [x] **L04 — Add supported weather and environment effects.** Use only existing
   client presentation signals and effects; keep this cosmetic, gradual, and
   outside gameplay, save, RPC, and replicated-state contracts.
-  - [ ] **L04a — Map existing weather inputs.** Trace currently available
+  - [x] **L04a — Map existing weather inputs.** Trace currently available
     client-side precipitation, wetness, snow/biome, sky, fog, and world-space
     effect inputs. Record which plan effects have valid inputs; do not add a new
     weather type or network/save field to supply a missing one.
-  - [ ] **L04b — Add subtle wet-surface response.** Apply rain/wet darkening and
-    roughness changes to the plan-selected wood/rock materials using only an
-    existing presentation signal; smooth state changes to avoid popping.
-  - [ ] **L04c — Add eligible snow coverage.** Apply it only to suitable
+  - [x] **L04b — Add subtle wet-surface response.** Add up to 8% base-color
+    darkening and a 0.12 roughness reduction to generated rock, bark, and held
+    wood through the existing replicated precipitation signal and gradual local
+    presentation. Other materials opt out; the generic signal cannot distinguish
+    rain from snow. See the lighting plan for implementation limits.
+  - [x] **L04c — Add eligible snow coverage.** Apply it only to suitable
     surfaces with an existing client snow/biome signal. Mark unsupported
     combinations N/A rather than inventing a signal.
-  - [ ] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable
+  - [x] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable
     surfaces with an existing client biome/surface signal; record unsupported
     combinations as N/A in the lighting plan.
-  - [ ] **L04e — Tune existing sky and atmospheric effects.** Adjust available
+  - [x] **L04e — Tune existing sky and atmospheric effects.** Adjust available
     cloud, local fog, and weather color treatments through the existing pipeline;
     add no new sky model or weather type.
-  - [ ] **L04f — Tune existing world-space weather effects.** Adjust available
+  - [x] **L04f — Tune existing world-space weather effects.** Adjust available
     rain, snow, mist, or ember particles and keep them out of key sight lines.
     Add no full-screen droplets or overlays.
-  - [ ] **L04g — Pass the environment-effects gate.** Review daylight, rain,
+  - [x] **L04g — Pass the environment-effects gate.** Review daylight, rain,
     overcast, and fire-lit captures and transitions; confirm no popping,
-    excessive visual noise, or gameplay/simulation change.
+    excessive visual noise, or gameplay/simulation change. See the L04g review
+    record in the lighting plan.
+
 
 - [ ] **L05 — Add scalable hardware ray-tracing quality levels.** Use the RT-off
   baseline, Lumen hardware ray tracing for supported Windows DX12/SM6 devices,

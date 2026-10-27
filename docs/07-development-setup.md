@@ -3679,7 +3679,9 @@ The main biome preview also masks the exterior. `-SkipSplineOverlay` skips only 
 
 After rebuilding the Editor target for BH23 and BH24a/BH24b, run the project-owned
 `CreateWorldMaterials` commandlet against the project with
-`UnrealEditor-Cmd.exe <project.uproject> -run=CreateWorldMaterials`. It updates
+`UnrealEditor-Cmd.exe <project.uproject> -run=CreateWorldMaterials`. It creates
+or refreshes the shared `M_KalmalaSurfaceBase` parent and
+`MPC_KalmalaWeather` collection, updates
 `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
 vertex-color grass/soil/rock blend routed through the shared surface-response
 function, and creates instances `MI_GeneratedTerrain`, `MI_GeneratedLakeShore`,
@@ -3687,6 +3689,8 @@ function, and creates instances `MI_GeneratedTerrain`, `MI_GeneratedLakeShore`,
 `MI_GeneratedWater`,
 `M_KalmalaCanopyBase` and `MI_GeneratedCanopy`, plus the original
 `M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
+Only the rock, bark, and wood instances opt into the collection-driven wet
+response; terrain, shore, and other material assignments remain unchanged.
 Generated terrain patches assign the terrain instance before the
 `-KalmalaBiomeDebug` override, while player cloth continues to use the terrain
 parent. Shore and generated-rock instances use the common lit parent and retain

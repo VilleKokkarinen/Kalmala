@@ -10,7 +10,7 @@ param(
     [ValidateRange(1, 12)][int]$TemporalFrames = 1,
     [ValidateRange(0.1, 2.0)][double]$TemporalIntervalSeconds = 0.5,
     [ValidateRange(0, 1200)][int]$GpuCaptureFrames = 0,
-    [ValidateSet('Default', 'OvercastRain', 'FireDusk')][string]$Condition = 'Default',
+    [ValidateSet('Default', 'Dry', 'RainOnly', 'OvercastOnly', 'OvercastRain', 'WeatherTransition', 'FireDusk')][string]$Condition = 'Default',
     [Parameter(Mandatory)][double]$Xcm,
     [Parameter(Mandatory)][double]$Ycm,
     [Parameter(Mandatory)][double]$ViewZcm,
@@ -26,12 +26,27 @@ $imagePath = [IO.Path]::GetFullPath($OutputPath)
 $outputDirectory = Split-Path -Parent $imagePath
 $logPath = [IO.Path]::ChangeExtension($imagePath, '.log')
 $userDirectory = Join-Path $outputDirectory 'u'
-$imagePaths = @($imagePath)
-for ($frame = 1; $frame -lt $TemporalFrames; $frame++) {
-    $imagePaths += Join-Path $outputDirectory ("{0}_T{1:D2}{2}" -f [IO.Path]::GetFileNameWithoutExtension($imagePath), $frame, [IO.Path]::GetExtension($imagePath))
+if ($Condition -eq 'WeatherTransition') {
+    if ($LightingVariant -ne 'Both' -or $TemporalFrames -ne 1 -or $GpuCaptureFrames -gt 0 -or $ComparisonFixture) {
+        throw 'WeatherTransition requires one ordinary capture, without a comparison fixture or GPU profile.'
+    }
+    $captureBasePath = Join-Path $outputDirectory ([IO.Path]::GetFileNameWithoutExtension($imagePath))
+    $capturePaths = @(
+        ($captureBasePath + '_OnsetStart.png'),
+        ($captureBasePath + '_OnsetEnd.png'),
+        ($captureBasePath + '_ReleaseStart.png'),
+        ($captureBasePath + '_ReleaseEnd.png')
+    )
+}
+else { $capturePaths = @($imagePath) }
+$imagePaths = @($capturePaths)
+if ($Condition -ne 'WeatherTransition') {
+    for ($frame = 1; $frame -lt $TemporalFrames; $frame++) {
+        $imagePaths += Join-Path $outputDirectory ("{0}_T{1:D2}{2}" -f [IO.Path]::GetFileNameWithoutExtension($imagePath), $frame, [IO.Path]::GetExtension($imagePath))
+    }
 }
 $csvPath = Join-Path $outputDirectory ("L03_GPU_{0}_{1}_{2}.csv" -f $Site, $Condition, $LightingVariant)
-$paths = @($projectPath, $Editor, $logPath, $userDirectory) + $imagePaths
+$paths = @($projectPath, $Editor, $imagePath, $logPath, $userDirectory) + $imagePaths
 if ($GpuCaptureFrames -gt 0) { $paths += $csvPath }
 foreach ($path in $paths) {
     if ($path.Length -ge 260) { throw "Path exceeds MAX_PATH: $path" }
@@ -43,6 +58,7 @@ if (-not (Test-Path -LiteralPath $Editor -PathType Leaf)) { throw "Unreal Editor
 foreach ($path in $imagePaths) {
     if (Test-Path -LiteralPath $path) { throw "Refusing to overwrite existing capture: $path" }
 }
+if ($Condition -eq 'WeatherTransition' -and (Test-Path -LiteralPath $imagePath)) { throw "Refusing to overwrite existing capture: $imagePath" }
 if ($GpuCaptureFrames -gt 0 -and (Test-Path -LiteralPath $csvPath)) { throw "Refusing to overwrite existing GPU CSV capture: $csvPath" }
 New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $userDirectory -Force | Out-Null
@@ -105,6 +121,7 @@ try {
         throw "Timed out waiting for stable rendered frames or GPU CSV data.`n$tail"
     }
     Add-Type -AssemblyName System.Drawing
+    $captureSizes = @()
     foreach ($path in $imagePaths) {
         $bytes = [IO.File]::ReadAllBytes($path)
         if ($bytes.Length -lt 8 -or [BitConverter]::ToString($bytes[0..7]) -ne '89-50-4E-47-0D-0A-1A-0A') {
@@ -126,6 +143,7 @@ try {
             if ($colors.Count -lt 8 -or $visibleSamples -lt $minimumVisibleSamples) { throw "Rendered capture appears blank or uniform: Colors=$($colors.Count) NonBlackSamples=$visibleSamples Minimum=$minimumVisibleSamples Path=$path" }
         }
         finally { $bitmap.Dispose() }
+        $captureSizes += $bytes.Length
     }
     $logText = Get-Content -LiteralPath $logPath -Raw
     if ($logText -notmatch 'Biome baseline rendered capture requested: Seed=' + $Seed + ' Site=' + [regex]::Escape($Site) + ' Condition=' + [regex]::Escape($Condition) + '\b') {
@@ -165,7 +183,7 @@ try {
             QueueUnaccountedMeanMs = if ($null -ne $queueStats) { [math]::Round($queueStats.Average, 3) } else { $null }
         }
     }
-    [pscustomobject]@{ Seed = $Seed; Site = $Site; Condition = $Condition; LightingVariant = $LightingVariant; Map = $Map; Outputs = $imagePaths; Gpu = $gpuSummary; Log = $logPath }
+    [pscustomobject]@{ Seed = $Seed; Site = $Site; Condition = $Condition; LightingVariant = $LightingVariant; Map = $Map; Outputs = $imagePaths; CaptureBytes = $captureSizes; Gpu = $gpuSummary; Log = $logPath }
 }
 finally {
     if ($null -ne $process -and -not $process.HasExited) {

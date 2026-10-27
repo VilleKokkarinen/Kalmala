@@ -1,3 +1,112 @@
+## L04g — environment-effects visual gate review (2026-10-27; complete)
+
+- **Selected task:** L04g, the final unchecked child of L04.
+- **Work completed:** Extended the non-Shipping baseline fixture with explicit dry, rain-only, overcast-only, and four-frame weather-transition captures. Reviewed current seed-418 captures at the same Meadow wet-surface close-up and at the ThunderMountains weather anchor, plus combined overcast/rain and fire-lit views. The material response rose from 0.00 to 0.75 in the onset and returned to 0.05 by the release-end frame; highland fog coverage rose to 0.65 under a 0.71 target and returned to 0.05. Logged values progressed in smooth steps, with no visible geometry popping or excessive material noise. The close Meadow comparison shows the intended subtle darkening on opted-in rock/bark; the fire-lit frame shows warm ground spill around the transient hearth.
+- **Files changed:** BACKLOG.md, PROGRESS.md, Scripts/Tests/World/BiomeBaselineCapture.ps1, Source/KalmalaGameplay/Private/KalmalaGameMode.cpp, Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** PowerShell parser passed; git diff --check passed before this progress update. The short temporary Unreal mirror compiled the capture fixture and presentation diagnostics in successful incremental builds (four actions for Gameplay/UI updates; one five-action build regenerated UHT after the mirror's stale header was synchronized). The capture runner validated fresh 1024x768 nonblank PNGs and matching runtime logs for Dry, RainOnly, OvercastOnly, FireDusk, and both onset/release sequences. Captures are retained only in C:/Users/Ville/AppData/Local/Temp/klc/TestResults/LightingBaseline/; no generated files were added to the repository. One initial mirror compile used a stale weather-subsystem header and failed; syncing the matching worktree header and forcing UHT resolved it.
+- **Full verification:** Deferred to L06, the integrated lighting milestone-final gate. No full project build, automation suite, or package run was performed.
+- **Observable impact:** L04's supported wet-material and regional-fog effects now have fresh, repeatable visual evidence. Rain-only captures isolate the precipitation response; overcast-only captures isolate the highland fog. The four-frame fixture records onset and release in one run. This increment adds no packaged gameplay behavior.
+- **Networking/authority:** Production weather remains server-authored through the existing replicated state. Material and fog presentation remain local and gradual. The capture fixture sets preset weather through SetWeatherStateFromServer only under the non-Shipping baseline-capture flag; diagnostic interpolation logs are gated by that same flag and compiled out of Shipping. No new RPC, replicated state, save data, or gameplay simulation was added.
+- **Known limitations / remaining scope:** The project has no world-space rain particles or modeled flame; those combinations remain N/A per L04f. The fixed ThunderMountains view is sparse and retains its broad horizon band, so it is useful for fog response rather than a polished composition. The wet response is intentionally subtle; it is visible in close-up review and interpolation logs. Full integrated lighting acceptance remains for L06.
+- **Next eligible task:** L05e in the main-checkout queue after the L03 merge.
+
+
+## L04b - local precipitation response on selected surfaces - 2026-10-27
+
+- **Selected task:** L04b, adding a cosmetic wet-looking response to the plan-selected generated rock, bark, and held-wood materials.
+- **Work completed:** Added an opt-in `WeatherWetResponse` scalar to the shared surface parent and a world-local `MPC_KalmalaWeather` collection fed from the existing replicated `PrecipitationIntensity`. The selected instances darken linear base color by up to 8% and reduce roughness by up to 0.12 at full intensity; the existing `ULocalPlayer` weather presenter interpolates onset and release. The generator refreshes only the shared parent and opted-in instances. Terrain, shore, canopy, water, player, campfire, other gatherables, and construction materials remain opted out.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `docs/valheim-like-lighting-plan.md`, `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`, `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`, `Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`, and the new/updated `Content/Kalmala/World/Materials/MPC_KalmalaWeather.uasset`, `M_KalmalaSurfaceBase.uasset`, `MI_GeneratedRock.uasset`, `MI_GeneratedBark.uasset`, and `MI_GeneratedWood.uasset`.
+- **Lightweight checks:** Source review completed. The cached temporary-mirror `KalmalaEditor` incremental build passed after an initial linker error from a non-exported UE lookup was fixed by scanning the public parameter array; the rerun built four actions. The `CreateWorldMaterials` commandlet completed with result 0 and generated the collection, parent, and three selected instances. `git diff --check` passed; all 13 changed/untracked paths remain below MAX_PATH. No tests or rendered captures were run; the first uncached mirror build was stopped after 92 of 330 actions when the cached build was identified.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Existing generated Meadow rocks and tree bark/cut faces, plus held-tool wood, now gain a gradual local wet-looking appearance as active replicated precipitation rises. The material response does not accumulate surface moisture; it fades as the precipitation signal falls.
+- **Networking/authority:** The server remains the sole weather writer. Local presentation reads only existing replicated `PrecipitationIntensity` during its valid weather interval and updates a world-local collection. No RPC, replicated field, save field, or gameplay behavior changed; dedicated servers have no local presenter.
+- **Known limitations / remaining scope:** The weather state has no precipitation-kind field, so the generic response cannot distinguish rain from snow. Unsupported surfaces remain opted out, and rendered appearance remains for L02g and L04g. The parent L04 and L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02g, the material-family gate. Within L04: L04g, the environment-effects gate.
+
+
+## L04f - world-space weather particle inventory - 2026-10-27
+
+- **Selected task:** L04f, checking for existing rain, snow, mist, or ember particle systems and assets.
+- **Work completed:** Reviewed production source and the Content asset inventory. Found no Niagara/legacy ParticleSystem emitter APIs, weather-specific world-space particle paths, or rain/snow/mist/ember particle assets. RainBed is 2D audio, generated terrain snow is a material blend, and L04e's highland fog is a local non-particle effect. Recorded all four L04f effects as N/A and checked L04f complete without creating assets or dependencies.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed source and Content inventory; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime, material, particle, or visual behavior changed.
+- **Networking/authority:** No network, save, RPC, or gameplay authority changed. No new client or replicated effect state was added.
+- **Known limitations / remaining scope:** Rain, snow, mist, and ember world-space particles remain N/A until an existing system is available. L04b remains blocked pending L02c/L02d; L04g remains incomplete.
+- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04g is the next currently unblocked child.
+
+
+## L04e - existing local fog and sky-path tuning - 2026-10-27
+
+- **Selected task:** L04e, tuning the existing weather-linked local fog and auditing available sky paths.
+- **Work completed:** Retargeted the existing local highland fog from derived StormIntensity to the replicated FogIntensity multiplied by the local ThunderMountains weight. Preserved the active-interval gate, one-second probe, smooth interpolation, bounded fog values, nonreplicated local actor, and dedicated-server exclusion. Recorded cloud and weather-linked sky-color paths as N/A because the current setup contains only the sun, SkyAtmosphere, and skylight.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/valheim-like-lighting-plan.md, docs/02-technical-architecture.md, KalmalaWeatherActivitySubsystem.h, and KalmalaWeatherActivitySubsystem.cpp.
+- **Lightweight checks:** Reviewed the weather cycle, replicated weather contract, fog subsystem, sky setup, and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Foggy weather intervals now drive the existing client-local highland fog according to FogIntensity, including foggy calm intervals. No cloud, sky-color, or additional world-space effect was added.
+- **Networking/authority:** The server remains the sole weather writer; clients use the existing replicated FogIntensity and deterministic local biome weight. The fog actor remains transient and nonreplicated; no RPC, replicated field, save field, or gameplay behavior changed.
+- **Known limitations / remaining scope:** Cloud actors and weather-linked sky color are N/A in the current project pipeline. L04b remains blocked pending L02c/L02d; L04f-L04g remain incomplete. Rendered fog quality remains for the later environment-effects gate.
+- **Next eligible task:** Main-checkout global queue: L02d, integrate wood and bark. Within L04, L04b remains blocked by L02c/L02d; L04f is the next currently unblocked child.
+
+
+## L04d - moss and lichen signal audit - 2026-10-27
+
+- **Selected task:** L04d, checking whether existing client biome/surface signals reach suitable moss/lichen materials.
+- **Work completed:** Verified that regional generation identifies MossyMire and samples humidity, but neither is routed to a moss/lichen material input. Terrain vertex RGB carries grass/soil/rock weights and alpha carries snow coverage; humidity only contributes to the soil blend. The other generated surfaces have no biome/moss mask. Recorded L04d as N/A for generated terrain, rocks, trunks/bark, canopy, lake shore, water, and authored wood/building materials, then checked L04d complete without adding an input or material contract.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
+- **Networking/authority:** No network, save, RPC, or gameplay authority changed. Existing deterministic biome and humidity samples remain world-generation inputs and are not newly exposed to materials.
+- **Known limitations / remaining scope:** Moss/lichen variation is unsupported for all currently supported surfaces until a suitable existing client presentation signal reaches a material. L04b remains blocked by L02c/L02d; L04e-L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02c, integrate rock. Within L04, L04b remains blocked by L02c/L02d; L04e is the next currently unblocked child.
+
+
+## L04c - existing terrain snow coverage - 2026-10-27
+
+- **Selected task:** L04c, checking existing snow/biome coverage and supported surfaces.
+- **Work completed:** Verified that replicated world-generation config provides deterministic biome weights and height inputs; generated terrain computes a cold-biome/highland mask per vertex, writes it to vertex-color alpha, and the generated terrain material consumes that channel. Recorded existing terrain coverage as supported and generated rock, trunks/bark, canopy, lake shore, and water as N/A because their current materials have no snow mask. Checked L04c complete based on the existing eligible coverage and explicit unsupported-surface limits. L04b remains blocked pending L02c rock and L02d wood/bark material integration.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
+- **Networking/authority:** Clients can derive the cosmetic terrain mask from the replicated world-generation config. No RPC, replicated field, save field, or gameplay authority changed; the server-owned weather contract remains unchanged.
+- **Known limitations / remaining scope:** Terrain coverage is biome/height-driven rather than snowfall-driven. The listed non-terrain surfaces remain N/A without an existing snow signal. L04b waits on L02c/L02d; L04e-L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02a. Within L04, L04b remains blocked by L02c/L02d; L04d is the next currently unblocked child.
+
+
+## L04a - map existing weather and environment inputs - 2026-10-27
+
+- **Selected task:** L04a, mapping existing presentation inputs for the
+  explicitly requested weather/environment-effects goal.
+- **Work completed:** Traced replicated weather, local audio/fog presentation,
+  biome weights, generated-terrain vertex channels, and generated material
+  inputs. Recorded supported and unsupported combinations in the lighting plan.
+  Existing terrain snow coverage uses biome/height inputs and is not snowfall;
+  precipitation is available for future cosmetic wet response; moss/lichen has
+  no material layer, weather-driven sky color is unwired, and rain/snow/mist/
+  ember particle effects are absent.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected the referenced source and existing content
+  inventory; `git diff --check` passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code,
+  material asset, or visual behavior changed.
+- **Networking/authority:** Weather inputs remain server-owned and replicated.
+  The existing mountain fog and rain/wind audio are local presentation; no RPC,
+  replicated state, save, or gameplay authority changed.
+- **Known limitations / remaining scope:** Wet material response remains for
+  L04b. Snow coverage already applies only to generated terrain; other surfaces
+  lack a snow mask. Moss/lichen material layers and weather-linked sky color
+  remain unwired. No world-space weather particles are available to tune.
+  L04b-L04g remain unchecked.
+- **Next eligible task:** L01a remains the first incomplete child in this
+  master-based worktree's ordered global backlog; within the requested L04
+  track, L04b is next after material support is available.
+
+
 ## L02g final material-family gate — 2026-10-27
 
 - **Selected task:** L02g, milestone-final verification of the integrated L02
