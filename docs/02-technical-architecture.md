@@ -2775,7 +2775,10 @@ continuous Thunder Mountains weight at the owning pawn. It adds no replicated
 actor, field or RPC, and no gameplay effect; Tundra snow and player-cloth
 material behavior are unchanged.
 Generated Meadow rock bases use the shared final terrain height and surface
-normal; the terrain patch remains their gameplay surface.
+normal with `MI_GeneratedRock`; geometry, vertex colors and roughness stay
+within their generated presentation contract. The player model and campfire
+ring retain `M_GeneratedRock`. The terrain patch remains their gameplay
+surface.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered

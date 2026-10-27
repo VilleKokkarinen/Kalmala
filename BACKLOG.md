@@ -1138,8 +1138,12 @@ do not mark the lighting milestone complete before it passes.
     with the former base tint and roughness preserved. Confirm procedural
     material references load and the biome-debug override remains after normal
     terrain assignment.
-  - [ ] **L02c — Integrate rock.** Assign the opaque lit parent to generated
-    rocks and verify visible shape, roughness, and baseline material separation.
+  - [x] **L02c — Integrate rock.** Assign `MI_GeneratedRock`, an instance of
+    the shared opaque lit parent, only to generated Meadow rocks. Keep roughness
+    at 0.95 and compensate their existing vertex-color mean to retain the prior
+    rock palette while exposing its subtle facet variation. Preserve the mesh
+    geometry/normals and the existing player/campfire material assignments;
+    source and asset checks passed, with rendered comparison remaining for L02g.
   - [ ] **L02d — Integrate wood and bark.** Assign appropriate instances to
     generated trunks and authored wood without creating material graphs at runtime.
   - [ ] **L02e — Add the foliage family.** Use a separate masked/two-sided canopy

@@ -731,9 +731,15 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
         FLinearColor(0.30f / 0.48f, 0.46f / 0.70f, 0.35f / 0.67f), 0.78f);
     const bool bRockCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedRock"), TerrainRockColor, 0.95f);
+    // Tint the original Meadow rock vertex-color mean back to the previous flat TerrainRockColor.
+    const bool bRockInstanceCreated = CreateMaterialInstance(
+        TEXT("/Game/Kalmala/World/Materials/MI_GeneratedRock"),
+        TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
+        FLinearColor(0.9032258f, 0.9137931f, 0.9044944f), 0.95f);
     const bool bBarkCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark"), FLinearColor(0.20f, 0.13f, 0.09f), 0.88f);
     const bool bCanopyCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy"), FLinearColor(0.12f, 0.30f, 0.14f), 0.82f);
     const bool bBiomeDebugTerrainCreated = CreateVertexColorMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrainBiomeDebug"));
     return bSurfaceBaseCreated && bTerrainCreated && bTerrainInstanceCreated && bLakeShoreInstanceCreated
-        && bSoilCreated && bWaterCreated && bRockCreated && bBarkCreated && bCanopyCreated && bBiomeDebugTerrainCreated ? 0 : 1;
+        && bSoilCreated && bWaterCreated && bRockCreated && bRockInstanceCreated
+        && bBarkCreated && bCanopyCreated && bBiomeDebugTerrainCreated ? 0 : 1;
 }

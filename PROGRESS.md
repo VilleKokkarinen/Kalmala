@@ -1,3 +1,37 @@
+## L02c generated rock integration — 2026-10-27
+
+- **Selected task:** L02c, integrate the generated rock surface.
+- **Work completed:** Generated `MI_GeneratedRock` from the shared
+  `M_KalmalaSurfaceBase` parent and assigned it only to the deterministic
+  `MeadowRocks` procedural component. Its tint compensates the existing
+  side/apex vertex-color mean to retain the prior `TerrainRockColor`; roughness
+  remains 0.95. Rock mesh geometry, normals, UVs, and colors are unchanged.
+  Player model and campfire continue to use `M_GeneratedRock`.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Content/Kalmala/World/Materials/MI_GeneratedRock.uasset`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  build passed and compiled both changed C++ files. The material commandlet
+  generated `MI_GeneratedRock` with 0 errors; its repeat run loaded the
+  instance and reported 0 errors plus the known unrelated invalid ocean-skiff
+  material-slot warning. The first generation also logged the not-yet-created
+  rock-instance reference during startup. `Scripts/Tests/Presentation/PresentationOwnership.ps1`
+  passed for 11 assets and 33 source seams; `git diff --check` passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials completion checks remain for L06.
+- **Observable impact:** Generated Meadow rocks receive lit, rough surfaces
+  with their established mean palette and original vertex-driven facet
+  contrast. Player and campfire rock appearances keep their original material.
+- **Networking/authority:** Cosmetic material assignment only; no gameplay,
+  authority, replication, geometry, or save behavior changed.
+- **Known limitations / remaining scope:** No rendered review was run, so
+  actual lighting response and distance separation remain for L02g. Material
+  noise appearance and GPU cost are not measured. L02d–L02g remain.
+- **Next eligible task:** L02d — integrate generated wood and bark.
+
 ## L02b terrain and shore integration — 2026-10-27
 
 - **Selected task:** L02b, integrate generated terrain and shore.

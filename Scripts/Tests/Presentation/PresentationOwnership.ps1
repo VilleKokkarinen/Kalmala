@@ -37,6 +37,7 @@ $requiredAssets = @(
     'Content\Kalmala\World\Materials\M_GeneratedSoil.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedTerrain.uasset',
     'Content\Kalmala\World\Materials\MI_GeneratedTerrain.uasset',
+    'Content\Kalmala\World\Materials\MI_GeneratedRock.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedTerrainBiomeDebug.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedWater.uasset'
 )
@@ -55,8 +56,8 @@ $sourceContracts = @(
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },
     @{ Label = 'player'; Path = 'Source\KalmalaGameplay\Private\KalmalaPlayerModelComponent.cpp'; Patterns = @('M_GeneratedTerrain', 'bTapered', 'CreateMeshSection_LinearColor') },
     @{ Label = 'wildlife'; Path = 'Source\KalmalaGameplay\Private\KalmalaWildlifeSpawn.cpp'; Patterns = @('BuildArchetypePresentation', 'Original low-poly silhouettes', 'CreateMeshSection_LinearColor') },
-    @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'M_GeneratedTerrainBiomeDebug', 'FKalmalaTerrainGroundBlend::SampleWeights', 'M_GeneratedWater', 'M_GeneratedCanopy') },
-    @{ Label = 'terrain-ground-materials'; Path = 'Source\KalmalaEditor\Private\CreateWorldMaterialsCommandlet.cpp'; Patterns = @('CreateTerrainGroundBlendMaterial', 'CreateMaterialInstance', 'MF_KalmalaSurfaceResponse', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'M_GeneratedSoil', 'TerrainSoilColor', 'UMaterialExpressionVertexColor') },
+    @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'MI_GeneratedRock', 'M_GeneratedTerrainBiomeDebug', 'FKalmalaTerrainGroundBlend::SampleWeights', 'M_GeneratedWater', 'M_GeneratedCanopy') },
+    @{ Label = 'terrain-ground-materials'; Path = 'Source\KalmalaEditor\Private\CreateWorldMaterialsCommandlet.cpp'; Patterns = @('CreateTerrainGroundBlendMaterial', 'CreateMaterialInstance', 'MF_KalmalaSurfaceResponse', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'MI_GeneratedRock', 'M_GeneratedSoil', 'TerrainSoilColor', 'UMaterialExpressionVertexColor') },
     @{ Label = 'hearth'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('Original low polygon stone ring', 'M_GeneratedRock', 'CreateMeshSection_LinearColor') },
     @{ Label = 'campfire-refuel-interaction'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, Costs, Reason)', 'FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem', 'TryRefuelFromServer(Interactor)', 'bool AKalmalaCampfire::TryLightFromServer') },
     @{ Label = 'campfire-refuel-prompt'; Path = 'Source\KalmalaUI\Private\KalmalaCraftingSubsystem.cpp'; Patterns = @('OutDescription.ActionName = TEXT("Add fuel")', 'TEXT("Fuel full")', 'TEXT("No raw fuel")', 'FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, FuelCost, FuelReason)') },

@@ -246,7 +246,7 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     MeadowTreeCanopies->SetGenerateOverlapEvents(false);
     MeadowTreeCanopies->SetCastShadow(true);
 
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> RockMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedRock.M_GeneratedRock"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> RockMaterial(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedRock.MI_GeneratedRock"));
     if (RockMaterial.Succeeded())
     {
         MeadowRocks->SetMaterial(0, RockMaterial.Object);
