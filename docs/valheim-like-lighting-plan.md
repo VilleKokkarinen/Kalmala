@@ -1144,7 +1144,13 @@ while High applies quality level 3 to those groups only. The previous GI and
 reflection quality values are restored when returning to Compatibility. Since
 the Epic GI group enables Hit Lighting, the profile reapplies
 `r.Lumen.HardwareRayTracing.HitLighting.Allowed=0` after scalability. Ray-traced
-shadows remain disabled pending a rendered comparison at L06c.
+shadows remain disabled pending a rendered comparison at L06c. The
+project sets `r.RayTracing=1` to permit dynamic RT, enables
+`r.RayTracing.EnableOnDemand=1`, compiles the required skin-cache shaders, and
+starts with `r.RayTracing.Enable=0`, allowing local profiles to turn RT on while
+preserving Compatibility as the default. The
+`Kalmala.Rendering.RayTracing.QualityProfiles` test guards project support,
+on-demand and skin-cache settings, and RT-off startup.
 
 L05d's generated-geometry inspection found that Meadow tree trunks and canopies
 are each consolidated into one `UProceduralMeshComponent` per generated patch.
@@ -1210,10 +1216,10 @@ are unchanged. The capture runner's isolated `-UserDir` keeps each requested
 profile out of the user's normal settings.
 
 This adds the repeatable capture control. L06b supplied the integrated Editor
-build, and L05e2a has now measured the Compatibility tier on the selected RTX
-5090 reference PC. Balanced and High captures remain in L05e2b/c. Lower-tier
-and AMD hardware coverage remains pending selection; no release hardware floor
-is inferred from the reference-PC measurements.
+build. L05e2a Compatibility and L05e2b Balanced have now been measured on the
+selected RTX 5090 reference PC; High remains in L05e2c. Lower-tier and AMD
+hardware coverage remains pending selection, and no release hardware floor is
+inferred from these reference-PC measurements.
 
 ### L05e2a — Compatibility reference capture (2026-10-27)
 
@@ -1271,8 +1277,65 @@ review it. Several fixed views include broad black distant-horizon/empty-sky
 areas, and seed-419 ForestShade faces mostly open water rather than dense
 foliage. These are composition limitations to keep in mind during integrated
 visual review, not a visual-acceptance result. No temporal pass threshold is
-defined. Only Compatibility is measured here; Balanced, High, and lower-tier/
-AMD hardware remain open, and no release floor is claimed.
+defined. This subsection records only Compatibility; Balanced is documented in L05e2b.
+High and lower-tier/AMD hardware remain open, and no release floor is claimed.
+
+### L05e2b — Balanced reference capture (2026-10-27)
+
+The integrated UE 5.8.2 Editor mirror at `C:\Users\Ville\AppData\Local\Temp\k06b`
+captured the ten seed-418/419 fixed views with
+`Scripts/Tests/World/BiomeBaselineCapture.ps1`. Each view explicitly requested
+`-RayTracingQuality Balanced`, 120 GPUTime samples, eight temporal frames at
+0.5-second intervals, and 1024x768 output. The capture reports output
+dimensions but not separate internal render resolution. The RTX 5090 reported
+driver 610.88 and 32,607 MiB device VRAM. The capture records Unreal
+physical/virtual/shader memory, plus roughly once-per-second `nvidia-smi`
+temperature, utilization, device-used VRAM, and board-power telemetry. These are
+editor reference-PC measurements, not release hardware floors.
+
+Profile logs were checked for effective runtime state, not only the selector's
+success marker. At startup, Compatibility had `r.RayTracing.Enable=0` and
+`r.Lumen.HardwareRayTracing=0`; its post-profile query remained
+`0/0/0` for ray tracing enable, Lumen hardware ray tracing, and
+`IsRayTracingEnabled`. The Balanced smoke and all ten Balanced view logs
+reported effective `1/1/1` for those values. The 120-sample GPUTime rows are
+positive in every raw CSV; all 80 base/temporal PNGs are 1024x768. Full evidence
+is preserved in `TestResults/L05e2/Balanced/`; it includes ten base screenshots,
+three selected OvercastRain temporal frames, ten raw GPU CSVs, and GPU, device
+telemetry, and temporal summary CSVs. The temporal metric is whole-frame RGB
+difference sampled every 16 pixels, not a defined pass threshold.
+
+| Seed | View | Mean GPUTime ms | Min–max GPUTime ms | Peak device-used VRAM MiB | Mean temporal RGB delta | Max adjacent delta |
+|---:|---|---:|---:|---:|---:|---:|
+| 418 | MeadowsDaylight | 1.2812 | 1.1758–1.6816 | 4,339 | 0.2652 | 0.2850 |
+| 418 | ForestShade | 1.3797 | 1.2406–1.7213 | 4,381 | 0.3765 | 0.3957 |
+| 418 | OpenWater | 1.3140 | 1.2293–1.6700 | 4,268 | 0.2193 | 0.2423 |
+| 418 | OvercastRain | 1.2646 | 1.1776–1.5656 | 4,412 | 0.2735 | 0.4389 |
+| 418 | FireDusk | 1.3287 | 1.1906–1.5546 | 4,334 | 0.2360 | 0.2535 |
+| 419 | MeadowsDaylight | 1.3456 | 1.2379–1.7079 | 4,288 | 0.2614 | 0.2984 |
+| 419 | ForestShade | 1.3182 | 1.2036–1.7421 | 4,268 | 0.2520 | 0.2604 |
+| 419 | OpenWater | 1.3402 | 1.2138–1.6554 | 4,268 | 0.2716 | 0.2918 |
+| 419 | OvercastRain | 1.3326 | 1.2082–1.5798 | 4,335 | 0.2173 | 0.2798 |
+| 419 | FireDusk | 1.3456 | 1.2426–1.7717 | 4,278 | 0.1935 | 0.2110 |
+
+Across the views, mean GPUTime ranged from 1.2646–1.3797 ms and individual
+samples from 1.1758–1.7717 ms. Device-used VRAM was 3,101–3,246 MiB before
+capture, 3,829.37–3,942.40 MiB mean during capture, and 4,268–4,412 MiB peak.
+Unreal mean physical usage ranged from 2,713.39–2,776.82 MB; peak physical
+usage was 2,715.90–2,777.54 MB, minimum free memory was 5,522.62–6,284.76 MB,
+and peak virtual usage was 3,895.62–4,020.41 MB. Per-view telemetry, including
+sample counts, temperature, utilization, and power, remains in the evidence
+CSVs.
+
+Visual comparison against the Compatibility captures showed the clearest
+Balanced change in seed-418 ForestShade tree shadows and trunk shading; most
+other base frames looked similar or subtly different. Seed-419 ForestShade's
+anchor is open-water/horizon-like rather than dense forest, as in Compatibility.
+Tiny silhouettes in seed-418 OvercastRain T06/T07 also appear in Compatibility;
+they are not attributed to the Balanced profile. Retain these views for L06c
+review; this is measurement evidence and does not claim visual acceptance.
+High, lower-tier/AMD hardware selection, L06c acceptance, and L06e verification
+remain pending.
 
 ## Acceptance checks
 

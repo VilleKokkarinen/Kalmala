@@ -2,6 +2,7 @@
 
 #include "KalmalaRayTracingSupport.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/ConfigCacheIni.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRayTracingSupportTest,
     "Kalmala.Rendering.RayTracing.UnsupportedAdaptersUseCompatibility",
@@ -70,6 +71,39 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaRayTracingQualityProfileTest,
 bool FKalmalaRayTracingQualityProfileTest::RunTest(const FString& Parameters)
 {
     using namespace KalmalaRendering;
+
+    int32 ProjectRayTracing = 0;
+    const bool bHasProjectRayTracing = GConfig != nullptr
+        && GConfig->GetInt(TEXT("SystemSettings"), TEXT("r.RayTracing"),
+            ProjectRayTracing, GEngineIni);
+    TestTrue(TEXT("Project ray tracing support is enabled for on-demand local profiles."),
+        bHasProjectRayTracing);
+    TestEqual(TEXT("Project ray tracing support remains available while Compatibility starts inactive."),
+        ProjectRayTracing, 1);
+
+    int32 SkinCacheCompileShaders = 0;
+    const bool bHasSkinCacheCompileShaders = GConfig != nullptr
+        && GConfig->GetInt(TEXT("SystemSettings"), TEXT("r.SkinCache.CompileShaders"),
+            SkinCacheCompileShaders, GEngineIni);
+    TestTrue(TEXT("Project compiles the skin-cache shaders required by runtime ray tracing."),
+        bHasSkinCacheCompileShaders);
+    TestTrue(TEXT("Runtime ray tracing has the required skin-cache shader support."),
+        SkinCacheCompileShaders >= 1);
+
+    int32 RayTracingOnDemand = 0;
+    const bool bHasRayTracingOnDemand = GConfig != nullptr
+        && GConfig->GetInt(TEXT("SystemSettings"), TEXT("r.RayTracing.EnableOnDemand"),
+            RayTracingOnDemand, GEngineIni);
+    TestTrue(TEXT("Project config enables on-demand ray tracing so local profiles can toggle it."),
+        bHasRayTracingOnDemand);
+    TestEqual(TEXT("On-demand ray tracing is enabled for the runtime profile selector."), RayTracingOnDemand, 1);
+
+    int32 DefaultRayTracingEnable = 1;
+    const bool bHasDefaultRayTracingEnable = GConfig != nullptr
+        && GConfig->GetInt(TEXT("SystemSettings"), TEXT("r.RayTracing.Enable"),
+            DefaultRayTracingEnable, GEngineIni);
+    TestTrue(TEXT("Project config defines the startup ray-tracing state."), bHasDefaultRayTracingEnable);
+    TestEqual(TEXT("Compatibility remains the RT-off startup profile."), DefaultRayTracingEnable, 0);
 
     const FRayTracingQualityProfile Compatibility =
         GetRayTracingQualityProfile(ERayTracingQualityLevel::Compatibility);

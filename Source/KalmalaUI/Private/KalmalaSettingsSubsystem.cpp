@@ -15,6 +15,9 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaRayTracingSupport.h"
+#include "HAL/IConsoleManager.h"
+#include "RenderUtils.h"
+#include "RHI.h"
 #include "KalmalaUITheme.h"
 #include "KalmalaInventoryMenuSubsystem.h"
 #include "KalmalaWorldMapSubsystem.h"
@@ -112,6 +115,15 @@ void UKalmalaSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         else
         {
             UE_LOG(LogTemp, Display, TEXT("L05 GPU profile applied: Quality=%s."), *BaselineRayTracingQuality);
+            IConsoleVariable* RayTracingEnable = IConsoleManager::Get().FindConsoleVariable(TEXT("r.RayTracing.Enable"));
+            IConsoleVariable* LumenHardwareRayTracing = IConsoleManager::Get().FindConsoleVariable(TEXT("r.Lumen.HardwareRayTracing"));
+            const int32 EffectiveRayTracingEnable = RayTracingEnable != nullptr ? RayTracingEnable->GetInt() : -1;
+            const int32 EffectiveLumenHardwareRayTracing = LumenHardwareRayTracing != nullptr ? LumenHardwareRayTracing->GetInt() : -1;
+            const bool bHardwareRayTracingPathEnabled = IsRayTracingEnabled(GMaxRHIShaderPlatform);
+            UE_LOG(LogTemp, Display,
+                TEXT("L05 GPU profile effective state: Quality=%s r.RayTracing.Enable=%d r.Lumen.HardwareRayTracing=%d IsRayTracingEnabled=%d."),
+                *BaselineRayTracingQuality, EffectiveRayTracingEnable, EffectiveLumenHardwareRayTracing,
+                bHardwareRayTracingPathEnabled ? 1 : 0);
         }
     }
 

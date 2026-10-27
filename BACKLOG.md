@@ -248,7 +248,7 @@ do not mark the lighting milestone complete before it passes.
         views at 1024x768 with 120 GPUTime samples and eight temporal frames at
         0.5-second intervals. Record RTX 5090 memory telemetry and inspected
         scene/artifact notes. See the L05e2a plan entry and preserved evidence.
-      - [ ] **L05e2b — Capture Balanced tier.** Repeat all ten fixed views and
+      - [x] **L05e2b — Capture Balanced tier.** Repeat all ten fixed views and
         the same GPU-time, temporal, resolution, memory, and visual recording
         for Balanced on the RTX 5090.
       - [ ] **L05e2c — Capture High tier.** Repeat all ten fixed views and the

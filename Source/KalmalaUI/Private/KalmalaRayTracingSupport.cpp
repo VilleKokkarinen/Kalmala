@@ -69,6 +69,12 @@ namespace
         }
         return true;
     }
+
+    bool IsHardwareRayTracingProjectAvailable()
+    {
+        return IsRayTracingAllowed() && IsRayTracingEnableOnDemandSupported();
+    }
+
 }
 
 namespace KalmalaRendering
@@ -93,7 +99,7 @@ namespace KalmalaRendering
         }
 
         const auto ShaderPlatform = GMaxRHIShaderPlatform;
-        Capabilities.bProjectAllowsHardwareRayTracing = IsRayTracingAllowed();
+        Capabilities.bProjectAllowsHardwareRayTracing = IsHardwareRayTracingProjectAvailable();
         Capabilities.bShaderPlatformSupportsSm6 = IsFeatureLevelSupported(ShaderPlatform, ERHIFeatureLevel::SM6);
         Capabilities.bShaderPlatformSupportsRayTracing = RHISupportsRayTracing(ShaderPlatform);
         Capabilities.bShaderPlatformSupportsRayTracingShaders = RHISupportsRayTracingShaders(ShaderPlatform);
