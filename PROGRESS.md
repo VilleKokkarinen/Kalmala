@@ -25,9 +25,9 @@
   lower-tier hardware selected for release; include AMD if it is in scope. The
   current worktree has no built Editor, and no lower-tier/AMD system was
   identified or available. No minimum/recommended GPU claim is supported.
-- **Main-checkout handoff:** Deferred while other Kalmala worktrees are active;
-  only backlog/progress state will be reconciled after their edits are safe to
-  preserve.
+- **Main-checkout handoff:** Synced this branch's L05 backlog/progress status
+  into `E:\dev\Kalmala\` while preserving its existing unrelated working
+  changes; no implementation files were synchronized.
 - **Next eligible task:** L05e, once target-device access and profile captures
   are available.
 
