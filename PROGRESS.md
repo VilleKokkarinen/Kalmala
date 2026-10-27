@@ -1,3 +1,49 @@
+## L02d generated wood and bark integration — 2026-10-27
+
+- **Selected task:** L02d, integrate generated trunks and authored wood.
+- **Work completed:** Generated `MI_GeneratedBark` from the shared
+  `M_KalmalaSurfaceBase` parent with a white tint and 0.88 roughness. Assigned
+  it to the Meadow patch trunks and tree-resource harvest meshes so their
+  existing birch, aspen, leaf, and cut-face vertex colors become visible.
+  Generated `MI_GeneratedWood` from the same parent with the former bark tint
+  and 0.88 roughness; assigned it to held-tool shafts and the wooden club/bow
+  pieces. The player head, non-tree gatherables, and non-wood tool heads keep
+  the legacy flat bark material. Geometry, vertex colors, collision, and
+  gameplay behavior are unchanged; no runtime material graph was added.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`,
+  `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaPlayerModelComponent.h`,
+  `Content/Kalmala/World/Materials/MI_GeneratedBark.uasset`,
+  `Content/Kalmala/World/Materials/MI_GeneratedWood.uasset`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  builds passed in the short temporary mirror (26 actions for bark integration,
+  then a 13-action final rebuild for held-tool wood). `CreateWorldMaterials`
+  generated both instances; repeat runs loaded both with 0 errors and 1 known,
+  unrelated ocean-skiff invalid material-slot warning. The first-generation
+  startup reported the expected missing-instance CDO references before each
+  new asset was created; repeat runs had no bark/wood reference errors.
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1` passed for 13 project
+  assets and 34 source seams; `git diff --check` passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials checks remain for L06.
+- **Observable impact:** Generated tree bark receives a lit rough response and
+  reveals its existing birch/aspen/cut-face palette. Held-tool shafts and
+  club/bow wood now use a brown-tinted lit response with broad world variation;
+  several shafts formerly used the dark rock material.
+- **Networking/authority:** Cosmetic material assignment only; no gameplay,
+  authority, replication, collision, or save behavior changed.
+- **Known limitations / remaining scope:** No rendered review was run, so
+  lighting response, noise quality and GPU cost remain unmeasured. Canopy and
+  water integration, temporal shimmer checks, and cross-family rendered review
+  remain for L02e–L02g.
+- **Next eligible task:** L02e — add the foliage family.
+
 ## L02c generated rock integration — 2026-10-27
 
 - **Selected task:** L02c, integrate the generated rock surface.

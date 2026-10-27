@@ -137,6 +137,9 @@ private:
     TObjectPtr<UMaterialInterface> BarkMaterial;
 
     UPROPERTY(Transient)
+    TObjectPtr<UMaterialInterface> TreeBarkMaterial;
+
+    UPROPERTY(Transient)
     TObjectPtr<UMaterialInterface> RockMaterial;
 
     UFUNCTION()

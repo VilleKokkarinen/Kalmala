@@ -18,9 +18,11 @@ UKalmalaPlayerModelComponent::UKalmalaPlayerModelComponent()
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> Cloth(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain.M_GeneratedTerrain"));
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> Head(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark.M_GeneratedBark"));
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> Dark(TEXT("/Game/Kalmala/World/Materials/M_GeneratedRock.M_GeneratedRock"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> Wood(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedWood.MI_GeneratedWood"));
     ClothMaterial = Cloth.Object;
     HeadMaterial = Head.Object;
     DarkMaterial = Dark.Object;
+    WoodMaterial = Wood.Object;
 }
 
 UProceduralMeshComponent* UKalmalaPlayerModelComponent::AddPart(const FName Name, const FVector Pivot,
@@ -315,7 +317,7 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
 {
     if (HeldToolParts.Num() != 3) return;
     for (UProceduralMeshComponent* Part : HeldToolParts) Part->SetVisibility(false);
-    HeldToolParts[0]->SetMaterial(0, DarkMaterial);
+    HeldToolParts[0]->SetMaterial(0, WoodMaterial ? WoodMaterial.Get() : DarkMaterial.Get());
     HeldToolParts[1]->SetMaterial(0, HeadMaterial);
     HeldToolParts[2]->SetMaterial(0, HeadMaterial);
     // Author silhouettes in their existing tool space, then rotate the whole tool
@@ -356,7 +358,8 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
         Show(0, FVector(8, 0, -45), FVector(2, 2, 16));
         Show(1, FVector(8, 0, -26), FVector(7, 7, 7)); break;
     case EKalmalaHeldToolVisual::Club:
-        HeldToolParts[0]->SetMaterial(0, HeadMaterial);
+        HeldToolParts[0]->SetMaterial(0, WoodMaterial ? WoodMaterial.Get() : HeadMaterial.Get());
+        HeldToolParts[1]->SetMaterial(0, WoodMaterial ? WoodMaterial.Get() : HeadMaterial.Get());
         Show(0, FVector(8, 0, -43), FVector(2.5f, 2.5f, 14));
         Show(1, FVector(8, 0, -25), FVector(5, 5, 9)); break;
     case EKalmalaHeldToolVisual::Sword:
@@ -364,6 +367,8 @@ void UKalmalaPlayerModelComponent::OnRep_HeldToolVisual()
         Show(1, FVector(8, 0, 3), FVector(3.2f, 1.2f, 21));
         Show(2, FVector(8, 0, -19), FVector(8, 1.5f, 2)); break;
     case EKalmalaHeldToolVisual::Bow:
+        HeldToolParts[0]->SetMaterial(0, WoodMaterial ? WoodMaterial.Get() : DarkMaterial.Get());
+        HeldToolParts[1]->SetMaterial(0, WoodMaterial ? WoodMaterial.Get() : HeadMaterial.Get());
         Show(0, FVector(12, 0, -25), FVector(2, 2, 20), FRotator(18, 0, 0));
         Show(1, FVector(12, 0, -63), FVector(2, 2, 20), FRotator(-18, 0, 0));
         Show(2, FVector(6, 0, -44), FVector(0.5f, 0.5f, 38)); break;

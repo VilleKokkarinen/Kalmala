@@ -1144,8 +1144,14 @@ do not mark the lighting milestone complete before it passes.
     rock palette while exposing its subtle facet variation. Preserve the mesh
     geometry/normals and the existing player/campfire material assignments;
     source and asset checks passed, with rendered comparison remaining for L02g.
-  - [ ] **L02d — Integrate wood and bark.** Assign appropriate instances to
-    generated trunks and authored wood without creating material graphs at runtime.
+  - [x] **L02d — Integrate wood and bark.** Generate `MI_GeneratedBark` and
+    `MI_GeneratedWood` from the shared lit parent without runtime graph creation.
+    Assign the white-tinted bark instance to generated Meadow trunks and tree
+    harvest meshes to preserve their species/cut-face vertex colors; assign the
+    brown-tinted wood instance to authored held-tool shafts and club/bow pieces.
+    Keep the player head, non-tree gatherables, and non-wood tool heads on the
+    legacy material. Build, instance-load and presentation-ownership checks
+    passed; rendered response remains for L02g.
   - [ ] **L02e — Add the foliage family.** Use a separate masked/two-sided canopy
     parent where required; inspect edge aliasing and temporal shimmer in forest
     shade and daylight.

@@ -252,7 +252,7 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
         MeadowRocks->SetMaterial(0, RockMaterial.Object);
     }
 
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> BarkMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark.M_GeneratedBark"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> BarkMaterial(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedBark.MI_GeneratedBark"));
     if (BarkMaterial.Succeeded())
     {
         MeadowTreeTrunks->SetMaterial(0, BarkMaterial.Object);

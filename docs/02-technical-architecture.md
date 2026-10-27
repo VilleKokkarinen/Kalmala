@@ -2779,6 +2779,14 @@ normal with `MI_GeneratedRock`; geometry, vertex colors and roughness stay
 within their generated presentation contract. The player model and campfire
 ring retain `M_GeneratedRock`. The terrain patch remains their gameplay
 surface.
+Generated Meadow trunks and forest tree-resource meshes use `MI_GeneratedBark`
+from the same shared surface parent at roughness 0.88. Their existing vertex
+colors distinguish birch bark, pale aspen bark, foliage and exposed cut faces;
+the instance's white tint preserves those authoring values. Non-tree gatherable
+meshes and the player head retain the legacy flat `M_GeneratedBark` assignment.
+Authored held-tool wood uses `MI_GeneratedWood` from the shared parent at
+roughness 0.88 with its previous brown tint. Material assignment is cosmetic
+and does not change harvest authority or collision.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered
