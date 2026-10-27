@@ -123,7 +123,7 @@ do not mark the lighting milestone complete before it passes.
     choice. Any change to the game's overall visual identity requires explicit
     user review before broad adoption.
 
-- [ ] **L04 — Add supported weather and environment effects.** Use only existing
+- [x] **L04 — Add supported weather and environment effects.** Use only existing
   client presentation signals and effects; keep this cosmetic, gradual, and
   outside gameplay, save, RPC, and replicated-state contracts.
   - [x] **L04a — Map existing weather inputs.** Trace currently available
@@ -147,9 +147,10 @@ do not mark the lighting milestone complete before it passes.
   - [x] **L04f — Tune existing world-space weather effects.** Adjust available
     rain, snow, mist, or ember particles and keep them out of key sight lines.
     Add no full-screen droplets or overlays.
-  - [ ] **L04g — Pass the environment-effects gate.** Review daylight, rain,
+  - [x] **L04g — Pass the environment-effects gate.** Review daylight, rain,
     overcast, and fire-lit captures and transitions; confirm no popping,
-    excessive visual noise, or gameplay/simulation change.
+    excessive visual noise, or gameplay/simulation change. See the L04g review
+    record in the lighting plan.
 
 - [ ] **L05 — Add scalable hardware ray-tracing quality levels.** Use the RT-off
   baseline, Lumen hardware ray tracing for supported Windows DX12/SM6 devices,

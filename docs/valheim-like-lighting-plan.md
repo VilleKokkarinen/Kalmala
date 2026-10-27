@@ -652,6 +652,53 @@ All L04f world-space particle combinations are N/A because there is no existing 
 
 Source anchors: KalmalaAmbientAudioSubsystem.cpp, KalmalaWeatherActivitySubsystem.cpp, KalmalaTerrainGroundBlend.h, KalmalaGeneratedTerrainPatch.cpp, CreateWorldMaterialsCommandlet.cpp, and the current Content asset inventory.
 
+#### L04g — Environment-effects visual gate review (2026-10-27; complete)
+
+The fixed L01h captures predate L04b and could not verify the wet-material
+response, so the non-Shipping baseline fixture was extended with Dry,
+RainOnly, OvercastOnly, and WeatherTransition conditions. OvercastRain and
+FireDusk remain available. The close MeadowsWetSurface label selects the same
+deterministic camera pose for comparing dry and wet generated surfaces.
+WeatherTransition records four paths in one run: _OnsetStart.png, _OnsetEnd.png,
+_ReleaseStart.png, and _ReleaseEnd.png. It starts from a dry state, applies
+precipitation/fog after the dry-start frame, then clears weather after the
+wet-onset frame. All fixture behavior is guarded by the non-Shipping
+-KalmalaBiomeBaselineCapture option.
+
+Fresh seed-418 renders were written outside the checkout under
+C:/Users/Ville/AppData/Local/Temp/klc/TestResults/LightingBaseline/. The
+runner validated each requested image as a nonblank 1024x768 PNG and checked
+the runtime capture log. The set includes a dry daylight control and
+rain-only close-up at Meadows, a separate overcast-only frame at
+ThunderMountainsStorm, the combined overcast/rain views, a Meadows fire-lit
+frame, and onset/release sequences at both Meadow wet-surface and highland
+weather views.
+
+Visual review found the rain response subtle at the planned maximum of 8%
+linear base-color darkening and 0.12 roughness reduction. It is visible in the
+same-camera dry/wet close-up without excessive texture noise or silhouette
+change. Capture diagnostics show the local material response rising from 0.00
+to 0.75, then fading to 0.05 by the release-end frame. At ThunderMountainsStorm,
+the fog target reaches 0.71; current coverage advances in smooth increments to
+0.65 and releases to 0.05 before the final frame. The captures show no geometry
+popping or abrupt volume boundary. The fixed highland scene remains sparse with
+a broad horizon band, which limits composition review but does not prevent
+review of the local fog transition. The fire-lit frame shows warm ground spill
+around the transient hearth; the project has no modeled flame asset.
+
+The capture fixture changes only non-Shipping review behavior. Production
+weather remains server-authored through existing replicated state; the wet
+material collection and highland fog remain local cosmetic presentation. No
+gameplay simulation, save, RPC, or replicated-state contract changed. The
+missing world-space rain, snow, mist, and ember systems remain N/A per L04f.
+L04g passes for the currently supported effects; full integrated lighting
+verification remains the L06 gate.
+
+Source anchors: Scripts/Tests/World/BiomeBaselineCapture.ps1,
+KalmalaGameMode.cpp, and KalmalaWeatherActivitySubsystem.cpp. Capture
+outputs and logs remain in the temporary review folder above; they are not
+tracked runtime assets.
+
 ### 5. Tune and accept the complete look
 
 Compare smooth and banded variants on terrain, rocks, bark, canopy, creatures,

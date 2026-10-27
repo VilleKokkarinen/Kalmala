@@ -13,6 +13,8 @@
 #include "KalmalaWorldGenerationGameState.h"
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 namespace
 {
@@ -113,6 +115,20 @@ void UKalmalaWeatherActivitySubsystem::UpdateMountainWeatherFog(const float Delt
     Fog->SetStartDistance(MountainWeatherFogStartDistance);
     Fog->SetFogInscatteringColor(FLinearColor::LerpUsingHSV(
         FLinearColor::White, MountainWeatherFogColor, CurrentMountainWeatherFogCoverage));
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCapture")))
+    {
+        static int32 LastLoggedFogStep = INDEX_NONE;
+        const int32 FogStep = FMath::RoundToInt(CurrentMountainWeatherFogCoverage * 10.0f);
+        if (FogStep != LastLoggedFogStep)
+        {
+            LastLoggedFogStep = FogStep;
+            UE_LOG(LogTemp, Display,
+                TEXT("Weather presentation fog capture sample: GameTime=%.2f TargetCoverage=%.2f CurrentCoverage=%.2f."),
+                World->GetTimeSeconds(), TargetMountainWeatherFogCoverage, CurrentMountainWeatherFogCoverage);
+        }
+    }
+#endif
 
     if (TargetMountainWeatherFogCoverage <= MountainWeatherFogReleaseThreshold
         && CurrentMountainWeatherFogCoverage <= MountainWeatherFogReleaseThreshold)
@@ -143,13 +159,14 @@ void UKalmalaWeatherActivitySubsystem::UpdateWeatherMaterialResponse(const float
     if (Parameters == nullptr) return;
 
     float TargetResponse = 0.0f;
+    bool bWeatherIntervalActive = false;
     const AKalmalaWorldGenerationGameState* GameState =
         World->GetGameState<AKalmalaWorldGenerationGameState>();
     if (GameState != nullptr)
     {
         const FKalmalaWeatherState& Weather = GameState->GetWeatherState();
         const double ServerTime = GameState->GetServerWorldTimeSeconds();
-        const bool bWeatherIntervalActive = Weather.IsValid() && FMath::IsFinite(ServerTime)
+        bWeatherIntervalActive = Weather.IsValid() && FMath::IsFinite(ServerTime)
             && ServerTime >= Weather.ServerStartTimeSeconds
             && ServerTime < Weather.ServerStartTimeSeconds + Weather.DurationSeconds;
         if (bWeatherIntervalActive && FMath::IsFinite(Weather.PrecipitationIntensity))
@@ -161,6 +178,21 @@ void UKalmalaWeatherActivitySubsystem::UpdateWeatherMaterialResponse(const float
     CurrentWeatherMaterialResponse = FMath::FInterpTo(CurrentWeatherMaterialResponse, TargetResponse,
         FMath::Max(DeltaTime, 0.0f), WeatherMaterialResponseFadeSpeed);
     Parameters->SetScalarParameterValue(WeatherMaterialPrecipitationParameter, CurrentWeatherMaterialResponse);
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCapture")))
+    {
+        static int32 LastLoggedResponseStep = INDEX_NONE;
+        const int32 ResponseStep = FMath::RoundToInt(CurrentWeatherMaterialResponse * 10.0f);
+        if (ResponseStep != LastLoggedResponseStep)
+        {
+            LastLoggedResponseStep = ResponseStep;
+            UE_LOG(LogTemp, Display,
+                TEXT("Weather presentation capture sample: GameTime=%.2f IntervalActive=%d TargetPrecipitation=%.2f MaterialResponse=%.2f."),
+                World->GetTimeSeconds(), bWeatherIntervalActive ? 1 : 0, TargetResponse,
+                CurrentWeatherMaterialResponse);
+        }
+    }
+#endif
 }
 
 void UKalmalaWeatherActivitySubsystem::DestroyMountainWeatherFog()
