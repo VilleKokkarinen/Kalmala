@@ -1,3 +1,15 @@
+## L04d - moss and lichen signal audit - 2026-10-27
+
+- **Selected task:** L04d, checking whether existing client biome/surface signals reach suitable moss/lichen materials.
+- **Work completed:** Verified that regional generation identifies MossyMire and samples humidity, but neither is routed to a moss/lichen material input. Terrain vertex RGB carries grass/soil/rock weights and alpha carries snow coverage; humidity only contributes to the soil blend. The other generated surfaces have no biome/moss mask. Recorded L04d as N/A for generated terrain, rocks, trunks/bark, canopy, lake shore, water, and authored wood/building materials, then checked L04d complete without adding an input or material contract.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md.
+- **Lightweight checks:** Reviewed the relevant source and documentation; git diff --check passed. No tests or builds were run.
+- **Full verification:** Deferred to L06, the lighting milestone-final gate.
+- **Observable impact:** Documentation and backlog state only; no runtime code, material assignment, or visual behavior changed.
+- **Networking/authority:** No network, save, RPC, or gameplay authority changed. Existing deterministic biome and humidity samples remain world-generation inputs and are not newly exposed to materials.
+- **Known limitations / remaining scope:** Moss/lichen variation is unsupported for all currently supported surfaces until a suitable existing client presentation signal reaches a material. L04b remains blocked by L02c/L02d; L04e-L04g remain incomplete.
+- **Next eligible task:** Main-checkout global queue: L02c, integrate rock. Within L04, L04b remains blocked by L02c/L02d; L04e is the next currently unblocked child.
+
 ## L04c - existing terrain snow coverage - 2026-10-27
 
 - **Selected task:** L04c, checking existing snow/biome coverage and supported surfaces.

@@ -121,7 +121,7 @@ do not mark the lighting milestone complete before it passes.
   - [x] **L04c — Add eligible snow coverage.** Apply it only to suitable
     surfaces with an existing client snow/biome signal. Mark unsupported
     combinations N/A rather than inventing a signal.
-  - [ ] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable
+  - [x] **L04d — Add eligible moss/lichen variation.** Apply it only to suitable
     surfaces with an existing client biome/surface signal; record unsupported
     combinations as N/A in the lighting plan.
   - [ ] **L04e — Tune existing sky and atmospheric effects.** Adjust available

@@ -202,6 +202,26 @@ No existing snow/biome signal for those separate non-terrain materials was prove
 
 Source anchors: KalmalaWorldGenerationGameState.h/.cpp (replicated config), KalmalaRegionalGeneration.h, KalmalaTerrainGroundBlend.h, KalmalaGeneratedTerrainPatch.cpp, and CreateWorldMaterialsCommandlet.cpp.
 
+#### L04d — Moss and lichen support limits (source review 2026-10-27)
+
+Regional generation can identify MossyMire and sample humidity, but neither input currently reaches a moss/lichen material channel. On generated terrain, humidity is used to form the existing grass/soil/rock weights; the terrain ground-blend helper receives tundra and mountain weights for snow coverage, and packs only grass, soil, and rock weights into vertex RGB plus snow coverage into alpha. MossyMire weight is not passed to the material. The current terrain material consumes those existing channels and has no moss/lichen layer.
+
+The separate generated rock, bark/trunk, canopy, lake-shore, and water materials have no biome, humidity, or moss mask. Their current material path is constant-color/roughness or fixed presentation color, with no moss/lichen input. The bounded shared surface controls recorded above do not expose a biome mask or moss layer. Although biome and climate values are available during deterministic world generation, no suitable client presentation signal is currently routed to a moss-capable material.
+
+| Surface | L04d status | Existing support |
+| --- | --- | --- |
+| Generated terrain | N/A | Vertex RGB stores grass/soil/rock weights and alpha stores snow coverage; humidity only affects the soil blend and no MossyMire/moss channel reaches the material. |
+| Generated rocks | N/A | The generated rock material has no biome or moss mask. |
+| Generated trunks and bark | N/A | The generated bark material has no biome or moss mask; wood/bark material integration remains L02d. |
+| Generated canopy | N/A | The generated canopy material has no biome or moss mask. |
+| Generated lake shore | N/A | The lake-shore material has no biome or moss mask. |
+| Generated water | N/A | Water has no moss/lichen material input and is not a suitable moss surface. |
+| Authored wood/building surfaces | N/A | No existing client biome/surface signal reaches these materials; shared wood/bark integration remains L02d. |
+
+L04d is complete as N/A for the currently supported surface set. Do not add a moss/lichen weight, vertex channel, parameter, or material layer in this increment. Reconsider only if a suitable existing presentation input is established by a later material integration.
+
+Source anchors: KalmalaBiomeClassifier.h, KalmalaRegionalGeneration.h, KalmalaWorldFieldSampler.h, KalmalaGeneratedTerrainPatch.cpp, KalmalaTerrainGroundBlend.h, and CreateWorldMaterialsCommandlet.cpp.
+
 ### 5. Tune and accept the complete look
 
 Compare smooth and banded variants on terrain, rocks, bark, canopy, creatures,
