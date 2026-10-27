@@ -80,6 +80,41 @@ void UKalmalaSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         UE_LOG(LogTemp, Warning, TEXT("Could not apply the saved ray-tracing quality setting."));
     }
 #if !UE_BUILD_SHIPPING
+    FString BaselineRayTracingQuality;
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCapture"))
+        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineRayTracingQuality="), BaselineRayTracingQuality))
+    {
+        KalmalaRendering::ERayTracingQualityLevel BaselineQuality =
+            KalmalaRendering::ERayTracingQualityLevel::Compatibility;
+        const bool bKnownQuality = BaselineRayTracingQuality.Equals(TEXT("Compatibility"), ESearchCase::IgnoreCase)
+            || BaselineRayTracingQuality.Equals(TEXT("Balanced"), ESearchCase::IgnoreCase)
+            || BaselineRayTracingQuality.Equals(TEXT("High"), ESearchCase::IgnoreCase);
+        if (BaselineRayTracingQuality.Equals(TEXT("Balanced"), ESearchCase::IgnoreCase))
+        {
+            BaselineQuality = KalmalaRendering::ERayTracingQualityLevel::Balanced;
+        }
+        else if (BaselineRayTracingQuality.Equals(TEXT("High"), ESearchCase::IgnoreCase))
+        {
+            BaselineQuality = KalmalaRendering::ERayTracingQualityLevel::High;
+        }
+
+        if (!bKnownQuality)
+        {
+            UE_LOG(LogTemp, Error, TEXT("L05 GPU profile rejected: unsupported baseline ray-tracing quality '%s'."),
+                *BaselineRayTracingQuality);
+        }
+        else if (!KalmalaRendering::SetRayTracingQualityLevel(BaselineQuality))
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("L05 GPU profile could not apply: Quality=%s; hardware ray tracing is unavailable."),
+                *BaselineRayTracingQuality);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Display, TEXT("L05 GPU profile applied: Quality=%s."), *BaselineRayTracingQuality);
+        }
+    }
+
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaSettingsAccessibilityTest")))
     {
         UE_LOG(LogTemp, Display, TEXT("Settings accessibility subsystem initialized."));

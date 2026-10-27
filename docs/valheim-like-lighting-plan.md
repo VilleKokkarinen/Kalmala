@@ -1196,6 +1196,22 @@ No Kalmala Editor build is available in the L05 worktree or main checkout. Do
 not infer performance or a hardware floor from these observations.
 Lower-tier/AMD measurements remain future scope.
 
+### L05e1 — Capture-only quality selection (2026-10-27)
+
+`Scripts/Tests/World/BiomeBaselineCapture.ps1` accepts
+`-RayTracingQuality Compatibility|Balanced|High` and forwards it to the
+non-Shipping settings subsystem only when `-KalmalaBiomeBaselineCapture` is
+present. The override uses `SetRayTracingQualityLevel`, so Balanced and High
+still pass the existing DX12/SM6/RHI capability gate. A successful profile is
+logged explicitly; the runner rejects output without that confirmation. GPU
+CSV names use an `L05_GPU_<tier>_...` prefix and the runtime capture log records
+the requested tier. The existing L03 path and ordinary saved graphics settings
+are unchanged. The capture runner's isolated `-UserDir` keeps each requested
+profile out of the user's normal settings.
+
+This adds the repeatable capture control only. No Editor build or GPU capture
+has run yet; L05e2 remains blocked until L06b's integrated Editor build.
+
 ## Acceptance checks
 
 - Fixed-camera captures show a consistent lighting direction and readable

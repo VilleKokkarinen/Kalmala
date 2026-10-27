@@ -10219,6 +10219,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     FString ScreenshotPath;
     FString Condition = TEXT("Default");
     FString LightingVariant = TEXT("Both");
+    FString RequestedRayTracingQuality;
     float ExposureCompensationEV = 0.0f;
     float Xcm = 0.0f;
     float Ycm = 0.0f;
@@ -10240,18 +10241,24 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     }
     FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCondition="), Condition);
     FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineLightingVariant="), LightingVariant);
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineRayTracingQuality="), RequestedRayTracingQuality);
     FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineTemporalFrames="), TemporalFrameCount);
     FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineTemporalIntervalSeconds="), TemporalIntervalSeconds);
     FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineGpuFrames="), GpuCaptureFrameCount);
+    const bool bKnownRayTracingQuality = RequestedRayTracingQuality.IsEmpty()
+        || RequestedRayTracingQuality.Equals(TEXT("Compatibility"), ESearchCase::IgnoreCase)
+        || RequestedRayTracingQuality.Equals(TEXT("Balanced"), ESearchCase::IgnoreCase)
+        || RequestedRayTracingQuality.Equals(TEXT("High"), ESearchCase::IgnoreCase);
     if ((!LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase)
             && !LightingVariant.Equals(TEXT("DefaultLit"), ESearchCase::IgnoreCase)
             && !LightingVariant.Equals(TEXT("Toon"), ESearchCase::IgnoreCase))
+        || !bKnownRayTracingQuality
         || TemporalFrameCount < 1 || TemporalFrameCount > 12
         || !FMath::IsFinite(TemporalIntervalSeconds) || TemporalIntervalSeconds < 0.1f || TemporalIntervalSeconds > 2.0f
         || GpuCaptureFrameCount < 0 || GpuCaptureFrameCount > 1200)
     {
         bBiomeBaselineCaptureRequested = true;
-        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: lighting variant, temporal frame, or GPU capture arguments are invalid."));
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: lighting variant, ray-tracing quality, temporal frame, or GPU capture arguments are invalid."));
         return;
     }
     if (GpuCaptureFrameCount > 0 && !FParse::Param(FCommandLine::Get(), TEXT("csvGpuStats")))
@@ -10289,6 +10296,14 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     {
         bBiomeBaselineCaptureRequested = true;
         UE_LOG(LogTemp, Error, TEXT("L03 sky-only fill capture requires the isolated ForestShade fixture, one isolated variant frame, and no GPU profile."));
+        return;
+    }
+    if (!RequestedRayTracingQuality.IsEmpty()
+        && (bComparisonFixture || bSkyOnlyFill || !LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase)))
+    {
+        bBiomeBaselineCaptureRequested = true;
+        UE_LOG(LogTemp, Error,
+            TEXT("L05 profile capture requires the production scene without the L03 comparison or sky-only fixtures."));
         return;
     }
     bBiomeBaselineCaptureRequested = true;
@@ -10493,7 +10508,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         : 3.0f;
     TWeakObjectPtr<UWorld> CaptureWorld = GetWorld();
     const auto StartCaptureSequence = [CaptureWorld, ScreenshotPath, Site, Condition, LightingVariant,
-        TemporalFrameCount, TemporalIntervalSeconds, GpuCaptureFrameCount]()
+        RequestedRayTracingQuality, TemporalFrameCount, TemporalIntervalSeconds, GpuCaptureFrameCount]()
     {
         UWorld* World = CaptureWorld.Get();
         if (World == nullptr) return;
@@ -10502,7 +10517,9 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         {
 #if CSV_PROFILER
             const FString CsvBaseName = FPaths::MakeValidFileName(
-                FString::Printf(TEXT("L03_GPU_%s_%s_%s"), *Site, *Condition, *LightingVariant));
+                RequestedRayTracingQuality.IsEmpty()
+                    ? FString::Printf(TEXT("L03_GPU_%s_%s_%s"), *Site, *Condition, *LightingVariant)
+                    : FString::Printf(TEXT("L05_GPU_%s_%s_%s_%s"), *RequestedRayTracingQuality, *Site, *Condition, *LightingVariant));
             FCsvProfiler::Get()->BeginCapture(GpuCaptureFrameCount, FPaths::GetPath(ScreenshotPath),
                 CsvBaseName, ECsvProfilerFlags::WriteCompletionFile);
             UE_LOG(LogTemp, Display, TEXT("Biome baseline GPU CSV capture requested: Frames=%d File=%s."),
@@ -10634,8 +10651,10 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
             FTimerDelegate::CreateLambda(StartCaptureSequence), CaptureDelaySeconds, false);
     }
     UE_LOG(LogTemp, Display,
-        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s LightingVariant=%s ComparisonFixture=%s TemporalFrames=%d TemporalInterval=%.2f GpuFrames=%d XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 ExposureCompensationEV=%.2f Output=%s."),
-        WorldGenerationConfig.WorldSeed, *Site, *Condition, *LightingVariant, bComparisonFixture ? TEXT("true") : TEXT("false"),
+        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s LightingVariant=%s RayTracingQuality=%s ComparisonFixture=%s TemporalFrames=%d TemporalInterval=%.2f GpuFrames=%d XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 ExposureCompensationEV=%.2f Output=%s."),
+        WorldGenerationConfig.WorldSeed, *Site, *Condition, *LightingVariant,
+        RequestedRayTracingQuality.IsEmpty() ? TEXT("Saved") : *RequestedRayTracingQuality,
+        bComparisonFixture ? TEXT("true") : TEXT("false"),
         TemporalFrameCount, TemporalIntervalSeconds,
         GpuCaptureFrameCount, Xcm, Ycm, ViewZcm,
         *CameraLocation.ToCompactString(), *ViewTarget.ToCompactString(), SunIntensity, SkyIntensity,

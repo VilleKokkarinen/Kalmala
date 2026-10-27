@@ -10,6 +10,7 @@ param(
     [ValidateRange(1, 12)][int]$TemporalFrames = 1,
     [ValidateRange(0.1, 2.0)][double]$TemporalIntervalSeconds = 0.5,
     [ValidateRange(0, 1200)][int]$GpuCaptureFrames = 0,
+    [ValidateSet('Compatibility', 'Balanced', 'High')][string]$RayTracingQuality,
     [ValidateSet('Default', 'Dry', 'RainOnly', 'OvercastOnly', 'OvercastRain', 'WeatherTransition', 'FireDusk')][string]$Condition = 'Default',
     [Parameter(Mandatory)][double]$Xcm,
     [Parameter(Mandatory)][double]$Ycm,
@@ -45,13 +46,19 @@ if ($Condition -ne 'WeatherTransition') {
         $imagePaths += Join-Path $outputDirectory ("{0}_T{1:D2}{2}" -f [IO.Path]::GetFileNameWithoutExtension($imagePath), $frame, [IO.Path]::GetExtension($imagePath))
     }
 }
-$csvPath = Join-Path $outputDirectory ("L03_GPU_{0}_{1}_{2}.csv" -f $Site, $Condition, $LightingVariant)
+$csvName = if ([string]::IsNullOrWhiteSpace($RayTracingQuality)) {
+    "L03_GPU_{0}_{1}_{2}.csv" -f $Site, $Condition, $LightingVariant
+} else {
+    "L05_GPU_{0}_{1}_{2}_{3}.csv" -f $RayTracingQuality, $Site, $Condition, $LightingVariant
+}
+$csvPath = Join-Path $outputDirectory $csvName
 $paths = @($projectPath, $Editor, $imagePath, $logPath, $userDirectory) + $imagePaths
 if ($GpuCaptureFrames -gt 0) { $paths += $csvPath }
 foreach ($path in $paths) {
     if ($path.Length -ge 260) { throw "Path exceeds MAX_PATH: $path" }
 }
 if ($SkyOnlyFill -and (-not $ComparisonFixture -or $Site -ne 'ForestShade' -or $Condition -ne 'Default' -or $LightingVariant -eq 'Both' -or $TemporalFrames -ne 1 -or $GpuCaptureFrames -gt 0)) { throw 'SkyOnlyFill requires one isolated ForestShade comparison-fixture capture with default conditions and no GPU profile.' }
+if ($RayTracingQuality -and ($ComparisonFixture -or $SkyOnlyFill -or $LightingVariant -ne 'Both')) { throw 'RayTracingQuality requires a production-scene capture without L03 comparison fixtures.' }
 if ($Map -notmatch '^/Game/[A-Za-z0-9_/]+$') { throw "Invalid project map package: $Map" }
 if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) { throw "Project file not found: $projectPath" }
 if (-not (Test-Path -LiteralPath $Editor -PathType Leaf)) { throw "Unreal Editor not found: $Editor" }
@@ -79,6 +86,7 @@ $arguments = @(
     "-KalmalaBiomeBaselineOutput=`"$imagePath`"", "-abslog=`"$logPath`"", "-UserDir=`"$userDirectory`""
 )
 if ($EnableSubstrate) { $arguments += '-ini:Engine:[/Script/Engine.RendererSettings]:bEnableSubstrate=True' }
+if ($RayTracingQuality) { $arguments += "-KalmalaBiomeBaselineRayTracingQuality=$RayTracingQuality" }
 if ($ComparisonFixture) { $arguments += '-KalmalaBiomeBaselineComparisonFixture' }
 if ($SkyOnlyFill) { $arguments += '-KalmalaBiomeBaselineSkyOnlyFill' }
 if ($GpuCaptureFrames -gt 0) {
@@ -146,6 +154,9 @@ try {
         $captureSizes += $bytes.Length
     }
     $logText = Get-Content -LiteralPath $logPath -Raw
+    if ($RayTracingQuality -and $logText -notmatch [regex]::Escape("L05 GPU profile applied: Quality=$RayTracingQuality.")) {
+        throw "Requested L05 ray-tracing quality was not applied: $RayTracingQuality; see $logPath"
+    }
     if ($logText -notmatch 'Biome baseline rendered capture requested: Seed=' + $Seed + ' Site=' + [regex]::Escape($Site) + ' Condition=' + [regex]::Escape($Condition) + '\b') {
         throw "Runtime did not log the requested seed/site/condition capture: $logPath"
     }
@@ -183,7 +194,7 @@ try {
             QueueUnaccountedMeanMs = if ($null -ne $queueStats) { [math]::Round($queueStats.Average, 3) } else { $null }
         }
     }
-    [pscustomobject]@{ Seed = $Seed; Site = $Site; Condition = $Condition; LightingVariant = $LightingVariant; Map = $Map; Outputs = $imagePaths; CaptureBytes = $captureSizes; Gpu = $gpuSummary; Log = $logPath }
+    [pscustomobject]@{ Seed = $Seed; Site = $Site; Condition = $Condition; LightingVariant = $LightingVariant; RayTracingQuality = $RayTracingQuality; Map = $Map; Outputs = $imagePaths; CaptureBytes = $captureSizes; Gpu = $gpuSummary; Log = $logPath }
 }
 finally {
     if ($null -ne $process -and -not $process.HasExited) {

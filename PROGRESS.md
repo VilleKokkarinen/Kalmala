@@ -1,3 +1,14 @@
+## L05e1 — Capture-only quality selection — 2026-10-27
+
+- **Selected task:** L05e1, add a capture-only selector for the existing local ray-tracing quality profiles so the deferred L05e measurements can be repeated across Compatibility, Balanced, and High.
+- **Work completed:** Extended the non-Shipping baseline capture path to accept an explicit quality tier, apply it through the existing `SetRayTracingQualityLevel` capability gate only when baseline capture is enabled, require a success log before accepting the output, and label per-tier GPU CSVs with an L05 prefix. The isolated capture user directory prevents changes to ordinary saved graphics settings. Split L05e into the capture-control child and the later integrated RTX 5090 measurement child; keep L05e open.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/valheim-like-lighting-plan.md`, `Scripts/Tests/World/BiomeBaselineCapture.ps1`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, and `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`.
+- **Lightweight checks:** Reviewed the profile application order and existing capability check; confirmed UE 5.8 `-UserDir` resolves an isolated project user-settings directory; PowerShell parser validation and `git diff --check` passed. No Editor build or capture was run.
+- **Full verification:** Deferred to the lighting milestone-final gate. The reference GPU measurements remain pending the integrated Editor build; lower-tier/AMD coverage is still pending hardware selection.
+- **Observable impact:** L05e can now request a named production graphics tier repeatably in baseline captures, with explicit failure when an unsupported hardware tier cannot be applied. Existing L03 captures and normal sessions retain their prior profile behavior.
+- **Networking/authority:** Local presentation and capture tooling only. No server gameplay authority, RPCs, replicated state, save data, or simulation behavior changed.
+- **Known limitations / remaining scope:** No RTX 5090 profile measurements have been captured, so there are no frame-time, memory, image-quality, artifact, or release-hardware conclusions. L05e2 is blocked until L06b's integrated Editor build.
+- **Next eligible task:** L06a — inspect the combined lighting implementation. L05e2 remains blocked until L06b provides the integrated build.
 ## L04g — environment-effects visual gate review (2026-10-27; complete)
 
 - **Selected task:** L04g, the final unchecked child of L04.
