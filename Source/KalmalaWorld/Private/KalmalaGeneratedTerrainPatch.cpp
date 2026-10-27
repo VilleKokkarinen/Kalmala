@@ -258,7 +258,7 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
         MeadowTreeTrunks->SetMaterial(0, BarkMaterial.Object);
     }
 
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> CanopyMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy.M_GeneratedCanopy"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> CanopyMaterial(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedCanopy.MI_GeneratedCanopy"));
     if (CanopyMaterial.Succeeded())
     {
         MeadowTreeCanopies->SetMaterial(0, CanopyMaterial.Object);

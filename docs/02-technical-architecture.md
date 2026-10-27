@@ -2787,6 +2787,11 @@ meshes and the player head retain the legacy flat `M_GeneratedBark` assignment.
 Authored held-tool wood uses `MI_GeneratedWood` from the shared parent at
 roughness 0.88 with its previous brown tint. Material assignment is cosmetic
 and does not change harvest authority or collision.
+Meadow tree canopies use `MI_GeneratedCanopy`, an instance of the separate
+opaque, two-sided `M_KalmalaCanopyBase`. It consumes the generated vertex-color
+leaf palette through the shared response at roughness 0.82. These cone shells
+have no opacity cutouts; no masked blend or runtime material graph is needed.
+The original `M_GeneratedCanopy` remains unassigned.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered

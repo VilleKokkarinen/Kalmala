@@ -1152,9 +1152,13 @@ do not mark the lighting milestone complete before it passes.
     Keep the player head, non-tree gatherables, and non-wood tool heads on the
     legacy material. Build, instance-load and presentation-ownership checks
     passed; rendered response remains for L02g.
-  - [ ] **L02e — Add the foliage family.** Use a separate masked/two-sided canopy
-    parent where required; inspect edge aliasing and temporal shimmer in forest
-    shade and daylight.
+  - [x] **L02e — Add the foliage family.** Generate a separate two-sided opaque
+    canopy parent and instance; assign it to generated Meadow canopies while
+    preserving their vertex-color palette. Source review found no opacity
+    cutouts or time-varying material input, so masking is unnecessary and shader
+    noise is world-stable. Build, instance-load, and ownership checks passed;
+    rendered silhouette/shadow aliasing and TAA shimmer in daylight/shade remain
+    for L02g.
   - [ ] **L02f — Integrate water separately.** Use a dedicated water parent or
     instance; preserve sea/lake clipping and shoreline geometry, and inspect
     reflections/highlights in the fixed coast and water views.

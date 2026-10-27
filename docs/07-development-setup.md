@@ -3683,7 +3683,8 @@ After rebuilding the Editor target for BH23 and BH24a/BH24b, run the project-own
 `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
 vertex-color grass/soil/rock blend routed through the shared surface-response
 function, and creates instances `MI_GeneratedTerrain`, `MI_GeneratedLakeShore`,
-`MI_GeneratedRock`, `MI_GeneratedBark` and `MI_GeneratedWood`, plus the original
+`MI_GeneratedRock`, `MI_GeneratedBark`, `MI_GeneratedWood`,
+`M_KalmalaCanopyBase` and `MI_GeneratedCanopy`, plus the original
 `M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
 Generated terrain patches assign the terrain instance before the
 `-KalmalaBiomeDebug` override, while player cloth continues to use the terrain
@@ -3694,6 +3695,10 @@ roughness 0.88. `MI_GeneratedWood` keeps the existing brown tint for held-tool
 shafts and club/bow wood; the player head and non-wood gatherables keep the
 legacy flat bark material. The player model and campfire ring keep the original
 rock material.
+The canopy instance uses a separate two-sided opaque parent and retains the
+procedural leaf vertex colors. The meshes have no opacity cutouts, so masked
+blending is not used. Source checks cover the assignment and parent settings;
+rendered edge/shadow aliasing and temporal shimmer remain for L02g.
 Vertex alpha blends a pale snow tone over Freezing Tundra by continuous biome
 weight and final slope, and over Thunder Mountains only above the named
 highland threshold, with continuous height and slope coverage; Mountain storm

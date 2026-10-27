@@ -237,7 +237,8 @@ namespace KalmalaWorldMaterials
         return INDEX_NONE;
     }
 
-    static bool CreateSurfaceBaseMaterial(const FString& PackageName, UMaterialFunction* SurfaceResponse)
+    static bool CreateSurfaceBaseMaterial(const FString& PackageName, UMaterialFunction* SurfaceResponse,
+        const bool bTwoSided = false)
     {
         FString Filename;
         if (!FPackageName::TryConvertLongPackageNameToFilename(PackageName, Filename, FPackageName::GetAssetPackageExtension()))
@@ -280,7 +281,7 @@ namespace KalmalaWorldMaterials
         BaseTint->Group = TEXT("Kalmala Surface");
         BaseTint->SortPriority = 0;
         BaseTint->DefaultValue = FLinearColor::White;
-        BaseTint->Desc = TEXT("Neutral-white multiplier for biome, rock, and wood base color.");
+        BaseTint->Desc = TEXT("Neutral-white multiplier for biome, rock, wood, and foliage base color.");
 
         const auto CreateScalarParameter = [Material](const FName Name, const float DefaultValue,
             const float SliderMin, const float SliderMax, const int32 SortPriority, const int32 Y, const TCHAR* Description)
@@ -333,6 +334,8 @@ namespace KalmalaWorldMaterials
         EditorOnlyData->BaseColor.Connect(BaseColorOutput, FunctionCall);
         EditorOnlyData->Roughness.Connect(RoughnessOutput, FunctionCall);
         EditorOnlyData->Normal.Connect(NormalOutput, FunctionCall);
+        Material->BlendMode = BLEND_Opaque;
+        Material->TwoSided = bTwoSided;
         Material->PostEditChange();
         Package->MarkPackageDirty();
 
@@ -719,6 +722,8 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
         TEXT("/Game/Kalmala/World/Materials/Functions/MF_KalmalaSurfaceResponse"));
     const bool bSurfaceBaseCreated = SurfaceResponse != nullptr && CreateSurfaceBaseMaterial(
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase"), SurfaceResponse);
+    const bool bCanopySurfaceBaseCreated = SurfaceResponse != nullptr && CreateSurfaceBaseMaterial(
+        TEXT("/Game/Kalmala/World/Materials/M_KalmalaCanopyBase"), SurfaceResponse, true);
     const bool bSoilCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedSoil"), TerrainSoilColor, 0.96f);
     const bool bTerrainCreated = CreateTerrainGroundBlendMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain"), 0.92f, SurfaceResponse);
     const bool bTerrainInstanceCreated = bTerrainCreated && CreateMaterialInstance(
@@ -745,10 +750,15 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
         TEXT("/Game/Kalmala/World/Materials/MI_GeneratedWood"),
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
         FLinearColor(0.20f, 0.13f, 0.09f), 0.88f);
+    // Generated canopy cones have no opacity cutouts; use a dedicated two-sided opaque parent for underside views.
+    const bool bCanopyInstanceCreated = bCanopySurfaceBaseCreated && CreateMaterialInstance(
+        TEXT("/Game/Kalmala/World/Materials/MI_GeneratedCanopy"),
+        TEXT("/Game/Kalmala/World/Materials/M_KalmalaCanopyBase.M_KalmalaCanopyBase"),
+        FLinearColor::White, 0.82f);
     const bool bCanopyCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy"), FLinearColor(0.12f, 0.30f, 0.14f), 0.82f);
     const bool bBiomeDebugTerrainCreated = CreateVertexColorMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrainBiomeDebug"));
-    return bSurfaceBaseCreated && bTerrainCreated && bTerrainInstanceCreated && bLakeShoreInstanceCreated
+    return bSurfaceBaseCreated && bCanopySurfaceBaseCreated && bTerrainCreated && bTerrainInstanceCreated && bLakeShoreInstanceCreated
         && bSoilCreated && bWaterCreated && bRockCreated && bRockInstanceCreated
-        && bBarkCreated && bBarkInstanceCreated && bWoodInstanceCreated && bCanopyCreated
+        && bBarkCreated && bBarkInstanceCreated && bWoodInstanceCreated && bCanopyCreated && bCanopyInstanceCreated
         && bBiomeDebugTerrainCreated ? 0 : 1;
 }

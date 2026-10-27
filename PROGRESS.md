@@ -1,3 +1,42 @@
+## L02e generated foliage family integration — 2026-10-27
+
+- **Selected task:** L02e, add and integrate the generated foliage family.
+- **Work completed:** Added the separate two-sided opaque parent
+  `M_KalmalaCanopyBase` using the shared surface response, plus
+  `MI_GeneratedCanopy` with white tint and roughness 0.82. Assigned the instance
+  only to generated Meadow tree canopies so existing birch/aspen vertex colors
+  remain the leaf palette. The canopy geometry is an open-bottom six-sided cone
+  shell with no opacity cutouts, so masked blending is not used. The existing
+  `M_GeneratedCanopy` remains generated but unassigned. No runtime material
+  graph or mesh change was added.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Content/Kalmala/World/Materials/M_KalmalaCanopyBase.uasset`,
+  `Content/Kalmala/World/Materials/MI_GeneratedCanopy.uasset`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  build passed in the short temporary mirror (7 actions). `CreateWorldMaterials`
+  generated the two canopy assets; the repeat run loaded them with 0 errors and
+  1 known, unrelated ocean-skiff invalid material-slot warning. The first
+  generation's class startup reported the not-yet-created canopy-instance
+  reference; the repeat run had no missing canopy references.
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1` passed for 15 project
+  assets and 34 source seams; `git diff --check` passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials checks remain for L06.
+- **Observable impact:** Generated tree canopies use lit two-sided shading and
+  their authored vertex-color palette, including underside views. Canopy shape,
+  vertex colors, and tree collision remain unchanged.
+- **Networking/authority:** Cosmetic material assignment only; no gameplay,
+  authority, replication, collision, or save behavior changed.
+- **Known limitations / remaining scope:** No forest render was captured, so
+  silhouette/shadow edge aliasing, temporal shimmer, and daylight-versus-shade
+  response remain unreviewed for L02g. Masked leaf-cutout behavior is not
+  applicable to the current solid cone mesh.
+- **Next eligible task:** L02f — integrate water separately.
+
 ## L02d generated wood and bark integration — 2026-10-27
 
 - **Selected task:** L02d, integrate generated trunks and authored wood.
