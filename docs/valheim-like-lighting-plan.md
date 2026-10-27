@@ -1195,14 +1195,12 @@ GPU frame time, frame rate, internal/output resolution, memory use, and any
 temporal artifacts. Set a release floor only after these measurements and the
 game's frame-time target are agreed.
 
-L05e remains open. The user selected the RTX 5090 reference PC for the current
-measurement pass and explicitly left lower-tier coverage pending. `nvidia-smi`
-reports an RTX 5090 with 32,607 MiB VRAM and driver 610.88, but this is system
-telemetry rather than an in-game tier measurement. The user chose to keep L05e
-open until L06, where the Editor build and reference profile captures will run.
-No Kalmala Editor build is available in the L05 worktree or main checkout. Do
-not infer performance or a hardware floor from these observations.
-Lower-tier/AMD measurements remain future scope.
+L05e closed on 2026-10-27 by user direction using the RTX 5090 reference-PC
+measurements completed for Compatibility, Balanced, and High. The user confirmed
+no AMD adapter is available for testing. No lower-tier or AMD profile was
+measured, so this closeout does not establish a minimum/recommended GPU, vendor
+support floor, release support matrix, or frame-time budget. Lower-tier/AMD
+qualification remains unverified future scope if the release target requires it.
 
 ### L05e1 — Capture-only quality selection (2026-10-27)
 
@@ -1219,9 +1217,9 @@ profile out of the user's normal settings.
 
 This adds repeatable capture control. L06b supplied the integrated Editor build.
 L05e2a Compatibility, L05e2b Balanced, and L05e2c High have now been measured
-on the selected RTX 5090 reference PC. Lower-tier and AMD hardware coverage
-remains pending selection; no release hardware floor is inferred from these
-reference-PC measurements.
+on the selected RTX 5090 reference PC. No AMD adapter was available, and no
+lower-tier profile was measured. These results do not set a release hardware
+floor or qualify untested adapters.
 
 ### L05e2a — Compatibility reference capture (2026-10-27)
 
@@ -1281,7 +1279,8 @@ foliage. These are composition limitations to keep in mind during integrated
 visual review, not a visual-acceptance result. No temporal pass threshold is
 defined. This subsection records only Compatibility; Balanced and High are documented in
 L05e2b and L05e2c.
-Lower-tier/AMD hardware remains open, and no release floor is claimed.
+Lower-tier/AMD hardware was not measured, as recorded in the L05e closeout;
+no release floor is claimed.
 
 ### L05e2b — Balanced reference capture (2026-10-27)
 
@@ -1337,8 +1336,9 @@ anchor is open-water/horizon-like rather than dense forest, as in Compatibility.
 Tiny silhouettes in seed-418 OvercastRain T06/T07 also appear in Compatibility;
 they are not attributed to the Balanced profile. Retain these views for L06c
 review; this is measurement evidence and does not claim visual acceptance.
-High is now measured in L05e2c. Lower-tier/AMD hardware selection, L06c
-acceptance, and L06e verification remain pending.
+High is now measured in L05e2c. Lower-tier/AMD hardware was not measured, as
+recorded in the L05e closeout. L06c acceptance and L06e verification are
+complete.
 
 ### L05e2c — High reference capture (2026-10-27)
 
@@ -1394,8 +1394,9 @@ readable. Seed-419 ForestShade is still an open-water/horizon-like anchor rather
 than dense foliage. Tiny distant silhouettes in seed-418 OvercastRain T06/T07
 also occur in the earlier Compatibility and Balanced captures; their cause is
 unidentified. Retain the evidence for L06c, which owns integrated visual
-acceptance. High is now measured; lower-tier/AMD hardware selection, L06c
-acceptance, and L06e verification remain open.
+acceptance. High is measured; lower-tier/AMD hardware remains untested as
+recorded in the L05e closeout. L06c acceptance and L06e verification are
+complete.
 
 ### L06c1 — Cross-tier fixed-view review (2026-10-27)
 
@@ -1505,13 +1506,13 @@ with no source defect or confirmed L06 regression requiring repair.
   exposure/post-process transitions were not exercised.
 
 No production fix was needed, and no build or automation was rerun in L06d.
-Known evidence limits remain for L06e: dynamic exposure transitions were not
+Known evidence limits recorded by L06e: dynamic exposure transitions were not
 tested; Compatibility's ten measurement logs lack post-apply state diagnostics
 although the later smoke verifies 0/0/0; the seed-418 rain silhouette remains
 unidentified without a temporal acceptance threshold; seed-419 ForestShade and
-OvercastRain are composition-limited; only the RTX 5090 has measurements, with
-lower-tier/AMD hardware still pending selection. Do not infer a support floor.
-The full milestone verification remains L06e.
+OvercastRain are composition-limited; only the RTX 5090 has measurements, and
+lower-tier/AMD hardware is untested. Do not infer a support floor. L06e's full
+milestone verification is recorded below.
 
 ### L06e — Milestone-final verification and handoff (2026-10-27)
 

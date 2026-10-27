@@ -191,10 +191,12 @@ do not mark the lighting milestone complete before it passes.
     record in the lighting plan.
 
 
-- [ ] **L05 — Add scalable hardware ray-tracing quality levels.** Use the RT-off
+- [x] **L05 — Add scalable hardware ray-tracing quality levels.** Use the RT-off
   baseline, Lumen hardware ray tracing for supported Windows DX12/SM6 devices,
   and the measured levels in the lighting plan. Do not claim a minimum GPU until
-  representative hardware has passed.
+  representative hardware has passed. Closed for the available RTX 5090
+  reference-PC scope; lower-tier and AMD hardware remain untested, and no
+  release hardware floor is claimed.
   - [x] **L05a — Verify the actual renderer support path.** Check project RHI,
     SM6, Lumen and hardware-ray-tracing settings; record the exact supported
     device/OS conditions and keep the current `RTX 5090` performance record
@@ -225,26 +227,28 @@ do not mark the lighting milestone complete before it passes.
     forest trunks/canopies are each one procedural mesh per patch, so component
     culling would remove whole patches; no generated grass/sky or instanced
     repeated-mesh classes were found in source, so those cases are N/A.
-  - [ ] **L05e — Measure supported hardware.** Compare RT-off, Balanced, and
-    High on the reference PC and the actual lower-tier devices selected for
-    release; include AMD hardware if it is within the support target. Record
-    frame time, resolution, memory, image quality, and artifacts. Do not infer
-    minimum/recommended hardware from UE's compatibility list alone. The user
-    selected the RTX 5090 reference PC for the current measurement pass and left
-    lower-tier/AMD coverage pending.
+  - [x] **L05e — Measure supported hardware.** Compare RT-off, Balanced, and
+    High on the reference PC and any lower-tier devices selected for release;
+    include AMD hardware if it is within the support target and available for
+    testing. Record frame time, resolution, memory, image quality, and artifacts.
+    Do not infer minimum/recommended hardware from UE's compatibility list alone.
+    The user directed closing L05 on the RTX 5090 reference-PC evidence and
+    confirmed no AMD adapter is available. No lower-tier or AMD profile was
+    measured; neither is claimed as supported, and no release floor is set.
     - [x] **L05e1 — Add capture-only quality selection.** Extend the baseline
       capture path to request Compatibility, Balanced, or High through the
       existing local graphics-quality profile, require an explicit success log,
       and label the GPU CSVs by tier. Keep the override gated to non-Shipping
       baseline captures with an isolated user directory; leave normal sessions
       on their saved quality setting.
-    - [ ] **L05e2 — Measure integrated reference-PC profiles.** Measure the ten
+    - [x] **L05e2 — Measure integrated reference-PC profiles.** Measure the ten
       seed-418/419 fixed views at Compatibility, Balanced, and High on the RTX
       5090. Record per-view GPU frame time, output resolution, memory, and
       visible/temporal artifacts for L06c. Split the captures into ordered
-      tier children and retain evidence under `TestResults/L05e2/`. Lower-tier
-      and AMD measurements remain pending hardware selection; do not infer a
-      release floor from the RTX 5090 pass.
+      tier children and retain evidence under `TestResults/L05e2/`. All three
+      reference-PC tier captures are complete. Lower-tier/AMD coverage remains
+      unverified because no AMD adapter is available; do not infer a release
+      floor from the RTX 5090 pass.
       - [x] **L05e2a — Capture Compatibility tier.** Capture all ten fixed
         views at 1024x768 with 120 GPUTime samples and eight temporal frames at
         0.5-second intervals. Record RTX 5090 memory telemetry and inspected

@@ -1,3 +1,15 @@
+## L05 closeout — available reference hardware scope — 2026-10-27
+
+- **Selected task:** L05 closeout after the user confirmed no AMD adapter is available for testing.
+- **Work completed:** Closed L05 using the completed RTX 5090 Compatibility, Balanced, and High captures. Checked L05e2, L05e, and L05 complete while retaining the explicit limit that lower-tier/AMD hardware was not measured.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected the 30 existing profile measurements, the L05 checklist hierarchy, and the L06e verification record. `git diff --check` passed. No build or tests were rerun because this closeout changes only status and scope documentation; L06's Editor/Game builds and 230/230 automation result remain recorded in L06e.
+- **Full verification:** No new full verification was run. L05's available-hardware evidence was included in the completed L06 milestone-final verification.
+- **Observable impact:** Backlog and plan now show L05 complete for the tested RTX 5090 reference-PC scope. No runtime or renderer behavior changed.
+- **Networking/authority:** No gameplay, networking, replication, save, or authority behavior changed.
+- **Known limitations / remaining scope:** No lower-tier or AMD adapter was measured; the user has no AMD adapter available. No minimum/recommended GPU, vendor support floor, release support matrix, or frame-time budget is claimed. Further platform qualification remains future scope if the release target calls for it.
+- **Next eligible task:** DC — Add an in-game developer console with authenticated debug commands.
+
 ## L06e — Milestone-final lighting verification and handoff — 2026-10-27
 
 - **Selected task:** L06e, the final remaining lighting implementation and milestone-verification increment.
