@@ -1,6 +1,8 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** L01–L03 are complete. L04–L06 remain in the active lighting queue in `BACKLOG.md`; L06 is the integrated milestone-final gate.
+**Status:** L01–L06 are complete. The integrated milestone-final gate passed
+on 2026-10-27; see L06e below. The measured RTX 5090 is a reference machine,
+not a release hardware floor.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -1510,6 +1512,32 @@ unidentified without a temporal acceptance threshold; seed-419 ForestShade and
 OvercastRain are composition-limited; only the RTX 5090 has measurements, with
 lower-tier/AMD hardware still pending selection. Do not infer a support floor.
 The full milestone verification remains L06e.
+
+### L06e — Milestone-final verification and handoff (2026-10-27)
+
+The combined L06 implementation was checked against its integrated master base
+and verified in a fresh short mirror at
+`C:\Users\Ville\AppData\Local\Temp\kl06e27`. Source/config hashes for the
+lighting production and capture files matched the earlier integrated `k06b`
+mirror used for the retained Balanced/High capture logs. No duplicate
+assignments, unintended assets, gameplay/network/save changes, or confirmed
+L06 regression were found. No production repair was required.
+
+- **Builds:** `Build.bat KalmalaEditor Win64 Development -Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity` passed 56 actions in 194.01 s. `Build.bat Kalmala Win64 Development` with the same options passed 25 actions in 114.30 s. The attempted `KalmalaServer Win64 Development` target exited 6 before compiling because this installed UE 5.8 distribution reports `Server targets are not currently supported from this engine distribution`. No server-only L06 source changed; this target limitation is not treated as a lighting source failure.
+- **Full automation:** `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject -unattended -nop4 -nosplash -NullRHI -NoZenAutoLaunch -DDC=NoZenLocalFallback -DDC-ForceMemoryCache -stdout -FullStdOutLogOutput -UserDir=<mirror>/automation-user -abslog=<mirror>/automation-full.log '-ExecCmds=Automation RunTests Kalmala; Quit' '-TestExit=Automation Test Queue Empty'` passed all 230 named tests, zero failures, exit 0. Two generic `Condition failed` diagnostics were logged before test 0; these match earlier successful UE runs. No named failure, assertion, ensure, or fatal error was recorded. Logs are retained at `TestResults/L06e/automation-full.log` in the verification mirror.
+- **Existing performance evidence:** The 30 L05e2 fixed-view records were validated again: ten views per tier, 120 positive GPUTime samples per view, eight frames at 0.5 s, and 1024x768 output. The reference system was UE 5.8.2 on Windows/D3D12/SM6 with an Intel i7-14700K, NVIDIA RTX 5090, driver 610.88, and 32,607 MiB device VRAM. The per-view mean GPUTime and peak device-used VRAM ranges were:
+
+  | Tier | Effective RT state (`Enable` / Lumen HWRT / `IsRayTracingEnabled`) | Mean GPUTime across views | Peak device-used VRAM |
+  | --- | --- | ---: | ---: |
+  | Compatibility | 0 / 0 / 0 | 0.7584–0.8503 ms | 3,678–4,068 MiB |
+  | Balanced | 1 / 1 / 1 | 1.2646–1.3797 ms | 4,268–4,412 MiB |
+  | High | 1 / 1 / 1 | 1.3506–1.4480 ms | 4,638–5,035 MiB |
+
+  Each tier's raw GPU samples, memory telemetry, 30 screenshots, and temporal summaries remain under `TestResults/L05e2/`. Compatibility was refreshed in the final mirror with an explicit `-RayTracingQuality Compatibility` selector; all ten new logs record the applied selector and effective `0/0/0`. The first refresh invocation omitted that selector, produced `RayTracingQuality=Saved`, and was rejected; all ten views were rerun with the explicit selector. The refresh used the ten existing Compatibility summary rows and sample coordinates from `TestResults/LightingBaseline/manifest.json`, with one frame per view and no GPU sampling. `TestResults/L06e/EffectiveState.csv` consolidates the 30 current per-view states and links to the screenshots/logs. Balanced's ten verified per-view logs were retained beside its captures.
+- **Weather transition check:** The existing `BiomeBaselineCapture.ps1 -Condition WeatherTransition` fixture ran at seed-418 ForestShade `(207132.4,-325940.4,15.1806488)` and MeadowsDaylight `(-781.6,-781.6,528.94458)`. Each run produced four 1024x768 onset/release frames at 0.5-second sampling points and a log. The local precipitation response rose from 0.00 toward 0.75 after the 0.80 target, then fell during release; no abrupt image pop was apparent in the fixed frames. The visible surface change was subtle, and this fixture does not inspect a moving third-person camera. Captures/logs are under `TestResults/L06e/WeatherTransition/Seed418/` in the worktree; exact command parameters are in the L06e `PROGRESS.md` record.
+- **PIE and camera limitation:** The earlier L06c2 inspection accepted initial third-person framing, horizontal look, shadows, and readable HUD. A final attempt in the same integrated PIE viewport showed only a central generated Meadows patch and one low-poly tree; the 180 m map showed no Forest route. Available UI input delivered W/Space taps but no visible movement. No teleport or map edit was used. Consequently, camera traversal through an exposure/post-process boundary, dynamic exposure while walking, and volume-boundary behavior remain unverified. The static weather sequence shows no abrupt pop but does not close this movement-evidence gap.
+- **Release support statement:** Compatibility is the tested RT-off profile on the RTX 5090; Balanced and High are optional hardware-RT profiles and were also measured on that same machine. No non-RT lower-tier or AMD adapter was selected or tested. These results do not establish a minimum/recommended GPU, vendor floor, release support matrix, or frame-time budget. Keep those decisions open until representative release hardware is selected.
+- **Final result:** Editor/Game builds, the full Kalmala automation queue, the existing fixed-view profile evidence, per-view effective RT state, and fixed-camera weather onset/release checks passed. The server target is unavailable in the installed engine distribution; dynamic camera traversal remains unverified. No L06 defect requiring repair was found. L06 is complete as an integrated milestone gate with the stated hardware and movement limits; no claim is made beyond the evidence above.
 
 ## Acceptance checks
 

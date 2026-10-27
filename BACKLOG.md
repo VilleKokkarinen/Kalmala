@@ -9,12 +9,13 @@ day/night scenes, atmospheric distance, weather-aware surfaces, and optional
 hardware ray-tracing quality levels. The detailed, researched implementation
 contract and acceptance scenes are in the [lighting plan](docs/valheim-like-lighting-plan.md).
 
-**Planning status:** This adds no runtime behavior and makes no release-hardware
-promise. Keep the accepted Kalmala art direction, client-only cosmetic behavior,
-and existing weather/gameplay authority. Hardware ray tracing and DLSS remain
-optional presentation features; the RT-off tier must retain the complete visual
-baseline. Default Lit remains the production shading path unless a later visual
-review accepts a different look.
+**Status:** The L01–L06 implementation and milestone-final verification passed
+on 2026-10-27. The RTX 5090 is a reference machine only; no release minimum or
+recommended GPU, hardware-vendor floor, or performance threshold is established.
+Keep the accepted Kalmala art direction, client-only cosmetic behavior, and
+existing weather/gameplay authority. Hardware ray tracing and DLSS remain
+optional presentation features; Compatibility retains the RT-off visual
+baseline. Default Lit remains the production shading path.
 
 **Worktree sequence:** L01–L06 are ordered, dependent goals. Assign each goal
 one agent in a dedicated worktree based on integrated `master` after the preceding
@@ -261,9 +262,10 @@ do not mark the lighting milestone complete before it passes.
     DLSS, Streamline, Ray Reconstruction, or Frame Generation integration; see
     the dated L05f note in the lighting plan.
 
-- [ ] **L06 — Integrate and perform lighting milestone-final verification.**
+- [x] **L06 — Integrate and perform lighting milestone-final verification.**
   This is the only full verification gate for the lighting milestone; complete
-  it after L01–L05 are integrated.
+  it after L01–L05 are integrated. The integrated final gate passed on
+  2026-10-27; see the L06e verification record.
   - [x] **L06a — Inspect the combined implementation.** Reviewed the merged
     material, lighting, environment, and RT changes. No duplicate production
     material assignments or unintended Content assets were found. The two water
@@ -289,15 +291,20 @@ do not mark the lighting milestone complete before it passes.
     - [x] **L06c2 — Inspect default third-person camera and HUD in PIE.**
       Checked default framing, horizontal mouse-look, and HUD readability in
       the integrated L_Prototype viewport. No static-view exposure, lens, or
-      bloom issue was observed; dynamic exposure transitions remain unverified
-      for L06e.
+      bloom issue was observed. Walking through an exposure/post-process region
+      remains an evidence limitation recorded in L06e.
   - [x] **L06d — Review and repair lighting regressions.** Reviewed the
     integrated build, focused checks, profile captures, and L06c findings. No
     confirmed L06 regression required repair; L06e owns milestone-final verification.
-  - [ ] **L06e — Finalize the handoff.** Record tested hardware, per-tier GPU
-    costs, accepted captures, remaining limitations, and the actual release
-    support statement in the lighting plan and `PROGRESS.md`. Mark L06 and the
-    lighting milestone complete only after required verification passes.
+  - [x] **L06e — Finalize the handoff.** The UE 5.8.2 Editor and Game builds
+    and the full 230-test Kalmala automation queue passed. All 30 fixed-view
+    profile captures have valid measurements and per-view effective states;
+    Compatibility is 0/0/0 and Balanced/High are 1/1/1. Fixed-camera weather
+    onset/release captures showed no obvious pop. Normal walking through a
+    forest/post-process region could not be exercised in the prototype viewport
+    and remains explicitly unverified. Only the RTX 5090 reference machine was
+    tested; no release hardware floor is claimed. See the final plan and
+    `PROGRESS.md` record. L06 is complete for this milestone gate.
 
 ### Developer console and secret-key debug mode — user request, 2026-10-26
 
