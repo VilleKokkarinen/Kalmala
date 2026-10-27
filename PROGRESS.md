@@ -106,6 +106,284 @@
   master-based worktree's ordered global backlog; within the requested L04
   track, L04b is next after material support is available.
 
+## L05e RTX 5090 measurement scope — 2026-10-27
+
+- **Selected increment:** L05e, after the user selected the RTX 5090 reference
+  PC as the current measurement target and left lower-tier coverage pending.
+- **Work completed:** Recorded the user-directed reference-only measurement
+  scope and retained lower-tier/AMD testing as open future coverage. Checked for
+  an existing project Editor in both this worktree and the main checkout; none
+  is available. Actual RT-off/Balanced/High frame-time, memory, resolution, and
+  image-quality captures need an Editor build. The user chose to keep L05e open
+  until L06, so the build and reference captures are deferred to that gate.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Confirmed neither checkout contains
+  `Binaries/Win64/KalmalaEditor.exe`; no `UnrealEditor` process was running.
+  No build, test, or capture ran.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** The accepted measurement scope now names the RTX 5090
+  as the current reference only; no release hardware floor or performance
+  result is claimed.
+- **Networking/authority:** Planning and availability record only; no runtime,
+  networking, authority, or save behavior changed.
+- **Known limitations / remaining scope:** L05e remains unchecked until
+  same-scene RT-off/Balanced/High captures are recorded on the reference PC.
+  Lower-tier/AMD coverage is explicitly pending. The repository's build timing
+  policy places the build at L06 per the user's direction. L06 is still
+  required before the lighting milestone can be marked verified.
+- **Main-checkout handoff:** Synchronized this L05e scope/blocker note into the
+  main checkout's `BACKLOG.md` and `PROGRESS.md`, preserving its unrelated
+  edits; no implementation files were synchronized.
+- **Next eligible task:** Keep L05e open until L06 records the reference PC
+  captures; keep lower-tier/AMD coverage pending until actual devices are
+  chosen.
+
+## L05f DLSS/upscaling separation — 2026-10-27
+
+- **Selected increment:** L05f, the first unblocked L05 child after the L05e
+  hardware dependency was confirmed.
+- **Work completed:** Audited the project descriptor, module dependency files,
+  source, and runtime config. No DLSS, Streamline, Ray Reconstruction, or Frame
+  Generation integration/dependency is present. Recorded optional upscaling as
+  a separate future feature requiring its own approved hardware, image-quality,
+  and native frame-time acceptance. L05e remains unchecked and explicitly
+  blocked pending actual lower-tier/AMD release test hardware and tier captures.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Source/config/plugin/dependency search found no
+  matching integration. Inspected `Kalmala.uproject` plugin list and module
+  dependencies. `nvidia-smi` reported the available RTX 5090 reference adapter,
+  but that telemetry is not a game benchmark. No build or runtime capture ran.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** No runtime or renderer behavior changed. The lighting
+  plan now clearly separates optional upscaling from the three ray-tracing
+  quality levels and records the current project audit.
+- **Networking/authority:** Documentation and dependency audit only; no runtime,
+  networking, gameplay authority, or save changes.
+- **Known limitations / remaining scope:** L05e still needs actual same-scene
+  RT-off/Balanced/High measurements on the reference PC and representative
+  lower-tier hardware selected for release; include AMD if it is in scope. The
+  current worktree has no built Editor, and no lower-tier/AMD system was
+  identified or available. No minimum/recommended GPU claim is supported.
+- **Main-checkout handoff:** Synced this branch's L05 backlog/progress status
+  into `E:\dev\Kalmala\` while preserving its existing unrelated working
+  changes; no implementation files were synchronized.
+- **Next eligible task:** L05e, once target-device access and profile captures
+  are available.
+
+## L05d selective High ray-tracing tier — 2026-10-27
+
+- **Selected increment:** L05d, the next child in the user-directed L05 track.
+- **Work completed:** Added High to the local Graphics-menu selector and saved
+  quality enum, visible only when the existing Windows DX12/SM6 hardware-RT
+  gate passes. Balanced applies UE GI/reflection scalability level 2; High
+  applies level 3 to those groups only. The previous values are restored on
+  return to Compatibility. Hit Lighting is forced off after scalability, which
+  would otherwise enable it at the Epic GI level. Ray-traced shadows remain off.
+  The lighting plan records why generated-forest visibility cannot safely be
+  changed at the current component granularity and why no key-light shadow
+  benefit is established yet.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`,
+  `Source/KalmalaUI/Public/KalmalaRayTracingSupport.h`,
+  `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`, and
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`.
+- **Lightweight checks:** Compared UE 5.8 GI/reflection quality group behavior
+  and Hit Lighting defaults with the installed `BaseScalability.ini`; inspected
+  generated-terrain source and searched project source for generated grass,
+  sky geometry, instanced meshes, and ray-tracing visibility overrides. The
+  source review found consolidated procedural tree components per patch and no
+  safe per-tree visibility control. `git diff --check` and changed-path length
+  checks passed. No Unreal build, automation, or rendered capture was run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** Supported local users can select High for Epic Lumen GI
+  and reflection quality; Balanced uses UE quality level 2, and Compatibility
+  restores the user's prior GI/reflection quality values. Other scalability
+  groups are not raised by the ray-tracing tier.
+- **Networking/authority:** Local presentation settings only; no RPC,
+  replication, gameplay authority, or save schema changed.
+- **Known limitations / remaining scope:** The level-authored directional sun
+  is the only clear key-light candidate, but no RT-on/off comparison has
+  established visible shadow benefit, so shadows are not enabled. Generated
+  trunks and canopies are each one procedural mesh per patch; excluding either
+  would remove a whole patch component. No generated grass/sky mesh or instanced
+  static meshes were found in source, and procedural meshes retain engine
+  default RT visibility. Capture-based L06c review and L05e device performance
+  measurements remain outstanding.
+- **Main-checkout handoff:** Deferred while the parent coordinates active
+  Kalmala worktrees; only backlog/progress state will be reconciled after their
+  edits are safe to preserve.
+- **Next eligible task:** L05e, measure RT-off, Balanced, and High on supported
+  hardware.
+
+## L05c console-variable priority repair — 2026-10-27
+
+- **Selected repair:** Ensure local Compatibility/Balanced choices override
+  the project and system INI defaults they are meant to control.
+- **Work completed:** UE 5.8 `IConsoleManager.h` defines
+  `ECVF_SetByGameSetting=0x03000000`, below project settings
+  (`0x04000000`) and system settings (`0x05000000`). Those priorities let the
+  Compatibility defaults win over the user's selected quality profile. Changed
+  all six profile CVar writes to `ECVF_SetByGameOverride=0x09000000`, which UE
+  documents for user-settable game overrides.
+- **Files changed:** `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`
+  and `PROGRESS.md`.
+- **Lightweight checks:** Verified priority values and ordering directly in the
+  installed UE 5.8 `IConsoleManager.h`; inspected all six CVar writes;
+  `git diff --check`, source-priority assertions, and changed-path length checks
+  passed. No automation or Unreal build was run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** Saved Compatibility and Balanced profiles now override
+  project/system INI CVar values when applied.
+- **Networking/authority:** Local renderer settings only; no RPC, replication,
+  gameplay authority, or save schema changed.
+- **Known limitations / remaining scope:** No Editor build or rendered
+  RT-off/Balanced comparison was run; L06c remains the visual comparison gate.
+- **Main-checkout handoff:** Deferred while the parent coordinates the other
+  L05 worktree changes; only backlog/progress state will be reconciled then.
+- **Next eligible task:** L05d, selective High quality and key-light shadows.
+
+## L05c local Balanced ray-tracing tier — 2026-10-27
+
+- **Selected increment:** L05c, the next child in the user-directed L05 track.
+- **Work completed:** Added a local Graphics-menu tier selector with
+  Compatibility as the saved/default choice and Balanced available only when
+  the L05b runtime gate confirms project permission, Windows D3D12, SM6,
+  shader-platform and RHI ray-tracing support. Balanced applies
+  `r.RayTracing.Enable=1`, `r.Lumen.HardwareRayTracing=1`,
+  `r.DynamicGlobalIlluminationMethod=1`, and `r.ReflectionMethod=1`; it pins
+  Surface Cache with `r.Lumen.HardwareRayTracing.LightingMode=0` and disables
+  Hit Lighting with `r.Lumen.HardwareRayTracing.HitLighting.Allowed=0`.
+  Compatibility applies RT off, no dynamic GI, and screen-space reflections.
+  The tier persists in local `GameUserSettings` and sends no RPC. Enabled
+  optional project RT support with `DefaultGraphicsRHI=DefaultGraphicsRHI_DX12`,
+  `+D3D12TargetedShaderFormats=PCD3D_SM6`, `RayTracingMode=Full`,
+  `SkinningShaderSupport=InlineAndSkinCacheShaders`, `bEnableRayTracing=True`,
+  and `bUseHardwareRayTracingForLumen=True`. Project Compatibility defaults
+  are `DynamicGlobalIllumination=0`, `Reflections=2` (SSR),
+  `LumenRayLightingMode=SurfaceCache`, and `bEnableRayTracingShadows=False`.
+  Startup CVars `r.RayTracing.Enable=0` and
+  `r.Lumen.HardwareRayTracing=0` retain Compatibility. Corrected the UE 5.8
+  audit: `r.ReflectionMethod=2` is SSR, not Lumen reflections.
+- **Files changed:** `Config/DefaultEngine.ini`,
+  `Source/KalmalaUI/Public/KalmalaRayTracingSupport.h`,
+  `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`,
+  `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`,
+  `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaRayTracingSupportTest.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `docs/02-technical-architecture.md`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected UE 5.8 renderer CVar and project-setting
+  declarations, and added focused automation assertions for Compatibility and
+  Balanced profile values. `git diff --check` and changed-path length checks
+  passed. The automation and Unreal build were not run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** A supported local user can choose Balanced; unsupported
+  adapters retain Compatibility and cannot request the hardware profile. The
+  project compiles optional SM6 ray-tracing shaders, but startup selects the
+  RT-off path.
+- **Networking/authority:** Graphics quality is local presentation state;
+  no RPC, replication, gameplay authority, or save schema changed.
+- **Known limitations / remaining scope:** No rebuilt Editor or rendered
+  RT-off/Balanced comparison was run; L06c remains the visual comparison gate.
+  Project shader changes require an Editor restart/rebuild before the Balanced
+  option can be verified on a capable adapter. High quality, selective shadows,
+  device measurements, and upscaling separation remain outstanding.
+- **Main-checkout handoff:** Deferred while other Kalmala worktrees remain
+  active; only backlog/progress updates will be reconciled after their edits are
+  safe to preserve.
+- **Next eligible task:** L05d, selective High quality and key-light shadows.
+
+## L05b RT-off compatibility gate — 2026-10-27
+
+- **Selected increment:** L05b, preserving the hardware-RT-off compatibility
+  path in the user-directed L05 track.
+- **Work completed:** Pinned project hardware ray tracing off in
+  `Config/DefaultEngine.ini`. Added a reusable runtime capability snapshot and
+  path resolver that requires project permission, Windows D3D12, SM6,
+  shader-platform support for ray tracing and its shaders, plus matching RHI
+  support; uninitialized or unsupported configurations resolve to
+  Compatibility. Added focused automation coverage for a supported request,
+  an unrequested request, and each missing capability. The accepted L01h visual
+  gate supplies the existing RT-off baseline evidence; its recorded L01a
+  renderer values remain dated and were not represented as newly captured here.
+  That was the L05b project state; L05c now compiles optional RT support while
+  the Compatibility startup profile keeps `r.RayTracing.Enable` and
+  `r.Lumen.HardwareRayTracing` at 0.
+- **Files changed:** `Config/DefaultEngine.ini`,
+  `Source/KalmalaUI/KalmalaUI.Build.cs`,
+  `Source/KalmalaUI/Public/KalmalaRayTracingSupport.h`,
+  `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaRayTracingSupportTest.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected UE 5.8 RHI/render-core capability APIs,
+  capability-query call sites and test patterns; reviewed the new policy and
+  test by source inspection. `git diff --check` and changed-path length checks
+  passed. The automation was added but not run, and no Unreal build was run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** Compatibility is now explicitly the project default;
+  unsupported or uninitialized renderer configurations cannot resolve to the
+  hardware path. This increment does not change GI/reflection selection or
+  visual behavior.
+- **Networking/authority:** No gameplay, networking, server authority, or save
+  behavior changed; renderer selection remains local presentation state.
+- **Known limitations / remaining scope:** No new live capture was made; visual
+  baseline evidence is the accepted L01h review on the recorded RT-off state.
+  The new automation has not been executed. Balanced and High settings,
+  per-device performance measurements, and complete lower-tier fallback
+  qualification remain outstanding.
+- **Main-checkout handoff:** Backlog/progress synchronization is deferred while
+  other Kalmala worktrees remain active; only these two bookkeeping files will
+  be considered after their current contents can be safely reconciled.
+- **Next eligible task:** L05c in this directed track. The master-based
+  backlog still has earlier L01 work outstanding; the user's scoped L05 goal is
+  preserved without reordering unrelated roadmap tasks.
+
+## L05a renderer support-path audit — 2026-10-27
+
+- **Selected increment:** L05a under the user-requested hardware ray-tracing
+  goal.
+- **Work completed:** Audited the checked-in UE 5.8 project and found no
+  explicit RHI, targeted SM6, Lumen GI/reflections, hardware-ray-tracing, or
+  Compute Skin Cache selection in project config, target rules, or source.
+  The existing 2026-10-26 L01a live Editor/PIE audit, recorded in main-checkout
+  `PROGRESS.md` and commit `de201f5`, observed D3D12/SM5,
+  `r.DynamicGlobalIlluminationMethod=0` (no dynamic GI),
+  `r.ReflectionMethod=2` (screen-space reflections), and `r.RayTracing=0` (hardware
+  RT off) on the RTX 5090. Recorded Epic's UE 5.8 Windows/Lumen requirements
+  and the narrower hardware-RT GPU families in the lighting plan. Kept the RTX
+  5090 explicitly as a reference system, not a release hardware claim.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected `Kalmala.uproject`, `Config/DefaultEngine.ini`,
+  all tracked config/target/source files for renderer keys, and scanned the
+  prototype map package for serialized renderer-setting names. The package
+  scan did not decode world settings. `git diff --check` and changed-path length
+  checks passed. No build or test suite was run.
+- **Full verification:** Deferred. The L01a Editor/PIE values are a dated
+  baseline, not a guarantee after later renderer changes. No new live Editor
+  recheck, hardware profile, or frame-time test was part of this audit.
+- **Observable impact:** The plan defined the documented Windows DX12/SM6
+  Lumen hardware-RT capability path and recorded that then-checked-in settings
+  did not pin the dated L01a runtime baseline. L05c later added explicit
+  Compatibility startup settings and optional shader support. No L05b runtime
+  behavior changed.
+- **Networking/authority:** No gameplay, networking, save, or authority
+  behavior changed; this increment records local renderer configuration only.
+- **Known limitations / remaining scope:** Epic's GPU families describe engine
+  eligibility, not a Kalmala minimum/recommended spec. Hardware support and
+  performance on specific devices remain unmeasured. At audit time, project
+  config did not pin the L01a-observed RHI, feature level, GI/reflection method,
+  or hardware-RT state. L05c later pins the startup RHI, shader target, and
+  Compatibility renderer profile; live hardware and performance eligibility
+  remain unmeasured.
+- **Main-checkout handoff:** L05 backlog/progress entries are integrated
+  with L01–L04; existing main-checkout entries are preserved during
+  handoff synchronization.
+- **Next eligible task:** L05b within the requested goal. This `master` snapshot
+  still has L01 unchecked, so the global queue's next task remains L01a.
 
 ## L02g final material-family gate — 2026-10-27
 
@@ -859,6 +1137,7 @@ no-render/no-GPU conclusion is superseded by the current L03c evidence entry.
 - **Networking/authority:** No gameplay, server-authority, RPC, save, or replicated-state changes.
 - **Known limitations:** No Unreal Editor window was open, so serialized level actor settings, actual renderer methods, current fog/exposure/post-process state, and scene-specific camera positions remain unverified. The setup script values and capture-helper values are not proof of current runtime settings.
 - **Next eligible task:** Complete L01a after opening the project in a usable Unreal Editor window; select and record five visually verified fixed scene views, then proceed to L01b.
+
 ## DC20 - Operator setup and command reference, 2026-10-26
 
 - Added concrete per-command help and existing architecture/setup documentation

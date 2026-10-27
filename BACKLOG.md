@@ -194,30 +194,51 @@ do not mark the lighting milestone complete before it passes.
   baseline, Lumen hardware ray tracing for supported Windows DX12/SM6 devices,
   and the measured levels in the lighting plan. Do not claim a minimum GPU until
   representative hardware has passed.
-  - [ ] **L05a — Verify the actual renderer support path.** Check project RHI,
+  - [x] **L05a — Verify the actual renderer support path.** Check project RHI,
     SM6, Lumen and hardware-ray-tracing settings; record the exact supported
     device/OS conditions and keep the current `RTX 5090` performance record
-    labelled as the reference system, not a minimum-spec test.
-  - [ ] **L05b — Preserve the RT-off compatibility path.** Confirm the baseline
-    lighting works without hardware RT, using supported Lumen software tracing
-    or the project's selected non-hardware fallback. Make the fallback explicit
-    and test that unsupported adapters do not enter the hardware path.
-  - [ ] **L05c — Implement the Balanced tier.** On supported adapters, enable
-    Lumen hardware tracing for GI/reflections using Surface Cache lighting;
-    compare against RT-off and keep Hit Lighting disabled for this tier.
-  - [ ] **L05d — Implement the High tier selectively.** Scale GI/reflection
-    quality and test ray-traced shadows only on key lights with visible benefit.
-    Set ray-tracing culling/visibility for generated forest, grass, sky, and
-    repeated meshes; do not enable expensive features indiscriminately.
+    labelled as the reference system, not a minimum-spec test. UE 5.8's
+    Windows Lumen path requires Windows 10 build 1909.1350 or newer, DX12, and
+    SM6; the hardware-RT-specific GPU list is NVIDIA RTX 2000-series+ or AMD
+    RX 6000-series+. The 2026-10-26 L01a Editor/PIE audit observed D3D12/SM5,
+    dynamic GI off, screen-space reflections (SSR), and hardware RT off on the
+    RTX 5090. At the time of that audit, tracked settings did not pin those
+    observed values; L05c now sets an explicit RT-off Compatibility startup
+    profile while compiling optional support. This is dated baseline evidence,
+    not a Kalmala release hardware floor; see
+    `docs/valheim-like-lighting-plan.md` for source links and audit details.
+  - [x] **L05b — Preserve the RT-off compatibility path.** The accepted L01h
+    visual baseline used the L01a-observed RT-off setting. Compatibility keeps
+    hardware tracing off and uses no dynamic GI plus SSR, even though the
+    project now builds optional RT shader support for Balanced. Require project
+    permission, Windows D3D12, SM6, and shader-platform/RHI RT support before a
+    hardware request resolves; automation covers each missing capability.
+  - [x] **L05c — Implement the Balanced tier.** Add a local Graphics-menu
+    selection that is offered only on supported adapters. Balanced uses Lumen
+    hardware tracing for GI/reflections, Surface Cache lighting, and no Hit
+    Lighting; the profile configures those settings separately from
+    Compatibility. Rendered comparison remains in the L06c integration gate.
+  - [x] **L05d — Implement the High tier selectively.** High raises only Lumen
+    GI/reflection scalability to Epic quality and keeps Hit Lighting disabled.
+    No ray-traced shadow is enabled without visible-benefit evidence. Generated
+    forest trunks/canopies are each one procedural mesh per patch, so component
+    culling would remove whole patches; no generated grass/sky or instanced
+    repeated-mesh classes were found in source, so those cases are N/A.
   - [ ] **L05e — Measure supported hardware.** Compare RT-off, Balanced, and
     High on the reference PC and the actual lower-tier devices selected for
     release; include AMD hardware if it is within the support target. Record
     frame time, resolution, memory, image quality, and artifacts. Do not infer
-    minimum/recommended hardware from UE's compatibility list alone.
-  - [ ] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
+    minimum/recommended hardware from UE's compatibility list alone. **Deferred to L06:**
+    the user selected the RTX 5090 reference PC for the current measurement
+    pass and left lower-tier/AMD coverage pending. The user chose to keep L05e
+    open until L06, where the Editor build and RTX 5090 profile captures will
+    run; lower-tier/AMD coverage remains pending.
+  - [x] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
     separate from ray tracing. Add no vendor plugin/dependency or Frame
     Generation path in this goal; seek a separate user-approved plan if they
-    become a release requirement.
+    become a release requirement. The project plugin/dependency audit found no
+    DLSS, Streamline, Ray Reconstruction, or Frame Generation integration; see
+    the dated L05f note in the lighting plan.
 
 - [ ] **L06 — Integrate and perform lighting milestone-final verification.**
   This is the only full verification gate for the lighting milestone; complete
