@@ -3683,12 +3683,35 @@ After rebuilding the Editor target for BH23 and BH24a/BH24b, run the project-own
 `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset` with the
 vertex-color grass/soil/rock blend routed through the shared surface-response
 function, and creates instances `MI_GeneratedTerrain`, `MI_GeneratedLakeShore`,
-and `MI_GeneratedRock`, plus the original `M_GeneratedSoil.uasset`; the existing
-grass and rock palette remains in place. Generated terrain patches assign the terrain
-instance before the `-KalmalaBiomeDebug` override, while player cloth continues
-to use the terrain parent. Shore and generated-rock instances use the common lit
-parent and retain their prior average base color and roughness; the player model
-and campfire ring keep the original rock material.
+`MI_GeneratedRock`, `MI_GeneratedBark`, `MI_GeneratedWood`,
+`MI_GeneratedWater`,
+`M_KalmalaCanopyBase` and `MI_GeneratedCanopy`, plus the original
+`M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
+Generated terrain patches assign the terrain instance before the
+`-KalmalaBiomeDebug` override, while player cloth continues to use the terrain
+parent. Shore and generated-rock instances use the common lit parent and retain
+their prior average base color and roughness. The bark instance uses a white tint
+to retain the generated tree meshes' species and cut-face vertex colors at
+roughness 0.88. `MI_GeneratedWood` keeps the existing brown tint for held-tool
+shafts and club/bow wood; the player head and non-wood gatherables keep the
+legacy flat bark material. The player model and campfire ring keep the original
+rock material.
+The canopy instance uses a separate two-sided opaque parent and retains the
+procedural leaf vertex colors. The meshes have no opacity cutouts, so masked
+blending is not used. The non-Shipping baseline capture path moves the local
+pawn to every requested sample before waiting for terrain streaming and exposure:
+three seconds for default and overcast captures, five seconds for fire-lit dusk.
+L02g reviewed daylight and forest-shade silhouettes/shadows and 16-frame,
+subpixel pans under both configured TSR and forced TAA; no obvious temporal
+foliage shimmer appeared in the reviewed frames. The default lake-basin policy
+is disabled, so no lake-shore triangles are rendered at these anchors.
+`MI_GeneratedWater` uses the shared lit parent with white tint and roughness 0.28,
+preserving the existing ocean and lake vertex-color palettes. The legacy
+`M_GeneratedWater` package remains generated but unassigned. Water clipping and
+shoreline geometry are unchanged.
+No water render was inspected in this increment. Use the inland Shimmering
+Lakes anchor for L02g review; the source-coast candidate is land-side and shows
+no distinct water surface, so valid coast reflection/highlight framing remains.
 Vertex alpha blends a pale snow tone over Freezing Tundra by continuous biome
 weight and final slope, and over Thunder Mountains only above the named
 highland threshold, with continuous height and slope coverage; Mountain storm

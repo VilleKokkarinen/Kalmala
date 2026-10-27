@@ -2779,6 +2779,26 @@ normal with `MI_GeneratedRock`; geometry, vertex colors and roughness stay
 within their generated presentation contract. The player model and campfire
 ring retain `M_GeneratedRock`. The terrain patch remains their gameplay
 surface.
+Generated Meadow trunks and forest tree-resource meshes use `MI_GeneratedBark`
+from the same shared surface parent at roughness 0.88. Their existing vertex
+colors distinguish birch bark, pale aspen bark, foliage and exposed cut faces;
+the instance's white tint preserves those authoring values. Non-tree gatherable
+meshes and the player head retain the legacy flat `M_GeneratedBark` assignment.
+Authored held-tool wood uses `MI_GeneratedWood` from the shared parent at
+roughness 0.88 with its previous brown tint. Material assignment is cosmetic
+and does not change harvest authority or collision.
+Meadow tree canopies use `MI_GeneratedCanopy`, an instance of the separate
+opaque, two-sided `M_KalmalaCanopyBase`. It consumes the generated vertex-color
+leaf palette through the shared response at roughness 0.82. These cone shells
+have no opacity cutouts; no masked blend or runtime material graph is needed.
+The original `M_GeneratedCanopy` remains unassigned.
+
+The sea/sea-level river and optional Shimmering Lakes water components use
+`MI_GeneratedWater`, an instance of `M_KalmalaSurfaceBase` at white tint and
+roughness 0.28. The tint preserves the existing ocean and lake vertex-color
+palettes. The legacy `M_GeneratedWater` package remains generated but
+unassigned. This material change leaves `FKalmalaWaterSurfaceMesh` clipping,
+water levels, and `MI_GeneratedLakeShore` geometry unchanged.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered

@@ -10252,15 +10252,12 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     }
     ActivateTerrainPatchNeighborhood(FVector2D(Xcm, Ycm));
 
-    // Keep the local pawn in the capture terrain neighborhood; overcast presentation also samples local weather there.
+    // Keep the local pawn in the capture terrain neighborhood while the scene streams and exposure settles.
     // This branch only runs in non-Shipping baseline captures.
-    if (bOvercastRain || bFireDusk)
+    if (APawn* CapturePawn = LocalController->GetPawn())
     {
-        if (APawn* CapturePawn = LocalController->GetPawn())
-        {
-            CapturePawn->SetActorLocation(FVector(Xcm, Ycm, CaptureViewZcm + 100.0f), false, nullptr,
-                ETeleportType::TeleportPhysics);
-        }
+        CapturePawn->SetActorLocation(FVector(Xcm, Ycm, CaptureViewZcm + 100.0f), false, nullptr,
+            ETeleportType::TeleportPhysics);
     }
 
     float SunIntensity = 0.0f;
@@ -10390,19 +10387,12 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     }
     LocalController->SetViewTarget(CaptureCamera);
     FTimerHandle ScreenshotHandle;
-    const float CaptureDelaySeconds = bOvercastRain ? 3.0f : bFireDusk ? 5.0f : 0.0f;
-    if (CaptureDelaySeconds <= 0.0f)
-    {
-        FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
-    }
-    else
-    {
-        GetWorldTimerManager().SetTimer(ScreenshotHandle,
-            FTimerDelegate::CreateLambda([ScreenshotPath]()
-            {
-                FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
-            }), CaptureDelaySeconds, false);
-    }
+    const float CaptureDelaySeconds = bFireDusk ? 5.0f : 3.0f;
+    GetWorldTimerManager().SetTimer(ScreenshotHandle,
+        FTimerDelegate::CreateLambda([ScreenshotPath]()
+        {
+            FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+        }), CaptureDelaySeconds, false);
     UE_LOG(LogTemp, Display,
         TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 ExposureCompensationEV=%.2f Output=%s."),
         WorldGenerationConfig.WorldSeed, *Site, *Condition, Xcm, Ycm, ViewZcm,

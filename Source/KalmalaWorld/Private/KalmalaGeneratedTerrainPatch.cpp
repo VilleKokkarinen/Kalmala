@@ -215,7 +215,7 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     ShimmeringLakeShore->SetGenerateOverlapEvents(false);
     ShimmeringLakeShore->SetCastShadow(false);
 
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> WaterMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedWater.M_GeneratedWater"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> WaterMaterial(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedWater.MI_GeneratedWater"));
     if (WaterMaterial.Succeeded())
     {
         SurfaceWater->SetMaterial(0, WaterMaterial.Object);
@@ -252,13 +252,13 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
         MeadowRocks->SetMaterial(0, RockMaterial.Object);
     }
 
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> BarkMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark.M_GeneratedBark"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> BarkMaterial(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedBark.MI_GeneratedBark"));
     if (BarkMaterial.Succeeded())
     {
         MeadowTreeTrunks->SetMaterial(0, BarkMaterial.Object);
     }
 
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> CanopyMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy.M_GeneratedCanopy"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> CanopyMaterial(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedCanopy.MI_GeneratedCanopy"));
     if (CanopyMaterial.Succeeded())
     {
         MeadowTreeCanopies->SetMaterial(0, CanopyMaterial.Object);

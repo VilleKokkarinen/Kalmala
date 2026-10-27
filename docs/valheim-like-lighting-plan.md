@@ -82,7 +82,7 @@ This is an L01a snapshot; later capture-only changes are recorded separately.
 | Runtime weather fog | Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp:17-110 creates a transient, nonreplicated ExponentialHeightFog only in a game world with a local player, not on a dedicated server. It probes every 1 second and scales coverage by storm intensity times Thunder Mountains biome weight, fades at speed 1.5, and scales density to 0.005 and max opacity to 0.24; start distance is 2500 and the color shifts from white toward (0.32, 0.34, 0.41). This client presentation effect is not a serialized map actor; whether it is active at any baseline view is unverified. The code does not set volumetric fog or other component properties. |
 | Fog, exposure, post-process | The setup script does not configure fog, exposure, or post-process. A search of tracked configuration and production C++ found no explicit post-process volume/settings or auto-exposure writer. The runtime storm fog above is the source-level exception for fog. Serialized level volumes, effective exposure, and other fog actors remain uninspected. |
 | Time and weather controls | `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1014-1045` initializes weather cycle 0 from the world seed and current game elapsed time; `Source/KalmalaWorld/Public/KalmalaWeatherCycle.h:10-54` derives each interval deterministically from the seed and cycle index. The baseline runner supplies the seed but has no weather-cycle or time-of-day selector. The environment setup script sets one fixed sun rotation; no tracked production time-of-day driver was found. |
-| Generated material assignments | Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp assigns MI_GeneratedTerrain to terrain (or M_GeneratedTerrainBiomeDebug in debug mode), M_GeneratedWater to ocean and lake water, MI_GeneratedLakeShore to lake shore, MI_GeneratedRock to Meadow rocks, M_GeneratedBark to Meadow trunks, and M_GeneratedCanopy to Meadow canopies. M_GeneratedTerrain remains the layered parent and the cloth material; M_GeneratedRock remains assigned to the player model and campfire ring. M_GeneratedSoil is not among the terrain-patch constructor's assignments. The commandlet builds M_GeneratedTerrain from vertex-color R/G/B weights for grass/soil/rock plus alpha snow, then routes that blend through MF_KalmalaSurfaceResponse. MI_GeneratedLakeShore and MI_GeneratedRock use M_KalmalaSurfaceBase; their instance tints preserve their prior base palettes and roughness values. M_GeneratedLakeShore is retained as an unassigned legacy package. The separate biome-debug material feeds vertex color to base and emissive. These are source-generation and constructor facts; rendered results and any map overrides were not inspected. |
+| Generated material assignments | Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp assigns MI_GeneratedTerrain to terrain (or M_GeneratedTerrainBiomeDebug in debug mode), MI_GeneratedWater to ocean and lake water, MI_GeneratedLakeShore to lake shore, MI_GeneratedRock to Meadow rocks, MI_GeneratedBark to Meadow trunks, and MI_GeneratedCanopy to Meadow canopies. AKalmalaHarvestNode assigns MI_GeneratedBark only to tree-resource source meshes and retains M_GeneratedBark for other non-rock gatherables. The player head keeps M_GeneratedBark; held-tool wood uses MI_GeneratedWood. M_GeneratedTerrain remains the layered parent and the cloth material; M_GeneratedRock remains assigned to the player model and campfire ring. M_GeneratedSoil is not among the terrain-patch constructor's assignments. The commandlet builds M_GeneratedTerrain from vertex-color R/G/B weights for grass/soil/rock plus alpha snow, then routes that blend through MF_KalmalaSurfaceResponse. MI_GeneratedWater, MI_GeneratedLakeShore, MI_GeneratedRock, MI_GeneratedBark and MI_GeneratedWood use M_KalmalaSurfaceBase. MI_GeneratedWater uses white tint and roughness 0.28 to preserve the existing ocean and lake vertex-color palettes. MI_GeneratedCanopy uses the separate two-sided opaque M_KalmalaCanopyBase and its shared surface response, with white tint and roughness 0.82. The canopy mesh has no opacity cutouts; M_GeneratedCanopy is retained as an unassigned legacy package. Bark keeps species/cut-face vertex colors at roughness 0.88, wood keeps the prior brown tint/roughness 0.88, and shore/rock tints preserve their prior base palettes. The separate biome-debug material feeds vertex color to base and emissive. These are source-generation and constructor facts; rendered results and any map overrides were not inspected. |
 | Campfire baseline support | `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp:20-67,263-268` builds an original procedural stone ring using `M_GeneratedRock` and an orange point light with 600 cm radius; the light is off until the hearth is lit, then scales to 2500 × effective warmth. The baseline capture helper does not spawn or light a hearth, and the setup script does not place one. Whether the serialized map contains a placed hearth remains unknown. |
 | Capture helper and scene anchors | Scripts/Tests/World/BiomeBaselineCapture.ps1:1-45 requires seed 418 or 419, a Site string, caller-supplied Xcm/Ycm/ViewZcm, and an output path; it launches the project map with -game, -windowed, -RenderOffscreen, -ForceRes, and 1024x768, with a separate log and UserDir. It does not set time of day, weather, or exposure. Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10200-10249 accepts those coordinates directly, activates nearby terrain, then creates a transient camera at (X, Y-2400, ViewZ+1200), aimed at (X, Y, ViewZ+150), with FOV 65, and requests one screenshot. Site is only checked for nonempty and logged; the capture code contains no named-scene-to-coordinate table. The runner checks the PNG signature, 1024x768 dimensions, basic nonblank samples, and the requested seed/site log entry; those checks do not establish scene content or visual suitability. An earlier launch through UnrealEditor.exe returned exit code 0 without a log or image; L01b succeeded when the runner's `-Editor` parameter selected UnrealEditor-Cmd.exe. |
 
@@ -487,6 +487,115 @@ world variation are now visible. Only the `MeadowRocks` procedural component
 uses this instance. Player presentation and campfire stone continue to use
 `M_GeneratedRock`. Source, instance-generation, and presentation ownership
 checks passed; rendered shape and baseline separation remain for L02g.
+
+#### L02d — Generated wood and bark integration — 2026-10-27
+
+`MI_GeneratedBark` uses the shared `M_KalmalaSurfaceBase` parent with a white
+base tint and roughness 0.88. It preserves the procedural birch, aspen, leaf,
+and cut-face vertex palettes while adding the shared lit response and broad
+world-space variation. The Meadow patch trunk component and tree-resource
+harvest meshes use this instance. `MI_GeneratedWood` uses the same parent at
+roughness 0.88 with the prior brown bark tint; it is assigned to held-tool wood
+shafts and the club/bow wooden pieces. The player head, non-wood tool heads and
+non-tree gatherable silhouettes keep `M_GeneratedBark`. No runtime material
+graph is created; mesh geometry and vertex colors are unchanged. Source,
+instance-generation, and ownership checks passed; rendered response remains
+for L02g.
+
+#### L02e — Generated foliage integration — 2026-10-27
+
+`M_KalmalaCanopyBase` reuses `MF_KalmalaSurfaceResponse` in a separate
+two-sided, opaque parent. `MI_GeneratedCanopy` uses a white tint and roughness
+0.82 and is assigned to the Meadow tree-canopy component. The current canopy is
+a six-sided, open-bottom cone shell with vertex-colored leaf sides and apexes;
+it has no cutout textures or partial-opacity vertices, so masked blending is not
+needed. Two-sided shading lets the same solid faces render from below. The
+source check found no alpha clipping or time-varying material input, but no
+forest render was inspected; silhouette/shadow aliasing and TAA shimmer remain
+for L02g.
+
+#### L02f — Generated water integration — 2026-10-27
+
+`MI_GeneratedWater` uses `M_KalmalaSurfaceBase` with white tint and roughness
+0.28. It is assigned to sea/sea-level river and optional Shimmering Lakes
+water components; existing ocean and lake vertex colors supply the blue/teal
+palettes. The legacy flat `M_GeneratedWater` remains generated but unassigned.
+`FKalmalaWaterSurfaceMesh` clipping, water levels, and separate shoreline geometry are unchanged.
+
+No water render was captured or reviewed in this increment. L02g's repaired
+seed-418 source-coast frame now shows blue water on both sides of the land strip;
+the same fixed coordinates for seed 419 show water without shoreline framing.
+The separate open-water anchor remains the valid broad water view. These fixed
+wide views do not establish water reflections or highlights.
+
+#### L02g — Final material-family gate — 2026-10-27
+
+The first default captures requested a screenshot immediately after setting the
+view target, before local terrain activation and auto exposure had settled. Their
+gray/white outputs byte-matched the pre-L02 baseline and were not treated as
+visual evidence. The non-Shipping capture path now moves the local pawn to every
+requested sample so its terrain neighborhood stays active, then waits three
+seconds for default and overcast views and five seconds for fire-lit dusk. This
+fix is limited to the baseline-capture path. A fresh project mirror was built
+with UE 5.8.2 using `Build.bat KalmalaEditor Win64 Development
+-Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload
+-NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`; all 55 actions
+succeeded. `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject
+-run=CreateWorldMaterials -unattended -nop4 -nosplash -nosound` exited 0 with
+zero errors and one existing warning for the invalid material index on
+`Default__KalmalaOceanSkiff:HullMesh`. `PresentationOwnership.ps1` passed for 16
+project-owned assets and 34 procedural/UI source seams.
+
+The capture helper reran the six fixed roles (Meadows daylight, forest shade,
+open water, coast candidate, overcast/rain, and fire dusk) for seeds 418 and 419.
+All twelve fresh 1024x768 captures passed its PNG, nonblank, and requested
+seed/site/condition checks. They are under the temporary
+`C:\Users\Ville\AppData\Local\Temp\klgfinalcaps` output folder; the preserved
+`TestResults/LightingBaseline` files were not overwritten.
+
+| Surface | Runtime instance and parent | Tint | Roughness | Runtime/render review |
+| --- | --- | --- | ---: | --- |
+| Terrain | `MI_GeneratedTerrain` / `M_GeneratedTerrain` | white | 0.92 | Generated patches use the instance; default and daylight views show the vertex-color ground blend. |
+| Lake shore | `MI_GeneratedLakeShore` / `M_KalmalaSurfaceBase` | (0.625, 0.657143, 0.522388) | 0.78 | Loaded instance and component reference verified; the default disabled-basin policy produced zero lake-shore triangles, so its rendered surface is unavailable. |
+| Rock | `MI_GeneratedRock` / `M_KalmalaSurfaceBase` | (0.903226, 0.913793, 0.904494) | 0.95 | Generated rock component retains its vertex-color palette; facets are visible in the meadow captures. |
+| Bark | `MI_GeneratedBark` / `M_KalmalaSurfaceBase` | white | 0.88 | Generated trunks and tree harvest meshes use the instance; the forest frame shows brown bark. |
+| Wood | `MI_GeneratedWood` / `M_KalmalaSurfaceBase` | (0.20, 0.13, 0.09) | 0.88 | Authored held-tool shafts and wooden club/bow sections use the instance. |
+| Canopy | `MI_GeneratedCanopy` / `M_KalmalaCanopyBase` | white | 0.82 | Generated canopies retain green species vertex colors; two-sided opaque leaf shells and their shadows are visible. |
+| Water | `MI_GeneratedWater` / `M_KalmalaSurfaceBase` | white | 0.28 | Sea/river section reports the instance and its blue vertex color; seed-418 coast and open-water frames show blue surfaces. |
+
+The runtime audit read these material instance parameters after loading. It also
+reported `MI_GeneratedTerrain`, `MI_GeneratedWater`, and `MI_GeneratedCanopy`
+on generated sections, with canopy vertex colors from the existing conifer and
+aspen palettes. Source tracing and ownership checks confirm generated rock,
+bark, lake-shore, authored wood and water assignments. The optional lake basin
+remains disabled, and the runtime audit reports zero lake water/shoreline
+triangles at the default Meadow site; no visual lake-shore response is claimed.
+The fixed seed-418 coast view contains visible water and land, while seed 419 at
+the same coordinates is water-only. The forest shade and daylight seed-418
+frames show green solid leaf silhouettes, brown trunks, terrain and shadows.
+Seed-419's fixed forest coordinates face open water, and its overcast view also
+has little land framing; these are fixed-anchor/seed limitations. The overcast
+captures show sky, ground and water but no visible rain particles. Both dusk
+captures show terrain, the test hearth silhouette and warm ground spill; they do
+not contain a modeled flame. Black world-horizon areas remain visible. The water
+reads blue, but reflections/highlights were not established in the fixed wide shots.
+
+For temporal review, capture-only instrumentation in the temporary mirror saved
+16 frames for each seed-418 daylight and forest-shade camera while translating
+the camera by 0.5 cm every 0.25 seconds after the three-second scene warmup. The
+project default was `r.AntiAliasingMethod=4` (TSR); a second pass explicitly
+forced method 2 (TAA). All four sequences produced 16/16 frames. Reviewed frames
+showed stable hard-edged leaf silhouettes and shadows with no obvious temporal
+foliage shimmer during this short subpixel pan. This is a visual spot check, not
+a performance measurement or broader motion/coverage test. The temporary pan
+instrumentation was not added to the project.
+
+**Final L02 status:** milestone-final build, material commandlet, ownership
+validator, all fixed-scene captures, runtime assignment/value audit, and the
+daylight/shade temporal review passed. Outstanding visual limits are the absent
+default lake-shore geometry, the seed-419 forest framing, the lack of visible
+rain particles and a fire mesh, and water reflections/highlights not established
+in the fixed wide views. No unrelated gameplay or material system was changed.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an

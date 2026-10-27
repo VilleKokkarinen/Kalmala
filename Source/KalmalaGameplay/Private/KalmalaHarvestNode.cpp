@@ -119,6 +119,8 @@ AKalmalaHarvestNode::AKalmalaHarvestNode()
 
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> Bark(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark.M_GeneratedBark"));
     if (Bark.Succeeded()) BarkMaterial = Bark.Object;
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> TreeBark(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedBark.MI_GeneratedBark"));
+    if (TreeBark.Succeeded()) TreeBarkMaterial = TreeBark.Object;
     static ConstructorHelpers::FObjectFinder<UMaterialInterface> Rock(TEXT("/Game/Kalmala/World/Materials/M_GeneratedRock.M_GeneratedRock"));
     if (Rock.Succeeded()) RockMaterial = Rock.Object;
 }
@@ -819,7 +821,8 @@ void AKalmalaHarvestNode::BuildSourcePresentation()
         AddTaperedBox(Vertices, Triangles, Colors, FVector(20.0f, -4.0f, 0.0f), FVector(6.0f, 11.0f, 0.0f), 60.0f, 0.5f, 18.0f, Accent);
     }
 
-    SourceMesh->SetMaterial(0, (IsGemstone() || IsRockSource(PresentationId)) ? RockMaterial : BarkMaterial);
+    SourceMesh->SetMaterial(0, (IsGemstone() || IsRockSource(PresentationId)) ? RockMaterial
+        : IsTreeResource() ? TreeBarkMaterial : BarkMaterial);
     SourceMesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, {}, {}, Colors, {}, IsTreeResource());
     SourceMesh->SetCollisionProfileName(TEXT("BlockAll"));
     SourceMesh->SetCollisionEnabled(!bIgnoreHarvestCollision && IsTreeResource() && !bHarvested
