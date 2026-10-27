@@ -1125,10 +1125,13 @@ do not mark the lighting milestone complete before it passes.
   flat generated surface materials through project-owned parents and instances,
   retaining direct light, shadow, indirect fill, water clipping, and runtime
   material assignment behavior.
-  - [ ] **L02a — Define the shared material interface.** Use the existing
+  - [x] **L02a — Define the shared material interface.** Use the existing
     `Content/Kalmala/World/Materials/` path and the lighting plan's bounded
     controls: base tint, roughness, normal strength, broad color variation, and
-    mapping scale. Keep common surface functions in Material Functions.
+    mapping scale. Keep common surface functions in Material Functions. Created
+    the Default Lit `M_KalmalaSurfaceBase` parent and the reusable
+    `Functions/MF_KalmalaSurfaceResponse` graph with those five artist controls;
+    existing runtime material assignments remain unchanged for L02b.
   - [ ] **L02b — Integrate terrain and shore.** Replace flat generated terrain
     and shore expressions with instances of the shared lit parent; verify
     procedural assignment and biome-debug material override still work.

@@ -1,3 +1,41 @@
+## L02a shared surface interface — 2026-10-27
+
+- **Selected task:** L02a, define the shared material interface.
+- **Work completed:** Added an idempotent `CreateWorldMaterials` commandlet path
+  for `M_KalmalaSurfaceBase` and `Functions/MF_KalmalaSurfaceResponse`. The
+  Default Lit parent exposes `BaseTint`, `Roughness`, `NormalStrength`,
+  `ColorVariation`, and world-space `MappingScale` in one parameter group. The
+  function applies the tint and broad absolute-world gradient variation, passes
+  roughness through, and normalizes the normal-strength blend. The parent uses
+  vertex color for its base input so terrain-layer blending is available when
+  the material is integrated. No existing runtime assignment changed.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Content/Kalmala/World/Materials/M_KalmalaSurfaceBase.uasset`,
+  `Content/Kalmala/World/Materials/Functions/MF_KalmalaSurfaceResponse.uasset`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  compilation passed; the changed commandlet compiled and linked. The
+  `CreateWorldMaterials` commandlet generated the assets with eight named
+  function inputs, three outputs, and five parent parameters; parent creation
+  verified every named input connection and required output before save. It
+  completed with 0 errors and one unrelated warning for the default ocean skiff
+  hull material slot. Re-running the commandlet loaded both existing assets
+  without rewriting them. New asset paths are below the 260-character Windows
+  limit.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials completion checks remain for L06.
+- **Observable impact:** The reusable parent and function now establish a
+  consistent artist-facing surface contract. Existing terrain, shore, rock,
+  wood, canopy, and water materials are not assigned or visually changed yet.
+- **Networking/authority:** Material assets and editor-only generation are
+  cosmetic; no runtime gameplay, server authority, replication, or save data
+  changed.
+- **Known limitations / remaining scope:** No material instances or production
+  assignments exist yet. L02b–L02g will integrate and evaluate the family;
+  detailed visual quality, GPU cost, and surface separation remain unverified.
+- **Next eligible task:** L02b — integrate terrain and shore through instances
+  while preserving procedural assignment and the biome-debug override.
+
 ## L01h milestone-final verification — complete — 2026-10-27
 
 - **Selected task:** L01h, the final implementation task in lighting milestone

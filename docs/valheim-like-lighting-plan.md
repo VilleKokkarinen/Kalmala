@@ -1,7 +1,7 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** L01 is complete, including its core-lighting and movement gate.
-L02–L06 remain queued in `BACKLOG.md`.
+**Status:** L01 is complete. L02 is in progress with its shared material
+interface authored; L03–L06 remain queued in `BACKLOG.md`.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -446,6 +446,22 @@ Expose only useful artist controls: base tint, roughness, normal strength, broad
 color variation, and mapping scale. Test world-space/triplanar mapping only on
 generated meshes that lack suitable UVs. Keep the base response lit so direct
 lights, shadows, and indirect fill continue to work.
+
+#### L02a — Shared surface response interface — 2026-10-27
+
+`M_KalmalaSurfaceBase` is the opaque, Default Lit parent for later surface
+instances. Its `Kalmala Surface` group exposes a neutral-white `BaseTint`,
+`Roughness` (0–1, default 0.92), `NormalStrength` (0–1, default 1),
+`ColorVariation` (0–0.12, default 0.05), and `MappingScale` (0.0001–0.01
+inverse centimeters, default 0.001). The parent consumes vertex color as its
+input base color, so terrain blending remains available when L02b adopts it.
+
+`Functions/MF_KalmalaSurfaceResponse` applies tint, centered low-cost gradient
+noise in absolute world space, roughness passthrough, and a normalized blend
+between the flat tangent normal and the supplied normal. At the default mapping
+scale, variation is broad (roughly ten-meter features) and consistent across
+mesh and terrain-patch boundaries. The parent is not assigned to existing
+runtime surfaces in L02a; integration and visual acceptance remain in L02b–g.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an
