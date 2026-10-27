@@ -251,7 +251,7 @@ do not mark the lighting milestone complete before it passes.
       - [x] **L05e2b — Capture Balanced tier.** Repeat all ten fixed views and
         the same GPU-time, temporal, resolution, memory, and visual recording
         for Balanced on the RTX 5090.
-      - [ ] **L05e2c — Capture High tier.** Repeat all ten fixed views and the
+      - [x] **L05e2c — Capture High tier.** Repeat all ten fixed views and the
         same GPU-time, temporal, resolution, memory, and visual recording for
         High on the RTX 5090.
   - [x] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and

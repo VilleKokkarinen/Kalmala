@@ -1215,11 +1215,11 @@ the requested tier. The existing L03 path and ordinary saved graphics settings
 are unchanged. The capture runner's isolated `-UserDir` keeps each requested
 profile out of the user's normal settings.
 
-This adds the repeatable capture control. L06b supplied the integrated Editor
-build. L05e2a Compatibility and L05e2b Balanced have now been measured on the
-selected RTX 5090 reference PC; High remains in L05e2c. Lower-tier and AMD
-hardware coverage remains pending selection, and no release hardware floor is
-inferred from these reference-PC measurements.
+This adds repeatable capture control. L06b supplied the integrated Editor build.
+L05e2a Compatibility, L05e2b Balanced, and L05e2c High have now been measured
+on the selected RTX 5090 reference PC. Lower-tier and AMD hardware coverage
+remains pending selection; no release hardware floor is inferred from these
+reference-PC measurements.
 
 ### L05e2a — Compatibility reference capture (2026-10-27)
 
@@ -1277,8 +1277,9 @@ review it. Several fixed views include broad black distant-horizon/empty-sky
 areas, and seed-419 ForestShade faces mostly open water rather than dense
 foliage. These are composition limitations to keep in mind during integrated
 visual review, not a visual-acceptance result. No temporal pass threshold is
-defined. This subsection records only Compatibility; Balanced is documented in L05e2b.
-High and lower-tier/AMD hardware remain open, and no release floor is claimed.
+defined. This subsection records only Compatibility; Balanced and High are documented in
+L05e2b and L05e2c.
+Lower-tier/AMD hardware remains open, and no release floor is claimed.
 
 ### L05e2b — Balanced reference capture (2026-10-27)
 
@@ -1334,8 +1335,65 @@ anchor is open-water/horizon-like rather than dense forest, as in Compatibility.
 Tiny silhouettes in seed-418 OvercastRain T06/T07 also appear in Compatibility;
 they are not attributed to the Balanced profile. Retain these views for L06c
 review; this is measurement evidence and does not claim visual acceptance.
-High, lower-tier/AMD hardware selection, L06c acceptance, and L06e verification
-remain pending.
+High is now measured in L05e2c. Lower-tier/AMD hardware selection, L06c
+acceptance, and L06e verification remain pending.
+
+### L05e2c — High reference capture (2026-10-27)
+
+The integrated UE 5.8.2 Editor mirror at `C:\Users\Ville\AppData\Local\Temp\k06b`
+captured the ten seed-418/419 fixed views using
+`Scripts/Tests/World/BiomeBaselineCapture.ps1`. Each view requested
+`-RayTracingQuality High`, 120 positive GPUTime samples, eight temporal frames
+at 0.5-second intervals, and 1024x768 output. The capture reports output
+dimensions but not separate internal render resolution. The RTX 5090 reported
+driver 610.88 and 32,607 MiB device VRAM. The coordinator recorded per-view
+Unreal memory and `nvidia-smi` temperature, utilization, device-used VRAM, and
+board-power samples.
+
+All ten per-view logs contain both the explicit
+`L05 GPU profile applied: Quality=High.` marker and the post-application
+effective state `r.RayTracing.Enable=1`,
+`r.Lumen.HardwareRayTracing=1`, and `IsRayTracingEnabled=1`. Every raw CSV
+contains exactly 120 positive GPUTime samples. The runner validated eight
+1024x768 frames for every view. The full temporal sequences remain in the
+temporary capture output. `TestResults/L05e2/High/` preserves ten base
+screenshots, ten per-view logs, ten raw GPU CSVs, the GPU/device/temporal
+summary CSVs, and seed-418 OvercastRain T01/T06/T07 for artifact review.
+Temporal RGB change is sampled every 16 pixels with the established whole-frame
+method; no pass threshold is defined.
+
+| Seed | View | Mean GPUTime ms | Min–max GPUTime ms | Peak device-used VRAM MiB | Mean temporal RGB delta | Max adjacent delta |
+|---:|---|---:|---:|---:|---:|---:|
+| 418 | MeadowsDaylight | 1.3506 | 1.2754–1.6158 | 4,706 | 0.2212 | 0.2554 |
+| 418 | ForestShade | 1.4480 | 1.3336–1.9456 | 4,638 | 0.2938 | 0.3081 |
+| 418 | OpenWater | 1.4179 | 1.2946–1.7339 | 4,720 | 0.2128 | 0.2342 |
+| 418 | OvercastRain | 1.3763 | 1.2830–1.6178 | 4,822 | 0.3011 | 0.4470 |
+| 418 | FireDusk | 1.3621 | 1.2769–1.5975 | 4,682 | 0.2325 | 0.2398 |
+| 419 | MeadowsDaylight | 1.3700 | 1.2937–1.6701 | 4,734 | 0.2584 | 0.2887 |
+| 419 | ForestShade | 1.3754 | 1.2882–1.5969 | 4,772 | 0.2405 | 0.2629 |
+| 419 | OpenWater | 1.4092 | 1.3398–1.6542 | 4,992 | 0.2646 | 0.2696 |
+| 419 | OvercastRain | 1.3911 | 1.3190–1.6267 | 4,880 | 0.2179 | 0.2904 |
+| 419 | FireDusk | 1.3532 | 1.2783–1.6680 | 5,035 | 0.1865 | 0.1904 |
+
+Mean GPUTime across views ranged from 1.3506–1.4480 ms; individual samples
+ranged from 1.2754–1.9456 ms. Device-used VRAM ranged from 3,065–3,496 MiB
+before capture, 3,571.07–4,379.20 MiB mean during capture, and 4,638–5,035 MiB
+peak. Unreal mean physical use ranged from 2,710.86–2,809.60 MB; peak physical
+use was 2,713.46–2,810.90 MB, minimum free memory 4,520.29–8,208.25 MB, and
+peak virtual use 4,217.65–4,413.26 MB. The 254 device telemetry rows include
+before, during, and after samples; each view has 17–61 in-capture samples.
+During capture, device temperature ranged 40–50 C, utilization 0–56%, and board
+power 41.79–189.96 W. These results describe the selected editor reference
+machine and do not set a release hardware floor.
+
+Visual review found High broadly similar to Balanced in these fixed views; tree
+shadows remain strongly defined, and the warm FireDusk ground spill remains
+readable. Seed-419 ForestShade is still an open-water/horizon-like anchor rather
+than dense foliage. Tiny distant silhouettes in seed-418 OvercastRain T06/T07
+also occur in the earlier Compatibility and Balanced captures; their cause is
+unidentified. Retain the evidence for L06c, which owns integrated visual
+acceptance. High is now measured; lower-tier/AMD hardware selection, L06c
+acceptance, and L06e verification remain open.
 
 ## Acceptance checks
 
