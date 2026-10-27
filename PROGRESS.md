@@ -1,3 +1,44 @@
+## L02f generated water integration — 2026-10-27
+
+- **Selected task:** L02f, integrate generated sea and lake water separately.
+- **Work completed:** Added `MI_GeneratedWater`, an instance of
+  `M_KalmalaSurfaceBase` with white tint and roughness 0.28. The existing
+  SurfaceWater and ShimmeringLakeWater components now use it, preserving their
+  distinct ocean and lake vertex colors. Legacy
+  `M_GeneratedWater` remains generated but unassigned. Water clipping, water levels,
+  and separate `MI_GeneratedLakeShore` geometry are unchanged. No runtime graph,
+  mesh, or shoreline geometry changed.
+- **Files changed:**
+  Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp,
+  Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp,
+  Content/Kalmala/World/Materials/MI_GeneratedWater.uasset,
+  Scripts/Tests/Presentation/PresentationOwnership.ps1,
+  docs/02-technical-architecture.md, docs/07-development-setup.md,
+  docs/valheim-like-lighting-plan.md, BACKLOG.md, and PROGRESS.md.
+- **Lightweight checks:** Incremental UE 5.8 KalmalaEditor Win64 Development
+  build passed in the temporary mirror (47 actions; 23 seconds), including both
+  changed translation units. CreateWorldMaterials generated the water instance;
+  the first run logged the constructor reference before the new asset existed.
+  The repeat run loaded the instance with exit 0, 0 errors, and 1 known unrelated
+  ocean-skiff invalid material-slot warning, with no missing water reference.
+  PresentationOwnership.ps1 passed for 16 project assets and 34 source seams;
+  git diff --check passed.
+- **Full verification:** Deferred to L02g, the material-family milestone-final
+  gate; the wider lighting/materials checks remain for L06.
+- **Observable impact:** Existing sea/sea-level river and optional lake water
+  components receive the shared lit response at roughness 0.28 while retaining
+  their vertex-color palettes. Water appearance and reflection quality were not
+  visually assessed.
+- **Networking/authority:** Cosmetic material assignment only; no gameplay,
+  authority, replication, collision, water-sampling, or save behavior changed.
+- **Known limitations / remaining scope:** No water render was captured. The
+  fixed open-water anchor is an inland lake view; the source-coast candidate is
+  land-side and shows no distinct water surface. Reflections/highlights and a
+  valid coast frame remain for L02g. No wave animation or normal-texture detail
+  was added.
+- **Next eligible task:** L02g — pass the material-family gate with milestone-
+  final verification.
+
 ## L02e generated foliage family integration — 2026-10-27
 
 - **Selected task:** L02e, add and integrate the generated foliage family.

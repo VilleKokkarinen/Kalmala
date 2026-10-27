@@ -731,6 +731,10 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
         TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain.M_GeneratedTerrain"),
         FLinearColor::White, 0.92f);
     const bool bWaterCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedWater"), FLinearColor(0.05f, 0.24f, 0.38f), 0.28f);
+    const bool bWaterInstanceCreated = bSurfaceBaseCreated && CreateMaterialInstance(
+        TEXT("/Game/Kalmala/World/Materials/MI_GeneratedWater"),
+        TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
+        FLinearColor::White, 0.28f);
     const bool bLakeShoreInstanceCreated = CreateMaterialInstance(
         TEXT("/Game/Kalmala/World/Materials/MI_GeneratedLakeShore"),
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
@@ -758,7 +762,7 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
     const bool bCanopyCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy"), FLinearColor(0.12f, 0.30f, 0.14f), 0.82f);
     const bool bBiomeDebugTerrainCreated = CreateVertexColorMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrainBiomeDebug"));
     return bSurfaceBaseCreated && bCanopySurfaceBaseCreated && bTerrainCreated && bTerrainInstanceCreated && bLakeShoreInstanceCreated
-        && bSoilCreated && bWaterCreated && bRockCreated && bRockInstanceCreated
+        && bSoilCreated && bWaterCreated && bWaterInstanceCreated && bRockCreated && bRockInstanceCreated
         && bBarkCreated && bBarkInstanceCreated && bWoodInstanceCreated && bCanopyCreated && bCanopyInstanceCreated
         && bBiomeDebugTerrainCreated ? 0 : 1;
 }

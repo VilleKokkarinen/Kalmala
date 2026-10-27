@@ -3684,6 +3684,7 @@ After rebuilding the Editor target for BH23 and BH24a/BH24b, run the project-own
 vertex-color grass/soil/rock blend routed through the shared surface-response
 function, and creates instances `MI_GeneratedTerrain`, `MI_GeneratedLakeShore`,
 `MI_GeneratedRock`, `MI_GeneratedBark`, `MI_GeneratedWood`,
+`MI_GeneratedWater`,
 `M_KalmalaCanopyBase` and `MI_GeneratedCanopy`, plus the original
 `M_GeneratedSoil.uasset`; the existing grass and rock palette remains in place.
 Generated terrain patches assign the terrain instance before the
@@ -3699,6 +3700,13 @@ The canopy instance uses a separate two-sided opaque parent and retains the
 procedural leaf vertex colors. The meshes have no opacity cutouts, so masked
 blending is not used. Source checks cover the assignment and parent settings;
 rendered edge/shadow aliasing and temporal shimmer remain for L02g.
+`MI_GeneratedWater` uses the shared lit parent with white tint and roughness 0.28,
+preserving the existing ocean and lake vertex-color palettes. The legacy
+`M_GeneratedWater` package remains generated but unassigned. Water clipping and
+shoreline geometry are unchanged.
+No water render was inspected in this increment. Use the inland Shimmering
+Lakes anchor for L02g review; the source-coast candidate is land-side and shows
+no distinct water surface, so valid coast reflection/highlight framing remains.
 Vertex alpha blends a pale snow tone over Freezing Tundra by continuous biome
 weight and final slope, and over Thunder Mountains only above the named
 highland threshold, with continuous height and slope coverage; Mountain storm

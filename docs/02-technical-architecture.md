@@ -2793,6 +2793,13 @@ leaf palette through the shared response at roughness 0.82. These cone shells
 have no opacity cutouts; no masked blend or runtime material graph is needed.
 The original `M_GeneratedCanopy` remains unassigned.
 
+The sea/sea-level river and optional Shimmering Lakes water components use
+`MI_GeneratedWater`, an instance of `M_KalmalaSurfaceBase` at white tint and
+roughness 0.28. The tint preserves the existing ocean and lake vertex-color
+palettes. The legacy `M_GeneratedWater` package remains generated but
+unassigned. This material change leaves `FKalmalaWaterSurfaceMesh` clipping,
+water levels, and `MI_GeneratedLakeShore` geometry unchanged.
+
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered
 offscreen host/client controls fixture. The former panel glyphs have moved to a

@@ -215,7 +215,7 @@ AKalmalaGeneratedTerrainPatch::AKalmalaGeneratedTerrainPatch()
     ShimmeringLakeShore->SetGenerateOverlapEvents(false);
     ShimmeringLakeShore->SetCastShadow(false);
 
-    static ConstructorHelpers::FObjectFinder<UMaterialInterface> WaterMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedWater.M_GeneratedWater"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> WaterMaterial(TEXT("/Game/Kalmala/World/Materials/MI_GeneratedWater.MI_GeneratedWater"));
     if (WaterMaterial.Succeeded())
     {
         SurfaceWater->SetMaterial(0, WaterMaterial.Object);

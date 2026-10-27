@@ -1159,9 +1159,12 @@ do not mark the lighting milestone complete before it passes.
     noise is world-stable. Build, instance-load, and ownership checks passed;
     rendered silhouette/shadow aliasing and TAA shimmer in daylight/shade remain
     for L02g.
-  - [ ] **L02f — Integrate water separately.** Use a dedicated water parent or
-    instance; preserve sea/lake clipping and shoreline geometry, and inspect
-    reflections/highlights in the fixed coast and water views.
+  - [x] **L02f — Integrate water separately.** Generate and assign `MI_GeneratedWater`
+    from the shared lit parent at white tint and roughness 0.28, preserving
+    existing ocean and lake vertex-color palettes. Keep sea/lake clipping,
+    water levels, and shoreline geometry unchanged. Build, commandlet-load,
+    and ownership checks passed; rendered reflections/highlights and a valid
+    coast water frame remain for L02g.
   - [ ] **L02g — Pass the material-family gate.** Verify terrain, shore, rock,
     bark, canopy, and water retain distinct values across all baseline scenes;
     record material assignments and remaining limitations in the lighting plan.

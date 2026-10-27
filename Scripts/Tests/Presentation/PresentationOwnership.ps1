@@ -43,7 +43,8 @@ $requiredAssets = @(
     'Content\Kalmala\World\Materials\M_KalmalaCanopyBase.uasset',
     'Content\Kalmala\World\Materials\MI_GeneratedCanopy.uasset',
     'Content\Kalmala\World\Materials\M_GeneratedTerrainBiomeDebug.uasset',
-    'Content\Kalmala\World\Materials\M_GeneratedWater.uasset'
+    'Content\Kalmala\World\Materials\M_GeneratedWater.uasset',
+    'Content\Kalmala\World\Materials\MI_GeneratedWater.uasset'
 )
 foreach ($relativePath in $requiredAssets) {
     $assetPath = Join-Path $projectRoot $relativePath
@@ -60,8 +61,8 @@ $sourceContracts = @(
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },
     @{ Label = 'player'; Path = 'Source\KalmalaGameplay\Private\KalmalaPlayerModelComponent.cpp'; Patterns = @('M_GeneratedTerrain', 'MI_GeneratedWood', 'WoodMaterial', 'bTapered', 'CreateMeshSection_LinearColor') },
     @{ Label = 'wildlife'; Path = 'Source\KalmalaGameplay\Private\KalmalaWildlifeSpawn.cpp'; Patterns = @('BuildArchetypePresentation', 'Original low-poly silhouettes', 'CreateMeshSection_LinearColor') },
-    @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'MI_GeneratedRock', 'MI_GeneratedBark', 'MI_GeneratedCanopy', 'M_GeneratedTerrainBiomeDebug', 'FKalmalaTerrainGroundBlend::SampleWeights', 'M_GeneratedWater') },
-    @{ Label = 'terrain-ground-materials'; Path = 'Source\KalmalaEditor\Private\CreateWorldMaterialsCommandlet.cpp'; Patterns = @('CreateTerrainGroundBlendMaterial', 'CreateMaterialInstance', 'MF_KalmalaSurfaceResponse', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'MI_GeneratedRock', 'MI_GeneratedBark', 'MI_GeneratedWood', 'M_KalmalaCanopyBase', 'MI_GeneratedCanopy', 'Material->BlendMode = BLEND_Opaque', 'Material->TwoSided = bTwoSided', 'M_GeneratedSoil', 'TerrainSoilColor', 'UMaterialExpressionVertexColor') },
+    @{ Label = 'environment'; Path = 'Source\KalmalaWorld\Private\KalmalaGeneratedTerrainPatch.cpp'; Patterns = @('AppendLowPolyRock', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'MI_GeneratedRock', 'MI_GeneratedBark', 'MI_GeneratedCanopy', 'M_GeneratedTerrainBiomeDebug', 'FKalmalaTerrainGroundBlend::SampleWeights', 'MI_GeneratedWater', 'SurfaceWater->SetMaterial(0, WaterMaterial.Object)', 'ShimmeringLakeWater->SetMaterial(0, WaterMaterial.Object)') },
+    @{ Label = 'terrain-ground-materials'; Path = 'Source\KalmalaEditor\Private\CreateWorldMaterialsCommandlet.cpp'; Patterns = @('CreateTerrainGroundBlendMaterial', 'CreateMaterialInstance', 'MF_KalmalaSurfaceResponse', 'MI_GeneratedTerrain', 'MI_GeneratedLakeShore', 'MI_GeneratedRock', 'MI_GeneratedBark', 'MI_GeneratedWood', 'M_KalmalaCanopyBase', 'MI_GeneratedCanopy', 'MI_GeneratedWater', 'M_GeneratedWater', 'FLinearColor::White, 0.28f', 'Material->BlendMode = BLEND_Opaque', 'Material->TwoSided = bTwoSided', 'M_GeneratedSoil', 'TerrainSoilColor', 'UMaterialExpressionVertexColor') },
     @{ Label = 'wood-harvest-materials'; Path = 'Source\KalmalaGameplay\Private\KalmalaHarvestNode.cpp'; Patterns = @('MI_GeneratedBark', 'TreeBarkMaterial', 'IsTreeResource() ? TreeBarkMaterial : BarkMaterial') },
     @{ Label = 'hearth'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('Original low polygon stone ring', 'M_GeneratedRock', 'CreateMeshSection_LinearColor') },
     @{ Label = 'campfire-refuel-interaction'; Path = 'Source\KalmalaGameplay\Private\KalmalaCampfire.cpp'; Patterns = @('FKalmalaRawFuelContract::AddCosts(Inventory->GetStacks(), 1, Costs, Reason)', 'FuelSeconds > MaxFuelSeconds - FuelSecondsPerItem', 'TryRefuelFromServer(Interactor)', 'bool AKalmalaCampfire::TryLightFromServer') },
