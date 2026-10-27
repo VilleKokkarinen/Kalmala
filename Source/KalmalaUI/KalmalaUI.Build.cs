@@ -20,5 +20,11 @@ public class KalmalaUI : ModuleRules
             "KalmalaGameplay",
             "KalmalaWorld"
         });
+
+        PrivateDependencyModuleNames.AddRange(new string[]
+        {
+            "RHI",
+            "RenderCore"
+        });
     }
 }

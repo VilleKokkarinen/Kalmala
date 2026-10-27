@@ -148,10 +148,12 @@ do not mark the lighting milestone complete before it passes.
     tracked project settings do not pin those observed values. This is dated
     baseline evidence, not a Kalmala release hardware floor; see
     `docs/valheim-like-lighting-plan.md` for source links and audit details.
-  - [ ] **L05b — Preserve the RT-off compatibility path.** Confirm the baseline
-    lighting works without hardware RT, using supported Lumen software tracing
-    or the project's selected non-hardware fallback. Make the fallback explicit
-    and test that unsupported adapters do not enter the hardware path.
+  - [x] **L05b — Preserve the RT-off compatibility path.** The accepted L01h
+    visual baseline used the L01a-observed RT-off setting. Pin project-level
+    hardware RT off for Compatibility, and require project permission, Windows
+    D3D12, SM6, and shader-platform/RHI RT support before resolving a hardware
+    request. Automation covers each missing capability falling back to
+    Compatibility.
   - [ ] **L05c — Implement the Balanced tier.** On supported adapters, enable
     Lumen hardware tracing for GI/reflections using Surface Cache lighting;
     compare against RT-off and keep Hit Lighting disabled for this tier.

@@ -1,3 +1,45 @@
+## L05b RT-off compatibility gate — 2026-10-27
+
+- **Selected increment:** L05b, preserving the hardware-RT-off compatibility
+  path in the user-directed L05 track.
+- **Work completed:** Pinned project hardware ray tracing off in
+  `Config/DefaultEngine.ini`. Added a reusable runtime capability snapshot and
+  path resolver that requires project permission, Windows D3D12, SM6,
+  shader-platform support for ray tracing and its shaders, plus matching RHI
+  support; uninitialized or unsupported configurations resolve to
+  Compatibility. Added focused automation coverage for a supported request,
+  an unrequested request, and each missing capability. The accepted L01h visual
+  gate supplies the existing RT-off baseline evidence; its recorded L01a
+  renderer values remain dated and were not represented as newly captured here.
+- **Files changed:** `Config/DefaultEngine.ini`,
+  `Source/KalmalaUI/KalmalaUI.Build.cs`,
+  `Source/KalmalaUI/Public/KalmalaRayTracingSupport.h`,
+  `Source/KalmalaUI/Private/KalmalaRayTracingSupport.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaRayTracingSupportTest.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected UE 5.8 RHI/render-core capability APIs,
+  capability-query call sites and test patterns; reviewed the new policy and
+  test by source inspection. `git diff --check` and changed-path length checks
+  passed. The automation was added but not run, and no Unreal build was run.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** Compatibility is now explicitly the project default;
+  unsupported or uninitialized renderer configurations cannot resolve to the
+  hardware path. This increment does not change GI/reflection selection or
+  visual behavior.
+- **Networking/authority:** No gameplay, networking, server authority, or save
+  behavior changed; renderer selection remains local presentation state.
+- **Known limitations / remaining scope:** No new live capture was made; visual
+  baseline evidence is the accepted L01h review on the recorded RT-off state.
+  The new automation has not been executed. Balanced and High settings,
+  per-device performance measurements, and complete lower-tier fallback
+  qualification remain outstanding.
+- **Main-checkout handoff:** Backlog/progress synchronization is deferred while
+  other Kalmala worktrees remain active; only these two bookkeeping files will
+  be considered after their current contents can be safely reconciled.
+- **Next eligible task:** L05c in this directed track. The master-based
+  backlog still has earlier L01 work outstanding; the user's scoped L05 goal is
+  preserved without reordering unrelated roadmap tasks.
+
 ## L05a renderer support-path audit — 2026-10-27
 
 - **Selected increment:** L05a under the user-requested hardware ray-tracing

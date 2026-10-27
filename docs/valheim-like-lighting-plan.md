@@ -223,6 +223,15 @@ The recorded i7-14700K/RTX 5090 system remains a reference PC only; it does not
 establish a minimum or recommended GPU, performance tier, or release support
 floor. Device-level performance and image-quality measurements remain for L05e.
 
+L05b preserves the accepted L01h visual baseline, which was reviewed with the
+L01a-observed `r.RayTracing=0` setting. `Config/DefaultEngine.ini` now explicitly
+keeps project-level hardware ray tracing disabled for the Compatibility path.
+Runtime path resolution also fails closed unless hardware RT was requested and
+the project allows it, the active shader platform supports SM6 plus ray-tracing
+shaders, and the initialized RHI is Windows D3D12 with ray-tracing support. The
+existing GI/reflection method is not changed by this gate; its observed L01a
+values remain dated runtime evidence rather than pinned project defaults.
+
 | Quality level | Proposed rendering path | Intended support and limits |
 | --- | --- | --- |
 | **Compatibility — hardware RT off** | Keep the hardware ray tracing path disabled. Use Lumen software ray tracing only where the chosen renderer and GPU support it; otherwise use the project's selected non-hardware fallback. | This is the required visual baseline. The scene must retain readable lighting, shadows, and material separation without an RTX-capable GPU. Epic lists DX12/SM6 and GTX 1070-class requirements for Lumen software ray tracing, so verify the actual supported floor rather than assuming it runs on every PC. |
