@@ -134,25 +134,31 @@ do not mark the lighting milestone complete before it passes.
     bark, canopy, and water retain distinct values across all baseline scenes;
     record material assignments and remaining limitations in the lighting plan.
 
-- [ ] **L03 — Prototype the stylized direct-light response.** Keep Default Lit
+- [x] **L03 — Prototype the stylized direct-light response.** Keep Default Lit
   as the shipped default while measuring a restrained banded alternative; this
   goal produces evidence and a recommendation, not an unreviewed global style
   change.
-  - [ ] **L03a — Create an isolated comparison fixture.** Compare Default Lit
+  - [x] **L03a — Create an isolated comparison fixture.** Compare Default Lit
     with a soft two- or three-band direct-light treatment on representative
     ground, rock, wood, canopy, creature, and construction surfaces using L01's
     fixed views.
-  - [ ] **L03b — Evaluate UE 5.8 Substrate NPR support.** Prototype its
+  - [x] **L03b — Evaluate UE 5.8 Substrate NPR support.** Prototype its
     experimental ramp-based shading only if the project's configured renderer,
     build targets, and materials support it; do not add an engine fork or make
     the experimental feature a production dependency.
-  - [ ] **L03c — Check lighting integration.** Confirm each candidate preserves
-    cast shadows, indirect fill, camp-light response, silhouette readability,
-    and temporal stability; record per-view GPU cost.
-  - [ ] **L03d — Record the review recommendation.** Keep Default Lit as the
-    production path and report the captures, tradeoffs, and recommended next
-    choice. Any change to the game's overall visual identity requires explicit
-    user review before broad adoption.
+  - [x] **L03c — Check lighting integration.** Record the fixed-view captures,
+    projected sample temporal crops, and 120-frame per-view GPUTime summaries in
+    `TestResults/L03c/` and the lighting plan. The test-only Toon candidate shows
+    a dim FireDusk response and reduced sample readability. A ForestShade sun-off
+    test with the Engine GrayTextureCube confirms skylight fill reaches Toon, but
+    all six projected crops are dimmer; world-bounce/GI remains untested. This
+    completes the evidence check, not an adoption pass.
+  - [x] **L03d — Record the final review recommendation.** Keep Default Lit
+    in production. Do not adopt the test-only Substrate Toon candidate: its
+    captured FireDusk and controlled skylight proxy crops were dimmer, while
+    whole-view GPUTime showed no consistent material-attributable advantage.
+    Production meshes, world-bounce/GI, and supported target platforms remain
+    unverified. Any broad visual-identity change still requires explicit review.
 
 - [ ] **L04 — Add supported weather and environment effects.** Use only existing
   client presentation signals and effects; keep this cosmetic, gradual, and

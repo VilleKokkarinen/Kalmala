@@ -5,6 +5,8 @@
 #include "Components/SkyLightComponent.h"
 #include "Engine/DirectionalLight.h"
 #include "Engine/SkyLight.h"
+#include "Engine/TextureCube.h"
+#include "UObject/UObjectGlobals.h"
 #include "UnrealClient.h"
 
 #include "GameFramework/Controller.h"
@@ -79,6 +81,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Misc/Paths.h"
+#include "ProfilingDebugging/CsvProfiler.h"
 #include "Misc/Crc.h"
 #include "OnlineSubsystemTypes.h"
 
@@ -10214,10 +10218,14 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     FString Site;
     FString ScreenshotPath;
     FString Condition = TEXT("Default");
+    FString LightingVariant = TEXT("Both");
     float ExposureCompensationEV = 0.0f;
     float Xcm = 0.0f;
     float Ycm = 0.0f;
     float ViewZcm = 0.0f;
+    int32 TemporalFrameCount = 1;
+    int32 GpuCaptureFrameCount = 0;
+    float TemporalIntervalSeconds = 0.5f;
     const bool bHasCaptureArguments = FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineSite="), Site)
         && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineXcm="), Xcm)
         && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineYcm="), Ycm)
@@ -10231,12 +10239,43 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         return;
     }
     FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCondition="), Condition);
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineLightingVariant="), LightingVariant);
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineTemporalFrames="), TemporalFrameCount);
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineTemporalIntervalSeconds="), TemporalIntervalSeconds);
+    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineGpuFrames="), GpuCaptureFrameCount);
+    if ((!LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase)
+            && !LightingVariant.Equals(TEXT("DefaultLit"), ESearchCase::IgnoreCase)
+            && !LightingVariant.Equals(TEXT("Toon"), ESearchCase::IgnoreCase))
+        || TemporalFrameCount < 1 || TemporalFrameCount > 12
+        || !FMath::IsFinite(TemporalIntervalSeconds) || TemporalIntervalSeconds < 0.1f || TemporalIntervalSeconds > 2.0f
+        || GpuCaptureFrameCount < 0 || GpuCaptureFrameCount > 1200)
+    {
+        bBiomeBaselineCaptureRequested = true;
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: lighting variant, temporal frame, or GPU capture arguments are invalid."));
+        return;
+    }
+    if (GpuCaptureFrameCount > 0 && !FParse::Param(FCommandLine::Get(), TEXT("csvGpuStats")))
+    {
+        bBiomeBaselineCaptureRequested = true;
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline GPU capture requires the -csvGpuStats option."));
+        return;
+    }
     const bool bOvercastRain = Condition.Equals(TEXT("OvercastRain"), ESearchCase::IgnoreCase);
     const bool bFireDusk = Condition.Equals(TEXT("FireDusk"), ESearchCase::IgnoreCase);
     if (!Condition.Equals(TEXT("Default"), ESearchCase::IgnoreCase) && !bOvercastRain && !bFireDusk)
     {
         bBiomeBaselineCaptureRequested = true;
         UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: unsupported condition '%s'."), *Condition);
+        return;
+    }
+    const bool bComparisonFixture = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineComparisonFixture"));
+    const bool bSkyOnlyFill = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineSkyOnlyFill"));
+    if (bSkyOnlyFill && (!bComparisonFixture || !Site.Equals(TEXT("ForestShade"), ESearchCase::IgnoreCase)
+            || bOvercastRain || bFireDusk || LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase)
+            || TemporalFrameCount != 1 || GpuCaptureFrameCount > 0))
+    {
+        bBiomeBaselineCaptureRequested = true;
+        UE_LOG(LogTemp, Error, TEXT("L03 sky-only fill capture requires the isolated ForestShade fixture, one isolated variant frame, and no GPU profile."));
         return;
     }
     bBiomeBaselineCaptureRequested = true;
@@ -10258,6 +10297,15 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     {
         CapturePawn->SetActorLocation(FVector(Xcm, Ycm, CaptureViewZcm + 100.0f), false, nullptr,
             ETeleportType::TeleportPhysics);
+    }
+    if (bComparisonFixture)
+    {
+        if (APawn* CapturePawn = LocalController->GetPawn())
+        {
+            CapturePawn->SetActorHiddenInGame(true);
+            UE_LOG(LogTemp, Display, TEXT("Biome baseline comparison fixture hid capture pawn %s at %s."),
+                *CapturePawn->GetClass()->GetName(), *CapturePawn->GetActorLocation().ToCompactString());
+        }
     }
 
     float SunIntensity = 0.0f;
@@ -10313,8 +10361,34 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
                 return;
             }
             CaptureHearth->InitializeLitForBaselineCaptureFromServer();
+            UE_LOG(LogTemp, Display,
+                TEXT("Biome baseline local camp-light case: transient production campfire at %s; paired fixture rows are within its 600 cm light radius."),
+                *HearthLocation.ToCompactString());
         }
         if (bOvercastRain) CaptureSky->GetLightComponent()->RecaptureSky();
+    }
+
+    if (bSkyOnlyFill)
+    {
+        if (CaptureSun == nullptr || CaptureSun->GetLightComponent() == nullptr
+            || CaptureSky == nullptr || CaptureSky->GetLightComponent() == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("L03 sky-only fill capture failed: tagged fixture sun or skylight is missing."));
+            return;
+        }
+        UTextureCube* NeutralFillCube = LoadObject<UTextureCube>(nullptr, TEXT("/Engine/EngineResources/GrayTextureCube.GrayTextureCube"));
+        if (NeutralFillCube == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("L03 sky-only fill capture failed: UE 5.8 GrayTextureCube could not be loaded."));
+            return;
+        }
+        CaptureSun->GetLightComponent()->SetIntensity(0.0f);
+        CaptureSun->SetActorHiddenInGame(true);
+        CaptureSky->GetLightComponent()->bRealTimeCapture = false;
+        CaptureSky->GetLightComponent()->SourceType = SLS_SpecifiedCubemap;
+        CaptureSky->GetLightComponent()->SetCubemap(NeutralFillCube);
+        UE_LOG(LogTemp, Display, TEXT("L03 fixture neutral-cubemap fill capture: SunIntensity=%.3f SkyIntensity=%.3f Source=Engine GrayTextureCube; tagged sun hidden, specified cubemap assigned."),
+            CaptureSun->GetLightComponent()->Intensity, CaptureSky->GetLightComponent()->Intensity);
     }
 
     if (bOvercastRain)
@@ -10361,8 +10435,8 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     if (CaptureSky != nullptr && CaptureSky->GetLightComponent() != nullptr)
         SkyIntensity = CaptureSky->GetLightComponent()->Intensity;
 
-    const float CameraDistanceCm = bFireDusk ? 500.0f : 2400.0f;
-    const float CameraHeightCm = bFireDusk ? 250.0f : 1200.0f;
+    const float CameraDistanceCm = bFireDusk ? 500.0f : bComparisonFixture ? 1000.0f : 2400.0f;
+    const float CameraHeightCm = bFireDusk ? 250.0f : bComparisonFixture ? 500.0f : 1200.0f;
     const float CameraAimHeightCm = bFireDusk ? 80.0f : 150.0f;
     const FVector CameraLocation(Xcm, Ycm - CameraDistanceCm, CaptureViewZcm + CameraHeightCm);
     const FVector ViewTarget(Xcm, Ycm, CaptureViewZcm + CameraAimHeightCm);
@@ -10377,6 +10451,31 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
             WorldGenerationConfig.WorldSeed, *Site);
         return;
     }
+    if (!LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase))
+    {
+        int32 SmoothActors = 0;
+        int32 BandedActors = 0;
+        for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+        {
+            if (!It->ActorHasTag(TEXT("KalmalaL03ComparisonFixture"))) continue;
+            const bool bIsSmooth = It->GetName().StartsWith(TEXT("L03Smooth_"));
+            const bool bIsBanded = It->GetName().StartsWith(TEXT("L03Band_"));
+            if (!bIsSmooth && !bIsBanded) continue;
+            SmoothActors += bIsSmooth ? 1 : 0;
+            BandedActors += bIsBanded ? 1 : 0;
+            const bool bHideActor = LightingVariant.Equals(TEXT("DefaultLit"), ESearchCase::IgnoreCase)
+                ? bIsBanded : bIsSmooth;
+            It->SetActorHiddenInGame(bHideActor);
+        }
+        if (SmoothActors == 0 || BandedActors == 0)
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Biome baseline lighting-variant capture requested %s but the L03 paired fixture was not found."), *LightingVariant);
+            return;
+        }
+        UE_LOG(LogTemp, Display, TEXT("Biome baseline isolated lighting variant: %s; visible samples=%d."),
+            *LightingVariant, LightingVariant.Equals(TEXT("DefaultLit"), ESearchCase::IgnoreCase) ? SmoothActors : BandedActors);
+    }
     UCameraComponent* CameraComponent = CaptureCamera->GetCameraComponent();
     CameraComponent->SetFieldOfView(65.0f);
     if (bFireDusk)
@@ -10387,15 +10486,67 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     }
     LocalController->SetViewTarget(CaptureCamera);
     FTimerHandle ScreenshotHandle;
-    const float CaptureDelaySeconds = bFireDusk ? 5.0f : 3.0f;
-    GetWorldTimerManager().SetTimer(ScreenshotHandle,
-        FTimerDelegate::CreateLambda([ScreenshotPath]()
+    const float CaptureDelaySeconds = bSkyOnlyFill ? 2.0f\r\n        : bOvercastRain ? 3.0f\r\n        : (bFireDusk || GpuCaptureFrameCount > 0) ? 5.0f\r\n        : 3.0f;
+    TWeakObjectPtr<UWorld> CaptureWorld = GetWorld();
+    const auto StartCaptureSequence = [CaptureWorld, ScreenshotPath, Site, Condition, LightingVariant,
+        TemporalFrameCount, TemporalIntervalSeconds, GpuCaptureFrameCount]()
+    {
+        UWorld* World = CaptureWorld.Get();
+        if (World == nullptr) return;
+
+        if (GpuCaptureFrameCount > 0)
         {
-            FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
-        }), CaptureDelaySeconds, false);
+#if CSV_PROFILER
+            const FString CsvBaseName = FPaths::MakeValidFileName(
+                FString::Printf(TEXT("L03_GPU_%s_%s_%s"), *Site, *Condition, *LightingVariant));
+            FCsvProfiler::Get()->BeginCapture(GpuCaptureFrameCount, FPaths::GetPath(ScreenshotPath),
+                CsvBaseName, ECsvProfilerFlags::WriteCompletionFile);
+            UE_LOG(LogTemp, Display, TEXT("Biome baseline GPU CSV capture requested: Frames=%d File=%s."),
+                GpuCaptureFrameCount, *FPaths::Combine(FPaths::GetPath(ScreenshotPath), CsvBaseName));
+#else
+            UE_LOG(LogTemp, Error, TEXT("Biome baseline GPU CSV capture is unavailable in this build configuration."));
+            return;
+#endif
+        }
+
+        const auto MakeFramePath = [ScreenshotPath](const int32 FrameIndex)
+        {
+            if (FrameIndex == 0) return ScreenshotPath;
+            const FString Extension = FPaths::GetExtension(ScreenshotPath);
+            const FString Filename = FString::Printf(TEXT("%s_T%02d%s%s"), *FPaths::GetBaseFilename(ScreenshotPath),
+                FrameIndex, Extension.IsEmpty() ? TEXT("") : TEXT("."), *Extension);
+            return FPaths::Combine(FPaths::GetPath(ScreenshotPath), Filename);
+        };
+        if (TemporalFrameCount == 1)
+        {
+            FScreenshotRequest::RequestScreenshot(MakeFramePath(0), false, false);
+            return;
+        }
+
+        TSharedRef<int32> FrameIndex = MakeShared<int32>(0);
+        TSharedRef<FTimerHandle> FrameTimer = MakeShared<FTimerHandle>();
+        World->GetTimerManager().SetTimer(*FrameTimer, FTimerDelegate::CreateLambda(
+            [CaptureWorld, MakeFramePath, TemporalFrameCount, FrameIndex, FrameTimer]()
+            {
+                UWorld* TimerWorld = CaptureWorld.Get();
+                if (TimerWorld == nullptr) return;
+                FScreenshotRequest::RequestScreenshot(MakeFramePath(*FrameIndex), false, false);
+                ++(*FrameIndex);
+                if (*FrameIndex >= TemporalFrameCount)
+                    TimerWorld->GetTimerManager().ClearTimer(*FrameTimer);
+            }), TemporalIntervalSeconds, true, TemporalIntervalSeconds);
+    };
+    if (CaptureDelaySeconds <= 0.0f)
+    {
+        StartCaptureSequence();
+    }
+    else GetWorldTimerManager().SetTimer(ScreenshotHandle,
+        FTimerDelegate::CreateLambda(StartCaptureSequence), CaptureDelaySeconds, false);
     UE_LOG(LogTemp, Display,
-        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 ExposureCompensationEV=%.2f Output=%s."),
-        WorldGenerationConfig.WorldSeed, *Site, *Condition, Xcm, Ycm, ViewZcm,
+        TEXT("Biome baseline rendered capture requested: Seed=%llu Site=%s Condition=%s LightingVariant=%s ComparisonFixture=%s TemporalFrames=%d TemporalInterval=%.2f GpuFrames=%d XY=(%.3f,%.3f) ViewZ=%.3f Camera=%s Aim=%s FOV=65 SunIntensity=%.3f SkyIntensity=%.3f Delay=%.2f Exposure=AutoAdaptationQuality2 ExposureCompensationEV=%.2f Output=%s."),
+        WorldGenerationConfig.WorldSeed, *Site, *Condition, *LightingVariant, bComparisonFixture ? TEXT("true") : TEXT("false"),
+        TemporalFrameCount, TemporalIntervalSeconds,
+        GpuCaptureFrameCount, Xcm, Ycm, ViewZcm,
         *CameraLocation.ToCompactString(), *ViewTarget.ToCompactString(), SunIntensity, SkyIntensity,
         CaptureDelaySeconds, ExposureCompensationEV, *ScreenshotPath);
 #endif

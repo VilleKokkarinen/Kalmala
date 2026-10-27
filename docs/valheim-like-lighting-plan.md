@@ -1,7 +1,6 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** L01 and L02 are complete. L03–L06 remain in the active lighting
-queue in `BACKLOG.md`.
+**Status:** L01–L03 are complete. L04–L06 remain in the active lighting queue in `BACKLOG.md`; L06 is the integrated milestone-final gate.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -596,6 +595,248 @@ daylight/shade temporal review passed. Outstanding visual limits are the absent
 default lake-shore geometry, the seed-419 forest framing, the lack of visible
 rain particles and a fire mesh, and water reflections/highlights not established
 in the fixed wide views. No unrelated gameplay or material system was changed.
+#### L03a — isolated direct-light comparison fixture — 2026-10-27
+
+Added `UCreateLightingComparisonFixtureCommandlet` as a test-only generator for
+`/Game/Kalmala/Tests/Lighting/L_LightingComparison`, one three-band
+`TP_L03SoftThreeBand` profile, and paired smooth Default Lit / Substrate Toon
+materials under `/Game/Kalmala/Tests/Lighting`. The board uses paired columns
+(Default Lit left, candidate right) and this row order: ground, rock, wood,
+canopy, creature, construction. The capture runner targets L01's five seed-418
+views: Meadows daylight, Forest shade, OpenWater, OvercastRain, and FireDusk.
+The two Meadows conditions share one board, so four physical placements cover
+five view contexts.
+
+The candidate diffuse ramp uses three broad levels (0.32, 0.58, 0.92) with
+cubic transitions spanning 0.08 of the ramp around the two boundaries. Diffuse
+and specular indirect scales remain at 1.0. The ramp does not fold shadow
+transmittance into its band lookup, leaving the engine's separate attenuation
+term active. Toon Profile shadow extinction keeps UE's default value of 10;
+no hatching texture is assigned. The project's DefaultEngine configuration is
+not changed. The capture helper accepts a map override, and
+`Scripts/Tests/Presentation/LightingComparison.ps1` enables Substrate only for
+its capture processes using an engine-config command-line override. Run the
+asset commandlet with the same override in the compiled mirror.
+
+The samples use UE BasicShapes meshes as class proxies, with representative
+palette/roughness values; they do not use the production terrain, wildlife,
+foliage, or buildable meshes. This fixture can compare the shading response and
+framing but cannot establish final mesh silhouettes, foliage stability, GPU
+cost, or production platform support. The commandlet and capture scripts passed
+source inspection and PowerShell parsing. A rebuilt Editor was not run, so the
+generated packages and rendered captures are still pending before visual
+review; the Substrate candidate is experimental and remains test-only.
+
+#### L03b — UE 5.8 Substrate NPR support audit — 2026-10-27
+
+UE 5.8 exposes UMaterialExpressionSubstrateToonBSDF and UToonProfile, both
+marked experimental in the installed engine headers. Epic's [UE 5.8 release
+notes](https://dev.epicgames.com/documentation/unreal-engine/unreal-engine-5-8-release-notes)
+describe Toon shading as an experimental path built on the Substrate Blendable
+GBuffer. The [Substrate overview](https://dev.epicgames.com/documentation/unreal-engine/overview-of-substrate-materials-in-unreal-engine)
+states existing projects upgrading to UE 5.7 or later stay on the non-Substrate
+path unless they explicitly opt in. RendererSettings.h maps bEnableSubstrate
+to r.Substrate and requires an editor restart; its setting notes say Blendable
+GBuffer is supported on all platforms while Adaptive GBuffer is supported only
+on some.
+
+Kalmala's .uproject targets UE 5.8, but Config/DefaultEngine.ini contains no
+RendererSettings/Substrate opt-in. Kalmala.Target.cs, KalmalaEditor.Target.cs,
+and KalmalaServer.Target.cs declare Game, Editor, and Server target types
+without a SupportedPlatforms list. L01's live capture record observed
+D3D12/SM5 on an RTX 5090; that single host is not a platform support matrix.
+The inspected project configuration therefore does not establish Substrate as
+a production renderer path or certify it for the project's build targets.
+
+The L03a commandlet authors a test-only Toon Profile and Toon BSDF material,
+and the capture runner enables Substrate through a per-process command-line
+override. This keeps the experiment isolated from production configuration and
+assignments. No Editor build, commandlet asset generation, material compilation,
+or rendered capture was run, so source/API availability is not proof that the
+candidate compiles or renders correctly on project targets. Keep the Toon
+candidate test-only; do not enable Substrate in project defaults or add a
+production dependency. At the time of this support audit, L03c still needed
+rendered integration, silhouette, stability, and cost evidence before L03d could
+make a review recommendation.
+
+#### L03c — focused rendered integration evidence — 2026-10-27
+
+The user authorized a focused UE 5.8 Editor build and L03 captures outside the
+normal L06 verification gate. This was a targeted L03c evidence run, not
+milestone-final verification. The current KalmalaEditor build passed with four
+incremental UBT actions after adding the test-only GrayTextureCube skylight
+hook; an earlier clean build in this session compiled the fixture commandlet. The isolated fixture map, profile, and materials generated
+successfully in the short mirror `C:\Users\Ville\AppData\Local\Temp\l03c\Kalmala.uproject`. The
+incremental command was `Build.bat KalmalaEditor Win64 Development
+C:\Users\Ville\AppData\Local\Temp\l03c\Kalmala.uproject -WaitMutex
+-NoHotReloadFromIDE`; UnrealBuildTool had normal access to
+`%LOCALAPPDATA%\UnrealBuildTool`. Intermediate temporal PNGs and capture logs
+were retained in `C:\Users\Ville\AppData\Local\Temp\l03c\capture-intermediate`.
+
+Five fixed L01 site anchors were captured at seed 418: MeadowsDaylight,
+ForestShade, OpenWater, OvercastRain, and FireDusk. The test process rendered
+five paired 8-frame sequences at 0.5-second intervals, then ten isolated
+DefaultLit/Toon views with 120 GPU capture frames each after a five-second
+settle. Each image is 1024×768. UE logged D3D12 feature level SM5 on an NVIDIA
+GeForce RTX 5090. Substrate was enabled only by the test process. The L03 fixture
+keeps each anchor, site condition, exposure, FOV, and camera direction; to fit
+the board, non-FireDusk captures shorten camera distance/height from the L01
+baseline 2400/1200 cm to 1000/500 cm. FireDusk retains 500/250 cm. These are
+fixture-framed views, not identical L01 camera poses.
+
+The FireDusk scene uses the transient production campfire spawned at the fixed
+anchor, with its ordinary 600 cm light radius. No second point light was added.
+All six sample classes and both variants are within the radius, with center
+distances of 125–474 cm. The capture pawn is hidden only when the L03 fixture
+flag is present. The revised FireDusk, OpenWater, and OvercastRain images contain
+no centered pawn. The board still uses UE BasicShapes proxies rather than game
+meshes.
+
+| Check | Captured finding | Limit |
+| --- | --- | --- |
+| Cast shadows | Both variants show the sample proxies casting and receiving visible shadows in the fixed captures. | Visual check on proxy meshes; not a production mesh review. |
+| Skylight fill | A test-only ForestShade capture hid and zeroed the tagged sun, then set the movable fixture skylight to Engine `GrayTextureCube` at intensity 1.0; both isolated variants rendered all six proxies. | Toon crop means were lower on every class. This measures specified-cubemap skylight fill only; world-bounce/GI remains untested. The original captured-scene sky source was black in the sun-off diagnostic. |
+| Camp-light response | The actual FireDusk campfire is present. Projected FireDusk sample-crop mean 8-bit luma was lower for Toon for all six classes, including Ground, Wood, and Creature where Toon samples are closer to the light. | The paired samples sit at different positions (±65 cm) and the crop includes a small amount of scene edge; this is evidence of an uneven/dim candidate, not a calibrated co-located material comparison. |
+| Silhouette readability | Proxy shapes remain identifiable in the captures, and their shadows remain visible. | Several Toon samples are very dark; FireDusk Construction averages 7.973 luma and loses surface detail. Production meshes were not tested. |
+| Temporal stability | Adjacent-frame sample crops were measured for 8 frames at 0.5-second intervals. | Crops include some surrounding pixels; weather, sky, and fire may animate. No pass threshold was defined. This is a short proxy-pixel observation, not a broad temporal-stability certification. |
+| Per-view GPU cost | UE `GPUTime` total-frame means were recorded from 120 frames per isolated view. | These are full 1024×768 view costs on one RTX 5090 system, including scene and post-process work; they are not material-only attribution or a target-hardware performance claim. |
+
+ForestShade sky-only projected-crop mean luma (DefaultLit → Toon, 8-bit sRGB screenshot):
+
+| Surface | DefaultLit | Toon |
+| --- | ---: | ---: |
+| Ground | 155.44 | 128.14 |
+| Rock | 103.24 | 63.80 |
+| Wood | 107.52 | 47.55 |
+| Canopy | 99.78 | 58.54 |
+| Creature | 71.36 | 59.18 |
+| Construction | 147.14 | 85.85 |
+
+The direct sun was off (logged intensity 0.000); the tagged skylight remained
+at 1.000 and used Engine `/Engine/EngineResources/GrayTextureCube` through
+`SLS_SpecifiedCubemap`. The first sun-off diagnostic used the fixture captured-
+scene source and rendered black because the isolated map has no sky dome or
+environment-radiance source; the measured pair above uses the neutral engine
+cube. The Toon candidate therefore receives controlled skylight fill, although
+all six proxy-crop means are lower than DefaultLit. This is not a world-bounce
+or production-environment GI test, and the paired columns are 130 cm apart.
+Images and per-sample crop values are in
+`TestResults/L03c/ForestShade_SkyOnly_DefaultLit.png`,
+`TestResults/L03c/ForestShade_SkyOnly_Toon.png`, and
+`TestResults/L03c/SkyOnlyFill.csv`.
+
+FireDusk sample center-crop luma (DefaultLit → Toon, 8-bit sRGB screenshot):
+
+| Surface | Center distance from fire (cm), DefaultLit → Toon | Mean luma, DefaultLit → Toon |
+| --- | ---: | ---: |
+| Ground | 255 → 125 | 111.574 → 37.859 |
+| Rock | 125 → 255 | 103.694 → 39.050 |
+| Wood | 324.1 → 235.8 | 64.171 → 39.073 |
+| Canopy | 235.8 → 324.1 | 90.891 → 42.610 |
+| Creature | 474.4 → 419.1 | 54.125 → 41.892 |
+| Construction | 419.1 → 474.4 | 72.190 → 7.973 |
+
+The engine's UE 5.8 `SubstrateToonBSDF.ush` computes
+`Sample.DiffuseColor = DiffuseColor * DiffuseRamp`; the equal RGB ramp is a
+per-channel scalar multiplier and does not replace the authored base hue. Mean
+pixel saturation in the six FireDusk center crops was higher for Toon, while
+luminance was lower. The captured concern is the candidate's dark direct-light
+response/readability, not a gray ramp overwriting BaseColor. No profile tuning
+was made in this evidence run.
+
+Sample-region temporal mean adjacent-frame RGB change (0–255 scale, averaged
+over five views for each proxy and variant):
+
+| Proxy | DefaultLit | Toon |
+| --- | ---: | ---: |
+| Ground | 1.9463 | 6.4165 |
+| Rock | 3.0310 | 3.2649 |
+| Wood | 5.4006 | 2.5743 |
+| Canopy | 3.5663 | 2.9890 |
+| Creature | 3.4531 | 3.1503 |
+| Construction | 5.6432 | 3.5113 |
+
+The per-view crop values and maxima are in `TestResults/L03c/TemporalSampleRegions.csv`.
+Whole-frame adjacent-frame mean RGB changes were MeadowsDaylight 1.5661,
+ForestShade 0.1840, OpenWater 2.0281, OvercastRain 0.1866, and FireDusk 0.1185;
+these include background and scene animation and are retained only as context.
+
+Per-view UE `GPUTime` mean (ms, 120 positive frame samples per capture):
+
+| View | DefaultLit | Toon |
+| --- | ---: | ---: |
+| MeadowsDaylight | 0.7093 | 0.7021 |
+| ForestShade | 0.6980 | 0.6883 |
+| OpenWater | 0.6934 | 0.6942 |
+| OvercastRain | 0.8016 | 0.8258 |
+| FireDusk | 0.8752 | 0.8739 |
+
+The five-view capture images, ten raw GPU CSVs, and four capture-summary CSVs
+are in `TestResults/L03c/`, along with the two sky-only frames and
+`SkyOnlyFill.csv`;
+the 40 temporal-frame PNGs and capture logs remain in the temporary capture
+workspace. Exact GPU min/max values, FireDusk crop RGB/saturation, full-frame
+temporal metrics, sky-only crop values, and per-sample temporal metrics are
+preserved in the CSVs. UE `GPU/Unaccounted` is a separate queue remainder and
+is not the total GPU frame metric.
+
+L03c evidence collection is complete, but the Substrate Toon candidate did not
+meet the local-light brightness/readability check. The controlled GrayTextureCube
+test confirms the Toon proxies receive skylight fill, although all six projected
+crop means are lower than DefaultLit; world-bounce/GI remains untested. The
+comparison uses BasicShapes proxies and one GPU. Default Lit remains the
+production path; no production renderer setting or material assignment changed.
+L03d was reopened at this point to review the captured results; its final
+recommendation is recorded in the following section.
+
+#### L03d — final review recommendation — 2026-10-27
+
+**Recommendation:** Keep Default Lit as the production shading path. Do not
+adopt the test-only Substrate Toon candidate for current production materials.
+The captured response does not preserve enough local-light readability to
+justify a broad style change, and it shows no consistent GPU-time advantage.
+
+In the FireDusk comparison, all six Toon sample crops had lower mean luma than
+their Default Lit counterparts. The most severe result was Construction at
+72.190 → 7.973 (8-bit sRGB luma); the candidate also appeared much darker in the
+paired image. Other classes ranged from Ground 111.574 → 37.859 to Canopy
+90.891 → 42.610. The actual transient 600 cm campfire illuminated the fixture;
+no duplicate light was added. Both variants retained visible proxy shadows, but
+some Toon samples lost surface detail. The paired samples occupy different
+positions and their crops include a small amount of scene edge, so these are
+comparative fixture observations, not a co-located material calibration.
+
+The controlled ForestShade GrayTextureCube test confirms the Toon candidate
+receives skylight fill: both variants rendered all six proxies with the direct
+sun off. However, all six Toon crop means were lower (Ground 155.44 → 128.14;
+Rock 103.24 → 63.80; Wood 107.52 → 47.55; Canopy 99.78 → 58.54; Creature
+71.36 → 59.18; Construction 147.14 → 85.85). This is specified-cubemap fill
+only; it does not establish world-bounce/GI or production-environment response.
+
+The short eight-frame adjacent-crop observations are mixed rather than a
+stability pass: Toon deltas rose for Ground (1.9463 → 6.4165) and slightly for
+Rock (3.0310 → 3.2649), while they fell for Wood, Canopy, Creature, and
+Construction. Crops include some scene pixels, the test used only eight frames
+at 0.5-second intervals, and no pass threshold was defined. Do not infer broad
+temporal stability from this proxy sample.
+
+Per-view mean UE `GPUTime` for 120 frames was Default Lit → Toon, in ms:
+MeadowsDaylight 0.7093 → 0.7021; ForestShade 0.6980 → 0.6883; OpenWater
+0.6934 → 0.6942; OvercastRain 0.8016 → 0.8258; FireDusk 0.8752 → 0.8739.
+Differences range from Toon 0.0097 ms lower to 0.0242 ms higher, with no
+consistent win. These are total 1024×768 view timings, including the scene and
+post-process work, on one RTX 5090; they do not isolate material cost or qualify
+supported release hardware.
+
+The fixture uses UE BasicShapes proxies, shortened camera distance for four
+views, paired materials at different positions, and a test-process-only
+Substrate opt-in. It did not review production meshes or certify the project's
+target platforms. UE 5.8 Toon remains experimental; configured production
+renderer support, world-bounce/GI response, and broader target-hardware behavior
+remain unverified. Keep the candidate isolated and unadopted. No production
+renderer setting or material assignment changed. L03's review recommendation is
+complete on this branch; integrated lighting acceptance and full verification
+remain for L06.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an

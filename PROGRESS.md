@@ -208,6 +208,146 @@
   water integration, temporal shimmer checks, and cross-family rendered review
   remain for L02e–L02g.
 - **Next eligible task:** L02e — add the foliage family.
+## L03d final direct-light review recommendation — 2026-10-27
+
+- **Selected task:** L03d, record the final recommendation from the L03c captures and tradeoffs.
+- **Work completed:** Reviewed the five-view Default Lit/Toon image matrix, FireDusk sample crops, controlled ForestShade GrayTextureCube pair, temporal sample-region summaries, and 120-frame per-view GPUTime table. Recommend keeping Default Lit in production and leaving the experimental Toon candidate isolated. FireDusk and controlled skylight crops were dimmer for all six proxy classes, including Construction at 72.190→7.973 luma in FireDusk. Temporal crop deltas were mixed. Toon had slightly lower whole-view GPUTime in three of five views and slightly higher time in two; differences were small and inconsistent. Checked L03d and L03 implementation state only; the lighting milestone remains open for L04–L06.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected the FireDusk and ForestShade sky-only PNG pairs and reviewed the recorded crop, temporal, and GPUTime values. `git diff --check` passed. Checked changed path lengths against the 260-character limit. No build, test suite, packaging, or L06 verification ran.
+- **Full verification:** Deferred to L06. This was not a milestone-final verification run.
+- **Observable impact:** Review documentation only. Default Lit remains the production path; no production material, renderer configuration, or runtime behavior changed.
+- **Networking/authority:** No gameplay, networking, server-authority, replication, save, or persistence behavior changed.
+- **Known limitations / remaining scope:** The fixture uses BasicShapes proxies; paired surfaces occupy different positions and crops include some surrounding pixels. The temporal observation covers eight frames at 0.5-second intervals with mixed deltas and no pass threshold. GPUTime is a total-view measurement on one RTX 5090, not material-only attribution or target-hardware qualification. The controlled GrayTextureCube result is not world-bounce/GI; production meshes and platform support for the experimental UE 5.8 Toon path remain unverified. L06 remains the integrated visual/build/performance gate.
+- **Next eligible task:** L04a — map the existing weather inputs on current master; L05e remains deferred to the integrated L06 gate.
+
+## L03c rendered integration evidence — 2026-10-27
+
+- **Selected task:** L03c, check stylized direct-light integration.
+- **Work completed:** Built and ran the isolated UE 5.8 comparison fixture across
+  MeadowsDaylight, ForestShade, OpenWater, OvercastRain, and FireDusk. Captured
+  five paired 8-frame sequences at 0.5-second intervals and ten isolated
+  DefaultLit/Toon views with 120 UE GPUTime frames each. Reviewed the updated
+  pawn-free FireDusk frame and measured sample-region luminance and temporal
+  changes. Results and limits are in `docs/valheim-like-lighting-plan.md` and
+  `TestResults/L03c/`. The Toon candidate was much darker in FireDusk. The
+  ForestShade sun-off GrayTextureCube pair rendered both variants; all six Toon
+  projected crops were dimmer, confirming skylight fill reaches the candidate
+  without testing world-bounce/GI. L03c is evidence-complete, not an adoption
+  pass; L03d was reopened for a separate
+  final recommendation.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
+  `Scripts/Tests/Presentation/LightingComparison.ps1`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`, the lighting plan, `BACKLOG.md`,
+  `PROGRESS.md`, and the retained L03c evidence CSVs/variant PNGs, including
+  `ForestShade_SkyOnly_DefaultLit.png`, `ForestShade_SkyOnly_Toon.png`, and
+  `SkyOnlyFill.csv`.
+- **Lightweight checks:** PowerShell parser checks passed for both capture
+  scripts. The focused UE 5.8 `KalmalaEditor Win64 Development` incremental build
+  passed with 4 UBT actions and normal `%LOCALAPPDATA%\UnrealBuildTool` access.
+  The fixture commandlet had generated the isolated map/profile/materials
+  successfully earlier in the focused session. Five-view temporal capture and
+  all ten isolated profiles completed; each profile CSV had 120 positive
+  `GPUTime` frames. `git diff --check` passed.
+- **Full verification:** Deferred. This was not a milestone-final run; the user
+  explicitly authorized the focused Editor build and captures outside the usual
+  L06 gate. No full project build, test suite, packaging, or broad L06 check ran.
+- **Observable impact:** Developers now have fixed-view comparison images,
+  projected proxy-pixel temporal summaries, FireDusk crop measurements, and
+  per-view whole-frame GPUTime data. Default Lit remains the production path;
+  Substrate is enabled only in the test process.
+- **Networking/authority:** Non-Shipping capture tooling and editor fixture
+  only. The capture pawn is hidden only under the L03 fixture flag; gameplay,
+  networking, server authority, replication, save state, and persistence are
+  unchanged.
+- **Known limitations / remaining scope:** Samples are UE BasicShapes proxies.
+  Fixture framing shortens non-FireDusk camera distance/height to 1000/500 cm
+  while retaining L01 anchors, conditions, exposure, FOV, and direction. The
+  paired surfaces occupy different positions, crop measurements include some
+  scene-edge pixels, and only one RTX 5090 was profiled. The controlled
+  GrayTextureCube skylight pair also showed lower Toon crop luma for all six
+  classes; it does not measure world-bounce/GI, and paired crops sample different
+  positions. Toon FireDusk samples were dimmer for all six classes; the candidate
+  remains unadopted pending final review. Full verification remains deferred to
+  the lighting milestone gate.
+- **Next eligible task:** L03d final review recommendation, reopened to use these
+  measurements; L03 remains incomplete.
+
+## L03d provisional direct-light recommendation — superseded — 2026-10-27
+
+This earlier holding note is superseded by the final recommendation above.
+Captured direct-light and controlled skylight crops show a dimmer Toon response,
+while per-view GPUTime differences are small and mixed. Keep Default Lit in
+production; the experimental candidate remains test-only.
+
+## L03c pre-capture source audit — superseded — 2026-10-27
+
+The earlier audit recorded the fixture gaps and failed mixed-mirror compile
+attempt before the user-authorized clean UE 5.8 build and captures. Its
+no-render/no-GPU conclusion is superseded by the current L03c evidence entry.
+
+## L03b UE 5.8 Substrate NPR support audit — 2026-10-27
+
+- **Selected task:** L03b, evaluate whether UE 5.8 Substrate NPR is supported by
+  the project's current renderer, build targets, and materials.
+- **Work completed:** Confirmed the installed UE 5.8 engine exposes experimental
+  UMaterialExpressionSubstrateToonBSDF and UToonProfile APIs. The project is
+  associated with UE 5.8, but DefaultEngine.ini has no Substrate renderer
+  opt-in; Game, Editor, and Server target files do not define a platform matrix.
+  Recorded the decision to keep the L03a Toon candidate test-only and leave
+  production renderer/material assignments unchanged.
+- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
+  PROGRESS.md.
+- **Lightweight checks:** Inspected the installed UE 5.8 Toon API and
+  RendererSettings.h, project descriptor/config, target declarations, and
+  L03a's commandlet/capture override. PowerShell parser checks for the two
+  fixture/capture scripts and git diff --check passed.
+- **Full verification:** Deferred. No Editor build, commandlet asset generation,
+  material compilation, or rendered capture was run.
+- **Observable impact:** Source/API availability and current project opt-in
+  status are documented; no runtime or production renderer behavior changed.
+- **Networking/authority:** Documentation and renderer support audit only; no
+  gameplay, networking, authority, persistence, or save behavior changed.
+- **Known limitations / remaining scope:** Candidate compilation/rendering,
+  target-platform support, visual integration, silhouette and temporal stability,
+  and per-view GPU cost remain unverified. UE's engine headers describe
+  Blendable GBuffer support across platforms, but the project did not select a
+  Substrate format and no target build was run.
+- **Next eligible task:** L03c, evaluate rendered lighting integration and
+  per-view GPU cost. L02d remains active in its separate worktree.
+
+## L03a isolated direct-light comparison fixture — 2026-10-27
+
+- **Selected task:** L03a, create an isolated comparison fixture.
+- **Work completed:** Added an Editor commandlet that generates a dedicated
+  test map, paired Default Lit and UE 5.8 Substrate Toon materials for ground,
+  rock, wood, canopy, creature, and construction proxies, and a soft three-band
+  Toon Profile. Added a fixed-view capture runner using the five seed-418 L01
+  camera contexts. Substrate is enabled by a command-line override only for the
+  test tooling; production maps/material assignments are untouched.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
+  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.h`,
+  `Scripts/Tests/Presentation/LightingComparison.ps1`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser checks and `git diff --check` passed;
+  UE 5.8 header/shader inspection confirmed the Toon BSDF/Profile API and that
+  shadow extinction controls transmittance-shadow depth. The fixture retains
+  UE's default extinction value and leaves indirect scales at 1.0.
+- **Full verification:** Deferred. No Editor build, commandlet asset generation,
+  or rendered capture was run in this normal child increment. The commandlet
+  and capture runner use a test-process-only `bEnableSubstrate=True` override.
+- **Observable impact:** Developers can generate a non-default, side-by-side
+  comparison map and capture it from L01's fixed viewpoints. No player-visible
+  change occurs until a developer explicitly generates and opens the test map.
+- **Networking/authority:** Editor-only test content; no runtime gameplay,
+  networking, authority, persistence, or save behavior changed.
+- **Known limitations / remaining scope:** The map uses engine primitive
+  proxies instead of production meshes, and no visual result or GPU cost was
+  observed. Substrate Toon shading remains experimental; target/platform
+  support, shadow/camp-light integration, and rendered stability remain open.
+- **Next eligible task:** L03b, evaluate UE 5.8 Substrate NPR support in this
+  user-directed L03 sequence; L02d remains active in its separate worktree.
 
 ## L02c generated rock integration — 2026-10-27
 
