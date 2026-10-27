@@ -253,10 +253,16 @@ do not mark the lighting milestone complete before it passes.
 - [ ] **L06 — Integrate and perform lighting milestone-final verification.**
   This is the only full verification gate for the lighting milestone; complete
   it after L01–L05 are integrated.
-  - [ ] **L06a — Inspect the combined implementation.** Review the merged
-    material, lighting, environment, and RT changes; confirm there are no
-    duplicate material assignments, unintended asset changes, or new gameplay,
-    authority, save, or network behavior.
+  - [x] **L06a — Inspect the combined implementation.** Reviewed the merged
+    material, lighting, environment, and RT changes. No duplicate production
+    material assignments or unintended Content assets were found. The two water
+    components intentionally share one instance, and the biome debug material is
+    an explicit capture override. Production presentation reads existing
+    replicated weather and remains local; one non-Shipping capture helper sets
+    existing hearth state through server authority. RT quality is a local user
+    preference in GameUserSettings.ini, not gameplay SaveGame data. No production
+    gameplay, replication schema, RPC, or save behavior was added. Full build and
+    rendered acceptance remain for L06b/L06c.
   - [ ] **L06b — Run the project-prescribed build and focused checks.** Use the
     applicable Editor build, rendered-world checks, and performance procedures
     in `docs/07-development-setup.md`. Record actual commands and results.

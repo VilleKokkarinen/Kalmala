@@ -1,3 +1,15 @@
+## L06a — Integrated lighting implementation review — 2026-10-27
+
+- **Selected task:** L06a, review the combined material, lighting, environment, and RT implementation.
+- **Work completed:** Inspected the integrated production material assignments, material assets, lighting/environment changes, RT profile, capture fixtures, and relevant source diffs. No duplicate production material assignments or unintended Content asset changes were found. Surface water and shimmering lake water intentionally share `MI_GeneratedWater`; the biome-debug material is an explicit capture override. Production weather presentation consumes the existing replicated weather state and updates only local fog/material parameters. The sole new authority mutation is a non-Shipping baseline-capture helper that initializes existing campfire fields and calls `ForceNetUpdate` for its transient capture hearth. RT quality persists as a local `GGameUserSettingsIni` preference, with no gameplay SaveGame serialization change. L06a is complete; L06 remains open.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** Reviewed the integrated source and Content diffs; searched production `SetMaterial` assignments and the changed lighting files for replication, RPC, serialization, and profile-persistence paths; `git diff --check 5e9a903d^1 5c0eda11` passed. No build, test suite, or rendered capture was run.
+- **Full verification:** Deferred to the L06 milestone-final gate. L06b must run the integrated Editor build and focused checks before L05e2 RTX 5090 profile measurements can proceed.
+- **Observable impact:** Review and roadmap bookkeeping only; no runtime files or assets changed in this increment.
+- **Networking/authority:** No production RPC, replicated property, gameplay authority, or save-schema behavior was added. The capture-only campfire helper is guarded by `!UE_BUILD_SHIPPING` and requires server authority; weather presentation remains local over existing replicated state. The graphics tier is a local user preference, not gameplay save data.
+- **Known limitations / remaining scope:** Integrated build and final visual/performance acceptance are still unverified. L05e2 remains blocked until L06b supplies the integrated build.
+- **Next eligible task:** L06b — run the project-prescribed integrated build and focused checks.
+
 ## L05e1 — Capture-only quality selection — 2026-10-27
 
 - **Selected task:** L05e1, add a capture-only selector for the existing local ray-tracing quality profiles so the deferred L05e measurements can be repeated across Compatibility, Balanced, and High.
