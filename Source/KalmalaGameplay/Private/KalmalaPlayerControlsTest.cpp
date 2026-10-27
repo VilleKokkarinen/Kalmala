@@ -6,6 +6,7 @@
 #include "KalmalaPlayerStatusComponent.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "UnrealClient.h"
 
 void AKalmalaCharacter::VerifyPlayerControls(const float DeltaSeconds)
 {
@@ -44,6 +45,15 @@ void AKalmalaCharacter::VerifyPlayerControls(const float DeltaSeconds)
         }
     }
     if (!IsLocallyControlled() || !InputComponent || ControlsTestStage == 4) return;
+    const auto RequestMovementLightingScreenshot = [](const TCHAR* ArgumentName, const TCHAR* Phase)
+    {
+        FString ScreenshotPath;
+        if (FParse::Value(FCommandLine::Get(), ArgumentName, ScreenshotPath) && !ScreenshotPath.IsEmpty())
+        {
+            FScreenshotRequest::RequestScreenshot(ScreenshotPath, false, false);
+            UE_LOG(LogTemp, Display, TEXT("Lighting movement capture requested: Phase=%s Output=%s."), Phase, *ScreenshotPath);
+        }
+    };
     const auto Action = [this](FName Name, EInputEvent Event)
     {
         for (int32 I = 0; I < InputComponent->GetNumActionBindings(); ++I)
@@ -56,6 +66,7 @@ void AKalmalaCharacter::VerifyPlayerControls(const float DeltaSeconds)
     {
         if (bWetTest && Statuses->GetModifiers().Movement >= 1.0f) return;
         if (!Movement->IsMovingOnGround() || GetWorld()->GetTimeSeconds() < 2.0f) return;
+        RequestMovementLightingScreenshot(TEXT("KalmalaMovementLightingStart="), TEXT("Start"));
         Action(TEXT("Sprint"), IE_Pressed);
         ControlsTestStage = 1;
     }
@@ -89,6 +100,7 @@ void AKalmalaCharacter::VerifyPlayerControls(const float DeltaSeconds)
             && PlayerModel->GetPartCount() == ExpectedModelPartCount && bCosmeticOnly;
         UE_LOG(LogTemp, Display, TEXT("Controls local result: %s Authority=%d Parts=%d Jump=%d"),
             bPassed ? TEXT("PASS") : TEXT("FAIL"), HasAuthority(), PlayerModel->GetPartCount(), bControlsTestLocalJumpObserved);
+        RequestMovementLightingScreenshot(TEXT("KalmalaMovementLightingEnd="), TEXT("End"));
         ControlsTestStage = 4;
     }
 #endif

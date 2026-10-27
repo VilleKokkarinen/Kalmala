@@ -66,17 +66,33 @@ do not mark the lighting milestone complete before it passes.
   flat generated surface materials through project-owned parents and instances,
   retaining direct light, shadow, indirect fill, water clipping, and runtime
   material assignment behavior.
-  - [ ] **L02a — Define the shared material interface.** Use the existing
+  - [x] **L02a — Define the shared material interface.** Use the existing
     `Content/Kalmala/World/Materials/` path and the lighting plan's bounded
     controls: base tint, roughness, normal strength, broad color variation, and
-    mapping scale. Keep common surface functions in Material Functions.
-  - [ ] **L02b — Integrate terrain and shore.** Replace flat generated terrain
-    and shore expressions with instances of the shared lit parent; verify
-    procedural assignment and biome-debug material override still work.
-  - [ ] **L02c — Integrate rock.** Assign the opaque lit parent to generated
-    rocks and verify visible shape, roughness, and baseline material separation.
-  - [ ] **L02d — Integrate wood and bark.** Assign appropriate instances to
-    generated trunks and authored wood without creating material graphs at runtime.
+    mapping scale. Keep common surface functions in Material Functions. Created
+    the Default Lit `M_KalmalaSurfaceBase` parent and the reusable
+    `Functions/MF_KalmalaSurfaceResponse` graph with those five artist controls;
+    existing runtime material assignments remain unchanged for L02b.
+  - [x] **L02b — Integrate terrain and shore.** Route the existing grass/soil/
+    rock/snow blend through the shared surface response and assign its terrain
+    material instance. Assign the lake-shore instance of the shared lit parent
+    with the former base tint and roughness preserved. Confirm procedural
+    material references load and the biome-debug override remains after normal
+    terrain assignment.
+  - [x] **L02c — Integrate rock.** Assign `MI_GeneratedRock`, an instance of
+    the shared opaque lit parent, only to generated Meadow rocks. Keep roughness
+    at 0.95 and compensate their existing vertex-color mean to retain the prior
+    rock palette while exposing its subtle facet variation. Preserve the mesh
+    geometry/normals and the existing player/campfire material assignments;
+    source and asset checks passed, with rendered comparison remaining for L02g.
+  - [x] **L02d — Integrate wood and bark.** Generate `MI_GeneratedBark` and
+    `MI_GeneratedWood` from the shared lit parent without runtime graph creation.
+    Assign the white-tinted bark instance to generated Meadow trunks and tree
+    harvest meshes to preserve their species/cut-face vertex colors; assign the
+    brown-tinted wood instance to authored held-tool shafts and club/bow pieces.
+    Keep the player head, non-tree gatherables, and non-wood tool heads on the
+    legacy material. Build, instance-load and presentation-ownership checks
+    passed; rendered response remains for L02g.
   - [ ] **L02e — Add the foliage family.** Use a separate masked/two-sided canopy
     parent where required; inspect edge aliasing and temporal shimmer in forest
     shade and daylight.

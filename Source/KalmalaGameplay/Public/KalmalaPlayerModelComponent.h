@@ -63,6 +63,8 @@ private:
     TObjectPtr<UMaterialInterface> HeadMaterial;
     UPROPERTY()
     TObjectPtr<UMaterialInterface> DarkMaterial;
+    UPROPERTY()
+    TObjectPtr<UMaterialInterface> WoodMaterial;
     float GaitPhase = 0.0f;
     bool bCampBedResting = false;
     FVector CampBedOriginalRelativeLocation = FVector::ZeroVector;

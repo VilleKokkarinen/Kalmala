@@ -15,8 +15,8 @@
 namespace
 {
     constexpr float MountainWeatherFogProbeIntervalSeconds = 1.0f;
-    constexpr float MountainWeatherFogMaxDensity = 0.005f;
-    constexpr float MountainWeatherFogMaxOpacity = 0.24f;
+    constexpr float MountainWeatherFogMaxDensity = 0.004f;
+    constexpr float MountainWeatherFogMaxOpacity = 0.20f;
     constexpr float MountainWeatherFogStartDistance = 2500.0f;
     constexpr float MountainWeatherFogFadeSpeed = 1.5f;
     constexpr float MountainWeatherFogReleaseThreshold = 0.005f;

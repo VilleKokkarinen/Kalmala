@@ -231,6 +231,19 @@ void AKalmalaCampfire::SetSharedFromServer(bool bShared)
     if (HasAuthority()) { bSharedUse = bShared; ForceNetUpdate(); }
 }
 
+#if !UE_BUILD_SHIPPING
+void AKalmalaCampfire::InitializeLitForBaselineCaptureFromServer()
+{
+    if (!HasAuthority()) return;
+    FuelSeconds = FuelSecondsPerItem;
+    FuelWetness = 0.0f;
+    EffectiveWarmth = 1.0f;
+    HearthState = EKalmalaHearthState::Lit;
+    ApplyReplicatedState();
+    ForceNetUpdate();
+}
+#endif
+
 FString AKalmalaCampfire::GetStatusText() const
 {
     // This is deliberately a complete textual state, rather than a light/colour-only

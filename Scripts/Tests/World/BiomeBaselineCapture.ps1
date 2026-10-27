@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory)][string]$Project,
     [Parameter(Mandatory)][ValidateSet(418, 419)][int]$Seed,
     [Parameter(Mandatory)][string]$Site,
+    [ValidateSet('Default', 'OvercastRain', 'FireDusk')][string]$Condition = 'Default',
     [Parameter(Mandatory)][double]$Xcm,
     [Parameter(Mandatory)][double]$Ycm,
     [Parameter(Mandatory)][double]$ViewZcm,
@@ -37,6 +38,7 @@ $arguments = @(
     '-nosound', '-unattended', '-nosplash', '-NoZenAutoLaunch', '-DDC=NoZenLocalFallback',
     "-WorldSeed=$Seed", '-KalmalaBiomeBaselineCapture', "-KalmalaBiomeBaselineSite=$Site",
     "-KalmalaBiomeBaselineXcm=$x", "-KalmalaBiomeBaselineYcm=$y", "-KalmalaBiomeBaselineViewZcm=$z",
+    "-KalmalaBiomeBaselineCondition=$Condition",
     "-KalmalaBiomeBaselineOutput=`"$imagePath`"", "-abslog=`"$logPath`"", "-UserDir=`"$userDirectory`""
 )
 $process = $null
@@ -83,8 +85,8 @@ try {
     }
     finally { $bitmap.Dispose() }
     $logText = Get-Content -LiteralPath $logPath -Raw
-    if ($logText -notmatch 'Biome baseline rendered capture requested: Seed=' + $Seed + ' Site=' + [regex]::Escape($Site) + '\b') {
-        throw "Runtime did not log the requested seed/site capture: $logPath"
+    if ($logText -notmatch 'Biome baseline rendered capture requested: Seed=' + $Seed + ' Site=' + [regex]::Escape($Site) + ' Condition=' + [regex]::Escape($Condition) + '\b') {
+        throw "Runtime did not log the requested seed/site/condition capture: $logPath"
     }
     [pscustomobject]@{ Seed = $Seed; Site = $Site; Output = $imagePath; Bytes = $bytes.Length; Log = $logPath }
 }

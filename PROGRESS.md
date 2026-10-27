@@ -474,6 +474,455 @@
   work is complete.
 - **Integration state:** Changes are in the detached BH10 worktree; handoff
   synchronization to the main checkout is pending.
+
+## L02d generated wood and bark integration — 2026-10-27
+
+- **Selected task:** L02d, integrate generated trunks and authored wood.
+- **Work completed:** Generated `MI_GeneratedBark` from the shared
+  `M_KalmalaSurfaceBase` parent with a white tint and 0.88 roughness. Assigned
+  it to the Meadow patch trunks and tree-resource harvest meshes so their
+  existing birch, aspen, leaf, and cut-face vertex colors become visible.
+  Generated `MI_GeneratedWood` from the same parent with the former bark tint
+  and 0.88 roughness; assigned it to held-tool shafts and the wooden club/bow
+  pieces. The player head, non-tree gatherables, and non-wood tool heads keep
+  the legacy flat bark material. Geometry, vertex colors, collision, and
+  gameplay behavior are unchanged; no runtime material graph was added.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`,
+  `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaPlayerModelComponent.h`,
+  `Content/Kalmala/World/Materials/MI_GeneratedBark.uasset`,
+  `Content/Kalmala/World/Materials/MI_GeneratedWood.uasset`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  builds passed in the short temporary mirror (26 actions for bark integration,
+  then a 13-action final rebuild for held-tool wood). `CreateWorldMaterials`
+  generated both instances; repeat runs loaded both with 0 errors and 1 known,
+  unrelated ocean-skiff invalid material-slot warning. The first-generation
+  startup reported the expected missing-instance CDO references before each
+  new asset was created; repeat runs had no bark/wood reference errors.
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1` passed for 13 project
+  assets and 34 source seams; `git diff --check` passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials checks remain for L06.
+- **Observable impact:** Generated tree bark receives a lit rough response and
+  reveals its existing birch/aspen/cut-face palette. Held-tool shafts and
+  club/bow wood now use a brown-tinted lit response with broad world variation;
+  several shafts formerly used the dark rock material.
+- **Networking/authority:** Cosmetic material assignment only; no gameplay,
+  authority, replication, collision, or save behavior changed.
+- **Known limitations / remaining scope:** No rendered review was run, so
+  lighting response, noise quality and GPU cost remain unmeasured. Canopy and
+  water integration, temporal shimmer checks, and cross-family rendered review
+  remain for L02e–L02g.
+- **Next eligible task:** L02e — add the foliage family.
+
+## L02c generated rock integration — 2026-10-27
+
+- **Selected task:** L02c, integrate the generated rock surface.
+- **Work completed:** Generated `MI_GeneratedRock` from the shared
+  `M_KalmalaSurfaceBase` parent and assigned it only to the deterministic
+  `MeadowRocks` procedural component. Its tint compensates the existing
+  side/apex vertex-color mean to retain the prior `TerrainRockColor`; roughness
+  remains 0.95. Rock mesh geometry, normals, UVs, and colors are unchanged.
+  Player model and campfire continue to use `M_GeneratedRock`.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Content/Kalmala/World/Materials/MI_GeneratedRock.uasset`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  build passed and compiled both changed C++ files. The material commandlet
+  generated `MI_GeneratedRock` with 0 errors; its repeat run loaded the
+  instance and reported 0 errors plus the known unrelated invalid ocean-skiff
+  material-slot warning. The first generation also logged the not-yet-created
+  rock-instance reference during startup. `Scripts/Tests/Presentation/PresentationOwnership.ps1`
+  passed for 11 assets and 33 source seams; `git diff --check` passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials completion checks remain for L06.
+- **Observable impact:** Generated Meadow rocks receive lit, rough surfaces
+  with their established mean palette and original vertex-driven facet
+  contrast. Player and campfire rock appearances keep their original material.
+- **Networking/authority:** Cosmetic material assignment only; no gameplay,
+  authority, replication, geometry, or save behavior changed.
+- **Known limitations / remaining scope:** No rendered review was run, so
+  actual lighting response and distance separation remain for L02g. Material
+  noise appearance and GPU cost are not measured. L02d–L02g remain.
+- **Next eligible task:** L02d — integrate generated wood and bark.
+
+## L02b terrain and shore integration — 2026-10-27
+
+- **Selected task:** L02b, integrate generated terrain and shore.
+- **Work completed:** Routed the preserved grass/soil/rock RGB and snow-alpha
+  terrain blend through `MF_KalmalaSurfaceResponse`, generated
+  `MI_GeneratedTerrain`, and assigned it before the optional biome-debug
+  override. Generated and assigned `MI_GeneratedLakeShore` from the shared
+  lit parent, setting its tint to preserve the prior flat base color and its
+  roughness to 0.78. The cloth component retains its terrain-parent reference.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaGeneratedTerrainPatch.cpp`,
+  `Content/Kalmala/World/Materials/M_GeneratedTerrain.uasset`,
+  `Content/Kalmala/World/Materials/MI_GeneratedTerrain.uasset`,
+  `Content/Kalmala/World/Materials/MI_GeneratedLakeShore.uasset`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  build passed and compiled both changed C++ files. The material commandlet
+  generated the terrain parent and two instances with 0 errors; on the repeat
+  run it loaded the instances and reported 0 errors plus the known unrelated
+  invalid ocean-skiff material slot warning. The first generation's startup
+  also logged the not-yet-created instance references before producing them.
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1` passed for 10 assets
+  and 33 source seams; `git diff --check` passed.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials completion checks remain for L06.
+- **Observable impact:** Terrain and shore now use the shared lit response
+  while retaining terrain layer weights, snow coverage, the previous shore
+  base tint and roughness, and the developer biome-color override.
+- **Networking/authority:** Cosmetic materials only; no gameplay, server
+  authority, replication, geometry, sampling, or save behavior changed.
+- **Known limitations / remaining scope:** No rendered visual review was run;
+  shore remains hidden by the default-off basin policy. Material quality,
+  world-noise appearance, and GPU cost remain for L02g/L06. Other generated
+  surface families remain unintegrated.
+- **Next eligible task:** L02c — integrate generated rock.
+
+## L02a shared surface interface — 2026-10-27
+
+- **Selected task:** L02a, define the shared material interface.
+- **Work completed:** Added an idempotent `CreateWorldMaterials` commandlet path
+  for `M_KalmalaSurfaceBase` and `Functions/MF_KalmalaSurfaceResponse`. The
+  Default Lit parent exposes `BaseTint`, `Roughness`, `NormalStrength`,
+  `ColorVariation`, and world-space `MappingScale` in one parameter group. The
+  function applies the tint and broad absolute-world gradient variation, passes
+  roughness through, and normalizes the normal-strength blend. The parent uses
+  vertex color for its base input so terrain-layer blending is available when
+  the material is integrated. No existing runtime assignment changed.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`,
+  `Content/Kalmala/World/Materials/M_KalmalaSurfaceBase.uasset`,
+  `Content/Kalmala/World/Materials/Functions/MF_KalmalaSurfaceResponse.uasset`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Incremental UE 5.8 `KalmalaEditor Win64 Development`
+  compilation passed; the changed commandlet compiled and linked. The
+  `CreateWorldMaterials` commandlet generated the assets with eight named
+  function inputs, three outputs, and five parent parameters; parent creation
+  verified every named input connection and required output before save. It
+  completed with 0 errors and one unrelated warning for the default ocean skiff
+  hull material slot. Re-running the commandlet loaded both existing assets
+  without rewriting them. New asset paths are below the 260-character Windows
+  limit.
+- **Full verification:** Deferred to L02g, the material-family gate; the wider
+  lighting/materials completion checks remain for L06.
+- **Observable impact:** The reusable parent and function now establish a
+  consistent artist-facing surface contract. Existing terrain, shore, rock,
+  wood, canopy, and water materials are not assigned or visually changed yet.
+- **Networking/authority:** Material assets and editor-only generation are
+  cosmetic; no runtime gameplay, server authority, replication, or save data
+  changed.
+- **Known limitations / remaining scope:** No material instances or production
+  assignments exist yet. L02b–L02g will integrate and evaluate the family;
+  detailed visual quality, GPU cost, and surface separation remain unverified.
+- **Next eligible task:** L02b — integrate terrain and shore through instances
+  while preserving procedural assignment and the biome-debug override.
+
+## L01h milestone-final verification — complete — 2026-10-27
+
+- **Selected task:** L01h, the final implementation task in lighting milestone
+  L01 and therefore the milestone-final verification run.
+- **Work completed:** Corrected the non-Shipping fire capture fixture to retain
+  the local player near the captured terrain patch, place the transient hearth
+  on each seed's sampled surface, use its ordinary 600 cm light radius, and
+  capture with a 500 cm horizontal/250 cm high camera and 0.0 EV extra exposure.
+  Added opt-in start/end screenshots to the existing development-only normal
+  player-controls fixture. Reviewed all ten final fixed views and the rendered
+  third-person movement pair. Both fire views show readable player silhouettes
+  and warm ground spill; the movement camera follows the player.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`,
+  `TestResults/LightingBaseline/manifest.json`, the five changed final fixed
+  view PNGs and two movement PNGs under `TestResults/LightingBaseline/`, and
+  `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, and
+  `Source/KalmalaGameplay/Private/KalmalaPlayerControlsTest.cpp`.
+- **Lightweight checks:** `git diff --check`, manifest JSON parsing, image
+  dimensions/hashes, and staged-path length checks passed. The ten fixed
+  captures all passed the runner's PNG, 1024x768, nonblank and seed/site/
+  condition checks.
+- **Milestone-final verification:** The UE 5.8 `KalmalaEditor Win64
+  Development` target built successfully in the isolated short-path mirror;
+  changed Gameplay sources compiled and the module linked. The final full
+  null-RHI `Automation RunTests Kalmala` queue passed 228 cases, 0 failures,
+  exit code 0 (`C:/Users/Ville/AppData/Local/Temp/klh1auto3/tests.log`). All ten
+  fixed views were freshly captured from the built source; changed images are
+  preserved as `L01h_Seed*.png`, while five byte-identical views reuse their
+  L01f files. The normal bound sprint/move/jump fixture passed and emitted
+  rendered start/end frames (`L01h_Movement_Start.png` and
+  `L01h_Movement_End.png`). Sampled sky luminance was 102→107/255 and lower-frame
+  luminance 190.2→180.7 with the changed view composition; no sampled channel
+  reached 250. The first final seed-419 FireDusk attempt was nearly black
+  because it reused seed-418 terrain height; seed-specific surface placement
+  repaired it and all ten final captures passed. No failures remain.
+- **Observable impact:** The captured campfire light reads as a localized warm
+  pool at the actual gameplay radius; dusk no longer needs extra camera
+  exposure compensation. Rendered movement frames confirm the attached camera
+  follows normal player movement while overall exposure stays close.
+- **Networking/authority:** Only non-Shipping capture and verification paths
+  changed. Gameplay movement remains the existing character input path;
+  screenshots are requested locally. No network authority, replication,
+  persistence, or save behavior changed.
+- **Known limitations / remaining scope:** The seed-419 forest anchor still
+  lacks a forest silhouette; both water anchors show checkerboard-like surfaces
+  without shorelines; overcast has no rain particles and weak framing; terrain
+  is pale/sparse and the prototype horizon is black; the fire has no modeled
+  flame. These are pre-existing generated-scene/content limits. The short
+  movement check does not establish effective EV bounds or all weather/time
+  transitions. L02–L06 remain queued.
+- **Final milestone status:** L01 complete. Its Editor build, full automation
+  queue, ten rebuilt-source views, visual review, and rendered movement check
+  passed; L01h and parent L01 are checked in `BACKLOG.md`.
+- **Next eligible task:** L02a — define the shared surface-material interface,
+  in a dedicated worktree based on integrated master after the L01 handoff.
+
+## L01g local post-process volumes — N/A — 2026-10-26
+
+- **Selected task:** L01g, add local post-process volumes only when an existing authored location needs a distinct look.
+- **Work completed:** Marked L01g N/A based on the tracked map inventory and source-of-truth design. `Content/Kalmala/Maps` contains only `L_Prototype.umap`; the project brief says the slice world is assembled from seed-generated biomes rather than authored areas. The L01a live map audit recorded six serialized actors and no authored local-look location; PIE generated terrain patches. L01f's only post-process volume is explicitly unbound and scene-wide. No bounded volume was added.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Confirmed the worktree was clean at the L01f commit and no active modifier remained. Inspected the tracked map inventory, startup-map config, prior live map audit, setup script, runtime terrain-patch spawn source, and project brief/architecture/roadmap/decision context. `git diff --check` passed. No Editor, build, or automation was run because no local volume was authored.
+- **Full verification:** Deferred to L06.
+- **Observable impact:** None; this N/A result adds no local post-process behavior or runtime changes.
+- **Networking/authority:** No gameplay, networking, server-authority, or save behavior changed.
+- **Known limitations / remaining scope:** The prototype has no authored location to justify a bounded treatment. L01h must still assess all ten fixed views and ordinary third-person movement; FireDusk and the other recorded baseline limitations remain unresolved. Full verification is deferred to L06.
+- **Next eligible task:** L01h — evaluate the core-lighting gate across all ten fixed views and ordinary third-person movement.
+
+## L01f scene-wide rig and grade — 2026-10-26
+
+- **Selected task:** L01f, tune the global lighting rig and built-in grade while keeping solid surfaces Default Lit.
+- **Work completed:** Set the prototype sun to intensity 9.0 and movable sky fill to 1.5; added an enabled, unbound global post-process volume with explicit exposure brightness bounds 0.03–2.0, histogram 10/90, adaptation speeds 2/2, neutral contrast 1.02, saturation 1.04, and bloom 0.30. Reduced the existing client-local storm-fog source maxima from density 0.005/opacity 0.24 to 0.004/0.20. Captured and reviewed all five fixed scenes for seeds 418 and 419 at the same anchors as the baseline.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/valheim-like-lighting-plan.md`, `Scripts/Setup-PrototypeEnvironment.py`, `Content/Kalmala/Maps/Prototype/L_Prototype.umap`, `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`, `TestResults/LightingBaseline/manifest.json`, and ten `TestResults/LightingBaseline/L01f_After_*.png` images.
+- **Lightweight checks:** Python AST parsing passed for the setup script. The UE 5.8 setup commandlet saved the map successfully; a separate commandlet read back the global volume as enabled/unbound with minimum 0.03 and maximum 2.0 and both bound overrides true, histogram 10/90, and speeds 2/2. The capture helper, invoked with UnrealEditor-Cmd.exe, passed PNG signature, 1024x768 dimensions, nonblank-sample and seed/site/condition checks for all ten final frames. The manifest JSON, after-image hashes/byte counts, and `git diff --check` were checked. No build or full test suite was run.
+- **Full verification:** Deferred to L06. The C++ fog edit was not compiled into the capture mirror, and its rendered effect is unverified.
+- **Observable impact:** The selected maximum makes only small changes to the fixed daylight/forest/water/overcast frames (sampled mean-luminance deltas are about -0.3 to -3.1 levels on a 0–255 scale). It preserves the baseline-sized procedural ring in both FireDusk frames, but both remain nearly black. The setup retains Default Lit surfaces and adds no custom post-process material.
+- **Networking/authority:** The map lighting rig is visual-only. The fog source remains client-local; no gameplay, server-authority, networking or save behavior changed.
+- **Known limitations / remaining scope:** FireDusk is unreadable at the wide fixed view and has no modeled flame; seed-419 forest lacks a visible forest silhouette; both water frames show checkerboard surfaces without a shore; overcast frames have no rain particles and poor terrain/mountain framing; generated terrain remains pale and sparse. The selected UE brightness bounds are not an EV interval, and ordinary camera movement or exposure transitions were not tested. L01h remains the visual acceptance gate; full verification remains deferred.
+- **Next eligible task:** L01g — add only justified local post-process volumes, or record N/A if no existing authored location warrants one.
+
+## L01e seed-419 weather and fire captures — 2026-10-26
+
+- **Selected task:** L01e, capture seed-419 overcast/rain and fire-lit dusk/night at the fixed L01a anchors.
+- **Work completed:** Used the existing UE 5.8 mirror and headless capture helper for Thunder Mountains OvercastRain and Meadows FireDusk. Reviewed both images, added full camera/aim, condition, weather, exposure, byte-count, and SHA-256 records to the shared manifest, and verified five primary scene roles for each seed plus the supplemental seed-418 coast candidate.
+- **Files changed:** BACKLOG.md, PROGRESS.md, docs/valheim-like-lighting-plan.md, TestResults/LightingBaseline/manifest.json, TestResults/LightingBaseline/Seed419_OvercastRain.png, TestResults/LightingBaseline/Seed419_FireDusk.png.
+- **Lightweight checks:** The helper passed PNG signature, 1024x768 dimensions, nonblank-sample, and requested seed/site/condition checks for both images. The capture source in the klc mirror matched the worktree SHA-256 exactly; logs resolve D3D12/SM5 on the RTX 5090 and eye-adaptation quality 2. Parsed the manifest, checked image dimensions and hashes, and ran git diff --check. No Editor build or automation suite was run.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The manifest now contains all ten primary scene images across seeds 418 and 419 plus the supplemental coast candidate. Seed-419 OvercastRain has a dark sky/horizon and broad cyan surface without visible rain or readable mountain framing. FireDusk is almost black, with only the small procedural ring visible; neither frame passes visual acceptance.
+- **Networking/authority:** Capture evidence only; no gameplay code, network, server-authority, or save behavior changed.
+- **Known limitations / remaining scope:** No rain particles, no modeled flame, unreadable firelight spill, unclear overcast terrain framing, and unknown effective EV bounds remain. The reused anchors and baseline limitations are preserved; L01f has not started.
+- **Next eligible task:** L01f — tune the scene-wide rig and grade with Default Lit surfaces, stable exposure, the existing sun/sky/fog and built-in grading/bloom controls.
+
+## L01d seed-419 daylight, forest and water captures — 2026-10-26
+
+- **Selected task:** L01d, capture seed-419 daylight, forest and water using
+  the fixed L01a views and the existing seed-418 baseline manifest.
+- **Work completed:** Rendered Meadows daylight, Wooded Elderwood and open
+  water with the headless UE 5.8 capture runner at the same coordinates, camera
+  offsets, FOV, default condition and 1024x768 resolution as seed 418. Reviewed
+  all three images, added their camera/aim, file size and SHA-256 records, and
+  changed the manifest seed list to 418 and 419.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`,
+  `TestResults/LightingBaseline/Seed419_MeadowsDaylight.png`,
+  `TestResults/LightingBaseline/Seed419_ForestShade.png`,
+  `TestResults/LightingBaseline/Seed419_OpenWater.png`, and
+  `TestResults/LightingBaseline/manifest.json`.
+- **Lightweight checks:** The runner validated each PNG signature, 1024x768
+  dimensions, nonblank samples and requested seed/site/condition log marker.
+  The logs resolve D3D12/SM5 on the RTX 5090; each capture used automatic
+  exposure at adaptation quality 2 and default 0 EV camera compensation. All
+  three images were visually reviewed; manifest JSON parsing, file hashes and
+  `git diff --check` are recorded for this increment. No project build was
+  needed because no source changed.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The manifest now has primary daylight, forest and
+  water evidence for both seeds. The seed-419 Meadows image shows pale ground,
+  patch seams, scattered rocks and sparse tree geometry. At the reused forest
+  anchor no forest silhouette appears; the water image shows a checkerboard-like
+  surface without a shoreline. Those seed-specific frames are documented as
+  baseline limitations, not accepted scene looks.
+- **Networking/authority:** Capture evidence only; no gameplay, networking,
+  server authority or save behavior changed.
+- **Known limitations / remaining scope:** The fixed seed-419 forest anchor
+  does not read as forest shade and the water surface does not read as finished
+  water. Captures preserve the requested seed-418 poses for comparison; no
+  anchor retuning or rig/material changes were part of L01d.
+- **Next eligible task:** L01e — capture the matching seed-419 overcast/rain and
+  fire-lit dusk/night views, then verify the full two-seed baseline.
+
+## L01c2 seed-418 weather and fire captures — 2026-10-26
+
+- **Selected task:** L01c2, render/review the weather and fire scenes and verify
+  the five-scene seed-418 baseline.
+- **Work completed:** Built the capture fixture in an isolated UE 5.8 mirror,
+  captured `Seed418_OvercastRain.png` and `Seed418_FireDusk.png`, reviewed both,
+  updated the manifest, and verified the five primary seed-418 scene entries.
+  Restored the default capture's immediate screenshot request after a 0.25-second
+  timer produced a black anchor check. The fire fixture now snapshots the map
+  sky before dimming it, uses a transient test hearth with a 4500 cm light
+  radius, +1.5 EV capture-camera compensation, and a five-second settle delay.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `TestResults/LightingBaseline/Seed418_OvercastRain.png`,
+  `TestResults/LightingBaseline/Seed418_FireDusk.png`,
+  `TestResults/LightingBaseline/manifest.json`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Checks and build:** The first compile found missing concrete light headers
+  and a `RecaptureSky` call on the actor instead of its component; both were
+  fixed. `Build.bat KalmalaEditor Win64 Development
+  -Project=C:/Users/Ville/AppData/Local/Temp/klc/Kalmala.uproject -WaitMutex
+  -NoHotReload -MaxParallelActions=4` then passed 216 actions. Final capture-only
+  source adjustments rebuilt successfully in four actions. The runner passed
+  PNG signature, 1024x768 dimensions, nonblank-sample and seed/site/condition
+  log checks for both retained frames. A default-light anchor smoke capture also
+  passed. The manifest JSON and `git diff --check` are checked in this increment.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The seed-418 manifest now contains all five primary
+  scenes. The overcast frame shows gray sky/distance haze but no visible rain
+  particles. The fire frame is blue-black with only the small procedural hearth
+  ring visible; surrounding ground and firelight spill remain unreadable at the
+  fixed wide pose. These images record baseline limitations, not accepted looks.
+- **Networking/authority:** All overrides remain behind the non-Shipping
+  capture flag. Weather uses the existing authoritative setter and the transient
+  hearth is initialized server-side. No RPC, save state, or gameplay session
+  behavior changed.
+- **Known limitations / remaining scope:** No rain particle system, modeled
+  flame, or time-of-day controller exists. Effective EV bounds remain unknown;
+  FireDusk uses a capture-only +1.5 EV bias and widened transient light radius.
+  The frame does not establish readable firelight and must not be treated as
+  visual acceptance.
+- **Next eligible task:** L01d — capture seed-419 daylight, forest, and water.
+
+## L01c1 capture-only weather and fire controls — 2026-10-26
+
+- **Selected task:** L01c1, the first implementation subtask under the
+  seed-418 weather/fire capture increment.
+- **Work completed:** Added `Default`, `OvercastRain`, and `FireDusk` condition
+  options to the baseline capture runner. The Development-only fixture moves
+  the local pawn to the fixed site for local storm-fog sampling, applies a
+  deterministic storm input and muted sun for the Thunder Mountains view, and
+  prepares a transient lit hearth with a darkened sky for the Meadows night
+  view. Screenshot requests wait for storm-fog settling. Default captures and
+  ordinary gameplay do not use these overrides.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`,
+  `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCampfire.h`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** The PowerShell parser passed; `git diff --check`
+  passed after the bookkeeping changes; the C++ changes received focused source
+  review only.
+  A fresh mirror build planned 330 actions; the cached mirror build planned 301
+  and was stopped after 23 unrelated world-module actions, before compiling the
+  changed gameplay module. Neither attempt is a successful build result.
+- **Full verification:** Deferred to L06, the integrated lighting gate.
+- **Observable impact:** The command-line capture harness can now request fixed
+  storm and fire-dusk conditions in Development. No rendered output was
+  produced in this increment, and ordinary gameplay visuals are unchanged.
+- **Networking/authority:** The fixture is non-Shipping and capture-flag-only.
+  It uses the existing authoritative weather setter and a transient server-side
+  hearth; no RPC, save, gameplay, or network contract changed.
+- **Known limitations / remaining scope:** The source changes remain uncompiled.
+  No rain particles or flame mesh exist in the current project; effective
+  exposure compensation and EV bounds remain unknown. L01c2 must compile the
+  fixture, render and review both images, update the manifest, and confirm all
+  five seed-418 scenes.
+- **Next eligible task:** L01c2 — render and review the seed-418 weather and
+  fire frames.
+
+## L01b seed-418 baseline captures — 2026-10-26
+
+- **Selected task:** L01b, the first unchecked child under lighting milestone L01.
+- **Work completed:** Captured seed-418 Meadows daylight and Wooded Elderwood views, an open-water view at the ocean sample, and a supplemental source-coast framing probe. Switched the runner to `UnrealEditor-Cmd.exe` because the default `UnrealEditor.exe` exited before writing a log/image. Reviewed all captures and recorded renderer, exposure, fixed camera inputs, image hashes, and review notes in the lighting plan and manifest.
+- **Files changed:** `BACKLOG.md`; `PROGRESS.md`; `docs/valheim-like-lighting-plan.md`; four PNG captures and `manifest.json` under `TestResults/LightingBaseline/`.
+- **Lightweight checks:** The capture helper passed its PNG signature, 1024x768 dimensions, nonblank-sample, and seed/site log checks for each retained image. Independently parsed the manifest and checked all four image dimensions, byte counts, and SHA-256 hashes; `git diff --check` passed. No full test suite or project build was run.
+- **Full verification:** Deferred to the integrated lighting gate; this is not the final implementation task in L01.
+- **Observable impact:** The project now has repeatable seed-418 daylight, forest, and water reference images plus a supplemental coast probe. The captures expose the current pale gray material response, patch lines, sparse meadow props, bright forest foliage, and flat water surface.
+- **Networking/authority:** No runtime or network behavior changed. Captures use the existing deterministic world seed and transient camera fixture.
+- **Known limitations / remaining scope:** The source-coast view has no distinct water surface; the open-water image has no shoreline. Forest shade is brighter than intended. Exposure limits are not pinned, and time/weather remain outside this increment. The default `UnrealEditor.exe` runner mode exited without logs; `UnrealEditor-Cmd.exe` works through the existing override.
+- **Next eligible task:** L01c — capture seed-418 overcast/rain and fire-lit dusk/night scenes using L01a's camera and exposure records, then verify all five seed-418 baseline scenes are represented.
+
+## L01a live map and renderer audit — 2026-10-26
+
+- **Selected task:** L01a, the first unchecked child under lighting milestone L01.
+- **Work completed:** Built and opened the UE 5.8 Editor from an isolated short mirror at the user's request. Inspected the loaded L_Prototype map and its six serialized actors, queried the active renderer CVars, inspected the directional light, SkyLight, and SkyAtmosphere, and checked PIE-generated terrain/material slots. Recorded the actual map/renderer state and selected five deterministic seed-418 capture anchors in the lighting plan. No map changes were saved.
+- **Files changed:** `BACKLOG.md`; `docs/valheim-like-lighting-plan.md`; `PROGRESS.md`.
+- **Lightweight checks:** Inspected the live Editor/PIE state, CVar output, runtime material slots, and capture helper source; `git diff --check` passed. The requested `KalmalaEditor` build succeeded with 55/55 actions in the isolated mirror. This was not milestone-final verification. The existing offscreen capture helper exited 0 before writing its log or PNG, so no rendered baseline image was produced.
+- **Full verification:** Deferred to the integrated lighting gate; L01a changes documentation only.
+- **Observable impact:** The plan now records D3D12/SM5, no dynamic GI, Lumen reflections, hardware RT off, current exposure CVars, the loaded light/sky settings, absent map fog/post-process volumes, runtime material assignments, helper limitations, and five fixed anchors. No runtime or asset changes.
+- **Networking/authority:** No gameplay or network behavior changed. Storm fog remains client-local presentation; the map/renderer audit adds no replicated state.
+- **Known limitations / remaining scope:** No baseline PNG was created. The source-coast frame previously lacked a visible separate water surface; the camera anchor is fixed but L01b must validate or replace its framing. The helper does not pin weather, time, or exposure, or create/light the fire-scene hearth; L01c must supply or document those capture conditions. Effective auto-exposure bounds were not visible in the map or volume state.
+- **Next eligible task:** L01b — capture seed-418 Meadows daylight, forest shade, and coast/water at the fixed anchors, then review and adjust framing as needed.
+
+## L01a prototype map package-name scan — 2026-10-26
+
+- **Selected task:** L01a remains incomplete; this source-only increment scans readable actor paths in the tracked prototype map.
+- **Work completed:** The package contains object paths for a directional light, SkyAtmosphere, SkyLight, two PlayerStarts, and the interaction-test actor. It also contains all three environment tag names. No post-process, exponential-fog, or campfire path appeared in the scan; the plan explicitly limits this to string-level evidence and leaves actor properties and loaded-map state unresolved.
+- **Files changed:** BACKLOG.md; docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Scanned the tracked map for serialized `PersistentLevel` object paths and lighting actor/tag strings; `git diff --check` passed. No package parser, Editor, build, or automation was run; full verification remains deferred.
+- **Observable impact:** The source audit now records likely serialized key/sky actors and the limits of the raw package scan. No runtime or asset changes.
+- **Networking/authority:** No code or network behavior changed.
+- **Known limitations / remaining scope:** The scan cannot prove component settings or fully establish absent actors. Active RHI, GI/reflections, effective fog/exposure/post-process, and visually confirmed views remain unknown.
+- **Next eligible task:** L01a remains first: inspect the loaded prototype map and renderer and verify all five fixed views, then proceed to L01b.
+
+## L01a source controls audit — 2026-10-26
+
+- **Selected task:** L01a remains incomplete; this source-only increment checks existing time, weather, and campfire capture controls.
+- **Work completed:** Recorded that the server seeds weather cycle 0 from world identity, while the baseline runner cannot select a weather cycle or dusk/night state. The setup script gives the sun one fixed rotation and no tracked production time-of-day driver was found. The campfire uses a procedural stone ring and a warm point light that is off until gameplay lights the hearth; the baseline helper neither spawns nor ignites one. Serialized map placement remains unknown.
+- **Files changed:** BACKLOG.md; docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Inspected weather-cycle, GameMode, campfire, environment setup, and baseline-runner sources. `git diff --check` passed. No Editor, build, or automation was run; full verification remains deferred.
+- **Observable impact:** The plan now distinguishes deterministic simulation inputs from capture controls and records the actual campfire presentation source. No runtime or asset changes.
+- **Networking/authority:** No gameplay behavior changed. Weather remains server-owned and replicated; storm fog remains client-local presentation.
+- **Known limitations / remaining scope:** Renderer and serialized actors remain uninspected. The helper cannot target the rain or fire conditions as requested, and prior scene screenshots are not retained here.
+- **Next eligible task:** L01a remains first: inspect the active map and renderer and visually confirm or replace the five provisional views, then proceed to L01b.
+
+## L01a provisional camera candidates — 2026-10-26
+
+- **Selected task:** L01a remains incomplete; this source-only increment records candidates from the existing seed-418/419 world-generation baseline.
+- **Work completed:** Added provisional seed-418 poses for Starter Meadows, Wooded Elderwood, and Shimmering Lakes using the tracked numeric baseline and prior render records. Recorded the source-coast pose as unsuitable at its existing framing because the earlier capture did not show a separate water surface. No positions are accepted for the weather/fire scenes.
+- **Files changed:** docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Cross-checked pose values against `Scripts/Tests/World/BiomeBaseline418419.csv` and `docs/biome-height-rework.md`. `git diff --check` passed. No Editor, build, or automation was run; full verification remains deferred.
+- **Observable impact:** The later Editor review has three reproducible candidate views and an explicit coast-view rejection to confirm or replace. No runtime or asset changes.
+- **Networking/authority:** No code or network behavior changed.
+- **Known limitations / remaining scope:** Prior world-generation captures are not retained in this checkout and did not control time/weather/exposure. Map actor state, renderer, scene suitability, and weather/fire locations remain unverified.
+- **Next eligible task:** L01a remains first: inspect the active map and renderer, visually confirm or replace all five poses, then proceed to L01b.
+
+## L01a source-only audit follow-up — 2026-10-26
+
+- **Selected task:** L01a, still incomplete pending live map/renderer inspection and selection of five visually verified fixed views.
+- **Work completed:** Rechecked tracked map/renderer configuration, environment setup, runtime weather fog, generated-material assignments and generation logic, and the seed-418 capture helper. Refined the lighting plan with source paths and limits: a client-local storm fog effect exists; M_GeneratedTerrain is a vertex-color ground blend; M_GeneratedSoil is not assigned by the terrain-patch constructor; and the capture helper requires caller-supplied coordinates without controlling time, weather, or exposure. No source-defined mapping from the five scene labels to capture coordinates was found. L01a and L01 remain unchecked.
+- **Files changed:** BACKLOG.md; docs/valheim-like-lighting-plan.md; PROGRESS.md.
+- **Lightweight checks:** Carefully inspected the cited tracked source and config. No build or automation was run. Full verification remains deferred to the integrated lighting gate.
+- **Observable impact:** Documentation now separates source-level setup and capture behavior from unverified map, package, and rendered state. No runtime or asset changes.
+- **Networking/authority:** No code or network behavior changed. The documented storm fog is transient, client-local presentation and does not replicate.
+- **Known limitations / remaining scope:** No usable Unreal Editor view was available. The serialized L_Prototype actors, active RHI, resolved GI/reflection, effective map fog/exposure/post-process, loaded material graphs, and visually suitable five scene views remain unverified.
+- **Next eligible task:** L01a remains first: inspect the active map and renderer in a usable Editor window, confirm the five scene anchors visually, then proceed to L01b.
+
+## Lighting plan bootstrap and L01a source audit — 2026-10-26
+
+- **Work completed:** Added the user-provided L01–L06 lighting queue and plan to the master-based feature branch, updated their worktree wording for the per-worktree concurrency rule, and recorded source-verifiable map, environment setup, generated-material, and capture-helper facts. L01a remains unchecked because the live level and renderer state are not observable without Unreal Editor.
+- **Files changed:** `BACKLOG.md`, `docs/valheim-like-lighting-plan.md`, `PROGRESS.md`.
+- **Lightweight checks:** Inspected the startup-map config, project EngineAssociation, setup script, generated-terrain material assignments, baseline capture helper, and project configuration for explicit RHI/GI/reflection/exposure/post-process overrides. No build or automation run; full verification remains deferred.
+- **Observable impact:** Planning and source-audit documentation only; no runtime or asset changes.
+- **Networking/authority:** No gameplay, server-authority, RPC, save, or replicated-state changes.
+- **Known limitations:** No Unreal Editor window was open, so serialized level actor settings, actual renderer methods, current fog/exposure/post-process state, and scene-specific camera positions remain unverified. The setup script values and capture-helper values are not proof of current runtime settings.
+- **Next eligible task:** Complete L01a after opening the project in a usable Unreal Editor window; select and record five visually verified fixed scene views, then proceed to L01b.
+
 ## Run 2026-10-24T18:09:54Z — Integrate Meadows hills and shoulder curve (BH10a)
 
 - **Selected task:** BH10a, the first ordered child under BH10. BH10 remains

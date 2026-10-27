@@ -54,6 +54,10 @@ public:
     bool TryLightFromServer(AKalmalaCharacter* Character);
     void InitializePaidFromServer(AKalmalaCharacter* Character);
     void SetSharedFromServer(bool bShared);
+#if !UE_BUILD_SHIPPING
+    /** Test-only lit state for the isolated lighting baseline capture. */
+    void InitializeLitForBaselineCaptureFromServer();
+#endif
     FString GetStatusText() const;
     /** Trusted server weather seam, also used by the deterministic live regression. */
     void AdvanceFromServer(float DeltaSeconds, float Rain, float Wind);

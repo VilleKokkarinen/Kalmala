@@ -2760,18 +2760,34 @@ foothills stay clear and steep faces receive less snow.
 `M_GeneratedTerrain` blends the established grass and rock colors with the
 original muted soil color from `M_GeneratedSoil`, then blends the existing
 terrain color toward a pale snow tone using alpha; the packages are generated
-by `CreateWorldMaterialsCommandlet`. The blend adds no world-field sample or
-mesh budget; clipped edge vertices derive regional weights from their existing
-field samples. Player cloth selects the established grass channel with snow alpha zero
-so the shared terrain material retains its original clothing color. No grass
-texture or reed presentation asset is introduced. The client-local Mountain
-weather fog uses the existing replicated FogIntensity multiplied by the
-continuous Thunder Mountains weight at the owning pawn. A one-second local
-probe feeds a smooth interpolation; the fog actor is transient and
-nonreplicated. The effect adds no field, RPC, or gameplay behavior; Tundra snow
-and player-cloth material behavior are unchanged.
+by `CreateWorldMaterialsCommandlet`. Its final color, roughness and flat normal
+pass through the shared opaque-surface response, and generated patches use the
+`MI_GeneratedTerrain` instance. The blend adds no world-field sample or mesh
+budget; clipped edge vertices derive regional weights from their existing field
+samples. Player cloth deliberately retains the parent material and selects the
+established grass channel with snow alpha zero so its original clothing color
+remains available. The compiled default-off lake treatment uses
+`MI_GeneratedLakeShore`, whose shared lit parent preserves the prior shore tint
+and roughness. The biome-debug material remains a separate constructor-time
+override. No grass texture or reed presentation asset is introduced. The
+client-local Mountain weather fog uses the existing replicated `FogIntensity`
+multiplied by the continuous Thunder Mountains weight at the owning pawn. A
+one-second local probe feeds a smooth interpolation; the fog actor is transient
+and nonreplicated. No gameplay, save, RPC, or replicated-state contract changed;
+Tundra snow and player-cloth material behavior are unchanged.
 Generated Meadow rock bases use the shared final terrain height and surface
-normal; the terrain patch remains their gameplay surface.
+normal with `MI_GeneratedRock`; geometry, vertex colors and roughness stay
+within their generated presentation contract. The player model and campfire
+ring retain `M_GeneratedRock`. The terrain patch remains their gameplay
+surface.
+Generated Meadow trunks and forest tree-resource meshes use `MI_GeneratedBark`
+from the same shared surface parent at roughness 0.88. Their existing vertex
+colors distinguish birch bark, pale aspen bark, foliage and exposed cut faces;
+the instance's white tint preserves those authoring values. Non-tree gatherable
+meshes and the player head retain the legacy flat `M_GeneratedBark` assignment.
+Authored held-tool wood uses `MI_GeneratedWood` from the shared parent at
+roughness 0.88 with its previous brown tint. Material assignment is cosmetic
+and does not change harvest authority or collision.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered
