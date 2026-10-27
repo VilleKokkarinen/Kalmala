@@ -1,5 +1,7 @@
 param(
     [Parameter(Mandatory)][string]$Project,
+    [string]$Map = '/Game/Kalmala/Maps/Prototype/L_Prototype',
+    [switch]$EnableSubstrate,
     [Parameter(Mandatory)][ValidateSet(418, 419)][int]$Seed,
     [Parameter(Mandatory)][string]$Site,
     [ValidateSet('Default', 'OvercastRain', 'FireDusk')][string]$Condition = 'Default',
@@ -22,6 +24,7 @@ $paths = @($projectPath, $Editor, $imagePath, $logPath, $userDirectory)
 foreach ($path in $paths) {
     if ($path.Length -ge 260) { throw "Path exceeds MAX_PATH: $path" }
 }
+if ($Map -notmatch '^/Game/[A-Za-z0-9_/]+$') { throw "Invalid project map package: $Map" }
 if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) { throw "Project file not found: $projectPath" }
 if (-not (Test-Path -LiteralPath $Editor -PathType Leaf)) { throw "Unreal Editor not found: $Editor" }
 if (Test-Path -LiteralPath $imagePath) { throw "Refusing to overwrite existing capture: $imagePath" }
@@ -33,7 +36,7 @@ $y = $Ycm.ToString('R', $culture)
 $z = $ViewZcm.ToString('R', $culture)
 $arguments = @(
     "`"$projectPath`"",
-    '/Game/Kalmala/Maps/Prototype/L_Prototype',
+    $Map,
     '-game', '-windowed', '-RenderOffscreen', '-ForceRes', '-ResX=1024', '-ResY=768',
     '-nosound', '-unattended', '-nosplash', '-NoZenAutoLaunch', '-DDC=NoZenLocalFallback',
     "-WorldSeed=$Seed", '-KalmalaBiomeBaselineCapture', "-KalmalaBiomeBaselineSite=$Site",
@@ -41,6 +44,8 @@ $arguments = @(
     "-KalmalaBiomeBaselineCondition=$Condition",
     "-KalmalaBiomeBaselineOutput=`"$imagePath`"", "-abslog=`"$logPath`"", "-UserDir=`"$userDirectory`""
 )
+if ($EnableSubstrate) { $arguments += '-ini:Engine:[/Script/Engine.RendererSettings]:bEnableSubstrate=True' }
+
 $process = $null
 try {
     $process = Start-Process -FilePath $Editor -ArgumentList ($arguments -join ' ') -PassThru -WindowStyle Hidden
@@ -88,7 +93,7 @@ try {
     if ($logText -notmatch 'Biome baseline rendered capture requested: Seed=' + $Seed + ' Site=' + [regex]::Escape($Site) + ' Condition=' + [regex]::Escape($Condition) + '\b') {
         throw "Runtime did not log the requested seed/site/condition capture: $logPath"
     }
-    [pscustomobject]@{ Seed = $Seed; Site = $Site; Output = $imagePath; Bytes = $bytes.Length; Log = $logPath }
+    [pscustomobject]@{ Seed = $Seed; Site = $Site; Map = $Map; Output = $imagePath; Bytes = $bytes.Length; Log = $logPath }
 }
 finally {
     if ($null -ne $process -and -not $process.HasExited) {

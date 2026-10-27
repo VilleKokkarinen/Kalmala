@@ -124,7 +124,7 @@ do not mark the lighting milestone complete before it passes.
   as the shipped default while measuring a restrained banded alternative; this
   goal produces evidence and a recommendation, not an unreviewed global style
   change.
-  - [ ] **L03a — Create an isolated comparison fixture.** Compare Default Lit
+  - [x] **L03a — Create an isolated comparison fixture.** Compare Default Lit
     with a soft two- or three-band direct-light treatment on representative
     ground, rock, wood, canopy, creature, and construction surfaces using L01's
     fixed views.

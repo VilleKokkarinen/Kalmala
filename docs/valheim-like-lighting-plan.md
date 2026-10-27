@@ -488,6 +488,38 @@ uses this instance. Player presentation and campfire stone continue to use
 `M_GeneratedRock`. Source, instance-generation, and presentation ownership
 checks passed; rendered shape and baseline separation remain for L02g.
 
+#### L03a — isolated direct-light comparison fixture — 2026-10-27
+
+Added `UCreateLightingComparisonFixtureCommandlet` as a test-only generator for
+`/Game/Kalmala/Tests/Lighting/L_LightingComparison`, one three-band
+`TP_L03SoftThreeBand` profile, and paired smooth Default Lit / Substrate Toon
+materials under `/Game/Kalmala/Tests/Lighting`. The board uses paired columns
+(Default Lit left, candidate right) and this row order: ground, rock, wood,
+canopy, creature, construction. The capture runner targets L01's five seed-418
+views: Meadows daylight, Forest shade, OpenWater, OvercastRain, and FireDusk.
+The two Meadows conditions share one board, so four physical placements cover
+five view contexts.
+
+The candidate diffuse ramp uses three broad levels (0.32, 0.58, 0.92) with
+cubic transitions spanning 0.08 of the ramp around the two boundaries. Diffuse
+and specular indirect scales remain at 1.0. The ramp does not fold shadow
+transmittance into its band lookup, leaving the engine's separate attenuation
+term active. Toon Profile shadow extinction keeps UE's default value of 10;
+no hatching texture is assigned. The project's DefaultEngine configuration is
+not changed. The capture helper accepts a map override, and
+`Scripts/Tests/Presentation/LightingComparison.ps1` enables Substrate only for
+its capture processes using an engine-config command-line override. Run the
+asset commandlet with the same override in the compiled mirror.
+
+The samples use UE BasicShapes meshes as class proxies, with representative
+palette/roughness values; they do not use the production terrain, wildlife,
+foliage, or buildable meshes. This fixture can compare the shading response and
+framing but cannot establish final mesh silhouettes, foliage stability, GPU
+cost, or production platform support. The commandlet and capture scripts passed
+source inspection and PowerShell parsing. A rebuilt Editor was not run, so the
+generated packages and rendered captures are still pending before visual
+review; the Substrate candidate is experimental and remains test-only.
+
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an
 [experimental Substrate NPR shading path](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-5-8-release-notes)

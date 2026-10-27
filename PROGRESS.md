@@ -1,3 +1,36 @@
+## L03a isolated direct-light comparison fixture — 2026-10-27
+
+- **Selected task:** L03a, create an isolated comparison fixture.
+- **Work completed:** Added an Editor commandlet that generates a dedicated
+  test map, paired Default Lit and UE 5.8 Substrate Toon materials for ground,
+  rock, wood, canopy, creature, and construction proxies, and a soft three-band
+  Toon Profile. Added a fixed-view capture runner using the five seed-418 L01
+  camera contexts. Substrate is enabled by a command-line override only for the
+  test tooling; production maps/material assignments are untouched.
+- **Files changed:** `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp`,
+  `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.h`,
+  `Scripts/Tests/Presentation/LightingComparison.ps1`,
+  `Scripts/Tests/World/BiomeBaselineCapture.ps1`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser checks and `git diff --check` passed;
+  UE 5.8 header/shader inspection confirmed the Toon BSDF/Profile API and that
+  shadow extinction controls transmittance-shadow depth. The fixture retains
+  UE's default extinction value and leaves indirect scales at 1.0.
+- **Full verification:** Deferred. No Editor build, commandlet asset generation,
+  or rendered capture was run in this normal child increment. The commandlet
+  and capture runner use a test-process-only `bEnableSubstrate=True` override.
+- **Observable impact:** Developers can generate a non-default, side-by-side
+  comparison map and capture it from L01's fixed viewpoints. No player-visible
+  change occurs until a developer explicitly generates and opens the test map.
+- **Networking/authority:** Editor-only test content; no runtime gameplay,
+  networking, authority, persistence, or save behavior changed.
+- **Known limitations / remaining scope:** The map uses engine primitive
+  proxies instead of production meshes, and no visual result or GPU cost was
+  observed. Substrate Toon shading remains experimental; target/platform
+  support, shadow/camp-light integration, and rendered stability remain open.
+- **Next eligible task:** L03b, evaluate UE 5.8 Substrate NPR support in this
+  user-directed L03 sequence; L02d remains active in its separate worktree.
+
 ## L02c generated rock integration — 2026-10-27
 
 - **Selected task:** L02c, integrate the generated rock surface.
