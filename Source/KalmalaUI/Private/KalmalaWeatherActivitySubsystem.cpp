@@ -11,6 +11,8 @@
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaWeatherActivityWidget.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 
 namespace
 {
@@ -20,6 +22,8 @@ namespace
     constexpr float MountainWeatherFogStartDistance = 2500.0f;
     constexpr float MountainWeatherFogFadeSpeed = 1.5f;
     constexpr float MountainWeatherFogReleaseThreshold = 0.005f;
+    constexpr float WeatherMaterialResponseFadeSpeed = 0.75f;
+    const FName WeatherMaterialPrecipitationParameter(TEXT("PrecipitationIntensity"));
     const FLinearColor MountainWeatherFogColor(0.32f, 0.34f, 0.41f);
 }
 
@@ -28,6 +32,7 @@ void UKalmalaWeatherActivitySubsystem::Tick(const float DeltaTime)
     // The survival subsystem owns the single top-right weather/status parent.
     ReleaseController();
     UpdateMountainWeatherFog(DeltaTime);
+    UpdateWeatherMaterialResponse(DeltaTime);
 }
 
 void UKalmalaWeatherActivitySubsystem::UpdateMountainWeatherFog(const float DeltaTime)
@@ -116,6 +121,48 @@ void UKalmalaWeatherActivitySubsystem::UpdateMountainWeatherFog(const float Delt
     }
 }
 
+void UKalmalaWeatherActivitySubsystem::UpdateWeatherMaterialResponse(const float DeltaTime)
+{
+    UWorld* World = GetWorld();
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr
+        || World->GetNetMode() == NM_DedicatedServer)
+    {
+        return;
+    }
+
+    if (WeatherMaterialCollection == nullptr)
+    {
+        WeatherMaterialCollection = LoadObject<UMaterialParameterCollection>(nullptr,
+            TEXT("/Game/Kalmala/World/Materials/MPC_KalmalaWeather.MPC_KalmalaWeather"));
+    }
+    if (WeatherMaterialCollection == nullptr) return;
+
+    UMaterialParameterCollectionInstance* Parameters =
+        World->GetParameterCollectionInstance(WeatherMaterialCollection);
+    if (Parameters == nullptr) return;
+
+    float TargetResponse = 0.0f;
+    const AKalmalaWorldGenerationGameState* GameState =
+        World->GetGameState<AKalmalaWorldGenerationGameState>();
+    if (GameState != nullptr)
+    {
+        const FKalmalaWeatherState& Weather = GameState->GetWeatherState();
+        const double ServerTime = GameState->GetServerWorldTimeSeconds();
+        const bool bWeatherIntervalActive = Weather.IsValid() && FMath::IsFinite(ServerTime)
+            && ServerTime >= Weather.ServerStartTimeSeconds
+            && ServerTime < Weather.ServerStartTimeSeconds + Weather.DurationSeconds;
+        if (bWeatherIntervalActive && FMath::IsFinite(Weather.PrecipitationIntensity))
+        {
+            TargetResponse = FMath::Clamp(Weather.PrecipitationIntensity, 0.0f, 1.0f);
+        }
+    }
+
+    CurrentWeatherMaterialResponse = FMath::FInterpTo(CurrentWeatherMaterialResponse, TargetResponse,
+        FMath::Max(DeltaTime, 0.0f), WeatherMaterialResponseFadeSpeed);
+    Parameters->SetScalarParameterValue(WeatherMaterialPrecipitationParameter, CurrentWeatherMaterialResponse);
+}
+
 void UKalmalaWeatherActivitySubsystem::DestroyMountainWeatherFog()
 {
     if (IsValid(MountainWeatherFog.Get())) MountainWeatherFog->Destroy();
@@ -135,6 +182,16 @@ void UKalmalaWeatherActivitySubsystem::Deinitialize()
 {
     ReleaseController();
     DestroyMountainWeatherFog();
+    UWorld* World = GetWorld();
+    if (World != nullptr && WeatherMaterialCollection != nullptr)
+    {
+        if (UMaterialParameterCollectionInstance* Parameters =
+            World->GetParameterCollectionInstance(WeatherMaterialCollection))
+        {
+            Parameters->SetScalarParameterValue(WeatherMaterialPrecipitationParameter, 0.0f);
+        }
+    }
+    CurrentWeatherMaterialResponse = 0.0f;
     LocalController = nullptr;
     Super::Deinitialize();
 }

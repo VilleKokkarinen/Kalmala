@@ -6,6 +6,7 @@
 #include "Materials/MaterialExpressionComponentMask.h"
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionCollectionParameter.h"
 #include "Materials/MaterialExpressionFunctionInput.h"
 #include "Materials/MaterialExpressionFunctionOutput.h"
 #include "Materials/MaterialExpressionLinearInterpolate.h"
@@ -14,12 +15,14 @@
 #include "Materials/MaterialExpressionNoise.h"
 #include "Materials/MaterialExpressionNormalize.h"
 #include "Materials/MaterialExpressionScalarParameter.h"
+#include "Materials/MaterialExpressionSaturate.h"
 #include "Materials/MaterialExpressionSubtract.h"
 #include "Materials/MaterialExpressionVertexColor.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
 #include "Materials/MaterialExpressionWorldPosition.h"
 #include "Materials/MaterialFunction.h"
 #include "Materials/MaterialInstanceConstant.h"
+#include "Materials/MaterialParameterCollection.h"
 #include "Misc/PackageName.h"
 #include "UObject/SavePackage.h"
 #include "UObject/UObjectGlobals.h"
@@ -237,7 +240,79 @@ namespace KalmalaWorldMaterials
         return INDEX_NONE;
     }
 
-    static bool CreateSurfaceBaseMaterial(const FString& PackageName, UMaterialFunction* SurfaceResponse)
+    static UMaterialParameterCollection* CreateWeatherMaterialCollection(const FString& PackageName)
+    {
+        FString Filename;
+        if (!FPackageName::TryConvertLongPackageNameToFilename(PackageName, Filename, FPackageName::GetAssetPackageExtension()))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not resolve weather material collection package %s."), *PackageName);
+            return nullptr;
+        }
+
+        const FString AssetName = FPackageName::GetLongPackageAssetName(PackageName);
+        UMaterialParameterCollection* Collection = nullptr;
+        UPackage* Package = nullptr;
+        if (IFileManager::Get().FileExists(*Filename))
+        {
+            Collection = LoadObject<UMaterialParameterCollection>(nullptr,
+                *FString::Printf(TEXT("%s.%s"), *PackageName, *AssetName));
+            if (Collection == nullptr)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Could not load weather material collection %s."), *PackageName);
+                return nullptr;
+            }
+            Package = Collection->GetPackage();
+            Collection->Modify();
+        }
+        else
+        {
+            IFileManager::Get().MakeDirectory(*FPaths::GetPath(Filename), true);
+            Package = CreatePackage(*PackageName);
+            Collection = Package != nullptr
+                ? NewObject<UMaterialParameterCollection>(Package, FName(*AssetName), RF_Public | RF_Standalone)
+                : nullptr;
+        }
+
+        if (Collection == nullptr || Package == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not prepare weather material collection %s."), *PackageName);
+            return nullptr;
+        }
+
+        const FName PrecipitationParameterName(TEXT("PrecipitationIntensity"));
+        bool bHasPrecipitationParameter = false;
+        for (FCollectionScalarParameter& Parameter : Collection->ScalarParameters)
+        {
+            if (Parameter.ParameterName == PrecipitationParameterName)
+            {
+                Parameter.DefaultValue = 0.0f;
+                bHasPrecipitationParameter = true;
+                break;
+            }
+        }
+        if (!bHasPrecipitationParameter)
+        {
+            FCollectionScalarParameter& Parameter = Collection->ScalarParameters.AddDefaulted_GetRef();
+            Parameter.ParameterName = PrecipitationParameterName;
+            Parameter.DefaultValue = 0.0f;
+        }
+
+        Collection->PostEditChange();
+        Package->MarkPackageDirty();
+        FSavePackageArgs SaveArgs;
+        SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+        if (!UPackage::SavePackage(Package, Collection, *Filename, SaveArgs))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not save weather material collection %s."), *PackageName);
+            return nullptr;
+        }
+
+        UE_LOG(LogTemp, Display, TEXT("Generated or updated local weather material collection %s."), *PackageName);
+        return Collection;
+    }
+
+    static bool CreateSurfaceBaseMaterial(const FString& PackageName, UMaterialFunction* SurfaceResponse,
+        UMaterialParameterCollection* WeatherCollection)
     {
         FString Filename;
         if (!FPackageName::TryConvertLongPackageNameToFilename(PackageName, Filename, FPackageName::GetAssetPackageExtension()))
@@ -257,13 +332,19 @@ namespace KalmalaWorldMaterials
                 UE_LOG(LogTemp, Error, TEXT("Could not load existing surface base material %s."), *PackageName);
                 return false;
             }
-            UE_LOG(LogTemp, Display, TEXT("Surface base material already exists at %s."), *PackageName);
-            return true;
+            Package = Material->GetPackage();
+            Material->Modify();
         }
-        IFileManager::Get().MakeDirectory(*FPaths::GetPath(Filename), true);
-        Package = CreatePackage(*PackageName);
-        Material = NewObject<UMaterial>(Package, FName(*AssetName), RF_Public | RF_Standalone);
-        if (Material == nullptr || Material->GetEditorOnlyData() == nullptr || Package == nullptr || SurfaceResponse == nullptr)
+        else
+        {
+            IFileManager::Get().MakeDirectory(*FPaths::GetPath(Filename), true);
+            Package = CreatePackage(*PackageName);
+            Material = Package != nullptr
+                ? NewObject<UMaterial>(Package, FName(*AssetName), RF_Public | RF_Standalone)
+                : nullptr;
+        }
+        if (Material == nullptr || Material->GetEditorOnlyData() == nullptr || Package == nullptr
+            || SurfaceResponse == nullptr || WeatherCollection == nullptr)
         {
             UE_LOG(LogTemp, Error, TEXT("Could not prepare surface base material %s."), *PackageName);
             return false;
@@ -303,6 +384,8 @@ namespace KalmalaWorldMaterials
             TEXT("Subtle symmetric amplitude for broad world-space color variation."));
         UMaterialExpressionScalarParameter* MappingScale = CreateScalarParameter(TEXT("MappingScale"), 0.001f, 0.0001f, 0.01f, 4, 460,
             TEXT("Absolute-world-position multiplier in inverse centimeters; smaller values produce broader variation."));
+        UMaterialExpressionScalarParameter* WeatherWetResponse = CreateScalarParameter(TEXT("WeatherWetResponse"), 0.0f, 0.0f, 1.0f, 5, 780,
+            TEXT("Opt in selected surfaces to the local replicated precipitation response."));
 
         UMaterialExpressionMaterialFunctionCall* FunctionCall = AddMaterialExpression<UMaterialExpressionMaterialFunctionCall>(Material, -380, 40);
         if (!FunctionCall->SetMaterialFunction(SurfaceResponse))
@@ -329,9 +412,44 @@ namespace KalmalaWorldMaterials
             return false;
         }
 
+        UMaterialExpressionCollectionParameter* PrecipitationIntensity =
+            AddMaterialExpression<UMaterialExpressionCollectionParameter>(Material, -380, 980);
+        PrecipitationIntensity->Collection = WeatherCollection;
+        PrecipitationIntensity->ParameterName = TEXT("PrecipitationIntensity");
+        PrecipitationIntensity->ParameterId = WeatherCollection->GetParameterId(PrecipitationIntensity->ParameterName);
+
+        UMaterialExpressionMultiply* WetResponseStrength = AddMaterialExpression<UMaterialExpressionMultiply>(Material, -120, 900);
+        WetResponseStrength->A.Connect(0, PrecipitationIntensity);
+        WetResponseStrength->B.Connect(0, WeatherWetResponse);
+        UMaterialExpressionSaturate* WetAmount = AddMaterialExpression<UMaterialExpressionSaturate>(Material, 100, 900);
+        WetAmount->Input.Connect(0, WetResponseStrength);
+
+        UMaterialExpressionConstant* One = AddMaterialExpression<UMaterialExpressionConstant>(Material, 80, 1120);
+        One->R = 1.0f;
+        UMaterialExpressionConstant* ColorDarkening = AddMaterialExpression<UMaterialExpressionConstant>(Material, 80, 1240);
+        ColorDarkening->R = 0.08f;
+        UMaterialExpressionMultiply* DarkeningAmount = AddMaterialExpression<UMaterialExpressionMultiply>(Material, 320, 1060);
+        DarkeningAmount->A.Connect(0, WetAmount);
+        DarkeningAmount->B.Connect(0, ColorDarkening);
+        UMaterialExpressionSubtract* WetColorMultiplier = AddMaterialExpression<UMaterialExpressionSubtract>(Material, 540, 1060);
+        WetColorMultiplier->A.Connect(0, One);
+        WetColorMultiplier->B.Connect(0, DarkeningAmount);
+        UMaterialExpressionMultiply* WetBaseColor = AddMaterialExpression<UMaterialExpressionMultiply>(Material, 800, 720);
+        WetBaseColor->A.Connect(BaseColorOutput, FunctionCall);
+        WetBaseColor->B.Connect(0, WetColorMultiplier);
+
+        UMaterialExpressionConstant* RoughnessChange = AddMaterialExpression<UMaterialExpressionConstant>(Material, 320, 1240);
+        RoughnessChange->R = 0.12f;
+        UMaterialExpressionMultiply* WetRoughnessChange = AddMaterialExpression<UMaterialExpressionMultiply>(Material, 540, 1240);
+        WetRoughnessChange->A.Connect(0, WetAmount);
+        WetRoughnessChange->B.Connect(0, RoughnessChange);
+        UMaterialExpressionSubtract* WetRoughness = AddMaterialExpression<UMaterialExpressionSubtract>(Material, 800, 1080);
+        WetRoughness->A.Connect(RoughnessOutput, FunctionCall);
+        WetRoughness->B.Connect(0, WetRoughnessChange);
+
         UMaterialEditorOnlyData* EditorOnlyData = Material->GetEditorOnlyData();
-        EditorOnlyData->BaseColor.Connect(BaseColorOutput, FunctionCall);
-        EditorOnlyData->Roughness.Connect(RoughnessOutput, FunctionCall);
+        EditorOnlyData->BaseColor.Connect(0, WetBaseColor);
+        EditorOnlyData->Roughness.Connect(0, WetRoughness);
         EditorOnlyData->Normal.Connect(NormalOutput, FunctionCall);
         Material->PostEditChange();
         Package->MarkPackageDirty();
@@ -344,7 +462,7 @@ namespace KalmalaWorldMaterials
             return false;
         }
 
-        UE_LOG(LogTemp, Display, TEXT("Generated Default Lit Kalmala surface base material %s with five artist controls."), *PackageName);
+        UE_LOG(LogTemp, Display, TEXT("Generated Default Lit Kalmala surface base material %s with six artist controls."), *PackageName);
         return true;
     }
 
@@ -398,7 +516,7 @@ namespace KalmalaWorldMaterials
     }
 
     static bool CreateMaterialInstance(const FString& PackageName, const FString& ParentPath,
-        const FLinearColor BaseTint, const float Roughness)
+        const FLinearColor BaseTint, const float Roughness, const float WeatherWetResponse = 0.0f)
     {
         FString Filename;
         if (!FPackageName::TryConvertLongPackageNameToFilename(PackageName, Filename, FPackageName::GetAssetPackageExtension()))
@@ -408,17 +526,24 @@ namespace KalmalaWorldMaterials
         }
 
         const FString AssetName = FPackageName::GetLongPackageAssetName(PackageName);
+        UMaterialInstanceConstant* Instance = nullptr;
+        UPackage* Package = nullptr;
         if (IFileManager::Get().FileExists(*Filename))
         {
-            UMaterialInstanceConstant* Existing = LoadObject<UMaterialInstanceConstant>(nullptr,
+            Instance = LoadObject<UMaterialInstanceConstant>(nullptr,
                 *FString::Printf(TEXT("%s.%s"), *PackageName, *AssetName));
-            if (Existing == nullptr)
+            if (Instance == nullptr)
             {
                 UE_LOG(LogTemp, Error, TEXT("Could not load existing material instance %s."), *PackageName);
                 return false;
             }
-            UE_LOG(LogTemp, Display, TEXT("World material instance already exists at %s."), *PackageName);
-            return true;
+            if (WeatherWetResponse <= 0.0f)
+            {
+                UE_LOG(LogTemp, Display, TEXT("Non-weather material instance remains unchanged at %s."), *PackageName);
+                return true;
+            }
+            Package = Instance->GetPackage();
+            Instance->Modify();
         }
 
         UMaterialInterface* Parent = LoadObject<UMaterialInterface>(nullptr, *ParentPath);
@@ -428,24 +553,30 @@ namespace KalmalaWorldMaterials
             return false;
         }
 
-        IFileManager::Get().MakeDirectory(*FPaths::GetPath(Filename), true);
-        UPackage* Package = CreatePackage(*PackageName);
-        if (Package == nullptr)
-        {
-            UE_LOG(LogTemp, Error, TEXT("Could not create material instance package %s."), *PackageName);
-            return false;
-        }
-        UMaterialInstanceConstant* Instance = NewObject<UMaterialInstanceConstant>(Package,
-            FName(*AssetName), RF_Public | RF_Standalone);
         if (Instance == nullptr)
         {
-            UE_LOG(LogTemp, Error, TEXT("Could not create material instance %s."), *PackageName);
+            IFileManager::Get().MakeDirectory(*FPaths::GetPath(Filename), true);
+            Package = CreatePackage(*PackageName);
+            if (Package == nullptr)
+            {
+                UE_LOG(LogTemp, Error, TEXT("Could not create material instance package %s."), *PackageName);
+                return false;
+            }
+            Instance = NewObject<UMaterialInstanceConstant>(Package, FName(*AssetName), RF_Public | RF_Standalone);
+        }
+        if (Instance == nullptr || Package == nullptr)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Could not create or update material instance %s."), *PackageName);
             return false;
         }
 
         Instance->SetParentEditorOnly(Parent);
         Instance->SetVectorParameterValueEditorOnly(FMaterialParameterInfo(FName(TEXT("BaseTint"))), BaseTint);
         Instance->SetScalarParameterValueEditorOnly(FMaterialParameterInfo(FName(TEXT("Roughness"))), Roughness);
+        if (WeatherWetResponse > 0.0f)
+        {
+            Instance->SetScalarParameterValueEditorOnly(FMaterialParameterInfo(FName(TEXT("WeatherWetResponse"))), WeatherWetResponse);
+        }
         Instance->PostEditChange();
         Package->MarkPackageDirty();
 
@@ -715,10 +846,12 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
 {
     using namespace KalmalaWorldMaterials;
 
+    UMaterialParameterCollection* WeatherCollection = CreateWeatherMaterialCollection(
+        TEXT("/Game/Kalmala/World/Materials/MPC_KalmalaWeather"));
     UMaterialFunction* SurfaceResponse = CreateSurfaceResponseFunction(
         TEXT("/Game/Kalmala/World/Materials/Functions/MF_KalmalaSurfaceResponse"));
-    const bool bSurfaceBaseCreated = SurfaceResponse != nullptr && CreateSurfaceBaseMaterial(
-        TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase"), SurfaceResponse);
+    const bool bSurfaceBaseCreated = SurfaceResponse != nullptr && WeatherCollection != nullptr
+        && CreateSurfaceBaseMaterial(TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase"), SurfaceResponse, WeatherCollection);
     const bool bSoilCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedSoil"), TerrainSoilColor, 0.96f);
     const bool bTerrainCreated = CreateTerrainGroundBlendMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrain"), 0.92f, SurfaceResponse);
     const bool bTerrainInstanceCreated = bTerrainCreated && CreateMaterialInstance(
@@ -735,16 +868,16 @@ int32 UCreateWorldMaterialsCommandlet::Main(const FString& Params)
     const bool bRockInstanceCreated = CreateMaterialInstance(
         TEXT("/Game/Kalmala/World/Materials/MI_GeneratedRock"),
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
-        FLinearColor(0.9032258f, 0.9137931f, 0.9044944f), 0.95f);
+        FLinearColor(0.9032258f, 0.9137931f, 0.9044944f), 0.95f, 1.0f);
     const bool bBarkCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedBark"), FLinearColor(0.20f, 0.13f, 0.09f), 0.88f);
     const bool bBarkInstanceCreated = CreateMaterialInstance(
         TEXT("/Game/Kalmala/World/Materials/MI_GeneratedBark"),
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
-        FLinearColor::White, 0.88f);
+        FLinearColor::White, 0.88f, 1.0f);
     const bool bWoodInstanceCreated = CreateMaterialInstance(
         TEXT("/Game/Kalmala/World/Materials/MI_GeneratedWood"),
         TEXT("/Game/Kalmala/World/Materials/M_KalmalaSurfaceBase.M_KalmalaSurfaceBase"),
-        FLinearColor(0.20f, 0.13f, 0.09f), 0.88f);
+        FLinearColor(0.20f, 0.13f, 0.09f), 0.88f, 1.0f);
     const bool bCanopyCreated = CreateMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedCanopy"), FLinearColor(0.12f, 0.30f, 0.14f), 0.82f);
     const bool bBiomeDebugTerrainCreated = CreateVertexColorMaterial(TEXT("/Game/Kalmala/World/Materials/M_GeneratedTerrainBiomeDebug"));
     return bSurfaceBaseCreated && bTerrainCreated && bTerrainInstanceCreated && bLakeShoreInstanceCreated

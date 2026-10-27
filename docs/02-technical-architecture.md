@@ -2776,10 +2776,10 @@ one-second local probe feeds a smooth interpolation; the fog actor is transient
 and nonreplicated. No gameplay, save, RPC, or replicated-state contract changed;
 Tundra snow and player-cloth material behavior are unchanged.
 Generated Meadow rock bases use the shared final terrain height and surface
-normal with `MI_GeneratedRock`; geometry, vertex colors and roughness stay
-within their generated presentation contract. The player model and campfire
-ring retain `M_GeneratedRock`. The terrain patch remains their gameplay
-surface.
+normal with `MI_GeneratedRock`; geometry and vertex colors remain unchanged,
+and dry roughness remains 0.95 before the local precipitation response. The
+player model and campfire ring retain `M_GeneratedRock`. The terrain patch
+remains their gameplay surface.
 Generated Meadow trunks and forest tree-resource meshes use `MI_GeneratedBark`
 from the same shared surface parent at roughness 0.88. Their existing vertex
 colors distinguish birch bark, pale aspen bark, foliage and exposed cut faces;
@@ -2788,6 +2788,17 @@ meshes and the player head retain the legacy flat `M_GeneratedBark` assignment.
 Authored held-tool wood uses `MI_GeneratedWood` from the shared parent at
 roughness 0.88 with its previous brown tint. Material assignment is cosmetic
 and does not change harvest authority or collision.
+
+The shared `M_KalmalaSurfaceBase` parent reads the world-local
+`MPC_KalmalaWeather` collection's `PrecipitationIntensity` value and gates it
+with the per-instance `WeatherWetResponse` scalar. Generated Meadow rock, bark, and
+held-tool wood instances opt in; terrain and lake shore remain opted out. The
+client-local weather subsystem smooths the existing replicated precipitation
+intensity into this collection during a valid weather interval. The graph
+applies at most 8% base-color darkening and a 0.12 roughness reduction. No
+surface-moisture, player-Wet, gameplay, save, RPC, or replicated-state input is
+used. Because weather has no precipitation-kind field, this is a generic
+precipitation appearance and does not distinguish rain from snow.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered

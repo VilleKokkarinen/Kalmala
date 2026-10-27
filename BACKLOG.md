@@ -130,10 +130,11 @@ do not mark the lighting milestone complete before it passes.
     client-side precipitation, wetness, snow/biome, sky, fog, and world-space
     effect inputs. Record which plan effects have valid inputs; do not add a new
     weather type or network/save field to supply a missing one.
-  - [ ] **L04b — Add subtle wet-surface response.** Apply rain/wet darkening and
-    roughness changes to the plan-selected wood/rock materials using only an
-    existing presentation signal; smooth state changes to avoid popping.
-    Blocked pending L02c rock and L02d wood/bark material integration.
+  - [x] **L04b — Add subtle wet-surface response.** Add up to 8% base-color
+    darkening and a 0.12 roughness reduction to generated rock, bark, and held
+    wood through the existing replicated precipitation signal and gradual local
+    presentation. Other materials opt out; the generic signal cannot distinguish
+    rain from snow. See the lighting plan for implementation limits.
   - [x] **L04c — Add eligible snow coverage.** Apply it only to suitable
     surfaces with an existing client snow/biome signal. Mark unsupported
     combinations N/A rather than inventing a signal.

@@ -7,6 +7,7 @@
 
 class APlayerController;
 class AExponentialHeightFog;
+class UMaterialParameterCollection;
 class UKalmalaWeatherActivityWidget;
 
 /** Presents local weather feedback and regional fog from replicated state. */
@@ -28,6 +29,7 @@ public:
 private:
     void ReleaseController();
     void UpdateMountainWeatherFog(float DeltaTime);
+    void UpdateWeatherMaterialResponse(float DeltaTime);
     void DestroyMountainWeatherFog();
 
     UPROPERTY(Transient)
@@ -36,8 +38,12 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<AExponentialHeightFog> MountainWeatherFog;
 
+    UPROPERTY(Transient)
+    TObjectPtr<UMaterialParameterCollection> WeatherMaterialCollection;
+
     TWeakObjectPtr<APlayerController> LocalController;
     float MountainWeatherFogProbeTimeRemaining = 0.0f;
     float TargetMountainWeatherFogCoverage = 0.0f;
     float CurrentMountainWeatherFogCoverage = 0.0f;
+    float CurrentWeatherMaterialResponse = 0.0f;
 };

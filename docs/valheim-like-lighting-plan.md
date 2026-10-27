@@ -531,7 +531,7 @@ for local presentation.
 
 | Plan effect | Existing input and path | Support and limits |
 | --- | --- | --- |
-| Rain and wet-surface response | `FKalmalaWeatherState` exposes normalized `PrecipitationIntensity` and `WindStrength`, plus derived `StormIntensity`, through the replicated `AKalmalaWorldGenerationGameState`. `UKalmalaAmbientAudioSubsystem` already fades the local `RainBed` and `WindBed` from those values. | Replicated precipitation is a valid cosmetic rain/wet-material input. The authoritative interaction-grid surface moisture and per-player wetness remain gameplay state, not shared material inputs. Current wood/rock materials have no weather-wet response. The weather state has no precipitation-kind field, so rain cannot be distinguished from snow by type. |
+| Rain and wet-surface response | `FKalmalaWeatherState` exposes normalized `PrecipitationIntensity` and `WindStrength`, plus derived `StormIntensity`, through the replicated `AKalmalaWorldGenerationGameState`. `UKalmalaAmbientAudioSubsystem` already fades the local `RainBed` and `WindBed` from those values. | Replicated precipitation is a valid cosmetic rain/wet-material input. The authoritative interaction-grid surface moisture and per-player wetness remain gameplay state, not shared material inputs. At this audit, current wood/rock materials had no weather-wet response; L04b's implementation is recorded below. The weather state has no precipitation-kind field, so rain cannot be distinguished from snow by type. |
 | Snow and biome coverage | `FKalmalaWorldGenerationConfig` is replicated; clients can derive deterministic biome weights through `FKalmalaRegionalGeneration`. `AKalmalaGeneratedTerrainPatch` writes a cold-biome snow mask to terrain vertex alpha through `FKalmalaTerrainGroundBlend`; `CreateWorldMaterialsCommandlet` consumes that alpha in `M_GeneratedTerrain`. | Biome/height-driven snow coverage already exists on generated terrain. It is not driven by snowfall. Generated rock, bark, canopy, shore, and water do not receive this snow mask, so coverage on those surfaces is unsupported by the current material inputs. No snow particle system exists. |
 | Moss and lichen | The regional sampler can identify `MossyMire`, and terrain generation already samples humidity. | No moss/lichen weight is carried to the current material: terrain RGB stores grass/soil/rock weights, alpha stores snow coverage, and humidity only affects the soil blend. There is no distinct moss/lichen layer input on terrain or other generated surfaces; treat those combinations as N/A unless an existing presentation signal is made available by the planned material integration. |
 | Sky and weather color | Setup-PrototypeEnvironment.py creates the directional sun, SkyAtmosphere, and movable real-time-capture skylight. | No cloud actor is created and no weather-linked sky/color treatment is wired; cloud and weather-color treatments are N/A for this increment. Do not add a new color pipeline or sky model. |
@@ -547,6 +547,46 @@ Source anchors:
 - `Source/KalmalaEditor/Private/CreateWorldMaterialsCommandlet.cpp`
 - `Source/KalmalaGameplay/Private/KalmalaInteractionGrid.cpp` and `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`
 - `Scripts/Setup-PrototypeEnvironment.py`.
+
+#### L04b — Subtle local precipitation response on selected materials (2026-10-27)
+
+The generated shared parent now reads `PrecipitationIntensity` from the local
+world's `MPC_KalmalaWeather` collection and multiplies it by the opt-in
+`WeatherWetResponse` material-instance parameter. At full response, the graph
+reduces linear base color by at most 8% and roughness by at most 0.12. The
+generator sets the opt-in to one only for `MI_GeneratedRock`, `MI_GeneratedBark`,
+and `MI_GeneratedWood`; their existing dry tints and roughness values remain
+unchanged. Terrain, shore, canopy, water, player, and campfire materials remain
+outside this effect.
+
+`UKalmalaWeatherActivitySubsystem` reads the existing replicated precipitation
+value only while its valid weather interval is active, clamps it, and
+interpolates the world-local collection parameter toward it each frame. Its
+0.75 interpolation rate smooths both onset and release. The response is a
+cosmetic material input only: it does not read authoritative ground moisture or
+player `Wet`, accumulate surface moisture, or add gameplay, save, RPC, or
+replicated-state behavior. Clients on a listen server use the same local path;
+dedicated servers have no local-player presenter.
+
+| Surface | L04b status | Existing support and limit |
+| --- | --- | --- |
+| Generated Meadow rocks | Supported | `MI_GeneratedRock` opts in to the shared parent's precipitation response; player and campfire rock materials do not. |
+| Generated trunks and tree harvest bark | Supported | `MI_GeneratedBark` opts in while retaining species and cut-face vertex colors. |
+| Held-tool wood | Supported | `MI_GeneratedWood` opts in for the existing wood shafts and pieces. |
+| Terrain and lake shore | N/A | Terrain uses its separate layered parent; lake shore keeps `WeatherWetResponse` at zero. |
+| Canopy, water, player, campfire, non-tree gatherables, and construction materials | N/A | They do not use an opted-in selected instance. |
+
+The replicated weather state has no precipitation-kind field, so the existing
+precipitation signal cannot distinguish rain from snow. Every active
+precipitation value therefore drives this generic wet-looking response; it is
+not accumulated moisture and begins to dry visually as the value fades. The
+material generator refreshes the shared parent and only the three opted-in
+instances; no existing terrain or shore material contract is broadened. Rendered
+appearance remains for the L02g and L04g presentation gates.
+
+Source anchors: `KalmalaWeatherState.h`, `KalmalaWorldGenerationGameState.h/.cpp`,
+`KalmalaWeatherActivitySubsystem.h/.cpp`, and
+`CreateWorldMaterialsCommandlet.cpp`.
 
 #### L04c — Existing snow coverage and surface limits (source review 2026-10-27)
 
