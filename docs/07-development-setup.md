@@ -3698,8 +3698,13 @@ legacy flat bark material. The player model and campfire ring keep the original
 rock material.
 The canopy instance uses a separate two-sided opaque parent and retains the
 procedural leaf vertex colors. The meshes have no opacity cutouts, so masked
-blending is not used. Source checks cover the assignment and parent settings;
-rendered edge/shadow aliasing and temporal shimmer remain for L02g.
+blending is not used. The non-Shipping baseline capture path moves the local
+pawn to every requested sample before waiting for terrain streaming and exposure:
+three seconds for default and overcast captures, five seconds for fire-lit dusk.
+L02g reviewed daylight and forest-shade silhouettes/shadows and 16-frame,
+subpixel pans under both configured TSR and forced TAA; no obvious temporal
+foliage shimmer appeared in the reviewed frames. The default lake-basin policy
+is disabled, so no lake-shore triangles are rendered at these anchors.
 `MI_GeneratedWater` uses the shared lit parent with white tint and roughness 0.28,
 preserving the existing ocean and lake vertex-color palettes. The legacy
 `M_GeneratedWater` package remains generated but unassigned. Water clipping and

@@ -1,3 +1,88 @@
+## L02g final material-family gate — 2026-10-27
+
+- **Selected task:** L02g, milestone-final verification of the integrated L02
+  terrain, shore, rock, bark, canopy and water material families.
+- **Work completed:** Fixed the non-Shipping baseline capture path so it moves
+  the local pawn to every requested site before waiting for terrain streaming
+  and exposure to settle (3 seconds for default/overcast, 5 seconds for dusk).
+  Reviewed all six fixed scene roles for seeds 418 and 419, actual runtime
+  instance values and representative generated mesh assignments, plus foliage
+  silhouette/shadow and temporal behavior. Updated the lighting plan and setup
+  handoff with results and limitations.
+- **Files changed in this run:**
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Milestone-final verification:** A fresh short-path mirror build with UE
+  5.8.2 passed the full `KalmalaEditor Win64 Development` target (55/55
+  actions) using `Build.bat KalmalaEditor Win64 Development
+  -Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload
+  -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`.
+  `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject -run=CreateWorldMaterials
+  -unattended -nop4 -nosplash -nosound` exited 0 with 0 errors and one existing
+  invalid `Default__KalmalaOceanSkiff:HullMesh` material-index warning.
+  `PresentationOwnership.ps1` passed for 16 assets and 34 source seams. The
+  fixed capture helper passed all twelve 1024x768 seed-418/419 outputs across
+  Meadows daylight, forest shade, open water, coast candidate, overcast/rain,
+  and fire dusk. Invocation form was
+  `BiomeBaselineCapture.ps1 -Project <mirror>/Kalmala.uproject
+  -Editor <UE>/UnrealEditor-Cmd.exe -Seed <418|419> -Site <fixed-site>
+  -Condition <Default|OvercastRain|FireDusk> -Xcm <plan-X> -Ycm <plan-Y>
+  -ViewZcm <plan-Z> -OutputPath <unique-temp-png>`. Preserved baseline images
+  were not overwritten.
+- **Runtime materials:** Loaded instance parameters are distinct: terrain
+  `MI_GeneratedTerrain` (`M_GeneratedTerrain`, white, roughness 0.92); shore
+  `MI_GeneratedLakeShore` (`M_KalmalaSurfaceBase`, tint 0.625/0.657143/0.522388,
+  0.78); rock `MI_GeneratedRock` (same parent, tint 0.903226/0.913793/0.904494,
+  0.95); bark `MI_GeneratedBark` (same parent, white, 0.88); wood
+  `MI_GeneratedWood` (same parent, tint 0.20/0.13/0.09, 0.88); canopy
+  `MI_GeneratedCanopy` (`M_KalmalaCanopyBase`, white, 0.82); water
+  `MI_GeneratedWater` (`M_KalmalaSurfaceBase`, white, 0.28). Runtime section
+  audit confirmed terrain, blue-vertex-color water and green-vertex-color canopy
+  assignments; source constructors confirm generated rock, bark, authored wood
+  and shore assignments.
+- **Rendered and temporal review:** Repaired seed-418 coast shows land with blue
+  water on both sides. Open water reads blue, but reflections/highlights were
+  not established in the fixed wide views. Seed-418 Meadow and forest views
+  show tan ground, green leaf shells, brown trunks, rock facets and hard shadows.
+  The temporary 16-frame pan launched `UnrealEditor-Cmd.exe
+  <mirror>/Kalmala.uproject /Game/Kalmala/Maps/Prototype/L_Prototype -game
+  -windowed -RenderOffscreen -ForceRes -ResX=1024 -ResY=768 -WorldSeed=418
+  -KalmalaBiomeBaselineCapture -KalmalaBiomeBaselinePanPrefix=<temp-prefix>`.
+  A 0.5 cm / 0.25 s camera pan was reviewed in daylight and shade under forced
+  TAA (`r.AntiAliasingMethod=2`) and configured TSR (`=4`); no obvious temporal
+  foliage shimmer appeared in the reviewed frames.
+- **Failures and repairs:** The original zero-delay default screenshots were
+  taken before terrain activation and exposure settled and byte-matched the
+  pre-L02 gray/white baseline; they were rejected as visual evidence. The
+  capture timing/pawn fix produced the valid rerun set. The commandlet's single
+  OceanSkiff invalid material-index warning is unrelated and remained
+  unchanged. No L02 material-assignment or build defect was found.
+- **Lightweight checks:** Cumulative and current `git diff --check` passed;
+  changed paths remain below 260 characters. Final captures and runtime
+  diagnostics are temporary under `%LOCALAPPDATA%\Temp\klgfinalcaps` and
+  `%LOCALAPPDATA%\Temp\klgcap`; no generated test files entered the repository.
+- **Observable impact:** Fixed baseline captures now render after the requested
+  terrain is active and exposure has warmed. Existing generated vertex colors,
+  clipping and shoreline geometry are preserved.
+- **Networking/authority:** The capture fix runs only in the non-Shipping
+  developer capture path. Material selection remains cosmetic; no gameplay,
+  network, collision or save authority changed.
+- **Known limitations:** The compiled default-off lake-basin policy produced
+  zero lake-shore triangles, so the shore instance is loaded and its component
+  reference verified but no lake-shore surface is visually claimed. Seed-419's
+  fixed forest site is open water; overcast lacks visible rain particles; dusk
+  has no flame mesh; and water reflections/highlights were not established at
+  the fixed wide angles. The short pan is a bounded visual check, not a GPU
+  performance or broader motion test.
+- **Final milestone status:** Complete. L02a–L02g implementation and all
+  applicable milestone-final build, commandlet, ownership, fixed-view and
+  temporal checks passed; limitations are recorded above and in the lighting
+  plan.
+- **Next eligible task:** L03a — create an isolated Default Lit versus banded
+  direct-light comparison fixture.
+
+
 ## L02f generated water integration — 2026-10-27
 
 - **Selected task:** L02f, integrate generated sea and lake water separately.

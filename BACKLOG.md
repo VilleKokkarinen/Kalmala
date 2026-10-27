@@ -1121,7 +1121,7 @@ do not mark the lighting milestone complete before it passes.
     seed-419 forest, water, rain and world-horizon limitations in the lighting
     plan and L01h evidence manifest.
 
-- [ ] **L02 — Build and integrate the shared surface-material family.** Replace
+- [x] **L02 — Build and integrate the shared surface-material family.** Replace
   flat generated surface materials through project-owned parents and instances,
   retaining direct light, shadow, indirect fill, water clipping, and runtime
   material assignment behavior.
@@ -1156,16 +1156,17 @@ do not mark the lighting milestone complete before it passes.
     canopy parent and instance; assign it to generated Meadow canopies while
     preserving their vertex-color palette. Source review found no opacity
     cutouts or time-varying material input, so masking is unnecessary and shader
-    noise is world-stable. Build, instance-load, and ownership checks passed;
-    rendered silhouette/shadow aliasing and TAA shimmer in daylight/shade remain
-    for L02g.
+    noise is world-stable. Build, instance-load, and ownership checks passed.
+    L02g reviewed the fixed daylight/shade silhouettes and shadows; a short
+    16-frame, subpixel TAA pan showed no obvious foliage shimmer.
   - [x] **L02f — Integrate water separately.** Generate and assign `MI_GeneratedWater`
     from the shared lit parent at white tint and roughness 0.28, preserving
     existing ocean and lake vertex-color palettes. Keep sea/lake clipping,
     water levels, and shoreline geometry unchanged. Build, commandlet-load,
-    and ownership checks passed; rendered reflections/highlights and a valid
-    coast water frame remain for L02g.
-  - [ ] **L02g — Pass the material-family gate.** Verify terrain, shore, rock,
+    and ownership checks passed. L02g reviewed the open-water and repaired
+    seed-418 coast frames; the water reads blue, but reflections/highlights were
+    not established at these fixed wide views.
+  - [x] **L02g — Pass the material-family gate.** Verify terrain, shore, rock,
     bark, canopy, and water retain distinct values across all baseline scenes;
     record material assignments and remaining limitations in the lighting plan.
 

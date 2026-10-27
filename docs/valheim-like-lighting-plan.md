@@ -522,11 +522,80 @@ water components; existing ocean and lake vertex colors supply the blue/teal
 palettes. The legacy flat `M_GeneratedWater` remains generated but unassigned.
 `FKalmalaWaterSurfaceMesh` clipping, water levels, and separate shoreline geometry are unchanged.
 
-No water render was captured or reviewed in this increment. The fixed open-water
-anchor is an inland Shimmering Lakes view. The prior source-coast candidate is
-land-side and shows no distinct water surface, so it cannot establish coast
-reflections or highlights. Water reflection/highlight review and a valid coast
-framing remain for the L02g material-family gate.
+No water render was captured or reviewed in this increment. L02g's repaired
+seed-418 source-coast frame now shows blue water on both sides of the land strip;
+the same fixed coordinates for seed 419 show water without shoreline framing.
+The separate open-water anchor remains the valid broad water view. These fixed
+wide views do not establish water reflections or highlights.
+
+#### L02g — Final material-family gate — 2026-10-27
+
+The first default captures requested a screenshot immediately after setting the
+view target, before local terrain activation and auto exposure had settled. Their
+gray/white outputs byte-matched the pre-L02 baseline and were not treated as
+visual evidence. The non-Shipping capture path now moves the local pawn to every
+requested sample so its terrain neighborhood stays active, then waits three
+seconds for default and overcast views and five seconds for fire-lit dusk. This
+fix is limited to the baseline-capture path. A fresh project mirror was built
+with UE 5.8.2 using `Build.bat KalmalaEditor Win64 Development
+-Project=<mirror>/Kalmala.uproject -WaitMutex -NoHotReload
+-NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`; all 55 actions
+succeeded. `UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject
+-run=CreateWorldMaterials -unattended -nop4 -nosplash -nosound` exited 0 with
+zero errors and one existing warning for the invalid material index on
+`Default__KalmalaOceanSkiff:HullMesh`. `PresentationOwnership.ps1` passed for 16
+project-owned assets and 34 procedural/UI source seams.
+
+The capture helper reran the six fixed roles (Meadows daylight, forest shade,
+open water, coast candidate, overcast/rain, and fire dusk) for seeds 418 and 419.
+All twelve fresh 1024x768 captures passed its PNG, nonblank, and requested
+seed/site/condition checks. They are under the temporary
+`C:\Users\Ville\AppData\Local\Temp\klgfinalcaps` output folder; the preserved
+`TestResults/LightingBaseline` files were not overwritten.
+
+| Surface | Runtime instance and parent | Tint | Roughness | Runtime/render review |
+| --- | --- | --- | ---: | --- |
+| Terrain | `MI_GeneratedTerrain` / `M_GeneratedTerrain` | white | 0.92 | Generated patches use the instance; default and daylight views show the vertex-color ground blend. |
+| Lake shore | `MI_GeneratedLakeShore` / `M_KalmalaSurfaceBase` | (0.625, 0.657143, 0.522388) | 0.78 | Loaded instance and component reference verified; the default disabled-basin policy produced zero lake-shore triangles, so its rendered surface is unavailable. |
+| Rock | `MI_GeneratedRock` / `M_KalmalaSurfaceBase` | (0.903226, 0.913793, 0.904494) | 0.95 | Generated rock component retains its vertex-color palette; facets are visible in the meadow captures. |
+| Bark | `MI_GeneratedBark` / `M_KalmalaSurfaceBase` | white | 0.88 | Generated trunks and tree harvest meshes use the instance; the forest frame shows brown bark. |
+| Wood | `MI_GeneratedWood` / `M_KalmalaSurfaceBase` | (0.20, 0.13, 0.09) | 0.88 | Authored held-tool shafts and wooden club/bow sections use the instance. |
+| Canopy | `MI_GeneratedCanopy` / `M_KalmalaCanopyBase` | white | 0.82 | Generated canopies retain green species vertex colors; two-sided opaque leaf shells and their shadows are visible. |
+| Water | `MI_GeneratedWater` / `M_KalmalaSurfaceBase` | white | 0.28 | Sea/river section reports the instance and its blue vertex color; seed-418 coast and open-water frames show blue surfaces. |
+
+The runtime audit read these material instance parameters after loading. It also
+reported `MI_GeneratedTerrain`, `MI_GeneratedWater`, and `MI_GeneratedCanopy`
+on generated sections, with canopy vertex colors from the existing conifer and
+aspen palettes. Source tracing and ownership checks confirm generated rock,
+bark, lake-shore, authored wood and water assignments. The optional lake basin
+remains disabled, and the runtime audit reports zero lake water/shoreline
+triangles at the default Meadow site; no visual lake-shore response is claimed.
+The fixed seed-418 coast view contains visible water and land, while seed 419 at
+the same coordinates is water-only. The forest shade and daylight seed-418
+frames show green solid leaf silhouettes, brown trunks, terrain and shadows.
+Seed-419's fixed forest coordinates face open water, and its overcast view also
+has little land framing; these are fixed-anchor/seed limitations. The overcast
+captures show sky, ground and water but no visible rain particles. Both dusk
+captures show terrain, the test hearth silhouette and warm ground spill; they do
+not contain a modeled flame. Black world-horizon areas remain visible. The water
+reads blue, but reflections/highlights were not established in the fixed wide shots.
+
+For temporal review, capture-only instrumentation in the temporary mirror saved
+16 frames for each seed-418 daylight and forest-shade camera while translating
+the camera by 0.5 cm every 0.25 seconds after the three-second scene warmup. The
+project default was `r.AntiAliasingMethod=4` (TSR); a second pass explicitly
+forced method 2 (TAA). All four sequences produced 16/16 frames. Reviewed frames
+showed stable hard-edged leaf silhouettes and shadows with no obvious temporal
+foliage shimmer during this short subpixel pan. This is a visual spot check, not
+a performance measurement or broader motion/coverage test. The temporary pan
+instrumentation was not added to the project.
+
+**Final L02 status:** milestone-final build, material commandlet, ownership
+validator, all fixed-scene captures, runtime assignment/value audit, and the
+daylight/shade temporal review passed. Outstanding visual limits are the absent
+default lake-shore geometry, the seed-419 forest framing, the lack of visible
+rain particles and a fire mesh, and water reflections/highlights not established
+in the fixed wide views. No unrelated gameplay or material system was changed.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an
