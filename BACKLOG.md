@@ -128,7 +128,7 @@ do not mark the lighting milestone complete before it passes.
     with a soft two- or three-band direct-light treatment on representative
     ground, rock, wood, canopy, creature, and construction surfaces using L01's
     fixed views.
-  - [ ] **L03b — Evaluate UE 5.8 Substrate NPR support.** Prototype its
+  - [x] **L03b — Evaluate UE 5.8 Substrate NPR support.** Prototype its
     experimental ramp-based shading only if the project's configured renderer,
     build targets, and materials support it; do not add an engine fork or make
     the experimental feature a production dependency.

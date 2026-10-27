@@ -1,7 +1,8 @@
 # Valheim-inspired material and lighting plan
 
 **Status:** L01 is complete. L02 is in progress with its shared material
-interface authored; L03–L06 remain queued in `BACKLOG.md`.
+interface authored; L03 is in progress with an isolated direct-light fixture and
+a source-level Substrate support audit; L04–L06 remain queued in BACKLOG.md.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -519,6 +520,37 @@ cost, or production platform support. The commandlet and capture scripts passed
 source inspection and PowerShell parsing. A rebuilt Editor was not run, so the
 generated packages and rendered captures are still pending before visual
 review; the Substrate candidate is experimental and remains test-only.
+
+#### L03b — UE 5.8 Substrate NPR support audit — 2026-10-27
+
+UE 5.8 exposes UMaterialExpressionSubstrateToonBSDF and UToonProfile, both
+marked experimental in the installed engine headers. Epic's [UE 5.8 release
+notes](https://dev.epicgames.com/documentation/unreal-engine/unreal-engine-5-8-release-notes)
+describe Toon shading as an experimental path built on the Substrate Blendable
+GBuffer. The [Substrate overview](https://dev.epicgames.com/documentation/unreal-engine/overview-of-substrate-materials-in-unreal-engine)
+states existing projects upgrading to UE 5.7 or later stay on the non-Substrate
+path unless they explicitly opt in. RendererSettings.h maps bEnableSubstrate
+to r.Substrate and requires an editor restart; its setting notes say Blendable
+GBuffer is supported on all platforms while Adaptive GBuffer is supported only
+on some.
+
+Kalmala's .uproject targets UE 5.8, but Config/DefaultEngine.ini contains no
+RendererSettings/Substrate opt-in. Kalmala.Target.cs, KalmalaEditor.Target.cs,
+and KalmalaServer.Target.cs declare Game, Editor, and Server target types
+without a SupportedPlatforms list. L01's live capture record observed
+D3D12/SM5 on an RTX 5090; that single host is not a platform support matrix.
+The inspected project configuration therefore does not establish Substrate as
+a production renderer path or certify it for the project's build targets.
+
+The L03a commandlet authors a test-only Toon Profile and Toon BSDF material,
+and the capture runner enables Substrate through a per-process command-line
+override. This keeps the experiment isolated from production configuration and
+assignments. No Editor build, commandlet asset generation, material compilation,
+or rendered capture was run, so source/API availability is not proof that the
+candidate compiles or renders correctly on project targets. Keep the Toon
+candidate test-only; do not enable Substrate in project defaults or add a
+production dependency. L03c still needs rendered integration, silhouette,
+stability, and cost evidence before L03d can make a review recommendation.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an

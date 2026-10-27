@@ -1,3 +1,33 @@
+## L03b UE 5.8 Substrate NPR support audit — 2026-10-27
+
+- **Selected task:** L03b, evaluate whether UE 5.8 Substrate NPR is supported by
+  the project's current renderer, build targets, and materials.
+- **Work completed:** Confirmed the installed UE 5.8 engine exposes experimental
+  UMaterialExpressionSubstrateToonBSDF and UToonProfile APIs. The project is
+  associated with UE 5.8, but DefaultEngine.ini has no Substrate renderer
+  opt-in; Game, Editor, and Server target files do not define a platform matrix.
+  Recorded the decision to keep the L03a Toon candidate test-only and leave
+  production renderer/material assignments unchanged.
+- **Files changed:** docs/valheim-like-lighting-plan.md, BACKLOG.md, and
+  PROGRESS.md.
+- **Lightweight checks:** Inspected the installed UE 5.8 Toon API and
+  RendererSettings.h, project descriptor/config, target declarations, and
+  L03a's commandlet/capture override. PowerShell parser checks for the two
+  fixture/capture scripts and git diff --check passed.
+- **Full verification:** Deferred. No Editor build, commandlet asset generation,
+  material compilation, or rendered capture was run.
+- **Observable impact:** Source/API availability and current project opt-in
+  status are documented; no runtime or production renderer behavior changed.
+- **Networking/authority:** Documentation and renderer support audit only; no
+  gameplay, networking, authority, persistence, or save behavior changed.
+- **Known limitations / remaining scope:** Candidate compilation/rendering,
+  target-platform support, visual integration, silhouette and temporal stability,
+  and per-view GPU cost remain unverified. UE's engine headers describe
+  Blendable GBuffer support across platforms, but the project did not select a
+  Substrate format and no target build was run.
+- **Next eligible task:** L03c, evaluate rendered lighting integration and
+  per-view GPU cost. L02d remains active in its separate worktree.
+
 ## L03a isolated direct-light comparison fixture — 2026-10-27
 
 - **Selected task:** L03a, create an isolated comparison fixture.
