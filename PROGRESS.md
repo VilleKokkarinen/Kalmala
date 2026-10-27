@@ -1,3 +1,36 @@
+## L05f DLSS/upscaling separation — 2026-10-27
+
+- **Selected increment:** L05f, the first unblocked L05 child after the L05e
+  hardware dependency was confirmed.
+- **Work completed:** Audited the project descriptor, module dependency files,
+  source, and runtime config. No DLSS, Streamline, Ray Reconstruction, or Frame
+  Generation integration/dependency is present. Recorded optional upscaling as
+  a separate future feature requiring its own approved hardware, image-quality,
+  and native frame-time acceptance. L05e remains unchecked and explicitly
+  blocked pending actual lower-tier/AMD release test hardware and tier captures.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
+  `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Source/config/plugin/dependency search found no
+  matching integration. Inspected `Kalmala.uproject` plugin list and module
+  dependencies. `nvidia-smi` reported the available RTX 5090 reference adapter,
+  but that telemetry is not a game benchmark. No build or runtime capture ran.
+- **Full verification:** Deferred to L06 milestone-final verification.
+- **Observable impact:** No runtime or renderer behavior changed. The lighting
+  plan now clearly separates optional upscaling from the three ray-tracing
+  quality levels and records the current project audit.
+- **Networking/authority:** Documentation and dependency audit only; no runtime,
+  networking, gameplay authority, or save changes.
+- **Known limitations / remaining scope:** L05e still needs actual same-scene
+  RT-off/Balanced/High measurements on the reference PC and representative
+  lower-tier hardware selected for release; include AMD if it is in scope. The
+  current worktree has no built Editor, and no lower-tier/AMD system was
+  identified or available. No minimum/recommended GPU claim is supported.
+- **Main-checkout handoff:** Deferred while other Kalmala worktrees are active;
+  only backlog/progress state will be reconciled after their edits are safe to
+  preserve.
+- **Next eligible task:** L05e, once target-device access and profile captures
+  are available.
+
 ## L05d selective High ray-tracing tier — 2026-10-27
 
 - **Selected increment:** L05d, the next child in the user-directed L05 track.

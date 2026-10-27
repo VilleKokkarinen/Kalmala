@@ -171,11 +171,16 @@ do not mark the lighting milestone complete before it passes.
     High on the reference PC and the actual lower-tier devices selected for
     release; include AMD hardware if it is within the support target. Record
     frame time, resolution, memory, image quality, and artifacts. Do not infer
-    minimum/recommended hardware from UE's compatibility list alone.
-  - [ ] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
+    minimum/recommended hardware from UE's compatibility list alone. **Blocked:**
+    the available system is the RTX 5090 reference PC; no lower-tier or AMD
+    release test device has been selected or is available in this environment,
+    and this worktree has no built Editor for tier captures.
+  - [x] **L05f — Keep upscaling separate.** Record NVIDIA DLSS as optional and
     separate from ray tracing. Add no vendor plugin/dependency or Frame
     Generation path in this goal; seek a separate user-approved plan if they
-    become a release requirement.
+    become a release requirement. The project plugin/dependency audit found no
+    DLSS, Streamline, Ray Reconstruction, or Frame Generation integration; see
+    the dated L05f note in the lighting plan.
 
 - [ ] **L06 — Integrate and perform lighting milestone-final verification.**
   This is the only full verification gate for the lighting milestone; complete

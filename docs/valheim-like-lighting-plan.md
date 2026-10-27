@@ -285,6 +285,16 @@ integration independently. Do not make DLSS a prerequisite for the baseline or
 count generated frames as a substitute for meeting the game's native input and
 frame-time targets. ([NVIDIA DLSS for Unreal Engine](https://developer.nvidia.com/rtx/dlss))
 
+### L05f — Upscaling remains separate (2026-10-27)
+
+The project descriptor, module dependency files, source, and runtime config were
+audited for DLSS, Streamline, Ray Reconstruction, and Frame Generation; no
+integration or vendor dependency is present. L05's quality selector covers
+only the renderer's Compatibility, Balanced, and High profiles. If optional
+upscaling becomes a release requirement, specify and approve it as a separate
+feature with its own supported-hardware, image-quality, and native frame-time
+acceptance; this audit adds no plugin or runtime behavior.
+
 The existing performance record uses an i7-14700K and RTX 5090; it does not
 certify minimum or recommended hardware, or low- and mid-tier performance. For
 this plan, capture identical scenes with hardware RT off, Balanced, and High on
@@ -294,6 +304,14 @@ RT system, and AMD hardware if the release target intends to support it. Record
 GPU frame time, frame rate, internal/output resolution, memory use, and any
 temporal artifacts. Set a release floor only after these measurements and the
 game's frame-time target are agreed.
+
+L05e remains open. `nvidia-smi` reports an RTX 5090 with 32,607 MiB VRAM and
+driver 610.88 on the current reference PC, but this is system telemetry rather
+than an in-game tier measurement. No lower-tier or AMD release test device has
+been selected or is available in this environment, and the L05 worktree has no
+built Editor for capturing the new profiles. Do not infer performance or a
+hardware floor from these observations; resume L05e with actual target devices
+and same-scene captures.
 
 ## Acceptance checks
 
