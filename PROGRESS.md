@@ -1,3 +1,15 @@
+## L06c2 — Third-person camera/HUD PIE spot-check — 2026-10-27
+
+- **Selected task:** L06c2, inspect the default third-person camera and HUD through the integrated rendered game.
+- **Work completed:** Recorded the UE 5.8 PIE observation on the default L_Prototype map from the integrated k06b mirror. The player spawned centered behind the follow camera; horizontal mouse-look rotated the view/player while the follow view stayed stable, with no start clipping. The six-slot hotbar was readable at top-left; Meadows, minimap, sun, and water/timer indicators were readable at top-right without overlap. Player/terrain shadows were distinct and high-contrast. No obvious static-view exposure, lens, or bloom artifact was seen.
+- **Files changed:** BACKLOG.md, PROGRESS.md, and docs/valheim-like-lighting-plan.md. No map, asset, runtime, or generated files changed.
+- **Checks:** Read-only inspection confirmed L_Prototype is both the editor/game default map and reviewed the source camera defaults and input route. The UE 5.8 PIE inspection was performed by the coordinator in the isolated integrated mirror. No separate build, capture runner, or automation suite was run for this documentation increment; git diff --check passed.
+- **Full verification:** Deferred to L06e. This spot-check does not replace milestone-final verification.
+- **Observable impact:** Provides a default-camera/HUD readability check in the normal prototype viewport in addition to the L06c1 fixed-view tier evidence. No camera/UI or tier-specific visual defect was reported.
+- **Networking/authority:** No gameplay or networking code changed.
+- **Known limitations / remaining scope:** PIE checked initial framing and horizontal look in a brief view; walking through post-process regions and dynamic exposure transitions were not exercised. No conclusion is claimed for exposure pumping, volume boundaries, or lens effects during traversal. Placeholder generated terrain/character materials and the black horizon band remain characteristics of the current prototype content, not a proven lighting-tier regression. Full lighting verification and repair review remain for L06d/L06e.
+- **Next eligible task:** L06d — inspect the combined lighting milestone for confirmed regressions and repair only milestone-related failures. L06e remains the final verification/handoff gate.
+
 ## L06c1 — Cross-tier fixed-view visual review — 2026-10-27
 
 - **Selected task:** L06c1, review the ten integrated seed-418/419 fixed views across Compatibility, Balanced, and High, including retained temporal stills.

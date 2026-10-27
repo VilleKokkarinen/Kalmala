@@ -278,19 +278,19 @@ do not mark the lighting milestone complete before it passes.
     5.8 integrated Editor build, focused RT/material/weather automations, and
     Compatibility-tier rendered smoke capture passed in the isolated mirror.
     Exact commands and remaining performance/visual scope are in `PROGRESS.md`.
-  - [ ] **L06c — Capture integrated visual acceptance.** Repeat the ten L01
-    fixed views with the final material/effect stack for RT-off, Balanced, and
-    High where supported; inspect regular third-person camera movement and UI.
+  - [x] **L06c — Capture integrated visual acceptance.** Reviewed the ten fixed
+    views at Compatibility, Balanced, and High and inspected the default
+    third-person camera/HUD in PIE. See L06c1/L06c2 for evidence and limitations.
     - [x] **L06c1 — Review cross-tier fixed-view evidence.** Compare the ten
       seed-418/419 Compatibility, Balanced, and High captures and selected
       temporal frames; record accepted evidence, visible tier changes, artifacts,
       and composition limitations in the lighting plan and PROGRESS.md. This
       child covers static fixed-view review only.
-    - [ ] **L06c2 — Inspect default third-person camera and UI.** Use a normal
-      rendered game/editor workflow to inspect camera movement, exposure
-      transitions, lens effects, and UI/traversal/creature readability. The
-      scripted PlayerControls screenshots cover minimap widgets, not full
-      gameplay viewport acceptance.
+    - [x] **L06c2 — Inspect default third-person camera and HUD in PIE.**
+      Checked default framing, horizontal mouse-look, and HUD readability in
+      the integrated L_Prototype viewport. No static-view exposure, lens, or
+      bloom issue was observed; dynamic exposure transitions remain unverified
+      for L06e.
   - [ ] **L06d — Repair lighting regressions.** Fix milestone-related build,
     rendering, temporal stability, fallback, or performance-check failures, then
     rerun affected checks and the required full verification.

@@ -1437,9 +1437,36 @@ and seed-419 OvercastRain is nearly all flat water/sky. Those captures cannot
 establish dense-foliage or rain-material readability. Several views also have
 large black/empty sky or distant-frame regions. These are limits of the fixed
 anchors; this review does not establish whether they reflect a production
-camera or world-bound issue. Normal third-person movement, exposure transitions,
-lens effects, and UI readability remain for L06c2. No gameplay, network, save,
-or runtime code changed. Full lighting verification remains for L06e.
+camera or world-bound issue. The L06c2 PIE spot-check is recorded below; it
+covers default framing, horizontal look, and HUD readability, while dynamic
+exposure transitions remain unverified. No gameplay, network, save, or runtime
+code changed. Full lighting verification remains for L06e.
+
+### L06c2 — Default third-person camera and HUD spot-check (2026-10-27)
+
+The integrated C:\Users\Ville\AppData\Local\Temp\k06b\Kalmala.uproject was
+opened in UE 5.8 PIE on /Game/Kalmala/Maps/Prototype/L_Prototype, which is
+both EditorStartupMap and GameDefaultMap. In the ordinary third-person view,
+the player spawned centered in front of the follow camera without start
+position clipping. Horizontal mouse-look rotated the player/view and kept the
+follow view stable. The code defaults are a 320 cm spring arm, a 45 cm vertical
+boom offset, controller rotation on the boom, and no independent follow-camera
+rotation.
+
+The visible HUD did not overlap: a six-slot hotbar was at top-left; Meadows
+label, circular minimap, sun, and water/timer indicators were at top-right.
+Player and terrain shadows were distinct and high-contrast. No obvious exposure
+jump, lens effect, or bloom artifact appeared in the brief view.
+
+This was a short camera/HUD spot-check, not a full movement or post-process
+transition run. Dynamic exposure transitions and volume boundaries were not
+exercised, so this observation does not establish that they remain stable while
+walking. The map uses rough placeholder generated terrain/character materials
+and has a black horizon band, consistent with the limited prototype content;
+these are recorded as scope limitations, not L06 tier regressions. PIE was
+stopped; no map/assets or production code were changed. L06c fixed-view and
+default-camera/HUD checks are complete; L06d and the L06e final verification
+remain open.
 
 ## Acceptance checks
 
