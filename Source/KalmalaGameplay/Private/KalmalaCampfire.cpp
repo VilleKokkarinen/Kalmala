@@ -239,7 +239,6 @@ void AKalmalaCampfire::InitializeLitForBaselineCaptureFromServer()
     FuelWetness = 0.0f;
     EffectiveWarmth = 1.0f;
     HearthState = EKalmalaHearthState::Lit;
-    FireLight->SetAttenuationRadius(4500.0f);
     ApplyReplicatedState();
     ForceNetUpdate();
 }

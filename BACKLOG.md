@@ -1064,7 +1064,7 @@ lightweight checks, update backlog and progress, commit only run-owned changes,
 and stop. L06 is the integrated milestone-final verification and repair goal;
 do not mark the lighting milestone complete before it passes.
 
-- [ ] **L01 — Establish the lighting baseline and core post-process look.**
+- [x] **L01 — Establish the lighting baseline and core post-process look.**
   Record repeatable scene captures, stabilize the existing light/sky/fog/exposure
   stack, and use built-in post-process volume controls before custom passes.
   - [x] **L01a — Inspect the active prototype map and renderer.** Record the
@@ -1112,12 +1112,14 @@ do not mark the lighting milestone complete before it passes.
     volumes only for an existing authored location needing a distinct look;
     set explicit priority/blend radius and confirm no visible boundary or UI/text
     treatment. If no such location exists, record this child N/A in the plan.
-  - [ ] **L01h — Pass the core-lighting gate.** Compare all ten fixed views and
-    ordinary third-person movement; confirm readable silhouettes, stable
-    exposure, legible firelight, and no crushed shadows or clipped highlights.
-    The milestone-final run has passed the Editor build, full automation queue,
-    and ten rebuilt-source capture checks; visual review and movement acceptance
-    remain pending, so keep L01h and L01 open.
+  - [x] **L01h — Pass the core-lighting gate.** Reviewed all ten rebuilt-source
+    views and rendered before/after frames from normal third-person sprint/jump
+    input. Both seed-specific dusk scenes show a readable silhouette and warm
+    ground light using the ordinary 6 m campfire radius and no exposure boost;
+    movement-frame exposure remained stable. The final Editor build, 228-case
+    automation queue and ten capture checks passed. Documented pre-existing
+    seed-419 forest, water, rain and world-horizon limitations in the lighting
+    plan and L01h evidence manifest.
 
 - [ ] **L02 — Build and integrate the shared surface-material family.** Replace
   flat generated surface materials through project-owned parents and instances,

@@ -403,7 +403,7 @@
       "file": "Seed419_FireDusk.png"
     }
   ],
-  "manifestGeneratedAtUtc": "2026-10-26T14:45:17Z",
+  "manifestGeneratedAtUtc": "2026-10-27T06:43:56Z",
   "worldSeeds": [
     418,
     419
@@ -613,12 +613,79 @@
         "comparedTo": "Seed419_FireDusk.png"
       }
     ],
-    "verification": "UE 5.8 map setup commandlet succeeded; saved volume values and override flags read back through UE Python commandlet; all ten direct UnrealEditor-Cmd.exe captures passed PNG signature, 1024x768 dimensions, nonblank-sample and seed/site/condition checks. Full build and milestone verification deferred to L06.",
+    "verification": "UE 5.8 map setup commandlet and saved-volume readback passed. Final L01h Editor build, 228-test full automation queue, ten rebuilt-source captures, visual review, and rendered movement check passed on 2026-10-27; see l01hCoreGate for evidence.",
+    "l01hCoreGate": {
+      "status": "passed",
+      "verifiedAtUtc": "2026-10-27T06:42:53Z",
+      "build": {
+        "engine": "Unreal Engine 5.8",
+        "target": "KalmalaEditor Win64 Development",
+        "result": "Passed. Final source rebuilds compiled KalmalaCampfire.cpp, KalmalaGameMode.cpp, and KalmalaPlayerControlsTest.cpp, then linked KalmalaGameplay.",
+        "projectMirror": "C:/Users/Ville/AppData/Local/Temp/klh1/Kalmala.uproject",
+        "unrealBuildToolLog": "C:/Users/Ville/AppData/Local/UnrealBuildTool/Log.txt"
+      },
+      "automation": {
+        "command": "UnrealEditor-Cmd.exe <mirror>/Kalmala.uproject -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -ExecCmds=\"Automation RunTests Kalmala; Quit\" -TestExit=\"Automation Test Queue Empty\"",
+        "passed": 228,
+        "failed": 0,
+        "exitCode": 0,
+        "log": "C:/Users/Ville/AppData/Local/Temp/klh1auto3/tests.log"
+      },
+      "captureSettings": {
+        "runner": "Scripts/Tests/World/BiomeBaselineCapture.ps1",
+        "executable": "UnrealEditor-Cmd.exe",
+        "renderMode": "D3D12/SM5",
+        "resolution": "1024x768",
+        "fixedViews": 10,
+        "fireDuskCameraDistanceCm": 500,
+        "fireDuskCameraHeightCm": 250,
+        "fireDuskAimHeightCm": 80,
+        "fireLightAttenuationRadiusCm": 600,
+        "fireExposureCompensationEV": 0.0,
+        "fireViewSurfaceHeight": "Sampled from each selected world seed at the fixed XY before positioning the local capture pawn and transient hearth."
+      },
+      "captures": [
+        {"role":"l01h-final-view","seed":418,"site":"MeadowsDaylight","condition":"Default","bytes":916352,"sha256":"804B5317405FB359B181621CDD517C3E02DD8460E92A9C254772CFE1D5C9BBFE","file":"L01h_Seed418_MeadowsDaylight.png","finalRenderMatchesStoredL01f":false,"review":"Pale generated terrain, sparse angular trees and hard but readable directional shadows; no visible highlight clipping."},
+        {"role":"l01h-final-view","seed":418,"site":"ForestShade","condition":"Default","bytes":944517,"sha256":"38BDAB6ADF2FF8BC78EEF6752A310ED33B81AAE310476EAE8E9961790B28F2A0","file":"L01f_After_Seed418_ForestShade.png","finalRenderMatchesStoredL01f":true,"review":"Dense pale neutral-gray tree silhouettes and distinct hard shadows."},
+        {"role":"l01h-final-view","seed":418,"site":"OceanWater","condition":"Default","bytes":801860,"sha256":"8F8F291DFEA18F727BB037CF926C51E3F760526674E98FEFEDAC6FEACFDB6CDA","file":"L01f_After_Seed418_OpenWater.png","finalRenderMatchesStoredL01f":true,"review":"Checkerboard-like surface and broad black horizon without a shoreline; pre-existing scene-placement limitation."},
+        {"role":"l01h-final-view","seed":418,"site":"ThunderMountainsStorm","condition":"OvercastRain","bytes":639205,"sha256":"00ED498E21F0228769EF29B5DE159EA1982DDC8173DA0E652628CBBEB08C9253","file":"L01h_Seed418_OvercastRain.png","finalRenderMatchesStoredL01f":false,"review":"Gray overcast sky, readable terrain/player silhouette and cyan water band; no rain particles."},
+        {"role":"l01h-final-view","seed":418,"site":"MeadowsFireDusk","condition":"FireDusk","bytes":564159,"sha256":"B2CF18AF0FA34E5950BB10907AFB9750D712F06B5669385EC0CE624957A4CA07","file":"L01h_Seed418_FireDusk.png","finalRenderMatchesStoredL01f":false,"review":"Player silhouette, procedural stone ring and warm ground-light pool are visible at the ordinary 600 cm radius; no modeled flame."},
+        {"role":"l01h-final-view","seed":419,"site":"MeadowsDaylight","condition":"Default","bytes":906676,"sha256":"136CEB85111A5809D30C27E6BF5E8B68C8268855773D479DA5B3DBEA82E0235B","file":"L01f_After_Seed419_MeadowsDaylight.png","finalRenderMatchesStoredL01f":true,"review":"Pale generated terrain, a sparse angular tree and hard directional shadows; no visible highlight clipping."},
+        {"role":"l01h-final-view","seed":419,"site":"ForestShade","condition":"Default","bytes":816445,"sha256":"945FA9BF727DF1175ED64055A0013A2C29649945454533B0CD69DA2BD70647C7","file":"L01f_After_Seed419_ForestShade.png","finalRenderMatchesStoredL01f":true,"review":"Reused anchor has checkerboard-like ground and no visible forest silhouette; pre-existing scene-placement limitation."},
+        {"role":"l01h-final-view","seed":419,"site":"OceanWater","condition":"Default","bytes":825105,"sha256":"7603FF0D6450DFAE24762B6BA013FBD1BB7752F62DA806AC63132A6503A93EE4","file":"L01f_After_Seed419_OpenWater.png","finalRenderMatchesStoredL01f":true,"review":"Checkerboard-like surface and broad black horizon without a shoreline; pre-existing scene-placement limitation."},
+        {"role":"l01h-final-view","seed":419,"site":"ThunderMountainsStorm","condition":"OvercastRain","bytes":458003,"sha256":"DB3992868D8BB2EA4918D675F5A59D59FC03C9A2836C6BC9808AB72671CBB49E","file":"L01h_Seed419_OvercastRain.png","finalRenderMatchesStoredL01f":false,"review":"Large cyan water surface, black horizon and weak mountain framing; no rain particles."},
+        {"role":"l01h-final-view","seed":419,"site":"MeadowsFireDusk","condition":"FireDusk","bytes":480989,"sha256":"344B2B4310CD9BC5BD8FF3C3D8A6D000742D6D8B1D770FD254C54906A6290690","file":"L01h_Seed419_FireDusk.png","finalRenderMatchesStoredL01f":false,"review":"Player silhouette, procedural stone ring and warm ground-light pool are visible at the ordinary 600 cm radius; no modeled flame."}
+      ],
+      "movement": {
+        "fixture": "KalmalaPlayerControlsTest",
+        "input": "Bound normal sprint, MoveForward and jump input; Controls local result: PASS Authority=1 Parts=12 Jump=1.",
+        "log": "C:/Users/Ville/AppData/Local/Temp/klh1move/movement.log",
+        "captures": [
+          {"phase":"Start","file":"L01h_Movement_Start.png","bytes":837946,"sha256":"CFCFCB58DB0E7833F2545B8D6C892D9CEC25C2811B8DC5F75305344666CFA19C","width":1024,"height":768,"review":"Normal third-person view immediately before the bound sprint/move/jump input."},
+          {"phase":"End","file":"L01h_Movement_End.png","bytes":773199,"sha256":"F8C5A46F379EC194A141B1C5729C960E0E8EF0B37547650271476669D444264A","width":1024,"height":768,"review":"The attached spring-arm camera follows the pawn after normal bound sprint/move/jump input; local controls passed."}
+        ],
+        "skyMeanLuminanceStart": 102,
+        "skyMeanLuminanceEnd": 107,
+        "lowerFrameMeanLuminanceStart": 190.2,
+        "lowerFrameMeanLuminanceEnd": 180.7,
+        "sampledChannelsAtOrAbove250": 0,
+        "assessment": "The camera followed the moved pawn. The two frames retained similar sky and ground exposure; the small lower-frame shift includes changed view composition."
+      },
+      "repairedFailure": "The first final seed-419 FireDusk capture failed the nonblank-sample check (35 colors, 29 nonblack samples) because the fixture reused seed-418 terrain height. Sampling the actual terrain height per seed placed the hearth and camera correctly; the final seed-419 capture and all nine other views passed.",
+      "visualSummary": "Daylight and seed-418 forest forms retain readable silhouettes and hard directional shadows. Both FireDusk scenes show a readable character outline and warm ground spill without added EV compensation. No clipped highlights were observed. The seed-419 forest, water and storm anchor defects are pre-existing prototype scene/content limits.",
+      "limitations": [
+        "Seed-419 ForestShade anchor has checkerboard-like ground without a forest silhouette.",
+        "Both OpenWater anchors show checkerboard-like surfaces without a shoreline.",
+        "Overcast frames contain no rain particles; seed-419 framing is mostly cyan water and a black horizon.",
+        "Generated terrain remains pale and sparse; the prototype horizon is black.",
+        "Campfire has no modeled flame, and effective auto-exposure EV limits plus broader time/weather transitions remain unmeasured."
+      ]
+    },
     "limitations": [
-      "FireDusk remains unreadable and is deferred to L01h.",
-      "The C++ storm-fog source adjustment was not compiled into the capture mirror; its rendered effect is unverified until L06.",
-      "No multi-frame exposure transition or ordinary movement test was performed. Effective EV interval remains unknown.",
-      "Rain particles and a modeled flame are absent; water/forest/overcast remain limited by the generated prototype scene."
+      "L01f's FireDusk images were unreadable; L01h repaired and re-rendered the fire view with seed-sampled surface height and the ordinary campfire radius.",
+      "The storm-fog C++ source adjustment is compiled and present in the final rebuilt-source overcast captures, which still have no rain particles.",
+      "The normal movement pair supports stable exposure during this short check; effective EV limits and broader time/weather transitions remain unmeasured.",
+      "No modeled flame; seed-419 forest, both water views, overcast framing, pale sparse terrain, and black horizon retain the pre-existing prototype limits recorded in l01hCoreGate."
     ]
   }
 }

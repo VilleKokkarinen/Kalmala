@@ -1,38 +1,60 @@
-## L01h milestone-final verification — paused before visual acceptance — 2026-10-26
+## L01h milestone-final verification — complete — 2026-10-27
 
 - **Selected task:** L01h, the final implementation task in lighting milestone
   L01 and therefore the milestone-final verification run.
-- **Work completed before the user stopped the run:** Built a fresh source
-  mirror at `C:/Users/Ville/AppData/Local/Temp/klh1`, excluding the worktree's
-  `Binaries`, `Intermediate`, `Saved` and `DerivedDataCache`; verified normal
-  per-user UnrealBuildTool access. `Build.bat KalmalaEditor Win64 Development`
-  against the mirror passed all 55 actions, including KalmalaGameplay and
-  KalmalaUI. The unattended/null-RHI `Automation RunTests Kalmala` queue passed
-  228 tests, 0 failed, reached `Automation Test Queue Empty`, and exited 0.
-  Re-rendered all ten fixed baseline views from the built source through
-  `Scripts/Tests/World/BiomeBaselineCapture.ps1` with `UnrealEditor-Cmd.exe`;
-  all passed the runner's PNG, dimension, nonblank and seed/site/condition
-  checks. This build includes the L01f storm-fog source change.
-- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and
-  `docs/valheim-like-lighting-plan.md`. The rebuilt-source captures were not
-  added to the worktree.
-- **Full verification:** The full Editor build and automation queue succeeded.
-  The ten built-source captures passed their mechanical checks. No build/test
-  failures or L01h repairs occurred before the stop.
-- **Acceptance still pending:** The user stopped the run during visual review.
-  The rebuilt-source frames have not been visually assessed as a set, and
-  ordinary third-person movement/exposure transitions were not evaluated. The
-  previously reviewed L01f frames still show nearly black FireDusk, a seed-419
-  forest frame without a visible forest, checkerboard-like water, and poor
-  overcast framing; these are known limitations, not proof the rebuilt fog
-  renders identically.
-- **Networking/authority:** Verification only; no source or gameplay behavior
-  changed in L01h.
-- **Final milestone status:** Awaiting visual and movement acceptance. L01h and
-  parent L01 remain unchecked. Do not treat the milestone as complete.
-- **Next eligible task:** Resume L01h by visually reviewing the ten built-source
-  views and assessing ordinary third-person movement/exposure, then repair and
-  rerun full verification if an L01 defect is found.
+- **Work completed:** Corrected the non-Shipping fire capture fixture to retain
+  the local player near the captured terrain patch, place the transient hearth
+  on each seed's sampled surface, use its ordinary 600 cm light radius, and
+  capture with a 500 cm horizontal/250 cm high camera and 0.0 EV extra exposure.
+  Added opt-in start/end screenshots to the existing development-only normal
+  player-controls fixture. Reviewed all ten final fixed views and the rendered
+  third-person movement pair. Both fire views show readable player silhouettes
+  and warm ground spill; the movement camera follows the player.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `docs/valheim-like-lighting-plan.md`,
+  `TestResults/LightingBaseline/manifest.json`, the five changed final fixed
+  view PNGs and two movement PNGs under `TestResults/LightingBaseline/`, and
+  `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, and
+  `Source/KalmalaGameplay/Private/KalmalaPlayerControlsTest.cpp`.
+- **Lightweight checks:** `git diff --check`, manifest JSON parsing, image
+  dimensions/hashes, and staged-path length checks passed. The ten fixed
+  captures all passed the runner's PNG, 1024x768, nonblank and seed/site/
+  condition checks.
+- **Milestone-final verification:** The UE 5.8 `KalmalaEditor Win64
+  Development` target built successfully in the isolated short-path mirror;
+  changed Gameplay sources compiled and the module linked. The final full
+  null-RHI `Automation RunTests Kalmala` queue passed 228 cases, 0 failures,
+  exit code 0 (`C:/Users/Ville/AppData/Local/Temp/klh1auto3/tests.log`). All ten
+  fixed views were freshly captured from the built source; changed images are
+  preserved as `L01h_Seed*.png`, while five byte-identical views reuse their
+  L01f files. The normal bound sprint/move/jump fixture passed and emitted
+  rendered start/end frames (`L01h_Movement_Start.png` and
+  `L01h_Movement_End.png`). Sampled sky luminance was 102→107/255 and lower-frame
+  luminance 190.2→180.7 with the changed view composition; no sampled channel
+  reached 250. The first final seed-419 FireDusk attempt was nearly black
+  because it reused seed-418 terrain height; seed-specific surface placement
+  repaired it and all ten final captures passed. No failures remain.
+- **Observable impact:** The captured campfire light reads as a localized warm
+  pool at the actual gameplay radius; dusk no longer needs extra camera
+  exposure compensation. Rendered movement frames confirm the attached camera
+  follows normal player movement while overall exposure stays close.
+- **Networking/authority:** Only non-Shipping capture and verification paths
+  changed. Gameplay movement remains the existing character input path;
+  screenshots are requested locally. No network authority, replication,
+  persistence, or save behavior changed.
+- **Known limitations / remaining scope:** The seed-419 forest anchor still
+  lacks a forest silhouette; both water anchors show checkerboard-like surfaces
+  without shorelines; overcast has no rain particles and weak framing; terrain
+  is pale/sparse and the prototype horizon is black; the fire has no modeled
+  flame. These are pre-existing generated-scene/content limits. The short
+  movement check does not establish effective EV bounds or all weather/time
+  transitions. L02–L06 remain queued.
+- **Final milestone status:** L01 complete. Its Editor build, full automation
+  queue, ten rebuilt-source views, visual review, and rendered movement check
+  passed; L01h and parent L01 are checked in `BACKLOG.md`.
+- **Next eligible task:** L02a — define the shared surface-material interface,
+  in a dedicated worktree based on integrated master after the L01 handoff.
 
 ## L01g local post-process volumes — N/A — 2026-10-26
 

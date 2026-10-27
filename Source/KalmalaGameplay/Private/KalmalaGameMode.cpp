@@ -10240,15 +10240,25 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         return;
     }
     bBiomeBaselineCaptureRequested = true;
+    float CaptureViewZcm = ViewZcm;
+    if (bFireDusk)
+    {
+        CaptureViewZcm = FKalmalaTerrainHeightSampler::SampleHeight(WorldGenerationConfig, FVector2D(Xcm, Ycm));
+        if (!FMath::IsFinite(CaptureViewZcm))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Biome baseline fire capture failed to sample terrain at its fixed site."));
+            return;
+        }
+    }
     ActivateTerrainPatchNeighborhood(FVector2D(Xcm, Ycm));
 
-    // The fixture moves the local pawn as well as the camera so local weather presentation
-    // samples the same fixed site. This branch only runs in non-Shipping baseline captures.
-    if (bOvercastRain)
+    // Keep the local pawn in the capture terrain neighborhood; overcast presentation also samples local weather there.
+    // This branch only runs in non-Shipping baseline captures.
+    if (bOvercastRain || bFireDusk)
     {
         if (APawn* CapturePawn = LocalController->GetPawn())
         {
-            CapturePawn->SetActorLocation(FVector(Xcm, Ycm, ViewZcm + 100.0f), false, nullptr,
+            CapturePawn->SetActorLocation(FVector(Xcm, Ycm, CaptureViewZcm + 100.0f), false, nullptr,
                 ETeleportType::TeleportPhysics);
         }
     }
@@ -10294,8 +10304,11 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
             FActorSpawnParameters HearthParameters;
             HearthParameters.ObjectFlags |= RF_Transient;
             HearthParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+            // The stone ring extends 50 cm below its root; place its base on sampled terrain so its light is not buried.
+            constexpr float BaselineHearthGroundOffsetCm = 50.0f;
+            const FVector HearthLocation(Xcm, Ycm, CaptureViewZcm + BaselineHearthGroundOffsetCm);
             AKalmalaCampfire* CaptureHearth = GetWorld()->SpawnActor<AKalmalaCampfire>(
-                AKalmalaCampfire::StaticClass(), FVector(Xcm, Ycm, ViewZcm), FRotator::ZeroRotator,
+                AKalmalaCampfire::StaticClass(), HearthLocation, FRotator::ZeroRotator,
                 HearthParameters);
             if (CaptureHearth == nullptr)
             {
@@ -10351,8 +10364,11 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     if (CaptureSky != nullptr && CaptureSky->GetLightComponent() != nullptr)
         SkyIntensity = CaptureSky->GetLightComponent()->Intensity;
 
-    const FVector CameraLocation(Xcm, Ycm - 2400.0f, ViewZcm + 1200.0f);
-    const FVector ViewTarget(Xcm, Ycm, ViewZcm + 150.0f);
+    const float CameraDistanceCm = bFireDusk ? 500.0f : 2400.0f;
+    const float CameraHeightCm = bFireDusk ? 250.0f : 1200.0f;
+    const float CameraAimHeightCm = bFireDusk ? 80.0f : 150.0f;
+    const FVector CameraLocation(Xcm, Ycm - CameraDistanceCm, CaptureViewZcm + CameraHeightCm);
+    const FVector ViewTarget(Xcm, Ycm, CaptureViewZcm + CameraAimHeightCm);
     FActorSpawnParameters CameraParameters;
     CameraParameters.ObjectFlags |= RF_Transient;
     CameraParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -10368,7 +10384,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     CameraComponent->SetFieldOfView(65.0f);
     if (bFireDusk)
     {
-        ExposureCompensationEV = 1.5f;
+        ExposureCompensationEV = 0.0f;
         CameraComponent->PostProcessSettings.bOverride_AutoExposureBias = true;
         CameraComponent->PostProcessSettings.AutoExposureBias = ExposureCompensationEV;
     }

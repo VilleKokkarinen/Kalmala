@@ -1,7 +1,7 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** The L01 baseline, global rig and grade are implemented; L01h is
-awaiting visual and movement acceptance. L02–L06 remain queued in `BACKLOG.md`.
+**Status:** L01 is complete, including its core-lighting and movement gate.
+L02–L06 remain queued in `BACKLOG.md`.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -325,32 +325,56 @@ not a bounded location treatment. The prototype exposes generated biome samples
 and capture-only weather/fire conditions, not an existing authored interior or
 other location with a distinct look. L01g is therefore N/A; no local volume was
 added, so there is no local boundary or UI/text treatment to validate. Revisit
-this only if an authored location is added. L01h remains the open lighting gate;
-its partial milestone-final verification is recorded below.
+this only if an authored location is added. L01g is complete; L01h's final
+milestone verification and visual review are recorded below.
 
-### L01h milestone-final verification — paused before visual acceptance — 2026-10-26
+### L01h milestone-final verification — complete — 2026-10-27
 
-A fresh source mirror at `C:/Users/Ville/AppData/Local/Temp/klh1` excluded the
-worktree's `Binaries`, `Intermediate`, `Saved` and `DerivedDataCache`, and the
-build confirmed normal per-user UnrealBuildTool access. The UE 5.8
-`KalmalaEditor Win64 Development` build passed 55 actions, including compilation
-and link of KalmalaGameplay and KalmalaUI. The unattended, null-RHI
-`Automation RunTests Kalmala` queue passed 228 tests with 0 failures, reported
-`Automation Test Queue Empty`, and exited 0.
+The UE 5.8 `KalmalaEditor Win64 Development` build passed against the fresh
+short-path source mirror at `C:/Users/Ville/AppData/Local/Temp/klh1`. The final
+incremental build compiled `KalmalaPlayerControlsTest.cpp` and linked
+KalmalaGameplay; earlier final-state rebuilds compiled the changed
+`KalmalaGameMode.cpp` and `KalmalaCampfire.cpp`. UnrealBuildTool used the normal
+per-user location. The final unattended, null-RHI `Automation RunTests Kalmala`
+queue passed 228 tests, 0 failures, exit code 0; log:
+`C:/Users/Ville/AppData/Local/Temp/klh1auto3/tests.log`.
 
-The ten fixed views were re-rendered from this built source through
-`Scripts/Tests/World/BiomeBaselineCapture.ps1` using `UnrealEditor-Cmd.exe`.
-All ten passed the helper's PNG signature, 1024x768, nonblank-sample and
-seed/site/condition checks, so the L01f storm-fog C++ change was present in the
-runtime used for capture. The user then requested that work stop while the new
-frames were being reviewed. No visual-set review or third-person movement and
-exposure-transition assessment was completed; no repairs were made in this run.
+All ten fixed seed/site views were freshly rendered from that built mirror with
+`Scripts/Tests/World/BiomeBaselineCapture.ps1` and `UnrealEditor-Cmd.exe`. They
+passed PNG signature, 1024x768, nonblank-sample and seed/site/condition checks,
+then were visually reviewed as a set. The five captures that changed from
+L01f—the slightly different seed-418 daylight frame, both compiled storm-fog
+frames and both FireDusk frames—are preserved with the two movement frames in
+`TestResults/LightingBaseline/`; the other five final images byte-match their
+preserved L01f counterparts.
 
-L01h remains awaiting visual and movement acceptance. Prior L01f review records
-the nearly black fire view, missing seed-419 forest silhouette, checkerboard-like
-water and weak overcast framing, but those notes do not substitute for reviewing
-the rebuilt-source images. Keep L01h and L01 unchecked until the remaining gate
-checks are completed and any L01-introduced defects are repaired and reverified.
+The FireDusk fixture now keeps its fixed XY site but samples the terrain height
+for each seed before positioning the transient player and hearth. It uses a
+close camera (500 cm horizontal distance, 250 cm high, aiming 80 cm above the
+surface), the campfire's ordinary 600 cm light radius, and 0.0 EV additional
+compensation. Both dusk renders show the player silhouette, the procedural
+stone ring, and a readable warm pool on nearby ground. The first final attempt
+still failed the seed-419 nonblank-sample threshold because it reused seed-418's
+terrain height; the per-seed surface sample fixed that issue and the full ten
+views passed on rerun. There is no modeled flame.
+
+For ordinary third-person movement, the development-only player-controls
+fixture captured the local view immediately before and after its normal bound
+sprint, move and jump inputs. The `Controls local result` passed. The attached
+spring-arm camera follows the moved pawn. Across those frames, sampled sky mean
+luminance changed 102→107/255 and sampled lower-frame mean changed 190.2→180.7
+with the new view composition; neither sample region had a channel at or above
+250. This supports stable exposure for this short movement check; the global
+auto-exposure EV limits remain unknown.
+
+The visual review found readable daylight and seed-418 forest silhouettes,
+visible warm firelight, and no clipped highlights in the retained views. The
+seed-419 ForestShade anchor still has checkerboard-like ground and no forest;
+both water anchors remain checkerboard-like without a shore; overcast lacks
+rain particles and has weak framing; the generated prototype has a broad black
+horizon and pale, sparse terrain. These are pre-existing scene/content limits,
+not regressions from L01h. L01h and L01 are complete; the next eligible task is
+L02a after integrating L01 to master.
 
 ## Proposed implementation stages
 
