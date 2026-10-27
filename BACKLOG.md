@@ -120,7 +120,7 @@ do not mark the lighting milestone complete before it passes.
     bark, canopy, and water retain distinct values across all baseline scenes;
     record material assignments and remaining limitations in the lighting plan.
 
-- [ ] **L03 — Prototype the stylized direct-light response.** Keep Default Lit
+- [x] **L03 — Prototype the stylized direct-light response.** Keep Default Lit
   as the shipped default while measuring a restrained banded alternative; this
   goal produces evidence and a recommendation, not an unreviewed global style
   change.
@@ -139,12 +139,13 @@ do not mark the lighting milestone complete before it passes.
     test with the Engine GrayTextureCube confirms skylight fill reaches Toon, but
     all six projected crops are dimmer; world-bounce/GI remains untested. This
     completes the evidence check, not an adoption pass.
-  - [ ] **L03d — Record the final review recommendation.** Keep Default Lit as
-    the production path while reviewing L03c's captures, measured tradeoffs, and
-    remaining limits in a separate increment. Any change to the overall visual
-    identity still requires explicit user review before broad adoption.
-    Reopened 2026-10-27: the earlier no-evidence holding note is stale; the final
-    recommendation must incorporate L03c's captured results.
+  - [x] **L03d — Record the final review recommendation.** Keep Default Lit
+    in production. Do not adopt the test-only Substrate Toon candidate: its
+    captured FireDusk and controlled skylight proxy crops were dimmer, while
+    whole-view GPUTime showed no consistent material-attributable advantage.
+    Production meshes, world-bounce/GI, and supported target platforms remain
+    unverified. Any broad visual-identity change still requires explicit review.
+
 - [ ] **L04 — Add supported weather and environment effects.** Use only existing
   client presentation signals and effects; keep this cosmetic, gradual, and
   outside gameplay, save, RPC, and replicated-state contracts.

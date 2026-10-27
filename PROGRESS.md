@@ -1,3 +1,15 @@
+## L03d final direct-light review recommendation — 2026-10-27
+
+- **Selected task:** L03d, record the final recommendation from the L03c captures and tradeoffs.
+- **Work completed:** Reviewed the five-view Default Lit/Toon image matrix, FireDusk sample crops, controlled ForestShade GrayTextureCube pair, temporal sample-region summaries, and 120-frame per-view GPUTime table. Recommend keeping Default Lit in production and leaving the experimental Toon candidate isolated. FireDusk and controlled skylight crops were dimmer for all six proxy classes, including Construction at 72.190→7.973 luma in FireDusk. Temporal crop deltas were mixed. Toon had slightly lower whole-view GPUTime in three of five views and slightly higher time in two; differences were small and inconsistent. Checked L03d and L03 implementation state only; the lighting milestone remains open for L05/L06.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/valheim-like-lighting-plan.md`.
+- **Lightweight checks:** Inspected the FireDusk and ForestShade sky-only PNG pairs and reviewed the recorded crop, temporal, and GPUTime values. `git diff --check` passed. Checked changed path lengths against the 260-character limit. No build, test suite, packaging, or L06 verification ran.
+- **Full verification:** Deferred to L06. This was not a milestone-final verification run.
+- **Observable impact:** Review documentation only. Default Lit remains the production path; no production material, renderer configuration, or runtime behavior changed.
+- **Networking/authority:** No gameplay, networking, server-authority, replication, save, or persistence behavior changed.
+- **Known limitations / remaining scope:** The fixture uses BasicShapes proxies; paired surfaces occupy different positions and crops include some surrounding pixels. The temporal observation covers eight frames at 0.5-second intervals with mixed deltas and no pass threshold. GPUTime is a total-view measurement on one RTX 5090, not material-only attribution or target-hardware qualification. The controlled GrayTextureCube result is not world-bounce/GI; production meshes and platform support for the experimental UE 5.8 Toon path remain unverified. L06 remains the integrated visual/build/performance gate.
+- **Next eligible task:** L05e — measure RT-off, Balanced, and High on the selected reference and lower-tier hardware after this L03d bookkeeping is integrated. L02g and L04g are complete on current master; L06 remains the final lighting verification gate.
+
 ## L03c rendered integration evidence — 2026-10-27
 
 - **Selected task:** L03c, check stylized direct-light integration.
@@ -51,18 +63,12 @@
 - **Next eligible task:** L03d final review recommendation, reopened to use these
   measurements; L03 remains incomplete.
 
-## L03d provisional direct-light recommendation — reopened — 2026-10-27
+## L03d provisional direct-light recommendation — superseded — 2026-10-27
 
-- **Earlier work:** A holding recommendation kept Default Lit in production and
-  the experimental Substrate Toon candidate test-only because L03c had no
-  captures or measured costs.
-- **Current status:** L03c now contains a focused capture matrix and measured
-  results. The earlier no-evidence rationale is superseded; L03d is reopened
-  for a separate final recommendation run.
-- **Production impact:** No renderer setting or production material assignment
-  changed.
-- **Next eligible task:** L03d final review using the new L03c evidence. L03
-  remains incomplete.
+This earlier holding note is superseded by the final recommendation above.
+Captured direct-light and controlled skylight crops show a dimmer Toon response,
+while per-view GPUTime differences are small and mixed. Keep Default Lit in
+production; the experimental candidate remains test-only.
 
 ## L03c pre-capture source audit — superseded — 2026-10-27
 

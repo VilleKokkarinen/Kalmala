@@ -1,8 +1,8 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** L01 is complete. L02 remains in progress; L03c evidence
-collection is complete and the L03d final review recommendation is reopened in
-BACKLOG.md. L04–L06 remain queued.
+**Status:** L01, L02, and L04 are complete on current master. L03d is
+complete on `codex/l03-direct-light-final` and recommends retaining Default Lit;
+L05 is in progress and L06 remains the integrated milestone-final gate.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
@@ -680,17 +680,57 @@ test confirms the Toon proxies receive skylight fill, although all six projected
 crop means are lower than DefaultLit; world-bounce/GI remains untested. The
 comparison uses BasicShapes proxies and one GPU. Default Lit remains the
 production path; no production renderer setting or material assignment changed.
-L03d is reopened so its separate final recommendation can use these captured
-results instead of the earlier no-evidence holding note.
+L03d was reopened at this point to review the captured results; its final
+recommendation is recorded in the following section.
 
-#### L03d — final review recommendation — reopened — 2026-10-27
+#### L03d — final review recommendation — 2026-10-27
 
-The earlier L03d holding recommendation was written before there were captures
-or measured tradeoffs. L03c now contains a five-view capture matrix and GPU/crop
-measurements, including a dim Toon response in the FireDusk test. Treat the old
-no-evidence rationale as superseded. Record the final recommendation in a
-separate L03d increment using the evidence above. This L03c increment makes no
-final adoption recommendation and leaves production on Default Lit.
+**Recommendation:** Keep Default Lit as the production shading path. Do not
+adopt the test-only Substrate Toon candidate for current production materials.
+The captured response does not preserve enough local-light readability to
+justify a broad style change, and it shows no consistent GPU-time advantage.
+
+In the FireDusk comparison, all six Toon sample crops had lower mean luma than
+their Default Lit counterparts. The most severe result was Construction at
+72.190 → 7.973 (8-bit sRGB luma); the candidate also appeared much darker in the
+paired image. Other classes ranged from Ground 111.574 → 37.859 to Canopy
+90.891 → 42.610. The actual transient 600 cm campfire illuminated the fixture;
+no duplicate light was added. Both variants retained visible proxy shadows, but
+some Toon samples lost surface detail. The paired samples occupy different
+positions and their crops include a small amount of scene edge, so these are
+comparative fixture observations, not a co-located material calibration.
+
+The controlled ForestShade GrayTextureCube test confirms the Toon candidate
+receives skylight fill: both variants rendered all six proxies with the direct
+sun off. However, all six Toon crop means were lower (Ground 155.44 → 128.14;
+Rock 103.24 → 63.80; Wood 107.52 → 47.55; Canopy 99.78 → 58.54; Creature
+71.36 → 59.18; Construction 147.14 → 85.85). This is specified-cubemap fill
+only; it does not establish world-bounce/GI or production-environment response.
+
+The short eight-frame adjacent-crop observations are mixed rather than a
+stability pass: Toon deltas rose for Ground (1.9463 → 6.4165) and slightly for
+Rock (3.0310 → 3.2649), while they fell for Wood, Canopy, Creature, and
+Construction. Crops include some scene pixels, the test used only eight frames
+at 0.5-second intervals, and no pass threshold was defined. Do not infer broad
+temporal stability from this proxy sample.
+
+Per-view mean UE `GPUTime` for 120 frames was Default Lit → Toon, in ms:
+MeadowsDaylight 0.7093 → 0.7021; ForestShade 0.6980 → 0.6883; OpenWater
+0.6934 → 0.6942; OvercastRain 0.8016 → 0.8258; FireDusk 0.8752 → 0.8739.
+Differences range from Toon 0.0097 ms lower to 0.0242 ms higher, with no
+consistent win. These are total 1024×768 view timings, including the scene and
+post-process work, on one RTX 5090; they do not isolate material cost or qualify
+supported release hardware.
+
+The fixture uses UE BasicShapes proxies, shortened camera distance for four
+views, paired materials at different positions, and a test-process-only
+Substrate opt-in. It did not review production meshes or certify the project's
+target platforms. UE 5.8 Toon remains experimental; configured production
+renderer support, world-bounce/GI response, and broader target-hardware behavior
+remain unverified. Keep the candidate isolated and unadopted. No production
+renderer setting or material assignment changed. L03's review recommendation is
+complete on this branch; integrated lighting acceptance and full verification
+remain for L06.
 
 As a separate prototype, compare smooth Default Lit against a restrained two- or
 three-band direct-light treatment with soft transitions. UE 5.8 documents an
