@@ -1,7 +1,7 @@
 # Valheim-inspired material and lighting plan
 
-**Status:** L01 is complete. L02 is in progress with its shared material
-interface authored; L03–L06 remain queued in `BACKLOG.md`.
+**Status:** L01 and L02 are complete. L03–L06 remain in the active lighting
+queue in `BACKLOG.md`.
 This file records the research, implementation choices, and verification evidence.
 
 ## Goal
