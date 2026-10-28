@@ -4017,33 +4017,61 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor FaceStripe(0.78f, 0.72f, 0.60f);
         const FLinearColor Muzzle(0.44f, 0.40f, 0.34f);
         const FLinearColor Claw(0.82f, 0.74f, 0.57f);
+        const FLinearColor Nose(0.075f, 0.055f, 0.045f);
         const FLinearColor Eye(0.035f, 0.024f, 0.018f);
 
-        AddEllipsoid(FVector(-20, 0, 48), FVector(82, 40, 43), Coat);
-        AddEllipsoid(FVector(59, 0, 53), FVector(29, 20, 19), CoatLight);
-        // A low, broad back and white facial stripe make the territorial badger
-        // distinct from the Meadow rat and the taller forest deer.
-        AddTetraPoints(FVector(35,-17,28), FVector(35,17,28), FVector(76,-12,38),
-            FVector(64,0,bWarning ? 79.0f : 65.0f), Muzzle);
-        AddTetraPoints(FVector(59,-8,bWarning ? 48.0f : 43.0f),
-            FVector(59,8,bWarning ? 48.0f : 43.0f), FVector(83,-4,38), FVector(83,4,38), FaceStripe);
+        const float HeadLift = bWarning ? 8.0f : 0.0f;
+        AddEllipsoid(FVector(-20, 0, 37), FVector(80, 44, 32), Coat);
+        AddEllipsoid(FVector(18, 0, 36), FVector(45, 39, 29), Coat);
+        AddEllipsoid(FVector(50, 0, 49 + HeadLift), FVector(32, 28, 21), CoatLight);
+        AddEllipsoid(FVector(78, 0, 42 + HeadLift), FVector(24, 22, 13), Muzzle);
+        AddEllipsoid(FVector(100, 0, 43 + HeadLift), FVector(6, 11, 7), Nose);
+
+        // Draw the white badger blaze as a single surface that follows the crown
+        // from the nose bridge to the back of the head.
+        const auto AddCrownStripeSegment = [&Vertices, &Triangles, &Normals, &UV, &Colors,
+            &FaceStripe](const FVector& Start, const FVector& End, const float HalfWidth)
+        {
+            const int32 FirstVertex = Vertices.Num();
+            const FVector Points[] = {
+                Start + FVector(0, -HalfWidth, 0), End + FVector(0, -HalfWidth, 0),
+                End + FVector(0, HalfWidth, 0), Start + FVector(0, HalfWidth, 0)
+            };
+            const FVector Normal = FVector::CrossProduct(Points[1] - Points[0],
+                Points[3] - Points[0]).GetSafeNormal();
+            Triangles.Append({FirstVertex, FirstVertex + 2, FirstVertex + 1,
+                FirstVertex, FirstVertex + 3, FirstVertex + 2});
+            for (const FVector& Point : Points)
+            {
+                Vertices.Add(Point);
+                Normals.Add(Normal);
+                UV.Add(FVector2D::ZeroVector);
+                Colors.Add(FaceStripe);
+            }
+        };
+        const FVector Crown[] = {
+            FVector(38, 0, 68 + HeadLift), FVector(55, 0, 70 + HeadLift),
+            FVector(72, 0, 65 + HeadLift), FVector(85, 0, 58 + HeadLift),
+            FVector(98, 0, 52 + HeadLift), FVector(105, 0, 49 + HeadLift)
+        };
+        for (int32 Segment = 0; Segment < UE_ARRAY_COUNT(Crown) - 1; ++Segment)
+        {
+            AddCrownStripeSegment(Crown[Segment], Crown[Segment + 1], 4.0f);
+        }
 
         for (const float Side : {-1.0f, 1.0f})
         {
+            AddEllipsoid(FVector(61, Side * 23.0f, 52 + HeadLift), FVector(4, 3, 3), Eye);
+            AddEllipsoid(FVector(38, Side * 22.0f, 67 + HeadLift), FVector(8, 7, 8), Coat);
+            AddEllipsoid(FVector(40, Side * 27.0f, 68 + HeadLift), FVector(4, 2, 4), Muzzle);
+
             for (const float LegX : {-58.0f, 37.0f})
             {
                 const float LegY = Side * 27.0f;
-                AddTetraPoints(FVector(LegX - 13.0f, LegY - 9.0f, -51.0f),
-                    FVector(LegX - 13.0f, LegY + 9.0f, -51.0f),
-                    FVector(LegX + 7.0f, LegY, 18.0f), FVector(LegX + 17.0f, LegY, 22.0f), Coat);
-                AddTetraPoints(FVector(LegX + 5.0f, LegY - 8.0f, -50.0f),
-                    FVector(LegX + 5.0f, LegY + 8.0f, -50.0f),
-                    FVector(LegX + 23.0f, LegY, -47.0f), FVector(LegX + 22.0f, LegY, -42.0f), Claw);
+                AddEllipsoid(FVector(LegX, LegY, -7), FVector(15, 14, 24), Coat);
+                AddEllipsoid(FVector(LegX + 3.0f, LegY, -40), FVector(17, 15, 12), Coat);
+                AddEllipsoid(FVector(LegX + 19.0f, LegY, -47), FVector(5, 5, 3), Claw);
             }
-            AddTetraPoints(FVector(55,Side * 11.0f,53), FVector(63,Side * 12.0f,53),
-                FVector(63,Side * 16.0f,59), FVector(57,Side * 15.0f,64), Eye);
-            AddTetraPoints(FVector(28,Side * 17.0f,65), FVector(41,Side * 21.0f,64),
-                FVector(31,Side * 22.0f,77), FVector(19,Side * 20.0f,76), Coat);
         }
         if (bWarning)
         {

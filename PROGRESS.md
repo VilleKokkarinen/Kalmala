@@ -22915,3 +22915,31 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   cache for comparison.
 - **Next eligible task:** Repair the Badger silhouette, connecting its narrow
   head and legs to the body and clarifying its face stripe.
+
+## Run 2026-10-28 — Four-view creature review: Badger
+
+- **Selected increment:** Repair the Badger silhouette, connecting its narrow
+  head and legs to the low body and clarifying its facial stripe.
+- **Work completed:** Lowered and broadened the barrel body, made the head and
+  blunt muzzle compact and overlapping, shortened and joined the legs to broad
+  feet, and replaced the disconnected pale face spots with one continuous
+  crown blaze from the nose bridge to the forehead. The warning pose remains
+  unchanged.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature Badger -Output
+  "$env:TEMP\kmcreature\png\Creatures\Badger-reviewed2.png" -BuildModules`
+  compiled the Editor target successfully in four actions and rendered a
+  2564×1924 sheet (1280×960 per view). Visually inspected all four angles.
+  `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Badger now reads as a low, broad quadruped with a
+  distinct pale crown blaze, compact head, and connected paws from the four
+  preview angles.
+- **Networking/authority:** No gameplay, combat, or network state changed. The
+  Badger's server-owned warning and claw cycle are unchanged.
+- **Known limitations:** Moon Bear, Death Adder, Viper, Giant Snake, Wolf,
+  Lynx, Polar Bear, and Horned Goat remain queued for individual review.
+- **Next eligible task:** Repair the Moon Bear silhouette, connecting its head
+  and feet to the body with a heavier bear shape.

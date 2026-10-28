@@ -5,7 +5,7 @@
 - [ ] Four-view creature visual cleanup, one species per increment.
   - [x] Boar: replace detached spike legs with connected rounded limbs and
     clarify the snout, eyes, ears, and short bristle ridge.
-  - [ ] Badger: join the narrow head and legs to its low body and make the
+  - [x] Badger: join the narrow head and legs to its low body and make the
     facial stripe visible.
   - [ ] Moon Bear: connect its head and feet to the body with a heavier bear
     silhouette.

@@ -35,8 +35,10 @@ zero armor, 5 Pierce) now has deterministic
 Meadows selection, procedural presentation, an authority-validated 100 cm bite,
 and credited Bone Fragment/Rat Tail rewards. Full-pack Rat rewards stay in
 world-population save escrow until both items fit. Badger (100 health, 10 armor,
-20 Slash) now uses the reviewed 40% Elderwood common share, a generated low-poly
-silhouette, and a server-owned warning/claw cycle. Its Bone Fragment, Badger
+20 Slash) now uses the reviewed 40% Elderwood common share and a low, broad
+generated silhouette with a blunt muzzle, short joined legs, and a pale crown
+blaze running from nose bridge to forehead. Its server-owned warning/claw cycle
+is unchanged. Its Bone Fragment, Badger
 Fur, and Badger Meat reward bundle is saved against the credited attacker's
 authenticated identity and delivered atomically when their pack can accept it;
 unclaimed rewards retry after reconnect or restart. Moon Bear (250 health, 20
