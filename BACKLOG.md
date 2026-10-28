@@ -27,6 +27,20 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Double-click combined preview renderer — 2026-10-28
+
+- **Selected task:** Add a launcher that builds Editor modules once and runs
+  both the menu and live-creature renderers without requiring terminal use.
+- **Work completed:** Added a `.cmd` double-click entrypoint and its PowerShell
+  coordinator. Both renderers now mirror authored local plugin files and use
+  the same native-source freshness stamp, allowing the menu build to feed the
+  creature render from one shared cache.
+- **Checks:** PowerShell parser and both renderers' `-List` checks passed;
+  shared cache/digest inputs and `git diff --check` were inspected. No Editor
+  build or render batch was run.
+- **Status:** Launcher and shared-cache flow are implemented; rendered outputs
+  remain unverified.
+
 ### Creature renderer plugin-cache repair — 2026-10-28
 
 - **Selected task:** Fix the creature preview cache build failure caused by its

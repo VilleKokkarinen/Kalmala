@@ -144,7 +144,7 @@ $nativeSources = $nativeFiles | ForEach-Object {
 }
 $nativeSources += 'Kalmala.uproject:' + (Get-FileHash -LiteralPath $project -Algorithm SHA256).Hash
 $sourceDigest = Get-Sha256Hex ([Text.Encoding]::UTF8.GetBytes(($nativeSources -join "`n")))
-$stamp = Join-Path $Cache 'creature-source.sha256'
+$stamp = Join-Path $Cache 'native-source.sha256'
 if ($BuildModules) {
     $engine = Split-Path (Split-Path (Split-Path $EditorCmd))
     & (Join-Path $engine 'Build/BatchFiles/Build.bat') KalmalaEditor Win64 Development "-Project=$project" `

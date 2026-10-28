@@ -35,6 +35,19 @@ function Get-Sha256Hex([byte[]]$Bytes) {
     try { return [BitConverter]::ToString($sha256.ComputeHash($Bytes)).Replace('-', '') }
     finally { $sha256.Dispose() }
 }
+
+function Get-AuthoredFiles([string]$RootPath) {
+    $generatedDirectories = @('Binaries','Intermediate','Saved','DerivedDataCache')
+    foreach ($file in Get-ChildItem -LiteralPath $RootPath -File -Recurse) {
+        $relativePath = Get-RelativePath $RootPath $file.FullName
+        $hasGeneratedAncestor = $false
+        foreach ($segment in ($relativePath -split '[\\/]')) {
+            if ($segment -in $generatedDirectories) { $hasGeneratedAncestor = $true; break }
+        }
+        if (!$hasGeneratedAncestor) { $file }
+    }
+}
+
 $menuIds = @('inventory','crafting','forge','forge.upgrade',
     'inventory-crafting','build','settings.home','settings.options',
     'settings.audio','settings.controls','settings.controller','settings.video','settings.accessibility')
@@ -111,9 +124,11 @@ if ($SeedCache) {
     if ($LASTEXITCODE -ge 8) { throw 'Editor cache seeding failed.' }
 }
 New-Item -ItemType Directory -Force -Path $Cache | Out-Null
-# Never mirror generated files back into source. Keep source/asset edits fresh even without compiling.
-foreach ($directory in @('Source','Config','Content')) {
-    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $sourceRoot $directory) -File -Recurse) {
+# Mirror authored inputs and project-local plugins; generated Unreal files stay in the separate cache.
+foreach ($directory in @('Source','Config','Content','Plugins')) {
+    $sourceDirectory = Join-Path $sourceRoot $directory
+    if (!(Test-Path -LiteralPath $sourceDirectory -PathType Container)) { continue }
+    foreach ($file in Get-AuthoredFiles $sourceDirectory) {
         $destination = Join-Path $Cache (Get-RelativePath $sourceRoot $file.FullName)
         Assert-ShortPath $destination
         if (!(Test-Path -LiteralPath $destination) -or (Get-Item -LiteralPath $destination).LastWriteTimeUtc -ne $file.LastWriteTimeUtc) {
@@ -124,11 +139,20 @@ foreach ($directory in @('Source','Config','Content')) {
 }
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'Kalmala.uproject') -Destination (Join-Path $Cache 'Kalmala.uproject')
 $project = Join-Path $Cache 'Kalmala.uproject'
-$nativeSources = Get-ChildItem -LiteralPath (Join-Path $sourceRoot 'Source') -Recurse -File |
-    Sort-Object FullName | ForEach-Object { (Get-RelativePath $sourceRoot $_.FullName) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
+$nativeFiles = @(
+    foreach ($directory in @('Source','Plugins')) {
+        $sourceDirectory = Join-Path $sourceRoot $directory
+        if (Test-Path -LiteralPath $sourceDirectory -PathType Container) {
+            Get-AuthoredFiles $sourceDirectory
+        }
+    }
+) | Sort-Object FullName
+$nativeSources = $nativeFiles | ForEach-Object {
+    (Get-RelativePath $sourceRoot $_.FullName) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+}
 $nativeSources += 'Kalmala.uproject:' + (Get-FileHash -LiteralPath $project -Algorithm SHA256).Hash
 $sourceDigest = Get-Sha256Hex ([Text.Encoding]::UTF8.GetBytes(($nativeSources -join "`n")))
-$stamp = Join-Path $Cache 'menu-source.sha256'
+$stamp = Join-Path $Cache 'native-source.sha256'
 if ($BuildModules) {
     $engine = Split-Path (Split-Path (Split-Path $EditorCmd))
     # A module-only link may use stale dependency import libraries from a seeded cache.

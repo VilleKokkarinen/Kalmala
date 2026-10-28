@@ -5023,8 +5023,9 @@ locations. The renderer supports Windows PowerShell 5.1 and requires a compiled
 editor cache; use `-BuildModules` when the cache needs its first build or any
 native project source changes. Despite the flag's name, it builds the complete
 Editor target incrementally, keeping Core/World dependencies and menu modules
-binary-compatible. The cache stamp includes all files under Source (including
-target/build rules) and Kalmala.uproject. Unchanged renders reuse the cache.
+binary-compatible. The shared cache stamp includes authored files under Source
+and Plugins (including target/build rules and local plugin descriptors) and
+Kalmala.uproject. Unchanged renders reuse the cache.
 If an older seeded cache reports a game module load failure with Windows error
 127, rebuild it with `Scripts/Render-Menu.ps1 -Menu inventory -BuildModules`.
 Accessibility previews use `-TextScale 50` through `150` (the widget snaps to
@@ -5037,9 +5038,15 @@ available archetype names, `-Creature Deer` selects one, and `-Output` accepts
 either a new PNG path for one creature or a directory for the full set. Like
 the menu renderer, it uses a compiled Editor cache and supports `-SeedCache`,
 `-Cache`, and `-BuildModules`. The cache mirrors project-local plugin sources
-and descriptors and hashes them in the freshness stamp, so plugin updates trigger
-a rebuild. Each commandlet result records its vertex count, so an archetype
-with no procedural mesh is visible in the log as well as its preview.
+and descriptors and hashes them in the shared freshness stamp, so plugin updates
+trigger a rebuild. Each commandlet result records its vertex count, so an
+archetype with no procedural mesh is visible in the log as well as its preview.
+
+To render both sets with one module build, double-click
+`Scripts/Render-All-Previews.cmd`. It builds once through the menu renderer,
+then runs both renderers against the same `%TEMP%\kmall` cache. The command
+window stays open at completion so the results or any error remain visible.
+PNG previews and logs are saved under `%TEMP%\kmall`.
 
 ## Historical acceptance and limits
 

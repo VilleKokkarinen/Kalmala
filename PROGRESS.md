@@ -1,3 +1,29 @@
+## Double-click combined preview renderer — 2026-10-28
+
+- **Selected task:** Run both render scripts from a double-clickable Windows
+  entrypoint while building the Editor modules only once.
+- **Work completed:** Added `Scripts/Render-All-Previews.cmd` and its PowerShell
+  coordinator. The coordinator builds via `Render-Menu.ps1 -BuildModules`, then
+  runs `Render-Creatures.ps1` against the same cache without a second build.
+  Both renderers now mirror authored local plugin files and share one native
+  source digest/stamp.
+- **Files changed:** `Scripts/Render-All-Previews.cmd`,
+  `Scripts/Render-All-Previews.ps1`, `Scripts/Render-Menu.ps1`,
+  `Scripts/Render-Creatures.ps1`, `docs/07-development-setup.md`, `BACKLOG.md`,
+  and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser checks, both renderers' `-List`
+  output checks, shared digest input inspection, and `git diff --check`.
+- **Full verification:** Deferred. No Editor build or preview render was run.
+- **Observable impact:** Double-clicking the `.cmd` launches the menu set and
+  all 17 creature previews sequentially with one Editor module build; output
+  and logs go to `%TEMP%\kmall`.
+- **Networking/authority:** No gameplay or networking code changed.
+- **Known limitations / remaining scope:** Actual build and image generation
+  remain unverified on this machine. The command window pauses at the end so
+  output remains visible.
+- **Next eligible task:** Double-click `Scripts/Render-All-Previews.cmd`; fix
+  any build or rendering issues reported and inspect the generated previews.
+
 ## Creature preview procedural-mesh link dependency — 2026-10-28
 
 - **Selected task:** Fix the commandlet link failure reported after the local
