@@ -10,6 +10,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Border.h"
+#include "Components/SizeBox.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateTypes.h"
@@ -240,30 +241,82 @@ FReply UKalmalaInventoryGridWidget::NativeOnMouseButtonDown(const FGeometry& G, 
         RequestMove(MoveSource, SlotIndex, MoveInstanceGuid, SlotInstanceGuids[SlotIndex]);
         MoveSource = INDEX_NONE;
         MoveInstanceGuid.Invalidate();
+        DragSource = INDEX_NONE;
+        DragInstanceGuid.Invalidate();
         SelectSlot(SlotIndex);
         return FReply::Handled();
     }
     SelectSlot(SlotIndex);
     DragSource = SlotIndex;
     DragInstanceGuid = SlotInstanceGuids.IsValidIndex(SlotIndex) ? SlotInstanceGuids[SlotIndex] : FGuid();
-    return FReply::Handled().CaptureMouse(TakeWidget()).SetUserFocus(TakeWidget());
+    FReply Reply = FReply::Handled().SetUserFocus(TakeWidget());
+    if (DragInstanceGuid.IsValid()) return Reply.DetectDrag(TakeWidget(), EKeys::LeftMouseButton);
+    return Reply;
 }
 
 FReply UKalmalaInventoryGridWidget::NativeOnMouseButtonUp(const FGeometry& G, const FPointerEvent& Event)
 {
     if (Event.GetEffectingButton() != EKeys::LeftMouseButton || DragSource == INDEX_NONE) return FReply::Unhandled();
-    const int32 Target = SlotAt(G, Event.GetScreenSpacePosition());
-    if (Target != INDEX_NONE && SlotInstanceGuids.IsValidIndex(Target))
-        RequestMove(DragSource, Target, DragInstanceGuid, SlotInstanceGuids[Target]);
+    (void)G;
     DragSource = INDEX_NONE;
     DragInstanceGuid.Invalidate();
-    return FReply::Handled().ReleaseMouseCapture();
+    return FReply::Handled();
 }
 
 void UKalmalaInventoryGridWidget::NativeOnMouseCaptureLost(const FCaptureLostEvent& Event)
 {
     DragSource = INDEX_NONE;
+    DragInstanceGuid.Invalidate();
     Super::NativeOnMouseCaptureLost(Event);
+}
+
+void UKalmalaInventoryGridWidget::NativeOnDragDetected(const FGeometry& Geometry,
+    const FPointerEvent& Event, UDragDropOperation*& Operation)
+{
+    Super::NativeOnDragDetected(Geometry, Event, Operation);
+    const int32 Source = DragSource;
+    const FGuid ItemGuid = DragInstanceGuid;
+    const FName ItemId = SlotItems.IsValidIndex(Source) ? SlotItems[Source] : NAME_None;
+    DragSource = INDEX_NONE;
+    DragInstanceGuid.Invalidate();
+    if (!OwnerInventory || !ItemGuid.IsValid() || ItemId.IsNone()) return;
+
+    auto* DragOperation = NewObject<UKalmalaInventoryDragDropOperation>(this);
+    DragOperation->ItemGuid = ItemGuid;
+    DragOperation->ItemId = ItemId;
+    DragOperation->SourceSlot = Source;
+
+    auto* VisualSize = WidgetTree->ConstructWidget<USizeBox>();
+    VisualSize->SetWidthOverride(48.0f);
+    VisualSize->SetHeightOverride(48.0f);
+    auto* VisualIcon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
+    VisualIcon->SetCatalogueIcon(ItemId);
+    VisualSize->SetContent(VisualIcon);
+    DragOperation->DefaultDragVisual = VisualSize;
+    DragOperation->Pivot = EDragPivot::CenterCenter;
+    Operation = DragOperation;
+}
+
+void UKalmalaInventoryGridWidget::NativeOnDragCancelled(const FDragDropEvent& Event,
+    UDragDropOperation* Operation)
+{
+    DragSource = INDEX_NONE;
+    DragInstanceGuid.Invalidate();
+    Super::NativeOnDragCancelled(Event, Operation);
+}
+
+bool UKalmalaInventoryGridWidget::NativeOnDrop(const FGeometry& Geometry,
+    const FDragDropEvent& Event, UDragDropOperation* Operation)
+{
+    const auto* InventoryOperation = Cast<UKalmalaInventoryDragDropOperation>(Operation);
+    const int32 Target = SlotAt(Geometry, Event.GetScreenSpacePosition());
+    if (!InventoryOperation || !InventoryOperation->ItemGuid.IsValid()
+        || Target == INDEX_NONE || !SlotInstanceGuids.IsValidIndex(Target))
+        return Super::NativeOnDrop(Geometry, Event, Operation);
+
+    RequestMove(InventoryOperation->SourceSlot, Target, InventoryOperation->ItemGuid,
+        SlotInstanceGuids[Target]);
+    return true;
 }
 
 FReply UKalmalaInventoryGridWidget::NativeOnMouseMove(const FGeometry& G, const FPointerEvent& Event)

@@ -1,5 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "Blueprint/DragDropOperation.h"
 #include "Blueprint/UserWidget.h"
 #include "KalmalaInventoryGridWidget.generated.h"
 
@@ -10,6 +11,16 @@ class UBorder;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaGridSelection, FName);
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaGridHover, FName);
+
+UCLASS()
+class KALMALAUI_API UKalmalaInventoryDragDropOperation : public UDragDropOperation
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(Transient) FGuid ItemGuid;
+    UPROPERTY(Transient) FName ItemId;
+    UPROPERTY(Transient) int32 SourceSlot = INDEX_NONE;
+};
 
 /** One owner inventory view; HUD mode displays only occupied numbered cells. */
 UCLASS()
@@ -38,6 +49,11 @@ protected:
     virtual FReply NativeOnMouseMove(const FGeometry& Geometry, const FPointerEvent& Event) override;
     virtual void NativeOnMouseLeave(const FPointerEvent& Event) override;
     virtual void NativeOnMouseCaptureLost(const FCaptureLostEvent& Event) override;
+    virtual void NativeOnDragDetected(const FGeometry& Geometry, const FPointerEvent& Event,
+        UDragDropOperation*& Operation) override;
+    virtual void NativeOnDragCancelled(const FDragDropEvent& Event, UDragDropOperation* Operation) override;
+    virtual bool NativeOnDrop(const FGeometry& Geometry, const FDragDropEvent& Event,
+        UDragDropOperation* Operation) override;
     virtual FReply NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 private:
     int32 SlotAt(const FGeometry& Geometry, FVector2D ScreenPosition) const;

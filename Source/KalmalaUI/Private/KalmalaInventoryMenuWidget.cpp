@@ -950,7 +950,6 @@ void UKalmalaInventoryMenuWidget::UseGearSlot(const EKalmalaGearSlot GearSlot)
     UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
     if (!Controller || !Controller->IsLocalController() || !Inventory || bAwaitingGearRequestResult) return;
 
-    LastSeenGearRequestResultSerial = Inventory->GetGearRequestResultSerial();
     const FKalmalaEquippedGear* ExistingGear = Inventory->FindEquippedGear(GearSlot);
     const FKalmalaCatalogueRow* SelectedRow = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
         ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
@@ -964,21 +963,92 @@ void UKalmalaInventoryMenuWidget::UseGearSlot(const EKalmalaGearSlot GearSlot)
         && (!ExistingGear || ExistingGear->ItemGuid != SelectedGuid);
     if (ExistingGear && !bCanEquip)
     {
-        bPendingGearEquip = false;
+        BeginGearRequest(Inventory, false);
         Inventory->ServerUnequipGear(GearSlot);
     }
     else if (bCanEquip)
     {
-        bPendingGearEquip = true;
+        BeginGearRequest(Inventory, true);
         Inventory->ServerEquipGear(SelectedGuid);
     }
     else return;
+}
 
+void UKalmalaInventoryMenuWidget::BeginGearRequest(UKalmalaInventoryComponent* Inventory, const bool bEquip)
+{
+    if (!Inventory) return;
+    LastSeenGearRequestResultSerial = Inventory->GetGearRequestResultSerial();
+    bPendingGearEquip = bEquip;
     bAwaitingGearRequestResult = true;
     GearRequestSentAtSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
     LastGearActionStatus = TEXT("Gear request sent.");
     RefreshGearPresentation(UKalmalaSettingsWidget::GetTextScalePercent(),
         UKalmalaSettingsWidget::GetContrastMode());
+}
+
+bool UKalmalaInventoryMenuWidget::DropInventoryItemOnGear(const FGuid ItemGuid,
+    const EKalmalaGearSlot GearSlot)
+{
+    APlayerController* Controller = GetOwningPlayer();
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
+    UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    if (!bMenuOpen || !Controller || !Controller->IsLocalController() || !Inventory
+        || bAwaitingGearRequestResult || !ItemGuid.IsValid()) return false;
+
+    const int32 SourceSlot = Inventory->GetGridInstanceGuids().IndexOfByKey(ItemGuid);
+    if (SourceSlot == INDEX_NONE) return false;
+    const FName ItemId = Inventory->GetSlotItem(SourceSlot);
+    const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+    const FKalmalaItemDefinition* Definition = Catalogue ? Catalogue->FindItem(ItemId) : nullptr;
+    if (!Definition || Definition->GearSlot != GetGearCatalogueSlot(GearSlot))
+        return false;
+
+    const FKalmalaEquippedGear* ExistingGear = Inventory->FindEquippedGear(GearSlot);
+    if (ExistingGear && ExistingGear->ItemGuid == ItemGuid) return true;
+    BeginGearRequest(Inventory, true);
+    Inventory->ServerEquipGear(ItemGuid);
+    return true;
+}
+
+bool UKalmalaInventoryMenuWidget::DropInventoryItemOnMainHand(const FGuid ItemGuid)
+{
+    APlayerController* Controller = GetOwningPlayer();
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Controller ? Controller->GetPawn() : nullptr);
+    UKalmalaInventoryComponent* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
+    if (!bMenuOpen || !Controller || !Controller->IsLocalController() || !Inventory
+        || bAwaitingGearRequestResult || !ItemGuid.IsValid()) return false;
+
+    const int32 SourceSlot = Inventory->GetGridInstanceGuids().IndexOfByKey(ItemGuid);
+    if (SourceSlot == INDEX_NONE) return false;
+    const FName ItemId = Inventory->GetSlotItem(SourceSlot);
+    if (!FKalmalaToolLifecycleContract::FindDefinition(ItemId)) return false;
+    if (ItemGuid == Inventory->GetActiveInstanceGuid()) return true;
+    BeginGearRequest(Inventory, true);
+    Inventory->ServerSetMainHand(ItemGuid);
+    return true;
+}
+
+bool UKalmalaInventoryMenuWidget::NativeOnDrop(const FGeometry& Geometry,
+    const FDragDropEvent& Event, UDragDropOperation* Operation)
+{
+    const auto* InventoryOperation = Cast<UKalmalaInventoryDragDropOperation>(Operation);
+    if (!bMenuOpen || !InventoryOperation || !InventoryOperation->ItemGuid.IsValid())
+        return Super::NativeOnDrop(Geometry, Event, Operation);
+
+    const FVector2D ScreenPosition = Event.GetScreenSpacePosition();
+    if (MainHandButton && MainHandButton->GetCachedGeometry().IsUnderLocation(ScreenPosition))
+        return DropInventoryItemOnMainHand(InventoryOperation->ItemGuid);
+
+    static const EKalmalaGearSlot Slots[] = {
+        EKalmalaGearSlot::Head, EKalmalaGearSlot::Cape, EKalmalaGearSlot::Chest,
+        EKalmalaGearSlot::Shield, EKalmalaGearSlot::Legs, EKalmalaGearSlot::Boots,
+        EKalmalaGearSlot::Necklace, EKalmalaGearSlot::Ring};
+    for (int32 Index = 0; Index < GearSlotButtons.Num() && Index < UE_ARRAY_COUNT(Slots); ++Index)
+        if (GearSlotButtons[Index]
+            && GearSlotButtons[Index]->GetCachedGeometry().IsUnderLocation(ScreenPosition))
+            return DropInventoryItemOnGear(InventoryOperation->ItemGuid, Slots[Index]);
+
+    return Super::NativeOnDrop(Geometry, Event, Operation);
 }
 
 void UKalmalaInventoryMenuWidget::UseMainHandSlot()
@@ -994,13 +1064,8 @@ void UKalmalaInventoryMenuWidget::UseMainHandSlot()
     const bool bSelect = Row && Row->bCarriedTool && SelectedGuid.IsValid()
         && SelectedGuid != Inventory->GetActiveInstanceGuid();
     if (!bSelect && !FKalmalaToolLifecycleContract::FindDefinition(Inventory->GetActiveItem())) return;
-    LastSeenGearRequestResultSerial = Inventory->GetGearRequestResultSerial();
-    bPendingGearEquip = bSelect;
-    bAwaitingGearRequestResult = true;
-    GearRequestSentAtSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+    BeginGearRequest(Inventory, bSelect);
     Inventory->ServerSetMainHand(bSelect ? SelectedGuid : FGuid());
-    RefreshGearPresentation(UKalmalaSettingsWidget::GetTextScalePercent(),
-        UKalmalaSettingsWidget::GetContrastMode());
 }
 
 void UKalmalaInventoryMenuWidget::UseHeadGearSlot() { UseGearSlot(EKalmalaGearSlot::Head); }

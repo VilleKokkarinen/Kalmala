@@ -88,6 +88,21 @@ No active goals are currently listed. Completed goal records are retained under 
   broad relief combines with positive source height. Seeded profile and render
   confirmation remain pending.
 
+### Inventory drag and drop — 2026-10-28
+
+- **Selected task:** Make inventory items draggable between grid cells and onto
+  compatible equipment slots.
+- **Work completed:** Replaced the mouse-release-only grid gesture with a
+  native drag operation and visible item icon. Grid drops request the same
+  server-validated instance swap; drops on compatible wearable slots or Main
+  Hand send the existing exact-GUID equip request. Updated the inventory
+  interaction contract.
+- **Checks:** Reviewed the widget input and server request paths and ran
+  `git diff --check`. No Unreal build, automation, or in-game interaction
+  review was run.
+- **Status:** Source implementation is complete. Interactive acceptance of
+  grid moves and equipment drops remains pending.
+
 ## Scope and history
 
 The [roadmap](docs/04-roadmap.md) and [feature contracts](docs/game-features.md)

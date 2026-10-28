@@ -1,3 +1,35 @@
+## Inventory drag and drop — 2026-10-28
+
+- **Selected task:** Allow inventory items to be dragged to another grid cell
+  or a compatible equipment slot.
+- **Work completed:** Added a native drag operation with an item icon. Dropping
+  inside the grid sends the existing server-validated exact-instance move;
+  dropping onto a compatible wearable slot or Main Hand sends its existing
+  exact-GUID server request. Preserved keyboard movement and click-to-equip.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaUI/Private/KalmalaInventoryGridWidget.cpp`,
+  `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaInventoryGridWidget.h`,
+  `Source/KalmalaUI/Public/KalmalaInventoryMenuWidget.h`, and
+  `docs/02-technical-architecture.md`.
+- **Lightweight checks:** Inspected the Slate drag/drop handlers, exact-instance
+  grid move path, and server gear RPC validation; `git diff --check` passed.
+  No tests or builds were run.
+- **Full verification:** Deferred. No Unreal build, automation, or live menu
+  interaction was performed.
+- **Observable impact:** Inventory items now have a visible drag gesture;
+  drops on another inventory cell rearrange instances, and compatible drops
+  on equipment slots send equip requests.
+- **Networking/authority:** The client sends only the existing exact item GUID
+  and slot intent. Server-side ownership, compatibility, capacity, and
+  transaction checks remain authoritative.
+- **Known limitations / remaining scope:** Live confirmation of moving into
+  empty/occupied cells, replacing equipped gear, and assigning Main Hand is
+  still needed.
+- **Next eligible task:** Run a focused in-game inventory interaction review
+  after an Unreal build, covering grid rearrangement and compatible gear/Main
+  Hand drops.
+
 ## Elderwood/Tundra height headroom — 2026-10-28
 
 - **Selected task:** Let Elderwood and Freezing Tundra generate taller ground

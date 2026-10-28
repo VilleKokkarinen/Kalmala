@@ -12,6 +12,8 @@ class UKalmalaItemDetailWidget;
 class UKalmalaThemedButton;
 class UKalmalaInventoryGridWidget;
 class UKalmalaCraftingWidget;
+class UKalmalaInventoryComponent;
+class UDragDropOperation;
 class UBorder;
 class UHorizontalBox;
 class UKalmalaIconWidget;
@@ -44,6 +46,8 @@ protected:
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
     virtual FReply NativeOnPreviewKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
     virtual FReply NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
+    virtual bool NativeOnDrop(const FGeometry& Geometry, const FDragDropEvent& Event,
+        UDragDropOperation* Operation) override;
 
 private:
     void ApplyInventoryRows(TArray<FKalmalaCatalogueRow>&& Rows, bool bInventoryAvailable, int32 TextScale, int32 Contrast);
@@ -62,6 +66,9 @@ private:
     void SelectGridItem(FName ItemId);
     void HoverGridItem(FName ItemId);
     void UseGearSlot(EKalmalaGearSlot GearSlot);
+    void BeginGearRequest(UKalmalaInventoryComponent* Inventory, bool bEquip);
+    bool DropInventoryItemOnGear(FGuid ItemGuid, EKalmalaGearSlot GearSlot);
+    bool DropInventoryItemOnMainHand(FGuid ItemGuid);
     UFUNCTION() void UseMainHandSlot();
     UFUNCTION() void PreferSelectedArrows();
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> PreferArrowsButton;
