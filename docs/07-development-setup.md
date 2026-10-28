@@ -5041,8 +5041,11 @@ the menu renderer, it uses a compiled Editor cache and supports `-SeedCache`,
 and descriptors and hashes them in the shared freshness stamp, so plugin updates
 trigger a rebuild. Each commandlet result records its vertex count, so an
 archetype with no procedural mesh is visible in the log as well as its preview.
-The commandlet initializes the standalone Slate RHI renderer and rejects a
-uniform capture instead of saving a blank preview.
+The commandlet rasterizes the live procedural mesh sections directly into an
+orthographic side-view PNG using their vertex colors and normals. This avoids
+scene-capture render targets in the offscreen commandlet and rejects an
+archetype with no drawable triangles instead of saving a blank preview. The
+Mireling also has an explicit generated body mesh rather than an empty default.
 
 To render both sets with one module build, double-click
 `Scripts/Render-All-Previews.cmd`. It builds once through the menu renderer,

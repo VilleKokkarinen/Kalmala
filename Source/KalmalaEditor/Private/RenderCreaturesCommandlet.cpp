@@ -1,22 +1,13 @@
 #include "RenderCreaturesCommandlet.h"
 
 #include "KalmalaWildlifeSpawn.h"
-#include "Components/LightComponent.h"
-#include "Components/SceneCaptureComponent2D.h"
-#include "Engine/DirectionalLight.h"
 #include "Engine/Engine.h"
-#include "Engine/SceneCapture2D.h"
-#include "Engine/TextureRenderTarget2D.h"
 #include "Engine/World.h"
-#include "Framework/Application/SlateApplication.h"
-#include "Interfaces/ISlateRHIRendererModule.h"
 #include "ImageUtils.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
-#include "Modules/ModuleManager.h"
 #include "ProceduralMeshComponent.h"
-#include "RenderingThread.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformTime.h"
 
@@ -55,6 +46,141 @@ namespace
             if (Name.Equals(Definition.Name, ESearchCase::IgnoreCase)) return &Definition;
         }
         return nullptr;
+    }
+
+    bool RasterizeCreatureMesh(UProceduralMeshComponent& Mesh, const int32 Width, const int32 Height,
+        TArray<FColor>& OutPixels, int32& OutVertexCount)
+    {
+        struct FProjectedVertex
+        {
+            FVector2D Screen;
+            float Depth = 0.0f;
+            FVector Normal = FVector::UpVector;
+            FLinearColor Color = FLinearColor::White;
+        };
+
+        OutVertexCount = 0;
+        FBox Bounds(ForceInit);
+        const FTransform MeshToWorld = Mesh.GetComponentTransform();
+        for (int32 SectionIndex = 0; SectionIndex < Mesh.GetNumSections(); ++SectionIndex)
+        {
+            const FProcMeshSection* Section = Mesh.GetProcMeshSection(SectionIndex);
+            if (Section == nullptr || !Section->bSectionVisible) continue;
+            OutVertexCount += Section->ProcVertexBuffer.Num();
+            for (const FProcMeshVertex& Vertex : Section->ProcVertexBuffer)
+            {
+                Bounds += MeshToWorld.TransformPosition(Vertex.Position);
+            }
+        }
+        if (OutVertexCount == 0 || !Bounds.IsValid) return false;
+
+        const FVector BoundsOrigin = Bounds.GetCenter();
+        const FVector BoundsExtent = Bounds.GetExtent();
+        const float CameraDistance = FMath::Max(BoundsExtent.Size() * 3.0f, 600.0f);
+        const FVector CameraLocation = BoundsOrigin + FVector(BoundsExtent.X * 0.12f,
+            -CameraDistance, BoundsExtent.Z * 0.15f);
+        const FVector Forward = (BoundsOrigin - CameraLocation).GetSafeNormal();
+        const FVector Right = FVector::CrossProduct(Forward, FVector::UpVector).GetSafeNormal();
+        const FVector Up = FVector::CrossProduct(Right, Forward).GetSafeNormal();
+        const float Aspect = static_cast<float>(Width) / static_cast<float>(Height);
+        const float OrthoWidth = 2.5f * FMath::Max(BoundsExtent.X, BoundsExtent.Z * Aspect);
+        const float OrthoHeight = OrthoWidth / Aspect;
+
+        TArray<TArray<FProjectedVertex>> ProjectedSections;
+        ProjectedSections.SetNum(Mesh.GetNumSections());
+        for (int32 SectionIndex = 0; SectionIndex < Mesh.GetNumSections(); ++SectionIndex)
+        {
+            const FProcMeshSection* Section = Mesh.GetProcMeshSection(SectionIndex);
+            if (Section == nullptr || !Section->bSectionVisible) continue;
+            TArray<FProjectedVertex>& Projected = ProjectedSections[SectionIndex];
+            Projected.Reserve(Section->ProcVertexBuffer.Num());
+            for (const FProcMeshVertex& Vertex : Section->ProcVertexBuffer)
+            {
+                const FVector WorldPosition = MeshToWorld.TransformPosition(Vertex.Position);
+                const FVector FromCentre = WorldPosition - BoundsOrigin;
+                FProjectedVertex& Item = Projected.AddDefaulted_GetRef();
+                Item.Screen = FVector2D(Width * 0.5f + FVector::DotProduct(FromCentre, Right) * Width / OrthoWidth,
+                    Height * 0.5f - FVector::DotProduct(FromCentre, Up) * Height / OrthoHeight);
+                Item.Depth = FVector::DotProduct(WorldPosition - CameraLocation, Forward);
+                Item.Normal = MeshToWorld.TransformVectorNoScale(Vertex.Normal).GetSafeNormal();
+                Item.Color = FLinearColor(Vertex.Color);
+            }
+        }
+
+        const int32 PixelCount = Width * Height;
+        OutPixels.SetNumUninitialized(PixelCount);
+        TArray<float> DepthBuffer;
+        DepthBuffer.Init(TNumericLimits<float>::Max(), PixelCount);
+        const FLinearColor Horizon(0.16f, 0.21f, 0.24f, 1.0f);
+        const FLinearColor Ground(0.045f, 0.065f, 0.075f, 1.0f);
+        for (int32 Y = 0; Y < Height; ++Y)
+        {
+            const FColor Background = FMath::Lerp(Horizon, Ground,
+                static_cast<float>(Y) / FMath::Max(Height - 1, 1)).ToFColor(true);
+            for (int32 X = 0; X < Width; ++X) OutPixels[Y * Width + X] = Background;
+        }
+
+        const FVector LightDirection = FVector(-0.36f, -0.48f, 0.80f).GetSafeNormal();
+        bool bRasterizedTriangle = false;
+        const auto Edge = [](const FVector2D& A, const FVector2D& B, const FVector2D& Point)
+        {
+            return (Point.X - A.X) * (B.Y - A.Y) - (Point.Y - A.Y) * (B.X - A.X);
+        };
+        for (int32 SectionIndex = 0; SectionIndex < ProjectedSections.Num(); ++SectionIndex)
+        {
+            const TArray<FProjectedVertex>& Projected = ProjectedSections[SectionIndex];
+            const FProcMeshSection* Section = Mesh.GetProcMeshSection(SectionIndex);
+            if (Section == nullptr || !Section->bSectionVisible) continue;
+            const TArray<uint32>& Indices = Section->ProcIndexBuffer;
+            for (int32 Index = 0; Index + 2 < Indices.Num(); Index += 3)
+            {
+                const uint32 I0 = Indices[Index];
+                const uint32 I1 = Indices[Index + 1];
+                const uint32 I2 = Indices[Index + 2];
+                if (!Projected.IsValidIndex(static_cast<int32>(I0))
+                    || !Projected.IsValidIndex(static_cast<int32>(I1))
+                    || !Projected.IsValidIndex(static_cast<int32>(I2))) continue;
+
+                const FProjectedVertex& V0 = Projected[I0];
+                const FProjectedVertex& V1 = Projected[I1];
+                const FProjectedVertex& V2 = Projected[I2];
+                const float Area = Edge(V0.Screen, V1.Screen, V2.Screen);
+                if (FMath::Abs(Area) < KINDA_SMALL_NUMBER) continue;
+
+                const float MinScreenX = FMath::Min3(V0.Screen.X, V1.Screen.X, V2.Screen.X);
+                const float MaxScreenX = FMath::Max3(V0.Screen.X, V1.Screen.X, V2.Screen.X);
+                const float MinScreenY = FMath::Min3(V0.Screen.Y, V1.Screen.Y, V2.Screen.Y);
+                const float MaxScreenY = FMath::Max3(V0.Screen.Y, V1.Screen.Y, V2.Screen.Y);
+                if (MaxScreenX < 0.0f || MinScreenX >= Width || MaxScreenY < 0.0f || MinScreenY >= Height) continue;
+                const int32 MinX = FMath::Clamp(FMath::FloorToInt(MinScreenX), 0, Width - 1);
+                const int32 MaxX = FMath::Clamp(FMath::CeilToInt(MaxScreenX), 0, Width - 1);
+                const int32 MinY = FMath::Clamp(FMath::FloorToInt(MinScreenY), 0, Height - 1);
+                const int32 MaxY = FMath::Clamp(FMath::CeilToInt(MaxScreenY), 0, Height - 1);
+                for (int32 Y = MinY; Y <= MaxY; ++Y)
+                {
+                    for (int32 X = MinX; X <= MaxX; ++X)
+                    {
+                        const FVector2D Sample(X + 0.5f, Y + 0.5f);
+                        const float W0 = Edge(V1.Screen, V2.Screen, Sample) / Area;
+                        const float W1 = Edge(V2.Screen, V0.Screen, Sample) / Area;
+                        const float W2 = 1.0f - W0 - W1;
+                        if (W0 < -0.0001f || W1 < -0.0001f || W2 < -0.0001f) continue;
+
+                        const float Depth = W0 * V0.Depth + W1 * V1.Depth + W2 * V2.Depth;
+                        const int32 PixelIndex = Y * Width + X;
+                        if (Depth >= DepthBuffer[PixelIndex]) continue;
+                        DepthBuffer[PixelIndex] = Depth;
+
+                        const FVector Normal = (V0.Normal * W0 + V1.Normal * W1 + V2.Normal * W2).GetSafeNormal();
+                        const float Shade = 0.38f + 0.62f * FMath::Max(0.0f, FVector::DotProduct(Normal, LightDirection));
+                        const FLinearColor Color = (V0.Color * W0 + V1.Color * W1 + V2.Color * W2) * Shade;
+                        OutPixels[PixelIndex] = Color.ToFColor(true);
+                        bRasterizedTriangle = true;
+                    }
+                }
+            }
+        }
+        return bRasterizedTriangle;
     }
 }
 
@@ -123,22 +249,6 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
         return 2;
     }
 
-    static bool bSlateRendererInitialized = false;
-    if (!bSlateRendererInitialized)
-    {
-        ISlateRHIRendererModule& SlateRHIRenderer =
-            FModuleManager::LoadModuleChecked<ISlateRHIRendererModule>(TEXT("SlateRHIRenderer"));
-        if (!FSlateApplication::IsInitialized())
-        {
-            FSlateApplication::InitializeAsStandaloneApplication(SlateRHIRenderer.CreateSlateRHIRenderer());
-        }
-        else
-        {
-            FSlateApplication::Get().InitializeRenderer(SlateRHIRenderer.CreateSlateRHIRenderer());
-        }
-        bSlateRendererInitialized = true;
-    }
-
     const double RenderStartSeconds = FPlatformTime::Seconds();
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (World == nullptr) return 3;
@@ -154,23 +264,6 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
         GEngine->DestroyWorldContext(World);
     };
 
-    ADirectionalLight* KeyLight = World->SpawnActor<ADirectionalLight>();
-    ADirectionalLight* FillLight = World->SpawnActor<ADirectionalLight>();
-    if (KeyLight == nullptr || FillLight == nullptr)
-    {
-        DestroyPreviewWorld();
-        return 3;
-    }
-    KeyLight->GetLightComponent()->SetMobility(EComponentMobility::Movable);
-    KeyLight->SetActorRotation(FRotator(-35.0f, -42.0f, 0.0f));
-    KeyLight->GetLightComponent()->SetIntensity(50000.0f);
-    KeyLight->GetLightComponent()->SetLightColor(FLinearColor(1.0f, 0.92f, 0.80f));
-    FillLight->GetLightComponent()->SetMobility(EComponentMobility::Movable);
-    FillLight->SetActorRotation(FRotator(-10.0f, 145.0f, 0.0f));
-    FillLight->GetLightComponent()->SetIntensity(14000.0f);
-    FillLight->GetLightComponent()->SetLightColor(FLinearColor(0.58f, 0.72f, 1.0f));
-    FillLight->GetLightComponent()->SetCastShadows(false);
-
     AKalmalaWildlifeSpawn* Creature = World->SpawnActor<AKalmalaWildlifeSpawn>();
     if (Creature == nullptr)
     {
@@ -184,56 +277,13 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
     Creature->InitializeServer(Spawn, Definition->Archetype, 0);
     Creature->SetActorLocation(FVector::ZeroVector, false, nullptr, ETeleportType::TeleportPhysics);
 
-    FVector BoundsOrigin = FVector::ZeroVector;
-    FVector BoundsExtent = FVector(100.0f);
-    Creature->GetActorBounds(false, BoundsOrigin, BoundsExtent);
-    BoundsExtent.X = FMath::Max(BoundsExtent.X, 20.0f);
-    BoundsExtent.Y = FMath::Max(BoundsExtent.Y, 20.0f);
-    BoundsExtent.Z = FMath::Max(BoundsExtent.Z, 20.0f);
-
-    UTextureRenderTarget2D* Target = NewObject<UTextureRenderTarget2D>(World);
-    Target->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA8;
-    Target->ClearColor = FLinearColor(0.035f, 0.052f, 0.070f, 1.0f);
-    Target->InitAutoFormat(Width, Height);
-    Target->UpdateResourceImmediate(true);
-
-    ASceneCapture2D* CaptureActor = World->SpawnActor<ASceneCapture2D>();
-    if (CaptureActor == nullptr)
-    {
-        DestroyPreviewWorld();
-        return 3;
-    }
-    USceneCaptureComponent2D* Capture = CaptureActor->GetCaptureComponent2D();
-    Capture->TextureTarget = Target;
-    Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-    Capture->ProjectionType = ECameraProjectionMode::Orthographic;
-    Capture->OrthoWidth = 2.5f * FMath::Max(BoundsExtent.X, BoundsExtent.Z * static_cast<float>(Width) / Height);
-    Capture->bCaptureEveryFrame = false;
-    Capture->bCaptureOnMovement = false;
-    Capture->bAlwaysPersistRenderingState = true;
-    const float CameraDistance = FMath::Max(BoundsExtent.Size() * 3.0f, 600.0f);
-    const FVector CameraLocation = BoundsOrigin + FVector(BoundsExtent.X * 0.12f,
-        -CameraDistance, BoundsExtent.Z * 0.15f);
-    CaptureActor->SetActorLocation(CameraLocation);
-    CaptureActor->SetActorRotation((BoundsOrigin - CameraLocation).Rotation());
-
-    FlushRenderingCommands();
-    Capture->CaptureScene();
-    FlushRenderingCommands();
     TArray<FColor> Pixels;
-    FReadSurfaceDataFlags ReadFlags;
-    ReadFlags.SetLinearToGamma(false);
-    if (!Target->GameThread_GetRenderTargetResource()->ReadPixels(Pixels, ReadFlags)
-        || Pixels.Num() != Width * Height)
+    UProceduralMeshComponent* Mesh = Creature->FindComponentByClass<UProceduralMeshComponent>();
+    int32 VertexCount = 0;
+    if (Mesh == nullptr || !RasterizeCreatureMesh(*Mesh, Width, Height, Pixels, VertexCount))
     {
-        DestroyPreviewWorld();
-        return 5;
-    }
-    for (FColor& Pixel : Pixels) Pixel.A = 255;
-    if (Pixels.IsEmpty() || !Pixels.ContainsByPredicate([&Pixels](const FColor& Pixel)
-        { return Pixel != Pixels[0]; }))
-    {
-        UE_LOG(LogTemp, Error, TEXT("CreatureRender: %s produced a uniform image; capture rejected."), Definition->Name);
+        UE_LOG(LogTemp, Error, TEXT("CreatureRender: %s produced no rasterizable triangles (Vertices=%d); preview rejected."),
+            Definition->Name, VertexCount);
         DestroyPreviewWorld();
         return 7;
     }
@@ -243,14 +293,7 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
         TArrayView64<const FColor>(Pixels.GetData(), Pixels.Num()), PNG);
     IFileManager::Get().MakeDirectory(*FPaths::GetPath(Output), true);
     const bool bSaved = FFileHelper::SaveArrayToFile(PNG, *Output, &IFileManager::Get(), FILEWRITE_NoReplaceExisting);
-    UProceduralMeshComponent* Mesh = Creature->FindComponentByClass<UProceduralMeshComponent>();
-    const FProcMeshSection* Section = Mesh != nullptr ? Mesh->GetProcMeshSection(0) : nullptr;
-    const int32 VertexCount = Section != nullptr ? Section->ProcVertexBuffer.Num() : 0;
     DestroyPreviewWorld();
-    if (VertexCount == 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("CreatureRender: %s produced no procedural vertices."), Definition->Name);
-    }
     UE_LOG(LogTemp, Display,
         TEXT("CreatureRender: Creature=%s Size=%dx%d Vertices=%d Saved=%d Seconds=%.2f Output=%s"),
         Definition->Name, Width, Height, VertexCount, bSaved,

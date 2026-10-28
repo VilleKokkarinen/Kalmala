@@ -3851,7 +3851,36 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             }
         }
     };
-    if (Archetype == EKalmalaWildlifeArchetype::Boar)
+    if (Archetype == EKalmalaWildlifeArchetype::Mireling)
+    {
+        const FLinearColor PeatSkin(0.16f, 0.25f, 0.16f);
+        const FLinearColor Moss(0.31f, 0.39f, 0.18f);
+        const FLinearColor Bark(0.10f, 0.16f, 0.11f);
+        const FLinearColor AmberEye(0.76f, 0.48f, 0.12f);
+        const FLinearColor Pupil(0.035f, 0.045f, 0.025f);
+
+        // A hunched bog brute has a moss-backed torso, heavy head, long arms,
+        // and short root-like legs rather than the fallback's empty mesh.
+        AddEllipsoid(FVector(-18, 0, 64), FVector(67, 53, 76), PeatSkin);
+        AddEllipsoid(FVector(-44, 0, 112), FVector(48, 51, 39), Moss);
+        AddEllipsoid(FVector(40, 0, 125), FVector(47, 43, 47), PeatSkin);
+        AddEllipsoid(FVector(79, 0, 99), FVector(24, 34, 22), Bark);
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddEllipsoid(FVector(59, Side * 35.0f, 137), FVector(7, 6, 8), AmberEye);
+            AddEllipsoid(FVector(63, Side * 39.0f, 137), FVector(3, 2, 4), Pupil);
+            AddTetraPoints(FVector(3, Side * 40.0f, 93), FVector(21, Side * 55.0f, 90),
+                FVector(62, Side * 61.0f, 35), FVector(82, Side * 56.0f, 12), PeatSkin);
+            AddTetraPoints(FVector(-48, Side * 29.0f, 19), FVector(-20, Side * 34.0f, 20),
+                FVector(-29, Side * 29.0f, -38), FVector(-3, Side * 26.0f, -45), Bark);
+            AddTetraPoints(FVector(-77, Side * 17.0f, 130), FVector(-52, Side * 20.0f, 132),
+                FVector(-71, Side * 13.0f, 159), FVector(-44, Side * 15.0f, 145), Moss);
+        }
+        AddTetra(FVector(-21, 0, 144), FVector(28, 39, 16), Moss);
+        AddTetra(FVector(-56, 0, 119), FVector(26, 38, 13), Moss);
+    }
+    else if (Archetype == EKalmalaWildlifeArchetype::Boar)
     {
         const FLinearColor BoarHide(0.20f, 0.11f, 0.065f);
         const FLinearColor BoarShoulder(0.27f, 0.15f, 0.08f);

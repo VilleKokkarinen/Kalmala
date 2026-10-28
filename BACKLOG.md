@@ -27,6 +27,21 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Creature preview rasterizer repair — 2026-10-28
+
+- **Selected task:** Fix the user's combined preview run stopping with creature
+  render code 7 after a uniform scene capture.
+- **Work completed:** Replaced the unreliable offscreen scene-capture path with
+  an orthographic software rasterizer that draws each live procedural mesh's
+  triangles, vertex colors, and normals with a depth buffer. Added a generated
+  Mireling body, which previously had no mesh and was the first archetype to
+  trip the blank-frame guard.
+- **Checks:** Inspected the failed run log, Unreal's SceneCapture behavior, the
+  procedural section buffers, and the Mireling presentation path; `git diff
+  --check` passed. No Editor build or render rerun was performed.
+- **Status:** Code 7's blank SceneCapture path is removed; a rebuilt cache and
+  rendered appearance still need user-run confirmation.
+
 ### Double-click combined preview renderer — 2026-10-28
 
 - **Selected task:** Add a launcher that builds Editor modules once and runs
