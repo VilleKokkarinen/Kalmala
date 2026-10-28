@@ -22479,3 +22479,39 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Final milestone status:** BH26 and the biome-height/Meadows goal are complete on merged `master`; the merged build and all 228 automation tests passed. No verification remains deferred.
 - **Next eligible task on merged master:** S03 — add named monster-population tuning constants.
 - **Main-checkout handoff:** The progress record is appended without replacing local edits. `E:\dev\Kalmala\BACKLOG.md` was left unchanged because its BH25 checklist ends at BH25d, while merged master includes BH25e and BH26; the scope conflict remains for review.
+## Run 2026-10-28 — Raise Meadow relief toward 30 m
+
+- **Selected increment:** User-directed post-roadmap tuning follow-up based on
+  the user's Valheim observation that Meadows hills reach about 30 m. Only the
+  Meadow terrain controls were in scope; no height observations were provided
+  for other biomes.
+- **Work completed:** Raised `MeadowHillAmplitude` from 8 m to 20 m and moved
+  `MeadowShoulderHeight` from 10 m to 30 m. Expanded accepted hill and shoulder
+  preview bounds, updated the commandlet validation message and set the world
+  preview parameters to the compiled defaults. Kept wavelengths, rolling/floor
+  relief, shoulder compression scale and other biome controls unchanged.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Scripts/WorldMapPreview.params`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks:** Inspected the current defaults, preview validity bounds,
+  commandlet override guard and relevant history. `git diff --check` passed.
+  No build, automation test, profile sweep or rendered review was run.
+- **Full verification:** Deferred. This is a normal post-roadmap increment, not
+  a milestone-final verification run.
+- **Observable impact:** Meadow candidate hills can now receive up to 20 m of
+  broad signed noise contribution, and upper-shoulder compression begins at
+  30 m instead of 10 m. This creates headroom on the scale the user observed;
+  it does not claim a measured 30 m absolute peak.
+- **Networking/authority:** No networking, authority, persistence or save
+  behavior changed. All peers continue deriving terrain from the shared seed
+  and build defaults.
+- **Known limitations:** The combined 20 / 1.2 / 0.2 m profile has not been
+  numerically sampled or visually inspected. Profile maxima, slope tails,
+  route readability and biome-boundary blending remain to be checked before
+  treating the new height as visually accepted.
+- **Next eligible task:** None listed in the active queue; profile and rendered
+  acceptance remain deferred.

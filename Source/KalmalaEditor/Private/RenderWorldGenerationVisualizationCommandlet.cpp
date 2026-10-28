@@ -419,9 +419,9 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
         if (bHasHillAmplitude)
         {
             if (!LexTryParseString(HillAmplitudeM, *HillAmplitudeText) || !FMath::IsFinite(HillAmplitudeM)
-                || HillAmplitudeM < 4.0 || HillAmplitudeM > 10.0)
+                || HillAmplitudeM < 4.0 || HillAmplitudeM > 30.0)
             {
-                UE_LOG(LogTemp, Error, TEXT("MeadowHillAmplitudeM must be finite and between 4 and 10 metres."));
+                UE_LOG(LogTemp, Error, TEXT("MeadowHillAmplitudeM must be finite and between 4 and 30 metres."));
                 return 1;
             }
 

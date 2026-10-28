@@ -67,8 +67,8 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::ReliefMiddleScale, 8000.0, 25000.0, TEXT("Middle scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ReliefLocalScale, 1000.0, 5000.0, TEXT("Local scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowHillScale, 10000.0, 25000.0, TEXT("Meadow hill scale"));
-    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowHillAmplitude, 400.0, 1000.0, TEXT("Meadow hill amplitude"));
-    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowShoulderHeight, 600.0, 1600.0, TEXT("Meadow shoulder height"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowHillAmplitude, 400.0, 3000.0, TEXT("Meadow hill amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MeadowShoulderHeight, 600.0, 3000.0, TEXT("Meadow shoulder height"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowShoulderCompressionScale, 1000.0, 6000.0, TEXT("Meadow shoulder compression scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingScale, 3000.0, 7000.0, TEXT("Meadow rolling scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingAmplitude, 60.0, 200.0, TEXT("Meadow rolling amplitude"));

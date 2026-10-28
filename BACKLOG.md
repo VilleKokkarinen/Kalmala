@@ -42,6 +42,19 @@ No active goals are currently listed. Completed goal records are retained under 
 - **Status:** Source implementation is complete. Fresh combined-profile and
   rendered terrain acceptance remain pending.
 
+### Meadows 30 m height follow-up — 2026-10-28
+
+- **Selected task:** Raise Meadow relief headroom to reflect the user's
+  observation of Valheim Meadows reaching roughly 30 m.
+- **Work completed:** Set the broad Meadow amplitude to 20 m, move shoulder
+  compression to a 30 m threshold, and expand accepted preview bounds to cover
+  both values. Updated the preview parameter file and current tuning docs.
+- **Checks:** Source and preview bounds were inspected; `git diff --check`
+  passed. No build, automation, combined-profile sweep or rendered review was
+  run.
+- **Status:** Defaults and preview contracts are updated. Actual absolute
+  height range and rendered terrain readability remain unverified.
+
 ## Scope and history
 
 The [roadmap](docs/04-roadmap.md) and [feature contracts](docs/game-features.md)

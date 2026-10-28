@@ -3776,10 +3776,10 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `ReliefBroadScaleKm` | 1.0 | Staged broad terrain noise scale, 0.5–1.5 km. |
 | `ReliefMiddleScaleKm` | 0.15 | Staged shared middle relief scale, 0.08–0.25 km. |
 | `ReliefLocalScaleKm` | 0.03 | Staged shared local relief scale, 0.01–0.05 km. |
-| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 4 | BH25a selected 4 m from fresh 4/6/8 m profiles; 100–250 m / preview bounds 4–10 m. |
-| `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 10 / 30 | Meadows upper shoulder begins at 6–16 m and approaches a bounded asymptote with a 10–60 m scale. |
-| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 0.6 | BH25b1 selected 0.6 m from fresh 0.6/1.2/1.8 m profile trials; 30–70 m / preview bounds 0.6–2 m. |
-| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 8 / 0.1 (selected in BH25c) | Meadow floor detail; 8–20 m / 0.1–0.35 m. |
+| `MeadowHillScaleM` / `MeadowHillAmplitudeM` | 160 / 20 | 2026-10-28 Valheim-informed height follow-up; 100–250 m / preview bounds 4–30 m. |
+| `MeadowShoulderHeightM` / `MeadowShoulderCompressionScaleM` | 30 / 30 | Meadows upper shoulder begins at 6–30 m and approaches a bounded asymptote with a 10–60 m scale. |
+| `MeadowRollingScaleM` / `MeadowRollingAmplitudeM` | 45 / 1.2 | 2026-10-27 retune; 30–70 m / preview bounds 0.6–2 m. |
+| `MeadowFloorScaleM` / `MeadowFloorAmplitudeM` | 12 / 0.2 | 2026-10-27 retune; 8–20 m / 0.1–0.35 m. |
 | `StarterRadiusKm` | 0.35 | Inclusive Meadows/Ocean-only radius. |
 | `ElderwoodMinimumKm` | 0.75 | Forest eligibility minimum. |
 | `LakesMinimumKm` / `LakesMaximumKm` | 0.35 / 3 | Starter wetland distance range. |

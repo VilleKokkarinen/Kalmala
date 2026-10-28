@@ -143,6 +143,24 @@ river carving.
 Reference implementation: [Valheim 1.0 height-function transcription](https://github.com/aritropaul/vegvisr/blob/main/web/crates/worldgen/src/heights.rs)
 and its [height multiplier](https://github.com/aritropaul/vegvisr/blob/main/web/crates/worldgen/src/geo.rs).
 
+### Valheim 30 m height observation follow-up — 2026-10-28
+
+After trying Valheim, the user observed Meadows terrain reaching roughly 30 m
+and asked for Kalmala's biome tuning to reflect that scale. The compiled
+Meadow hill amplitude is now 20 m at the existing 160 m wavelength. A unit of
+normalized noise multiplied by Valheim's 0.1 detail coefficient and 200 height
+multiplier corresponds to a 20 m contribution; Valheim's layered field and
+shoulder shape differ, so this is a coefficient-scale match rather than an
+output-range match. The Meadow shoulder threshold is now 30 m, so compression
+does not begin below the observed height. Its 30 m compression scale, the
+45 m rolling layer and 12 m floor detail remain unchanged.
+
+These are production defaults, not a measured guarantee of 30 m absolute
+elevation: source height, noise samples, biome blending and shoulder
+compression affect the final result. The combined profile has not been swept
+or rendered at these settings; exact minimum, average and maximum heights and
+traversal remain unverified.
+
 ### BH25a fresh-source hill measurements
 
 The Editor target was freshly compiled from the selected 4 m source setting.

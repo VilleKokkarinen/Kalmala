@@ -19,8 +19,8 @@ struct FKalmalaRegionalTuning
     static constexpr uint64 MeadowRollingSalt = 0x4B414C4D414C4105ull;
     static constexpr uint64 MeadowFloorSalt = 0x4B414C4D414C4106ull;
     static constexpr double MeadowHillScale = 16000.0;
-    static constexpr double MeadowHillAmplitude = 800.0;
-    static constexpr double MeadowShoulderHeight = 1000.0;
+    static constexpr double MeadowHillAmplitude = 2000.0;
+    static constexpr double MeadowShoulderHeight = 3000.0;
     static constexpr double MeadowShoulderCompressionScale = 3000.0;
     static constexpr double MeadowRollingScale = 4500.0;
     static constexpr double MeadowRollingAmplitude = 120.0;
