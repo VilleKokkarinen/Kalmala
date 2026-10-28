@@ -19,6 +19,7 @@
   - [x] Polar Bear: give the head and short legs a connected, heavier shape.
   - [x] Horned Goat: connect the raised head and legs to the body.
   - [x] Reef Maw: replace the flat fins, tail, and jaw with rounded 3D forms.
+  - [x] Mireling: replace flat arm, leg, and crown geometry with rounded forms.
 
 Completed goal records are retained under Completed post-roadmap work.
 

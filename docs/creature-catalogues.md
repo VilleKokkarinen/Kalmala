@@ -32,6 +32,8 @@ authored A8a attack. The Boar's original low-poly presentation now joins its
 barrel, chest, head, short legs, and feet into one compact silhouette, with a
 blunt muzzle, tusks, small ears, and a short bristle ridge. Deer connects the
 raised neck, head, and branching antlers to its body with four supported legs.
+The Mireling's arms, root-like legs, ears, and mossy crown ridges use rounded,
+overlapping volumes for visible depth from each preview angle.
 Rat (10 health,
 zero armor, 5 Pierce) now has deterministic
 Meadows selection, procedural presentation, an authority-validated 100 cm bite,

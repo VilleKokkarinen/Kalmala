@@ -23216,3 +23216,26 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Reef Maw behavior and authority remain unchanged.
 - **Known limitations:** No fresh four-angle render was produced in this run.
 - **Next eligible task:** None; all listed creature visual repairs are complete.
+
+## Run 2026-10-28 — Mireling geometry follow-up
+
+- **Selected increment:** Replace the Mireling's flat arm, leg, and crown
+  geometry with rounded 3D forms.
+- **Work completed:** Rebuilt its arms, hands, short root-like legs, feet, ears,
+  and mossy crown ridges from overlapping ellipsoids. Kept the existing body,
+  face, eyes, colors, and all gameplay behavior. Updated the creature
+  description and checked off the visual repair.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Reviewed the Mireling presentation source and confirmed the flat
+  limb and crown primitives were removed; `git diff --check` passed. No build,
+  render, or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Mireling's limb and crown silhouette now uses
+  overlapping rounded volumes instead of the flat wedges shown in the supplied
+  sheet.
+- **Networking/authority:** No gameplay, combat, or network state changed.
+  Mireling behavior and authority remain unchanged.
+- **Known limitations:** No fresh four-angle render was produced in this run.
+- **Next eligible task:** None; all listed creature visual repairs are complete.

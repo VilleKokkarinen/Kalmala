@@ -3870,15 +3870,21 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         {
             AddEllipsoid(FVector(59, Side * 35.0f, 137), FVector(7, 6, 8), AmberEye);
             AddEllipsoid(FVector(63, Side * 39.0f, 137), FVector(3, 2, 4), Pupil);
-            AddTetraPoints(FVector(3, Side * 40.0f, 93), FVector(21, Side * 55.0f, 90),
-                FVector(62, Side * 61.0f, 35), FVector(82, Side * 56.0f, 12), PeatSkin);
-            AddTetraPoints(FVector(-48, Side * 29.0f, 19), FVector(-20, Side * 34.0f, 20),
-                FVector(-29, Side * 29.0f, -38), FVector(-3, Side * 26.0f, -45), Bark);
-            AddTetraPoints(FVector(-77, Side * 17.0f, 130), FVector(-52, Side * 20.0f, 132),
-                FVector(-71, Side * 13.0f, 159), FVector(-44, Side * 15.0f, 145), Moss);
+            // Heavy arms and hands overlap from the shoulders down the chest.
+            AddEllipsoid(FVector(0, Side * 52.0f, 82), FVector(23, 18, 34), PeatSkin);
+            AddEllipsoid(FVector(30, Side * 62.0f, 43), FVector(18, 15, 28), PeatSkin);
+            AddEllipsoid(FVector(45, Side * 62.0f, 13), FVector(14, 14, 18), Bark);
+
+            // Short root-like legs and broad feet meet the ground without spikes.
+            AddEllipsoid(FVector(-39, Side * 29.0f, -6), FVector(17, 14, 33), PeatSkin);
+            AddEllipsoid(FVector(-35, Side * 29.0f, -36), FVector(20, 17, 9), Bark);
+
+            // Rounded moss ears attach to the back of the crown.
+            AddEllipsoid(FVector(-61, Side * 20.0f, 145), FVector(16, 13, 18), Moss);
         }
-        AddTetra(FVector(-21, 0, 144), FVector(28, 39, 16), Moss);
-        AddTetra(FVector(-56, 0, 119), FVector(26, 38, 13), Moss);
+        // Mossy crown ridges are broad raised volumes instead of flat peaks.
+        AddEllipsoid(FVector(-21, 0, 144), FVector(28, 39, 16), Moss);
+        AddEllipsoid(FVector(-56, 0, 119), FVector(26, 38, 13), Moss);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Boar)
     {
