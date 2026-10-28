@@ -39,8 +39,23 @@ No active goals are currently listed. Completed goal records are retained under 
   passed; the authored plugin file set includes the required descriptor and
   excludes generated folders. No Editor build or creature render has been
   rerun.
-- **Status:** The cache-copy fix is implemented; build and render confirmation
-  remain pending.
+- **Status:** The cache-copy fix is implemented. A later user-run build found
+  the plugin and compiled modules, then failed linking the commandlet because
+  `KalmalaEditor` did not directly depend on `ProceduralMeshComponent`; see the
+  follow-up below.
+
+### Creature preview procedural-mesh link dependency — 2026-10-28
+
+- **Selected task:** Resolve the commandlet link errors for
+  `Z_Construct_UClass_UProceduralMeshComponent` and
+  `UProceduralMeshComponent::GetProcMeshSection`.
+- **Work completed:** Added `ProceduralMeshComponent` as a direct private
+  dependency of `KalmalaEditor`, which owns the commandlet that calls those APIs.
+- **Checks:** Inspected the failing commandlet calls and existing module
+  dependency declarations; `git diff --check` passed. No build was run during
+  this increment.
+- **Status:** Source dependency is fixed; cache rebuild and creature rendering
+  remain unverified.
 
 ### Live-creature render script — 2026-10-28
 

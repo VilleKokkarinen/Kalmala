@@ -1,3 +1,25 @@
+## Creature preview procedural-mesh link dependency — 2026-10-28
+
+- **Selected task:** Fix the commandlet link failure reported after the local
+  plugin cache repair.
+- **Work completed:** Added a direct `ProceduralMeshComponent` dependency to
+  `KalmalaEditor`; the commandlet directly includes its API, finds creature
+  components, and calls `GetProcMeshSection`.
+- **Files changed:** `Source/KalmalaEditor/KalmalaEditor.Build.cs`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the commandlet call sites and existing
+  module rules; `git diff --check` passed.
+- **Full verification:** Deferred. The user-provided build log confirms that
+  the plugin was found and source modules compiled before linking failed on the
+  missing module dependency. No build was run during this increment.
+- **Observable impact:** UnrealBuildTool will now include the procedural-mesh
+  module import library when linking the Editor commandlet.
+- **Networking/authority:** No gameplay or networking code changed.
+- **Known limitations / remaining scope:** The new Editor link has not been
+  verified and creature previews remain unrendered.
+- **Next eligible task:** Retry `Scripts/Render-Creatures.ps1 -BuildModules`;
+  if it succeeds, render and inspect all 17 creature previews.
+
 ## Creature renderer plugin-cache repair — 2026-10-28
 
 - **Selected task:** Repair the first `Render-Creatures.ps1 -BuildModules`

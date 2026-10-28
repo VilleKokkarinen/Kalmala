@@ -14,7 +14,8 @@ public class KalmalaEditor : ModuleRules
             "UnrealEd",
             "UMG", "Slate", "SlateCore", "SlateRHIRenderer", "RenderCore", "RHI", "KalmalaUI",
             "KalmalaGameplay",
-            "KalmalaWorld"
+            "KalmalaWorld",
+            "ProceduralMeshComponent"
         });
     }
 }
