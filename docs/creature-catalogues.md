@@ -28,7 +28,10 @@ This is authoring data. The schema-15 C++ item/tool loader does not consume the
 creature category yet. The existing Boar, Deer, and Mireling actors apply the
 table's health, armor, and base attack values directly. Server-side player-hit
 validation accepts up to 300 total wildlife damage, matching the largest
-authored A8a attack. Rat (10 health, zero armor, 5 Pierce) now has deterministic
+authored A8a attack. The Boar's original low-poly presentation now joins its
+barrel, chest, head, short legs, and feet into one compact silhouette, with a
+blunt muzzle, tusks, small ears, and a short bristle ridge. Rat (10 health,
+zero armor, 5 Pierce) now has deterministic
 Meadows selection, procedural presentation, an authority-validated 100 cm bite,
 and credited Bone Fragment/Rat Tail rewards. Full-pack Rat rewards stay in
 world-population save escrow until both items fit. Badger (100 health, 10 armor,

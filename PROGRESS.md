@@ -22884,3 +22884,34 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Next eligible task:** Rebuild the preview cache with
   `Scripts/Render-All-Previews.cmd`, then inspect the 17 sheets in
   `%TEMP%\kmall\png\Creatures`.
+
+## Run 2026-10-28 — Four-view creature review: Boar
+
+- **Selected increment:** Inspect the full roster and repair the first clearly
+  disconnected mammal silhouette, the Boar.
+- **Work completed:** Rendered and visually inspected four-view sheets for all
+  17 live creature archetypes. Replaced the Boar's four pointed leg meshes with
+  overlapping rounded legs and feet; joined the barrel, chest, head, and blunt
+  muzzle more clearly; refined the eyes and ears; and reduced the back bristles
+  to a short ridge. The final sheet reads as one compact four-legged boar from
+  all four directions.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -BuildModules` compiled the Editor
+  target successfully and rendered 17 sheets. The final targeted Boar
+  `-BuildModules` run compiled successfully in four actions and rendered
+  `Boar-reviewed.png` at 2564×1924 (1280×960 per view). Visually inspected the
+  final Boar sheet. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Roster findings:** Badger, Moon Bear, Death Adder, Viper, Giant Snake,
+  Wolf, Lynx, Polar Bear, and Horned Goat need individual silhouette follow-up.
+  Mireling, Deer, Rat, Mosquito Swarm, Peat Husk, Thunder Sentinel, and Reef
+  Maw currently read clearly enough in these captures.
+- **Networking/authority:** No gameplay, combat, or network state changed. The
+  Boar's existing territorial charge and authority path are unchanged.
+- **Known limitations:** The remaining flagged species still need one-at-a-time
+  fixes and new renders. Their current sheets remain in the temporary preview
+  cache for comparison.
+- **Next eligible task:** Repair the Badger silhouette, connecting its narrow
+  head and legs to the body and clarifying its face stripe.

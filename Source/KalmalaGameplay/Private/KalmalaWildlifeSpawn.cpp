@@ -3887,38 +3887,38 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Bristle(0.12f, 0.075f, 0.045f);
         const FLinearColor Muzzle(0.34f, 0.21f, 0.13f);
         const FLinearColor Tusk(0.82f, 0.75f, 0.57f);
+        const FLinearColor Nose(0.10f, 0.055f, 0.035f);
+        const FLinearColor EyeRim(0.58f, 0.30f, 0.10f);
         const FLinearColor Eye(0.055f, 0.035f, 0.02f);
 
-        AddEllipsoid(FVector(-30, 0, 30), FVector(80, 44, 50), BoarHide);
-        AddEllipsoid(FVector(76, 0, 25), FVector(37, 22, 22), BoarHide);
-        AddEllipsoid(FVector(-25, 0, 67), FVector(45, 39, 20), BoarShoulder);
-        // A low barrel body, short legs, and coarse bristles distinguish the boar from the deer.
-        AddTetraPoints(FVector(87,-20,10), FVector(87,20,10), FVector(145,0,1), FVector(104,0,31), Muzzle);
+        AddEllipsoid(FVector(-29, 0, 20), FVector(84, 48, 43), BoarHide);
+        AddEllipsoid(FVector(15, 0, 20), FVector(48, 45, 38), BoarShoulder);
+        AddEllipsoid(FVector(71, 0, 29), FVector(35, 30, 26), BoarHide);
+        AddEllipsoid(FVector(104, 0, 17), FVector(26, 23, 17), Muzzle);
+        // A low barrel, joined chest/head masses, and blunt snout distinguish the boar from the deer.
 
-        // Four compact legs keep the belly close to the ground without extending below the old mesh.
+        // Short rounded legs overlap the barrel and chest, with small feet resting at the same ground line.
         for (const float Side : {-1.0f, 1.0f})
         {
             for (const float LegX : {-64.0f, 37.0f})
             {
                 const float LegY = Side * 35.0f;
-                AddTetraPoints(FVector(LegX - 12.0f, LegY - 9.0f, -52.0f),
-                    FVector(LegX - 12.0f, LegY + 9.0f, -52.0f),
-                    FVector(LegX + 5.0f, LegY, -5.0f), FVector(LegX + 20.0f, LegY, -2.0f), Bristle);
+                AddEllipsoid(FVector(LegX, LegY, -15), FVector(14, 12, 25), BoarShoulder);
+                AddEllipsoid(FVector(LegX + 4.0f, LegY, -45), FVector(16, 14, 8), Bristle);
             }
 
-            // Short ears, side-set eyes, and upward ivory tusks make the head readable in profile.
-            AddTetraPoints(FVector(25, Side * 19.0f, 42), FVector(25, Side * 35.0f, 42),
-                FVector(12, Side * 31.0f, 68), FVector(43, Side * 29.0f, 50), Bristle);
-            AddTetraPoints(FVector(64, Side * 23.0f, 19), FVector(74, Side * 22.0f, 20),
-                FVector(69, Side * 30.0f, 27), FVector(72, Side * 25.0f, 31), Eye);
+            // Side-set eyes, short ears, and upward ivory tusks make the head readable from every view.
+            AddEllipsoid(FVector(52, Side * 25.0f, 51), FVector(11, 8, 10), Bristle);
+            AddEllipsoid(FVector(55, Side * 29.0f, 52), FVector(5, 3, 5), BoarShoulder);
+            AddEllipsoid(FVector(82, Side * 26.0f, 38), FVector(5, 4, 5), EyeRim);
+            AddEllipsoid(FVector(84, Side * 29.0f, 38), FVector(2, 2, 2), Eye);
+            AddEllipsoid(FVector(126, Side * 7.0f, 19), FVector(3, 3, 3), Nose);
             AddTetraPoints(FVector(78, Side * 19.0f, 3), FVector(91, Side * 23.0f, 3),
                 FVector(103, Side * 17.0f, 28), FVector(109, Side * 23.0f, 6), Tusk);
         }
 
-        // A small broken ridge of coarse bristles emphasizes the shoulder without changing the actor scale.
-        AddTetraPoints(FVector(-78,-7,52), FVector(-78,7,52), FVector(-60,0,78), FVector(-48,0,49), Bristle);
-        AddTetraPoints(FVector(-46,-7,64), FVector(-46,7,64), FVector(-28,0,86), FVector(-16,0,59), Bristle);
-        AddTetraPoints(FVector(-13,-7,60), FVector(-13,7,60), FVector(4,0,78), FVector(16,0,54), Bristle);
+        // A short rounded bristle ridge follows the spine above the shoulder.
+        AddEllipsoid(FVector(-50, 0, 58), FVector(48, 12, 8), Bristle);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Deer)
     {

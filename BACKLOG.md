@@ -2,7 +2,22 @@
 
 ## Active queue
 
-No active goals are currently listed. Completed goal records are retained under Completed post-roadmap work.
+- [ ] Four-view creature visual cleanup, one species per increment.
+  - [x] Boar: replace detached spike legs with connected rounded limbs and
+    clarify the snout, eyes, ears, and short bristle ridge.
+  - [ ] Badger: join the narrow head and legs to its low body and make the
+    facial stripe visible.
+  - [ ] Moon Bear: connect its head and feet to the body with a heavier bear
+    silhouette.
+  - [ ] Death Adder: lower and connect the head to the coiled body.
+  - [ ] Viper: lower and connect the head to the coiled body.
+  - [ ] Giant Snake: lower and connect the head to the coiled body.
+  - [ ] Wolf: connect the head, tail, and feet to the torso.
+  - [ ] Lynx: connect the head, tail, and feet to the torso.
+  - [ ] Polar Bear: give the head and short legs a connected, heavier shape.
+  - [ ] Horned Goat: connect the raised head and legs to the body.
+
+Completed goal records are retained under Completed post-roadmap work.
 
 ## Completed roadmap
 
@@ -39,7 +54,8 @@ No active goals are currently listed. Completed goal records are retained under 
 - **Checks:** PowerShell parser and `-List` check passed; source and output
   dimensions were inspected, along with `git diff --check`. No Editor build or
   preview render was performed.
-- **Status:** Implemented; rebuilt PNG sheets need visual review.
+- **Status:** Implemented; all 17 four-view sheets were rebuilt and visually
+  inspected. Species-specific cleanup is tracked in the active queue.
 
 ### Separate preview outputs and repair PeatHusk/Sentinel silhouettes — 2026-10-28
 
