@@ -1,3 +1,27 @@
+## Creature preview blank-capture repair — 2026-10-28
+
+- **Selected task:** Fix the creature renderer saving entirely near-black PNGs.
+- **Work completed:** The commandlet now initializes the standalone Slate RHI
+  renderer before scene capture, following the working menu commandlet. It
+  rejects uniform pixel output rather than reporting a blank capture as saved.
+- **Files changed:** `Source/KalmalaEditor/Private/RenderCreaturesCommandlet.cpp`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Inspected a generated Wolf PNG and its exact pixel
+  sample (uniform RGB 9,13,18), all 17 creature log entries and reported vertex
+  counts, and the installed Unreal 5.8 SceneCapture implementation;
+  `git diff --check` passed.
+- **Full verification:** Deferred. No Editor rebuild or creature render was run
+  during this increment.
+- **Observable impact:** A successful preview now requires a nonuniform image;
+  the commandlet initializes the same Slate RHI path used by the menu renderer.
+- **Networking/authority:** No gameplay or networking code changed; this is an
+  Editor-only preview commandlet.
+- **Known limitations / remaining scope:** The repaired capture has not yet been
+  compiled or rendered. The setup change follows the working menu renderer, but
+  the visual fix remains unconfirmed until a new capture is inspected.
+- **Next eligible task:** Double-click `Scripts/Render-All-Previews.cmd` to
+  rebuild once and rerun both renderers; inspect the new creature PNGs.
+
 ## Double-click combined preview renderer — 2026-10-28
 
 - **Selected task:** Run both render scripts from a double-clickable Windows

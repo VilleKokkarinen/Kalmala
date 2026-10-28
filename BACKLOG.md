@@ -39,7 +39,21 @@ No active goals are currently listed. Completed goal records are retained under 
   shared cache/digest inputs and `git diff --check` were inspected. No Editor
   build or render batch was run.
 - **Status:** Launcher and shared-cache flow are implemented; rendered outputs
-  remain unverified.
+  were generated in a user run, but all 17 creature captures were uniform
+  near-black; see the follow-up below.
+
+### Creature preview blank-capture repair — 2026-10-28
+
+- **Selected task:** Make the offscreen creature commandlet render its scene
+  instead of saving the render target's clear color.
+- **Work completed:** Initialize the standalone Slate RHI renderer, matching the
+  working menu commandlet, before creating the capture world. Reject uniform
+  captured frames so blank images fail visibly.
+- **Checks:** Inspected the generated Wolf PNG (uniform RGB 9,13,18), the 17
+  creature success/vertex log entries, and Unreal 5.8's SceneCapture source;
+  `git diff --check` passed. No Editor build or render rerun was performed.
+- **Status:** Source repair is in place; generated appearance remains unverified
+  until the Editor cache is rebuilt and the renderer is run again.
 
 ### Creature renderer plugin-cache repair — 2026-10-28
 

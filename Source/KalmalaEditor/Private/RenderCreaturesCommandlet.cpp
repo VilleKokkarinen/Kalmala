@@ -8,10 +8,13 @@
 #include "Engine/SceneCapture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/World.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Interfaces/ISlateRHIRendererModule.h"
 #include "ImageUtils.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
+#include "Modules/ModuleManager.h"
 #include "ProceduralMeshComponent.h"
 #include "RenderingThread.h"
 #include "HAL/FileManager.h"
@@ -120,6 +123,22 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
         return 2;
     }
 
+    static bool bSlateRendererInitialized = false;
+    if (!bSlateRendererInitialized)
+    {
+        ISlateRHIRendererModule& SlateRHIRenderer =
+            FModuleManager::LoadModuleChecked<ISlateRHIRendererModule>(TEXT("SlateRHIRenderer"));
+        if (!FSlateApplication::IsInitialized())
+        {
+            FSlateApplication::InitializeAsStandaloneApplication(SlateRHIRenderer.CreateSlateRHIRenderer());
+        }
+        else
+        {
+            FSlateApplication::Get().InitializeRenderer(SlateRHIRenderer.CreateSlateRHIRenderer());
+        }
+        bSlateRendererInitialized = true;
+    }
+
     const double RenderStartSeconds = FPlatformTime::Seconds();
     UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
     if (World == nullptr) return 3;
@@ -209,6 +228,14 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
     {
         DestroyPreviewWorld();
         return 5;
+    }
+    for (FColor& Pixel : Pixels) Pixel.A = 255;
+    if (Pixels.IsEmpty() || !Pixels.ContainsByPredicate([&Pixels](const FColor& Pixel)
+        { return Pixel != Pixels[0]; }))
+    {
+        UE_LOG(LogTemp, Error, TEXT("CreatureRender: %s produced a uniform image; capture rejected."), Definition->Name);
+        DestroyPreviewWorld();
+        return 7;
     }
 
     TArray64<uint8> PNG;
