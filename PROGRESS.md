@@ -23239,3 +23239,26 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Mireling behavior and authority remain unchanged.
 - **Known limitations:** No fresh four-angle render was produced in this run.
 - **Next eligible task:** None; all listed creature visual repairs are complete.
+
+## Run 2026-10-28 — Mosquito needle follow-up
+
+- **Selected increment:** Replace the Mosquito's triangular beak with a
+  pointed three-dimensional needle.
+- **Work completed:** Added a rounded head and paired eyes to each insect in
+  the swarm and replaced the blunt triangular front piece with an eight-sided
+  tapered needle rooted inside the head. Kept the wings, six-insect pattern,
+  colors, flight, and gameplay behavior unchanged. Updated the creature
+  description and checked off the visual repair.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Inspected the Mosquito presentation branch and confirmed the
+  pointed needle geometry starts inside the head and extends forward;
+  `git diff --check` passed. No build, render, or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** Each of the six cosmetic insects now has a distinct
+  tapered needle instead of the small flat triangular front shape.
+- **Networking/authority:** No gameplay, combat, or network state changed.
+  Mosquito behavior and authority remain unchanged.
+- **Known limitations:** No fresh four-angle render was produced in this run.
+- **Next eligible task:** None; all listed creature visual repairs are complete.

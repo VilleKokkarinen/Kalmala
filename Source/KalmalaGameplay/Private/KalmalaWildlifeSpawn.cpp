@@ -4816,6 +4816,50 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Thorax(0.31f, 0.23f, 0.12f);
         const FLinearColor Wing(0.66f, 0.71f, 0.59f);
         const FLinearColor Eye(0.78f, 0.20f, 0.08f);
+        const FLinearColor Needle(0.06f, 0.045f, 0.025f);
+        const auto AddNeedle = [&Vertices, &Triangles, &Normals, &UV, &Colors, Needle]
+            (const FVector& Root, const FVector& Tip, const float Radius)
+        {
+            constexpr int32 NeedleSides = 8;
+            const FVector Axis = (Tip - Root).GetSafeNormal();
+            if (Axis.IsNearlyZero() || Radius <= KINDA_SMALL_NUMBER) return;
+
+            FVector PerpendicularX = FVector::CrossProduct(Axis, FVector::UpVector).GetSafeNormal();
+            if (PerpendicularX.IsNearlyZero())
+                PerpendicularX = FVector::CrossProduct(Axis, FVector::ForwardVector).GetSafeNormal();
+            const FVector PerpendicularY = FVector::CrossProduct(Axis, PerpendicularX).GetSafeNormal();
+            TArray<FVector> BaseRing;
+            BaseRing.Reserve(NeedleSides);
+            for (int32 SideIndex = 0; SideIndex < NeedleSides; ++SideIndex)
+            {
+                const float Angle = 2.0f * PI * static_cast<float>(SideIndex)
+                    / static_cast<float>(NeedleSides);
+                BaseRing.Add(Root + Radius * (PerpendicularX * FMath::Cos(Angle)
+                    + PerpendicularY * FMath::Sin(Angle)));
+            }
+
+            for (int32 SideIndex = 0; SideIndex < NeedleSides; ++SideIndex)
+            {
+                FVector A = BaseRing[SideIndex];
+                FVector B = BaseRing[(SideIndex + 1) % NeedleSides];
+                FVector C = Tip;
+                FVector FaceNormal = FVector::CrossProduct(B - A, C - A).GetSafeNormal();
+                const FVector FaceCentre = (A + B + C) / 3.0f;
+                const FVector AxisPoint = Root + Axis * FVector::DotProduct(FaceCentre - Root, Axis);
+                if (FVector::DotProduct(FaceNormal, FaceCentre - AxisPoint) < 0.0f)
+                {
+                    Swap(B, C);
+                    FaceNormal *= -1.0f;
+                }
+
+                const int32 FirstVertex = Vertices.Num();
+                Vertices.Append({A, B, C});
+                Normals.Append({FaceNormal, FaceNormal, FaceNormal});
+                UV.Append({FVector2D::ZeroVector, FVector2D::ZeroVector, FVector2D::ZeroVector});
+                Colors.Append({Needle, Needle, Needle});
+                Triangles.Append({FirstVertex, FirstVertex + 2, FirstVertex + 1});
+            }
+        };
         for (int32 Insect = 0; Insect < 6; ++Insect)
         {
             const float Angle = (2.0f * PI * static_cast<float>(Insect)) / 6.0f;
@@ -4823,14 +4867,14 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 FMath::Sin(Angle * 2.0f) * 15.0f);
             AddEllipsoid(Centre, FVector(7.0f, 4.0f, 4.0f), Body);
             AddEllipsoid(Centre + FVector(-5.0f, 0.0f, 1.0f), FVector(4.0f, 3.0f, 3.0f), Thorax);
+            AddEllipsoid(Centre + FVector(7.0f, 0.0f, 1.0f), FVector(4.5f, 3.6f, 3.2f), Thorax);
             AddTetraPoints(Centre + FVector(-3.0f, -2.0f, 1.0f), Centre + FVector(3.0f, -3.0f, 1.0f),
                 Centre + FVector(-1.0f, -15.0f, 3.0f), Centre + FVector(2.0f, -13.0f, 0.0f), Wing);
             AddTetraPoints(Centre + FVector(-3.0f, 2.0f, 1.0f), Centre + FVector(3.0f, 3.0f, 1.0f),
                 Centre + FVector(-1.0f, 15.0f, 3.0f), Centre + FVector(2.0f, 13.0f, 0.0f), Wing);
-            AddTetraPoints(Centre + FVector(4.0f, -1.0f, 1.0f), Centre + FVector(11.0f, -1.0f, 1.0f),
-                Centre + FVector(9.0f, -2.5f, 3.0f), Centre + FVector(9.0f, 2.5f, 3.0f), Thorax);
-            AddTetraPoints(Centre + FVector(10.0f, -1.0f, 1.0f), Centre + FVector(13.0f, -1.0f, 1.0f),
-                Centre + FVector(12.0f, 0.0f, 2.5f), Centre + FVector(14.0f, 0.0f, 1.0f), Eye);
+            for (const float Side : {-1.0f, 1.0f})
+                AddEllipsoid(Centre + FVector(8.0f, Side * 3.0f, 2.0f), FVector(1.5f, 1.2f, 1.5f), Eye);
+            AddNeedle(Centre + FVector(10.0f, 0.0f, 1.0f), Centre + FVector(24.0f, 0.0f, -3.0f), 1.25f);
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)

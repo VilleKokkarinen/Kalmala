@@ -112,7 +112,8 @@ two Lingonberries, then applies the owner-only poison conversion and resistance
 status through the server draught transaction.
 Mosquito swarm now uses a 20% common share, and Peat Husk occupies the final
 10% hard slot. Its one actor carries six original cosmetic insect
-silhouettes; server flight checks dry Mossy Mire ground and blocking geometry,
+silhouettes with tapered 3D mouth needles; server flight checks dry Mossy Mire
+ground and blocking geometry,
 one swarm reserves each target, and accepted 5-Stab contacts every 0.2 seconds
 refresh the existing ten-second weak poison. Server-accepted dodges and visible
 active flames repel it; this adds no mosquito loot source. The planned 1% Dusk
