@@ -27,6 +27,22 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Wildlife model silhouette repair — 2026-10-28
+
+- **Selected task:** Replace triangle-built animal body masses that read as
+  unrelated wedges with recognizable rounded anatomy.
+- **Work completed:** Added low-poly ellipsoid surfaces with smooth vertex
+  normals for animal bodies and heads, and replaced overlapping tetrahedra on
+  boar, deer, rat, badger, bears, goat, wolf, lynx, snakes, reef maw, and
+  mosquito bodies. Retained angular geometry for species markings, limbs,
+  horns, antlers, fins, facial details, and attack cues. Updated the surface
+  checker to support mixed mesh shapes and documented the model contract.
+- **Checks:** Inspected generated surface winding, ellipsoid dimensions, and
+  remaining anatomy details; `git diff --check` passed. No build, tests, or
+  automation were run.
+- **Status:** Source implementation is complete; rendered appearance has not
+  been reviewed in the game.
+
 ### Meadows relief retune — 2026-10-27
 
 - **Selected task:** Apply a Valheim-informed Meadows height adjustment after

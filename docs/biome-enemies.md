@@ -630,6 +630,13 @@ membership; no silent fallback damage. Existing baseline material IDs reuse
 their icons; every approved new unique drop and future gem requires its own
 original generated icon and catalogue registration before its loot is enabled.
 
+Animal procedural models should use rounded, smoothly shaded torso and head
+volumes as their main masses. Keep tetrahedra for small readable anatomy and
+species details such as legs, hooves, horns, antlers, fins, eyes, markings, and
+attack-pose cues. Do not build the whole animal from separate angular masses;
+they read as scattered triangles at the gameplay camera distance. Purposefully
+rock-like and root-like creatures retain their angular forms.
+
 Use lightweight checks for normal increments. Before A8a is accepted, run the
 applicable full build, automation, biome/population, combat, peer/privacy and
 restart checks from [development setup](07-development-setup.md). Record exact

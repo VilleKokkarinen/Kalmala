@@ -3766,13 +3766,90 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             const int32 FirstVertex = Vertices.Num();
             // Keep outward normals; reverse only indices for Unreal's clockwise front faces.
             Triangles.Append({FirstVertex, FirstVertex + 2, FirstVertex + 1});
-            for (const int32 Vertex : OutwardFace) { Vertices.Add(Points[Vertex]); Normals.Add(Normal); UV.Add(FVector2D::ZeroVector); Colors.Add(Colour); }
+            for (const int32 Vertex : OutwardFace)
+            {
+                Vertices.Add(Points[Vertex]);
+                Normals.Add((Points[Vertex] - Centroid).GetSafeNormal());
+                UV.Add(FVector2D::ZeroVector);
+                Colors.Add(Colour);
+            }
         }
     };
     const auto AddTetra = [&AddTetraPoints](const FVector Centre, const FVector Extent, const FLinearColor Colour)
     {
         AddTetraPoints(Centre + FVector(-Extent.X,-Extent.Y,0), Centre + FVector(Extent.X,-Extent.Y,0),
             Centre + FVector(0,Extent.Y,0), Centre + FVector(0,0,Extent.Z), Colour);
+    };
+    // Rounded masses establish recognizable animal anatomy; angular solids below remain for
+    // small features such as antlers, claws, fins, facial markings, and pose cues.
+    const auto AddEllipsoid = [&Vertices, &Triangles, &Normals, &UV, &Colors](const FVector Centre,
+        const FVector Radii, const FLinearColor Colour)
+    {
+        constexpr int32 LongitudeSegments = 8;
+        constexpr int32 LatitudeSegments = 5;
+        if (Radii.X <= KINDA_SMALL_NUMBER || Radii.Y <= KINDA_SMALL_NUMBER
+            || Radii.Z <= KINDA_SMALL_NUMBER) return;
+
+        TArray<TArray<FVector>> Rings;
+        Rings.SetNum(LatitudeSegments - 1);
+        for (int32 LatitudeIndex = 1; LatitudeIndex < LatitudeSegments; ++LatitudeIndex)
+        {
+            const float Latitude = -0.5f * PI + PI * static_cast<float>(LatitudeIndex)
+                / static_cast<float>(LatitudeSegments);
+            const float RingRadius = FMath::Cos(Latitude);
+            TArray<FVector>& Ring = Rings[LatitudeIndex - 1];
+            Ring.Reserve(LongitudeSegments);
+            for (int32 LongitudeIndex = 0; LongitudeIndex < LongitudeSegments; ++LongitudeIndex)
+            {
+                const float Longitude = 2.0f * PI * static_cast<float>(LongitudeIndex)
+                    / static_cast<float>(LongitudeSegments);
+                Ring.Add(Centre + FVector(Radii.X * RingRadius * FMath::Cos(Longitude),
+                    Radii.Y * RingRadius * FMath::Sin(Longitude), Radii.Z * FMath::Sin(Latitude)));
+            }
+        }
+
+        const auto AddSurfaceTriangle = [&Vertices, &Triangles, &Normals, &UV, &Colors, Centre, Radii, Colour]
+            (FVector A, FVector B, FVector C)
+        {
+            const auto EllipsoidNormal = [Centre, Radii](const FVector& Position)
+            {
+                return FVector((Position.X - Centre.X) / FMath::Square(Radii.X),
+                    (Position.Y - Centre.Y) / FMath::Square(Radii.Y),
+                    (Position.Z - Centre.Z) / FMath::Square(Radii.Z)).GetSafeNormal();
+            };
+            const FVector FaceNormal = FVector::CrossProduct(B - A, C - A).GetSafeNormal();
+            if (FVector::DotProduct(FaceNormal, EllipsoidNormal((A + B + C) / 3.0f)) < 0.0f)
+                Swap(B, C);
+
+            const int32 FirstVertex = Vertices.Num();
+            Vertices.Append({A, B, C});
+            Normals.Append({EllipsoidNormal(A), EllipsoidNormal(B), EllipsoidNormal(C)});
+            UV.Append({FVector2D::ZeroVector, FVector2D::ZeroVector, FVector2D::ZeroVector});
+            Colors.Append({Colour, Colour, Colour});
+            Triangles.Append({FirstVertex, FirstVertex + 2, FirstVertex + 1});
+        };
+
+        const FVector SouthPole = Centre + FVector(0.0f, 0.0f, -Radii.Z);
+        const FVector NorthPole = Centre + FVector(0.0f, 0.0f, Radii.Z);
+        for (int32 LongitudeIndex = 0; LongitudeIndex < LongitudeSegments; ++LongitudeIndex)
+        {
+            const int32 NextLongitude = (LongitudeIndex + 1) % LongitudeSegments;
+            AddSurfaceTriangle(SouthPole, Rings[0][LongitudeIndex], Rings[0][NextLongitude]);
+            AddSurfaceTriangle(Rings.Last()[LongitudeIndex], NorthPole, Rings.Last()[NextLongitude]);
+        }
+        for (int32 RingIndex = 0; RingIndex < Rings.Num() - 1; ++RingIndex)
+        {
+            for (int32 LongitudeIndex = 0; LongitudeIndex < LongitudeSegments; ++LongitudeIndex)
+            {
+                const int32 NextLongitude = (LongitudeIndex + 1) % LongitudeSegments;
+                const FVector& A = Rings[RingIndex][LongitudeIndex];
+                const FVector& B = Rings[RingIndex][NextLongitude];
+                const FVector& C = Rings[RingIndex + 1][LongitudeIndex];
+                const FVector& D = Rings[RingIndex + 1][NextLongitude];
+                AddSurfaceTriangle(A, B, C);
+                AddSurfaceTriangle(B, D, C);
+            }
+        }
     };
     if (Archetype == EKalmalaWildlifeArchetype::Boar)
     {
@@ -3783,10 +3860,10 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Tusk(0.82f, 0.75f, 0.57f);
         const FLinearColor Eye(0.055f, 0.035f, 0.02f);
 
-        // A low, wedge-backed mass gives the boar a distinct profile from the taller deer.
-        AddTetraPoints(FVector(-108,-42,-2), FVector(-108,42,-2), FVector(48,0,8), FVector(-34,0,68), BoarHide);
-        AddTetraPoints(FVector(-72,-43,0), FVector(-72,43,0), FVector(40,0,13), FVector(-27,0,79), BoarShoulder);
-        AddTetraPoints(FVector(17,-31,12), FVector(17,31,12), FVector(96,0,6), FVector(54,0,53), BoarHide);
+        AddEllipsoid(FVector(-30, 0, 30), FVector(80, 44, 50), BoarHide);
+        AddEllipsoid(FVector(76, 0, 25), FVector(37, 22, 22), BoarHide);
+        AddEllipsoid(FVector(-25, 0, 67), FVector(45, 39, 20), BoarShoulder);
+        // A low barrel body, short legs, and coarse bristles distinguish the boar from the deer.
         AddTetraPoints(FVector(87,-20,10), FVector(87,20,10), FVector(145,0,1), FVector(104,0,31), Muzzle);
 
         // Four compact legs keep the belly close to the ground without extending below the old mesh.
@@ -3825,9 +3902,9 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Antler(0.73f, 0.60f, 0.39f);
         const FLinearColor Eye(0.07f, 0.045f, 0.025f);
 
-        // A narrow raised shoulder and long legs give the wary herd animal a light, alert outline.
-        AddTetraPoints(FVector(-104,-24,9), FVector(-104,24,9), FVector(5,-22,27), FVector(-49,0,72), DeerHide);
-        AddTetraPoints(FVector(-55,-25,13), FVector(-55,25,13), FVector(52,-16,35), FVector(12,0,78), DeerShoulder);
+        AddEllipsoid(FVector(-34, 0, 40), FVector(88, 31, 45), DeerHide);
+        AddEllipsoid(FVector(107, 0, 98), FVector(30, 16, 20), DeerHide);
+        // A raised neck, long legs, and antlers give the herd animal a light, alert outline.
         for (const float Side : {-1.0f, 1.0f})
         {
             AddTetraPoints(FVector(-99,Side * 22.0f,29), FVector(-85,Side * 24.0f,28),
@@ -3880,10 +3957,10 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Eye(0.035f, 0.022f, 0.015f);
         const FLinearColor Tooth(0.92f, 0.86f, 0.70f);
 
+        AddEllipsoid(FVector(-15, 0, 24), FVector(47, 24, 22), Fur);
+        AddEllipsoid(FVector(43, 0, 25), FVector(25, 16, 15), Fur);
         // Low oval body, long bare tail and large ears keep the tiny scavenger distinct from the herd.
-        AddTetraPoints(FVector(-58,-22,10), FVector(-58,22,10), FVector(28,-17,10), FVector(-10,0,40), FurDark);
-        AddTetraPoints(FVector(-48,-20,12), FVector(-48,20,12), FVector(24,-15,12), FVector(-8,0,bTelegraph ? 46.0f : 38.0f), Fur);
-        AddTetraPoints(FVector(-36,-9,13), FVector(-36,9,13), FVector(18,-6,15), FVector(-9,0,24), Belly);
+        AddEllipsoid(FVector(-10, 0, 15), FVector(27, 13, 7), Belly);
         for (const float Side : {-1.0f, 1.0f})
         {
             AddTetraPoints(FVector(-38,Side * 14,6), FVector(-26,Side * 18,6), FVector(-28,Side * 13,22), FVector(-18,Side * 14,18), FurDark);
@@ -3913,14 +3990,10 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Claw(0.82f, 0.74f, 0.57f);
         const FLinearColor Eye(0.035f, 0.024f, 0.018f);
 
+        AddEllipsoid(FVector(-20, 0, 48), FVector(82, 40, 43), Coat);
+        AddEllipsoid(FVector(59, 0, 53), FVector(29, 20, 19), CoatLight);
         // A low, broad back and white facial stripe make the territorial badger
         // distinct from the Meadow rat and the taller forest deer.
-        AddTetraPoints(FVector(-88,-37,13), FVector(-88,37,13), FVector(17,-31,22),
-            FVector(-35,0,bWarning ? 76.0f : 63.0f), Coat);
-        AddTetraPoints(FVector(-63,-31,24), FVector(-63,31,24), FVector(6,-26,31),
-            FVector(-31,0,bWarning ? 88.0f : 76.0f), CoatLight);
-        AddTetraPoints(FVector(4,-26,24), FVector(4,26,24), FVector(50,-18,35),
-            FVector(34,0,bWarning ? 89.0f : 72.0f), Coat);
         AddTetraPoints(FVector(35,-17,28), FVector(35,17,28), FVector(76,-12,38),
             FVector(64,0,bWarning ? 79.0f : 65.0f), Muzzle);
         AddTetraPoints(FVector(59,-8,bWarning ? 48.0f : 43.0f),
@@ -3961,15 +4034,9 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Warning(0.96f, 0.68f, 0.20f);
         const FLinearColor Eye(0.045f, 0.025f, 0.012f);
 
+        AddEllipsoid(FVector(-23, 0, 72), FVector(112, 55, 81), Coat);
+        AddEllipsoid(FVector(112, 0, bWarning ? 104.0f : 87.0f), FVector(37, 27, 31), Shoulder);
         // A broad hump, barrel body, round ears and heavy paws keep the bear distinct from the low badger.
-        AddTetraPoints(FVector(-116,-43,4), FVector(-116,43,4), FVector(27,-49,14),
-            FVector(-43,0,132), Coat);
-        AddTetraPoints(FVector(-67,-45,38), FVector(-67,45,38), FVector(52,-47,41),
-            FVector(-16,0,151), Shoulder);
-        AddTetraPoints(FVector(34,-45,30), FVector(34,45,30), FVector(98,-32,51),
-            FVector(72,0,128), Coat);
-        AddTetraPoints(FVector(72,-27,49), FVector(72,27,49), FVector(127,-16,57),
-            FVector(105,0,bWarning ? 132.0f : 108.0f), Shoulder);
         AddTetraPoints(FVector(111,-16,48), FVector(111,16,48), FVector(150,-10,52),
             FVector(137,0,78), Muzzle);
 
@@ -4016,18 +4083,11 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Eye(0.10f, 0.09f, 0.08f);
         const float HeadX = bCharging ? 148.0f : 128.0f;
         const float HeadZ = bWarning ? 109.0f : (bRetreating ? 128.0f : 139.0f);
-        const float ShoulderZ = bWarning ? 101.0f : (bCharging ? 119.0f : 111.0f);
 
+        AddEllipsoid(FVector(-14, 0, 105), FVector(122, 66, 66), SnowCoat);
+        AddEllipsoid(FVector(HeadX - 7.0f, 0, HeadZ - 5.0f), FVector(47, 34, 34), Cream);
         // Broad shoulders, pale coat and long muzzle distinguish the original
         // Tundra charger from the smaller Elderwood Moon Bear.
-        AddTetraPoints(FVector(-111,-42,50), FVector(-111,42,50),
-            FVector(66,-58,54), FVector(58,58,54), ShadowCoat);
-        AddTetraPoints(FVector(-95,-50,86), FVector(-95,50,86),
-            FVector(39,-61,ShoulderZ), FVector(39,61,ShoulderZ), SnowCoat);
-        AddTetraPoints(FVector(-65,-47,116), FVector(-65,47,116),
-            FVector(37,-48,155), FVector(37,48,155), Cream);
-        AddTetraPoints(FVector(14,-46,107), FVector(14,46,107),
-            FVector(100,-38,132), FVector(100,38,132), SnowCoat);
         AddTetraPoints(FVector(HeadX - 35.0f,-29,HeadZ - 20.0f),
             FVector(HeadX - 35.0f,29,HeadZ - 20.0f),
             FVector(HeadX + 9.0f,-27,HeadZ + 8.0f),
@@ -4102,12 +4162,10 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Eye(0.95f, 0.58f, 0.12f);
         const float HeadZ = bWarning ? 49.0f : 65.0f;
 
+        AddEllipsoid(FVector(-20, 0, 48), FVector(70, 36, 43), Coat);
+        AddEllipsoid(FVector(85, 0, HeadZ - 8.0f), FVector(30, 19, 23), CoatLight);
         // A compact ridged body, split hooves, beard and swept-back paired horns
         // identify the Mountain goat; its lowered warning pose precedes the charge.
-        AddTetraPoints(FVector(-84,-32,12), FVector(-84,32,12), FVector(36,-31,18),
-            FVector(-26,0,bWarning ? 74.0f : 69.0f), Coat);
-        AddTetraPoints(FVector(-53,-27,30), FVector(-53,27,30), FVector(7,-27,31),
-            FVector(-18,0,88.0f), CoatLight);
         AddTetraPoints(FVector(2,-27,19), FVector(2,27,19), FVector(54,-22,34),
             FVector(35,0,77.0f), Neck);
         AddTetraPoints(FVector(36,-20,28), FVector(36,20,28), FVector(83,-15,36),
@@ -4221,6 +4279,9 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Eye = bWarning ? FLinearColor(1.0f, 0.59f, 0.12f)
             : FLinearColor(0.46f, 0.93f, 0.84f);
         const float JawDrop = bBiting ? -25.0f : (bWarning ? -8.0f : 0.0f);
+        AddEllipsoid(FVector(-18, 0, 17), FVector(137, 62, 42), ReefBack);
+        AddEllipsoid(FVector(-24, 0, 47), FVector(88, 48, 20), ReefLight);
+        AddEllipsoid(FVector(-20, 0, -9), FVector(96, 50, 20), FLinearColor(0.24f,0.53f,0.52f));
 
         // Original deep-bodied reef predator with a forked tail, coral ridges,
         // angular fins, and a warning-to-bite jaw pose.
@@ -4228,14 +4289,6 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             FVector(-205,-52,4), FVector(-205,52,4), ReefShadow);
         AddTetraPoints(FVector(-205,-52,4), FVector(-205,52,4),
             FVector(-239,-40,14), FVector(-239,40,14), ReefLight);
-        AddTetraPoints(FVector(-146,-52,14), FVector(-146,52,14),
-            FVector(92,-61,25), FVector(92,61,25), ReefBack);
-        AddTetraPoints(FVector(-132,-58,-15), FVector(-132,58,-15),
-            FVector(104,-48,-13), FVector(104,48,-13), ReefShadow);
-        AddTetraPoints(FVector(-118,-49,26), FVector(-118,49,26),
-            FVector(72,-51,46), FVector(72,51,46), ReefLight);
-        AddTetraPoints(FVector(-85,-48,-14), FVector(-85,48,-14),
-            FVector(66,-42,3), FVector(66,42,3), FLinearColor(0.24f,0.53f,0.52f));
         AddTetraPoints(FVector(47,-43,21), FVector(47,43,21),
             FVector(137,-27,14), FVector(137,27,14), ReefLight);
         AddTetraPoints(FVector(91,-33,5), FVector(91,33,5),
@@ -4280,14 +4333,11 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const float HeadX = bLunging ? 153.0f : 132.0f;
         const float HeadZ = bTelegraph ? 83.0f : (bLunging ? 43.0f : 68.0f);
 
+        AddEllipsoid(FVector(-16, 0, 62), FVector(101, 47, 55), WinterCoat);
+        AddEllipsoid(FVector(HeadX - 8.0f, 0, HeadZ - 5.0f), FVector(35, 23, 25), WinterCoat);
         // Long muzzle, high shoulders, winter mantle, and bushy tail give the Tundra predator
         // a distinct four-legged silhouette. Telegraph and lunge cues change its readable pose.
-        AddTetraPoints(FVector(-102,-42,13), FVector(-102,42,13), FVector(45,-41,20),
-            FVector(-31,0,bTelegraph ? 91.0f : 80.0f), WinterCoat);
-        AddTetraPoints(FVector(-63,-35,31), FVector(-63,35,31), FVector(19,-32,41),
-            FVector(-26,0,bTelegraph ? 111.0f : 96.0f), Mantle);
-        AddTetraPoints(FVector(7,-30,32), FVector(7,30,32), FVector(75,-22,37),
-            FVector(48,0,bTelegraph ? 88.0f : (bLunging ? 49.0f : 74.0f)), WinterCoat);
+        AddEllipsoid(FVector(-31, 0, bTelegraph ? 100.0f : 93.0f), FVector(57, 40, 22), Mantle);
         AddTetraPoints(FVector(44,-23,48), FVector(44,23,48), FVector(HeadX - 19.0f,-15,HeadZ + 6.0f),
             FVector(HeadX - 19.0f,15,HeadZ + 6.0f), Throat);
         AddTetraPoints(FVector(HeadX - 30.0f,-17,HeadZ), FVector(HeadX - 30.0f,17,HeadZ),
@@ -4347,14 +4397,11 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const float HeadX = bLeaping ? 139.0f : 122.0f;
         const float HeadZ = bTelegraph ? 56.0f : (bLeaping ? 82.0f : 72.0f);
 
+        AddEllipsoid(FVector(-14, 0, 47), FVector(88, 38, 43), SnowCoat);
+        AddEllipsoid(FVector(HeadX - 6.0f, 0, HeadZ - 5.0f), FVector(32, 24, 25), SnowCoat);
         // A compact spotted body, cheek ruffs, short tail and tufted ears distinguish
         // this Tundra pouncer from the longer, darker Wolf.
-        AddTetraPoints(FVector(-91,-34,8), FVector(-91,34,8), FVector(39,-31,13),
-            FVector(-25,0,bTelegraph ? 54.0f : (bLeaping ? 72.0f : 68.0f)), SnowCoat);
-        AddTetraPoints(FVector(-60,-31,25), FVector(-60,31,25), FVector(20,-27,31),
-            FVector(-24,0,bTelegraph ? 66.0f : 83.0f), BackCoat);
-        AddTetraPoints(FVector(10,-26,22), FVector(10,26,22), FVector(71,-20,31),
-            FVector(51,0,bLeaping ? 75.0f : 62.0f), SnowCoat);
+        AddEllipsoid(FVector(-29, 0, bTelegraph ? 73.0f : 81.0f), FVector(49, 30, 14), BackCoat);
         AddTetraPoints(FVector(43,-22,43), FVector(43,22,43), FVector(HeadX - 18.0f,-15,HeadZ + 3.0f),
             FVector(HeadX - 18.0f,15,HeadZ + 3.0f), Cream);
         AddTetraPoints(FVector(HeadX - 23.0f,-16,HeadZ), FVector(HeadX - 23.0f,16,HeadZ),
@@ -4449,9 +4496,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             const float SegmentHalf = bGiant ? 16.0f : (bDeathAdder ? 11.0f : 9.0f);
             const float Radius = BodyRadius * (0.72f + 0.28f * FMath::Sin(T * PI));
             const FLinearColor BodyColour = Segment % 3 == 1 ? ScaleDark : ScaleBase;
-            AddTetraPoints(FVector(X - SegmentHalf, Curve - Radius, Z),
-                FVector(X - SegmentHalf, Curve + Radius, Z), FVector(X + SegmentHalf, Curve, Z + Radius * 0.45f),
-                FVector(X, Curve, Z + Radius), BodyColour);
+            AddEllipsoid(FVector(X, Curve, Z + Radius * 0.2f),
+                FVector(SegmentHalf * 1.65f, Radius, Radius * 0.78f), BodyColour);
             if (Segment % 2 == 0)
             {
                 // Repeated diamond plates give the larger shoreline ambusher its own scale pattern.
@@ -4464,6 +4510,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
 
         const float NeckX = HalfLength * 0.60f;
         const float HeadZ = bCoiled ? HeadHeight : HeadHeight * 0.78f;
+        AddEllipsoid(FVector(NeckX + BodyRadius * 2.35f, 0.0f, HeadZ),
+            FVector(BodyRadius * 1.2f, BodyRadius * 0.72f, BodyRadius * 0.82f), ScaleBase);
         AddTetraPoints(FVector(NeckX - BodyRadius, -BodyRadius, BodyRadius * 0.4f),
             FVector(NeckX - BodyRadius, BodyRadius, BodyRadius * 0.4f),
             FVector(NeckX + BodyRadius * 1.4f, -BodyRadius * 0.55f, HeadZ - BodyRadius),
@@ -4491,8 +4539,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             const float Angle = (2.0f * PI * static_cast<float>(Insect)) / 6.0f;
             const FVector Centre(FMath::Cos(Angle) * 34.0f, FMath::Sin(Angle) * 34.0f,
                 FMath::Sin(Angle * 2.0f) * 15.0f);
-            AddTetraPoints(Centre + FVector(-7.0f, 0.0f, 0.0f), Centre + FVector(5.0f, 0.0f, 0.0f),
-                Centre + FVector(-1.0f, -2.5f, 0.0f), Centre + FVector(-1.0f, 2.5f, 0.0f), Body);
+            AddEllipsoid(Centre, FVector(7.0f, 4.0f, 4.0f), Body);
+            AddEllipsoid(Centre + FVector(-5.0f, 0.0f, 1.0f), FVector(4.0f, 3.0f, 3.0f), Thorax);
             AddTetraPoints(Centre + FVector(-3.0f, -2.0f, 1.0f), Centre + FVector(3.0f, -3.0f, 1.0f),
                 Centre + FVector(-1.0f, -15.0f, 3.0f), Centre + FVector(2.0f, -13.0f, 0.0f), Wing);
             AddTetraPoints(Centre + FVector(-3.0f, 2.0f, 1.0f), Centre + FVector(3.0f, 3.0f, 1.0f),

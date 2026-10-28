@@ -1,3 +1,32 @@
+## Wildlife model silhouette repair — 2026-10-28
+
+- **Selected task:** Replace animal body masses assembled from separate
+  tetrahedra, which read as scattered triangles, with recognizable rounded
+  anatomy.
+- **Work completed:** Added a low-poly ellipsoid surface helper with smooth
+  analytic vertex normals. Rebuilt the main body masses of boar, deer, rat,
+  badger, Moon Bear, Polar Bear, Horned Goat, wolf, lynx, snakes, Reef Maw and
+  mosquitoes, retaining angular forms for anatomy, markings, and attack cues.
+  Updated the procedural surface checker and the animal appearance contract.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/biome-enemies.md`,
+  `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`, and
+  `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp`.
+- **Lightweight checks:** Reviewed triangle winding, generated ellipsoid
+  normals/dimensions, and remaining species details; `git diff --check` passed.
+  No Unreal build, tests, or automation were run.
+- **Full verification:** Deferred. No rendered in-game review was performed.
+- **Observable impact:** Common animal forms now start from rounded bodies and
+  heads instead of stacked tetrahedral masses; distinct markings and pose
+  details remain.
+- **Networking/authority:** Presentation-only geometry change. Server-owned
+  attack cues and replicated archetype selection are unchanged.
+- **Known limitations / remaining scope:** The model appearance and silhouette
+  at gameplay distance need confirmation in a rendered scene; this increment
+  has only source-level inspection.
+- **Next eligible task:** Build and inspect the animal models in a representative
+  rendered gameplay scene, then adjust any species whose silhouette still reads
+  poorly.
+
 ## Inventory drag and drop — 2026-10-28
 
 - **Selected task:** Allow inventory items to be dragged to another grid cell
