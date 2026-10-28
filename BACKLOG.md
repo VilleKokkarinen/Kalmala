@@ -11,7 +11,7 @@
     silhouette.
   - [x] Death Adder: lower and connect the head to the coiled body.
   - [x] Viper: lower and connect the head to the coiled body.
-  - [ ] Giant Snake: lower and connect the head to the coiled body.
+  - [x] Giant Snake: lower and connect the head to the coiled body.
   - [ ] Wolf: connect the head, tail, and feet to the torso.
   - [ ] Lynx: connect the head, tail, and feet to the torso.
   - [ ] Polar Bear: give the head and short legs a connected, heavier shape.

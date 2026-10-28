@@ -57,8 +57,9 @@ Fang rewards share a durable authenticated-owner claim in the same
 population-save escrow, and the server commits them together. Fang Arrows remain
 a separate A8b output task. Giant Snake
 (250 health, 30 armor, 100 Stab) fills the remaining seeded 10%
-Shimmering Lakes slot on dry shoreline and uses a server-owned, one-second
-telegraphed lunge with a 1.2-second recovery. Each credited defeat queues two
+Shimmering Lakes slot on dry shoreline and has a heavy coil with a broad,
+connected neck and lowered head. Its server-owned, one-second telegraphed lunge
+has a 1.2-second recovery. Each credited defeat queues two
 Bone Fragments and two guaranteed Giant Scales in the same authenticated,
 owner-bound population-save claim; the server commits the full bundle together.
 It does not apply poison. The 150 m generated-start exclusion applies to this
