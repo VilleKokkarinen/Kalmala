@@ -43,8 +43,10 @@ Fur, and Badger Meat reward bundle is saved against the credited attacker's
 authenticated identity and delivered atomically when their pack can accept it;
 unclaimed rewards retry after reconnect or restart. Moon Bear (250 health, 20
 armor, 75 Crush) occupies the seeded 10% Elderwood hard-enemy share, has a
-server-owned 220 cm overhead paw strike and queues three Bone Fragments for its
-credited attacker in the existing population-save escrow. The separate A9
+heavy original silhouette with overlapping shoulders, head, stout legs, and
+broad paws, and has a server-owned 220 cm overhead paw strike. It queues three
+Bone Fragments for its credited attacker in the existing population-save
+escrow. The separate A9
 Moonstone source is not enabled here. The server-side stat lookup covers all 17
 reviewed A8a profiles. Viper (100 health, 10 armor, 50 Stab) occupies the seeded
 40% Shimmering Lakes share, is filtered to eligible dry shoreline, and uses the

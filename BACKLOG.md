@@ -7,7 +7,7 @@
     clarify the snout, eyes, ears, and short bristle ridge.
   - [x] Badger: join the narrow head and legs to its low body and make the
     facial stripe visible.
-  - [ ] Moon Bear: connect its head and feet to the body with a heavier bear
+  - [x] Moon Bear: connect its head and feet to the body with a heavier bear
     silhouette.
   - [ ] Death Adder: lower and connect the head to the coiled body.
   - [ ] Viper: lower and connect the head to the coiled body.

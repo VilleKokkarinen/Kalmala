@@ -22943,3 +22943,29 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Lynx, Polar Bear, and Horned Goat remain queued for individual review.
 - **Next eligible task:** Repair the Moon Bear silhouette, connecting its head
   and feet to the body with a heavier bear shape.
+
+## Run 2026-10-28 — Four-view creature review: Moon Bear
+
+- **Selected increment:** Connect the Moon Bear's head and feet to the body
+  with a heavier bear silhouette.
+- **Work completed:** Rebuilt the barrel and shoulders as overlapping rounded
+  masses, joined the head and blunt muzzle, and replaced its needle-like legs
+  with stout legs, broad paws, and small claws. Preserved the lifted forepaw
+  cue for its overhead strike warning.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature MoonBear -Output
+  "$env:TEMP\kmcreature\review\MoonBear-final.png" -BuildModules` compiled
+  the Editor target successfully in four actions and rendered a 2564×1924
+  sheet (1280×960 per view). Visually inspected all four angles.
+  `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Moon Bear now reads as a heavy quadruped with an
+  integrated head, connected limbs, and broad paws across the four views.
+- **Networking/authority:** No gameplay, combat, or network state changed. The
+  server-owned overhead paw strike and warning cue are unchanged.
+- **Known limitations:** Death Adder, Viper, Giant Snake, Wolf, Lynx, Polar
+  Bear, and Horned Goat remain queued for individual review.
+- **Next eligible task:** Lower the Death Adder's head and connect it to its
+  coiled body.

@@ -4091,40 +4091,36 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Warning(0.96f, 0.68f, 0.20f);
         const FLinearColor Eye(0.045f, 0.025f, 0.012f);
 
-        AddEllipsoid(FVector(-23, 0, 72), FVector(112, 55, 81), Coat);
-        AddEllipsoid(FVector(112, 0, bWarning ? 104.0f : 87.0f), FVector(37, 27, 31), Shoulder);
-        // A broad hump, barrel body, round ears and heavy paws keep the bear distinct from the low badger.
-        AddTetraPoints(FVector(111,-16,48), FVector(111,16,48), FVector(150,-10,52),
-            FVector(137,0,78), Muzzle);
+        AddEllipsoid(FVector(-26, 0, 55), FVector(116, 61, 65), Coat);
+        AddEllipsoid(FVector(44, 0, 61), FVector(82, 60, 65), Coat);
+        const float HeadZ = bWarning ? 96.0f : 81.0f;
+        AddEllipsoid(FVector(94, 0, HeadZ), FVector(48, 40, 41), Shoulder);
+        AddEllipsoid(FVector(135, 0, HeadZ - 20.0f), FVector(31, 27, 21), Muzzle);
+        AddEllipsoid(FVector(160, 0, HeadZ - 18.0f), FVector(9, 15, 11), Eye);
 
         for (const float Side : {-1.0f, 1.0f})
         {
-            // Thick legs end in pale hooked claws; the near paw lifts high before the overhead strike.
+            AddEllipsoid(FVector(66, Side * 31.0f, HeadZ + 25.0f), FVector(13, 11, 14), Coat);
+            AddEllipsoid(FVector(111, Side * 34.0f, HeadZ - 3.0f), FVector(5, 4, 5), Eye);
+
+            // Rounded legs meet broad paws; the near forepaw lifts for the overhead strike.
             for (const float LegX : {-72.0f, 42.0f})
             {
                 const bool bRaisedPaw = bWarning && LegX > 0.0f && Side < 0.0f;
-                const float PawX = bRaisedPaw ? 121.0f : LegX + 21.0f;
-                const float PawY = Side * (bRaisedPaw ? 43.0f : 45.0f);
-                const float PawZ = bRaisedPaw ? 117.0f : -49.0f;
-                AddTetraPoints(FVector(LegX - 21.0f, Side * 33.0f, -51.0f),
-                    FVector(LegX - 21.0f, Side * 55.0f, -51.0f),
-                    FVector(LegX + 12.0f, Side * 34.0f, 30.0f),
-                    FVector(LegX + 18.0f, Side * 52.0f, 38.0f), Coat);
-                AddTetraPoints(FVector(LegX + 6.0f, Side * 34.0f, -48.0f),
-                    FVector(LegX + 6.0f, Side * 52.0f, -48.0f),
-                    FVector(PawX, PawY - 10.0f, PawZ), FVector(PawX, PawY + 10.0f, PawZ + 12.0f),
-                    bRaisedPaw ? Warning : Shoulder);
-                if (!bRaisedPaw)
+                const float LegY = Side * 46.0f;
+                const float PawX = bRaisedPaw ? 105.0f : LegX + 15.0f;
+                if (bRaisedPaw)
                 {
-                    AddTetraPoints(FVector(PawX - 5.0f, PawY - 8.0f, -48.0f),
-                        FVector(PawX - 5.0f, PawY + 8.0f, -48.0f),
-                        FVector(PawX + 11.0f, PawY, -54.0f), FVector(PawX + 9.0f, PawY, -49.0f), Claw);
+                    AddEllipsoid(FVector(76, LegY, 66), FVector(27, 24, 43), Coat);
+                    AddEllipsoid(FVector(PawX, LegY, 106), FVector(31, 27, 22), Warning);
+                }
+                else
+                {
+                    AddEllipsoid(FVector(LegX, LegY, -2), FVector(29, 25, 43), Coat);
+                    AddEllipsoid(FVector(PawX, LegY, -42), FVector(36, 30, 14), Shoulder);
+                    AddEllipsoid(FVector(PawX + 28.0f, LegY, -51), FVector(9, 6, 4), Claw);
                 }
             }
-            AddTetraPoints(FVector(119,Side * 13.0f,78), FVector(127,Side * 14.0f,78),
-                FVector(123,Side * 23.0f,92), FVector(115,Side * 22.0f,90), Coat);
-            AddTetraPoints(FVector(135,Side * 10.0f,78), FVector(142,Side * 9.0f,77),
-                FVector(140,Side * 14.0f,81), FVector(137,Side * 11.0f,83), Eye);
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PolarBear)
