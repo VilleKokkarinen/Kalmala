@@ -35,8 +35,8 @@ struct FKalmalaRegionalTuning
     static constexpr uint64 ForestCandidateGeometrySalt = 0x4B414C4D414C4109ull;
     // Provisional density relative to the existing forest Flora curve; BH25 finalizes this trial.
     static constexpr float FreezingTundraForestDensityMultiplier = 0.85f;
-    // Valheim-informed shared Elderwood/Tundra broad relief; fresh profiles pending.
-    static constexpr double ElderwoodBroadAmplitude = 2000.0;
+    // User-directed Elderwood/Tundra headroom above the Meadow shoulder cap; profiles pending.
+    static constexpr double ElderwoodBroadAmplitude = 6000.0;
     static constexpr double ElderwoodMiddleAmplitude = 60.0;
     static constexpr double ElderwoodLocalAmplitude = 10.0;
     // Provisional Shimmering Lakes shoulder/low-pocket trials, centimetres

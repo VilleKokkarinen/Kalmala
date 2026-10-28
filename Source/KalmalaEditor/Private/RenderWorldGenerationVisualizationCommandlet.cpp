@@ -461,7 +461,7 @@ int32 URenderWorldGenerationVisualizationCommandlet::Main(const FString& Params)
                 : bHasElderwoodMiddleAmplitude ? &ElderwoodMiddleAmplitudeText : &ElderwoodLocalAmplitudeText;
             const double MinimumM = bHasElderwoodBroadAmplitude ? 4.0
                 : bHasElderwoodMiddleAmplitude ? 0.6 : 0.1;
-            const double MaximumM = bHasElderwoodBroadAmplitude ? 20.0
+            const double MaximumM = bHasElderwoodBroadAmplitude ? 60.0
                 : bHasElderwoodMiddleAmplitude ? 4.0 : 1.0;
             if (!LexTryParseString(ElderwoodAmplitudeM, **AmplitudeText) || !FMath::IsFinite(ElderwoodAmplitudeM)
                 || ElderwoodAmplitudeM < MinimumM || ElderwoodAmplitudeM > MaximumM)

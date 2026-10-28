@@ -359,11 +359,12 @@ Elderwood and Tundra share the same uncompressed candidate over the absolute-
 world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. BH25b2
 historically measured broad/middle/local amplitudes of 4 / 0.6 / 0.1 m in
 fresh-source one-layer trials spanning 4–16 / 0.6–4 / 0.1–1 m. The current
-Valheim-informed follow-up raises only the broad amplitude to 20 m, matching
-the Black Forest detail coefficient's nominal ±20 m contribution after
-Valheim's height multiplier. This 20 m setting is outside the earlier sweep
-and still needs fresh profiles and rendered acceptance. On the historical
-selected trials,
+user-directed follow-up raises only the broad amplitude to 60 m at the existing
+1 km scale. Meadow height asymptotically approaches 60 m; positive source
+height plus a positive Elderwood/Tundra broad-noise sample can now exceed that
+ceiling. This setting is beyond both the historical 4–16 m sweep and the prior
+20 m retune, and still needs fresh profiles and rendered acceptance. On the
+historical selected trials,
 the six dry 100 m profile ranges (min/mean/max, cm) were 62.59/212.16/561.43
 (broad), 33.58/194.91/557.29 (middle), and 33.77/176.00/519.75 (local); the
 corresponding collision-slope p50/p90/p95/maximum values were

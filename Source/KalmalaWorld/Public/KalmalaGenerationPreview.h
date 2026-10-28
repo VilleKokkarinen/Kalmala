@@ -71,7 +71,7 @@ struct FKalmalaGenerationPreviewSettings
             && InRange(MeadowRollingAmplitude, 60.0, 200.0)
             && InRange(MeadowFloorScale, 800.0, 2000.0)
             && InRange(MeadowFloorAmplitude, 10.0, 35.0)
-            && InRange(ElderwoodBroadAmplitude, 400.0, 2000.0)
+            && InRange(ElderwoodBroadAmplitude, 400.0, 6000.0)
             && InRange(ElderwoodMiddleAmplitude, 60.0, 400.0)
             && InRange(ElderwoodLocalAmplitude, 10.0, 100.0)
             && InRange(ShimmeringLakesMeadowShare, 0.35, 0.65)

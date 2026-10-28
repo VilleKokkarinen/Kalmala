@@ -90,7 +90,7 @@ if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) { throw "Project 
 if (-not (Test-Path -LiteralPath $editorPath -PathType Leaf)) { throw "Unreal Editor commandlet not found: $editorPath" }
 
 $trials = @(
-    [pscustomobject]@{ Layer = 'Broad'; Parameter = 'ElderwoodBroadAmplitudeM'; Values = @(4.0, 16.0, 20.0) },
+    [pscustomobject]@{ Layer = 'Broad'; Parameter = 'ElderwoodBroadAmplitudeM'; Values = @(20.0, 40.0, 60.0) },
     [pscustomobject]@{ Layer = 'Middle'; Parameter = 'ElderwoodMiddleAmplitudeM'; Values = @(0.6, 2.4, 4.0) },
     [pscustomobject]@{ Layer = 'Local'; Parameter = 'ElderwoodLocalAmplitudeM'; Values = @(0.1, 0.4, 1.0) }
 )

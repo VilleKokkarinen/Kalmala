@@ -58,8 +58,8 @@ an official specification.
 | Kalmala biome | Closest Valheim height behavior | Kalmala check and adjustment |
 | --- | --- | --- |
 | Meadows | Meadows adds `.1` detail and compresses upper shoulders; player-observed terrain reaches about 30 m. | Kalmala now uses 20 m broad hills and starts shoulder compression at 30 m. Combined profile/rendered acceptance is pending. |
-| Elderwood | Black Forest adds the same nominal ±20 m `.1` detail without Meadows shoulder compression. | Broad relief increased from 4 m to 20 m at the shared 1 km scale; middle/local remain 0.6/0.1 m. The earlier six-profile data measured the 4 m setting only, so remeasurement is pending. |
-| Freezing Tundra | No direct match: Deep North uses a separate elevated/snowy height function; Kalmala defines Tundra as an outer forest using Elderwood terrain. | Shares the 20 m broad Elderwood setting to retain the project's forest contract. |
+| Elderwood | Black Forest adds nominal ±20 m `.1` detail without Meadows shoulder compression. | User-directed broad relief is now 60 m at the shared 1 km scale, with 0.6/0.1 m middle/local layers. Positive broad noise plus source height can exceed Meadow's 60 m shoulder ceiling; generated profiles are pending. |
+| Freezing Tundra | No direct match: Deep North uses a separate elevated/snowy height function; Kalmala defines Tundra as an outer forest using Elderwood terrain. | Shares the 60 m broad Elderwood setting so its forest candidate can rise above Meadow's 60 m ceiling. |
 | Thunder Mountains | Mountain height doubles source excess above its normalized 0.4 threshold, then adds nominal ±40 m `.2` detail. | Highland gain raised from 0.4 to 1.0, so full Mountain weight now doubles Kalmala source excess above 10 m. Fine detail stays 0.8 m because its noise wavelength is roughly 67 m, unlike Valheim's 1 km mountain detail. Fresh profile/render review is pending. |
 | Mossy Mire | Swamp uses a narrow normalized band around `.137` with `.03` noise, nominally about 27.4 m ±6 m relative to Valheim's sea-level datum. | Retained the measured 3 m target / 7 m compression / 0.25 m detail lowland profile. Its compressed, near-coast role and Kalmala sea-level datum make a direct absolute-height copy inappropriate. |
 | Shimmering Lakes | No direct Valheim equivalent. | Keeps its measured 50% Meadow / Elderwood blend; it inherits half the stronger Meadow relief. The earlier four-profile measurement predates the Meadow retune. |
@@ -129,13 +129,13 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
 - **Elderwood:** Use the shared broad/middle/local world-space relief base and
   bounded existing detail without the Meadows compression curve. Historical
   amplitude trials used 4–16 / 0.6–4 / 0.1–1 m at the shared 1,000 / 150 / 30 m
-  scales. The current 20 / 0.6 / 0.1 m values are provisional; the broad layer
-  is outside that measured range and the preview accepts 4–20 m. These are
+  scales. The current 60 / 0.6 / 0.1 m values are provisional; the broad layer
+  is outside that measured range and the preview accepts 4–60 m. These are
   provisional only.
   `ShapeTundra` directly calls the Elderwood candidate, so the two cannot
   silently diverge into unrelated terrain styles. BH25b sweeps each layer one
   at a time against fixed numeric profiles and selected historical values.
-  The user-directed follow-up sets broad relief to 20 m, beyond that measured
+  The user-directed follow-up sets broad relief to 60 m, beyond that measured
   range, while retaining 0.6 / 0.1 m middle/local relief; its profiles and BH26
   rendered/parity acceptance remain pending.
 - **Shimmering Lakes:** Interpret the requested similarity as a continuous

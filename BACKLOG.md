@@ -73,6 +73,21 @@ No active goals are currently listed. Completed goal records are retained under 
   and rendered terrain acceptance remain pending for Elderwood/Tundra,
   Thunder Mountains, and Lakes after the Meadow change.
 
+### Elderwood/Tundra height headroom — 2026-10-28
+
+- **Selected task:** Give Elderwood and Freezing Tundra the ability to rise
+  above Meadows' 60 m shoulder ceiling.
+- **Work completed:** Raised their shared 1 km broad-relief amplitude from
+  20 m to 60 m. Expanded preview bounds and the existing forest profile
+  matrix to cover the new default; updated the height comparison and tuning
+  notes.
+- **Checks:** Inspected Meadow's shoulder asymptote, Elderwood/Tundra source
+  height composition and all matching preview limits; ran `git diff --check`.
+  No build, automation, profile sweep or rendered review was run.
+- **Status:** The biome candidates can exceed the Meadow ceiling when positive
+  broad relief combines with positive source height. Seeded profile and render
+  confirmation remain pending.
+
 ## Scope and history
 
 The [roadmap](docs/04-roadmap.md) and [feature contracts](docs/game-features.md)

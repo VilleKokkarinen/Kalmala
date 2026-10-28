@@ -1,3 +1,39 @@
+## Elderwood/Tundra height headroom — 2026-10-28
+
+- **Selected task:** Let Elderwood and Freezing Tundra generate taller ground
+  than Meadows' 60 m shoulder ceiling.
+- **Work completed:** Raised the shared Elderwood/Tundra broad-relief
+  amplitude from 20 m to 60 m at the existing 1 km scale; the other relief
+  layers remain unchanged. Expanded the preview bound to 60 m, updated the
+  existing profile matrix to run 20/40/60 m, and documented how positive source
+  height and broad noise can lift forest candidates above the Meadow ceiling.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks:** Manually checked the Meadow shoulder asymptote,
+  Elderwood/Tundra source-height composition and matching preview limits;
+  `git diff --check` passed. No build or automation was run.
+- **Full verification:** Deferred. The 60 m forest broad amplitude has not
+  been profiled or rendered; the prior profile matrix only reached 16 m.
+- **Observable impact:** In Elderwood and Tundra, a sufficiently positive
+  1 km broad-noise sample added to positive source height can exceed 60 m,
+  while Meadow shoulders continue to approach 60 m. This is a possibility,
+  not a guarantee for every seed or region.
+- **Networking/authority:** Terrain remains deterministic and seed-derived;
+  no authority, replication, RPC or persistence behavior changed.
+- **Known limitations / remaining scope:** The new range may create steep
+  forest faces or alter coast clearance; no post-change profile or rendered
+  review was run. Mountain peak height remains governed by its separate
+  source-amplification function.
+- **Next eligible task:** Build and capture Elderwood/Tundra profiles at
+  20/40/60 m, then inspect the resulting peak heights, slopes and coast
+  clearance in rendered terrain.
+
 ## Valheim-informed forest and mountain follow-up — 2026-10-28
 
 - **Selected task:** Audit other biome heights against Valheim's comparable

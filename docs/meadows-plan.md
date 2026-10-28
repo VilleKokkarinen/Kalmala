@@ -3,8 +3,8 @@
 Status: BH26 integrated acceptance passed on 2026-10-26; user-directed,
 Valheim-informed height retunes continued through 2026-10-28. Current Meadow
 settings use 20 m broad hills and a 30 m shoulder threshold; Elderwood/Tundra
-and Mountain settings were also retuned. New defaults still need fresh profile
-and rendered acceptance; see [`PROGRESS.md`](../PROGRESS.md). BH25a selected the
+use 60 m broad relief and Mountain gain is 1.0. New defaults still need fresh
+profile and rendered acceptance; see [`PROGRESS.md`](../PROGRESS.md). BH25a selected the
 4 m broad-hill amplitude, BH25b1 selected 0.6 m rolling amplitude, and BH25b2
 selected 4 / 0.6 / 0.1 m shared Elderwood/Tundra amplitudes from fresh-source
 profiles. BH25c selected the 8 m / 0.1 m Meadows floor detail. BH10a/BH11a
