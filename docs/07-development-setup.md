@@ -5031,6 +5031,15 @@ Accessibility previews use `-TextScale 50` through `150` (the widget snaps to
 its five supported values) and `-Contrast -1`, `0`, or `1` for Low, Standard,
 or High contrast.
 
+Use `Scripts/Render-Creatures.ps1` to render all 17 live wildlife archetypes as
+separate side-view PNGs in one offscreen commandlet run. `-List` prints the
+available archetype names, `-Creature Deer` selects one, and `-Output` accepts
+either a new PNG path for one creature or a directory for the full set. Like
+the menu renderer, it uses a compiled Editor cache and supports `-SeedCache`,
+`-Cache`, and `-BuildModules`. Each commandlet result records its vertex count,
+so an archetype with no procedural mesh is visible in the log as well as its
+preview.
+
 ## Historical acceptance and limits
 
 M0–M12 and world-generation Phases 1–9 have recorded acceptance under their documented scope. M11 final acceptance is dated 2026-10-06; M12 final acceptance is dated 2026-10-09. M12's isolated final queue passed 116/116; the subsequent combined master integration passed 120/120 after activity-identity, preview-coverage, stale-requirement, and misplaced Forge-comparison repairs. These are historical results, not checks rerun by this cleanup.

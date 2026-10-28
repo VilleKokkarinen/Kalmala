@@ -27,6 +27,21 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Live-creature render script — 2026-10-28
+
+- **Selected task:** Add a `Render-Menu.ps1`-style batch preview for every live
+  wildlife archetype.
+- **Work completed:** Added `Render-Creatures.ps1` with all 17 archetype names,
+  cache mirroring/build stamps, output selection, progress timeout, and PNG
+  validation. Added an offscreen Editor commandlet that initializes each
+  archetype in an isolated preview world, frames it with an orthographic side
+  camera, captures a lit PNG, and logs vertex count and capture duration.
+- **Checks:** PowerShell parser validation and `-List` succeeded for all 17
+  names; inspected the commandlet's Unreal API usage and ran `git diff --check`.
+  No Editor build or render run has been performed.
+- **Status:** Source implementation is complete; image appearance remains
+  unverified.
+
 ### Wildlife model silhouette repair — 2026-10-28
 
 - **Selected task:** Replace triangle-built animal body masses that read as

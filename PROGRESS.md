@@ -1,3 +1,35 @@
+## Live-creature render script — 2026-10-28
+
+- **Selected task:** Add an offscreen renderer for every live wildlife
+  archetype, following the `Render-Menu.ps1` cache and output workflow.
+- **Work completed:** Added a PowerShell runner for all 17 archetypes, optional
+  single-creature capture, output directory/file selection, isolated compiled
+  cache, source stamp, timeout, and PNG checks. Added the `RenderCreatures`
+  Editor commandlet to initialize each live archetype in its own preview world,
+  frame a lit side view with an orthographic camera, and save a PNG while
+  logging vertex count and render time. Documented its usage.
+- **Files changed:** `Scripts/Render-Creatures.ps1`,
+  `Source/KalmalaEditor/Private/RenderCreaturesCommandlet.cpp`,
+  `Source/KalmalaEditor/Public/RenderCreaturesCommandlet.h`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser validation and the script's `-List`
+  mode succeeded for all 17 names. Inspected the commandlet's Unreal APIs and
+  ran `git diff --check`.
+- **Full verification:** Deferred. No Unreal build, automation, or rendered
+  creature capture has been run.
+- **Observable impact:** A single script invocation can produce a separate
+  offscreen PNG for each of the 17 current wildlife archetypes.
+- **Networking/authority:** Preview-only. The commandlet uses the existing
+  server initialization path in isolated editor-preview worlds; no gameplay
+  RPC, replication, authority, or persistence code changed.
+- **Known limitations / remaining scope:** Rendered colors, camera framing,
+  commandlet execution, and each actor's generated vertex count still need a
+  live run against a compiled Editor cache. A missing mesh is logged and its
+  background-only capture is retained for diagnosis.
+- **Next eligible task:** Build the renderer cache and run
+  `Scripts/Render-Creatures.ps1`; inspect all 17 outputs, especially any
+  archetype logged with zero vertices.
+
 ## Wildlife model silhouette repair — 2026-10-28
 
 - **Selected task:** Replace animal body masses assembled from separate
