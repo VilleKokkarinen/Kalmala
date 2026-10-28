@@ -120,10 +120,12 @@ outcome is encoded in the authenticated owner's durable population-save claim,
 so retry and reload preserve it; awarded Amber and Peat Heart are committed
 together when inventory capacity permits.
 Freezing Tundra Wolf (250 health, 40 armor, 100 Slash) occupies the seeded 20%
-Wolf slots. The server places each pack in a deterministic, seed-rotated
-three-member triangle with a 240 cm radius, requiring every member to stay in
-dry, traversable Tundra. The per-key Tundra actor cap fits one pack and counts
-each surviving member. Wolves pursue within a 25 m spawn leash, telegraph for
+Wolf slots and has an original winter-coat silhouette with a joined throat,
+long muzzle, bushy tail, and connected paws. The server places each pack in a
+deterministic, seed-rotated three-member triangle with a 240 cm radius,
+requiring every member to stay in dry, traversable Tundra. The per-key Tundra
+actor cap fits one pack and counts each surviving member. Wolves pursue within
+a 25 m spawn leash, telegraph for
 0.5 seconds, visibly lunge up to 180 cm, recheck visibility and the reviewed
 180 cm bite reach at impact, then recover for 0.8 seconds. Each defeated
 member queues two Bone Fragments, one guaranteed Wolf Pelt, and one guaranteed

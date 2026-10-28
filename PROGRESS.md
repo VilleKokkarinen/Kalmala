@@ -23047,3 +23047,27 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** Wolf, Lynx, Polar Bear, and Horned Goat remain queued
   for individual review.
 - **Next eligible task:** Connect the Wolf's head, tail, and feet to its torso.
+
+## Run 2026-10-28 — Four-view creature review: Wolf
+
+- **Selected increment:** Connect the Wolf's head, tail, and feet to its torso.
+- **Work completed:** Joined overlapping body, shoulders, throat, head, and
+  muzzle masses; shaped a short bushy tail from two overlapping ellipsoids;
+  and replaced the detached pointed legs and toes with rounded legs that meet
+  the paws. Retained the winter mantle, amber eyes, and lifted warning paw.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature Wolf -Output
+  "$env:TEMP\kmcreature\review\Wolf-final2.png" -BuildModules` compiled the
+  Editor target successfully in four actions and rendered a 2564×1924 sheet
+  (1280×960 per view). Visually inspected all four angles.
+  `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Wolf now reads as a connected four-legged animal
+  with a distinct winter mantle and tail across all four views.
+- **Networking/authority:** No gameplay, combat, or network state changed. The
+  server-owned pack and bite behavior remain unchanged.
+- **Known limitations:** Lynx, Polar Bear, and Horned Goat remain queued for
+  individual review.
+- **Next eligible task:** Connect the Lynx's head, tail, and feet to its torso.

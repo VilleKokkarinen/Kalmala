@@ -4375,56 +4375,48 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Muzzle(0.58f, 0.61f, 0.58f);
         const FLinearColor Paw(0.16f, 0.18f, 0.18f);
         const FLinearColor Eye(0.92f, 0.64f, 0.20f);
-        const float HeadX = bLunging ? 153.0f : 132.0f;
-        const float HeadZ = bTelegraph ? 83.0f : (bLunging ? 43.0f : 68.0f);
+        const float HeadX = bLunging ? 140.0f : 117.0f;
+        const float HeadZ = bTelegraph ? 78.0f : (bLunging ? 50.0f : 62.0f);
 
-        AddEllipsoid(FVector(-16, 0, 62), FVector(101, 47, 55), WinterCoat);
-        AddEllipsoid(FVector(HeadX - 8.0f, 0, HeadZ - 5.0f), FVector(35, 23, 25), WinterCoat);
-        // Long muzzle, high shoulders, winter mantle, and bushy tail give the Tundra predator
-        // a distinct four-legged silhouette. Telegraph and lunge cues change its readable pose.
-        AddEllipsoid(FVector(-31, 0, bTelegraph ? 100.0f : 93.0f), FVector(57, 40, 22), Mantle);
-        AddTetraPoints(FVector(44,-23,48), FVector(44,23,48), FVector(HeadX - 19.0f,-15,HeadZ + 6.0f),
-            FVector(HeadX - 19.0f,15,HeadZ + 6.0f), Throat);
-        AddTetraPoints(FVector(HeadX - 30.0f,-17,HeadZ), FVector(HeadX - 30.0f,17,HeadZ),
-            FVector(HeadX + 7.0f,-12,HeadZ - 12.0f), FVector(HeadX + 7.0f,12,HeadZ - 12.0f), Muzzle);
-        AddTetraPoints(FVector(HeadX + 2.0f,-12,HeadZ - 13.0f), FVector(HeadX + 2.0f,12,HeadZ - 13.0f),
-            FVector(HeadX + 28.0f,-7,HeadZ - 14.0f), FVector(HeadX + 28.0f,7,HeadZ - 14.0f), Paw);
+        AddEllipsoid(FVector(-20, 0, 58), FVector(98, 48, 52), WinterCoat);
+        AddEllipsoid(FVector(42, 0, 63), FVector(59, 46, 54), WinterCoat);
+        // A continuous shoulder mantle, throat, head, and long muzzle define the winter wolf.
+        AddEllipsoid(FVector(-31, 0, bTelegraph ? 93.0f : 88.0f), FVector(61, 42, 21), Mantle);
+        AddEllipsoid(FVector(HeadX - 33.0f, 0, HeadZ - 4.0f), FVector(42, 31, 30), Throat);
+        AddEllipsoid(FVector(HeadX, 0, HeadZ), FVector(33, 25, 24), WinterCoat);
+        AddEllipsoid(FVector(HeadX + 20.0f, 0, HeadZ - 9.0f), FVector(23, 19, 14), Muzzle);
+        AddEllipsoid(FVector(HeadX + 42.0f, 0, HeadZ - 10.0f), FVector(7, 11, 6), Paw);
 
         for (const float Side : {-1.0f, 1.0f})
         {
+            AddEllipsoid(FVector(HeadX - 18.0f, Side * 12.0f, HeadZ + 14.0f),
+                FVector(8, 7, 11), Mantle);
+            AddEllipsoid(FVector(HeadX - 19.0f, Side * 12.0f, HeadZ + 22.0f),
+                FVector(4, 4, 6), Paw);
+            AddEllipsoid(FVector(HeadX + 2.0f, Side * 21.0f, HeadZ + 4.0f),
+                FVector(4, 3, 4), Eye);
+
             for (const float LegX : {-60.0f, 34.0f})
             {
                 const bool bFrontLeg = LegX > 0.0f;
                 const bool bRaised = bTelegraph && bFrontLeg && Side < 0.0f;
-                const float FootX = bLunging && bFrontLeg ? LegX + 42.0f : LegX + (bRaised ? 23.0f : 8.0f);
-                const float FootZ = bRaised ? -12.0f : -58.0f;
-                AddTetraPoints(FVector(LegX - 12.0f,Side * 21.0f,31), FVector(LegX + 10.0f,Side * 34.0f,29),
-                    FVector(FootX - 12.0f,Side * 23.0f,-10), FVector(FootX + 8.0f,Side * 31.0f,-12),
+                const float LegY = Side * 33.0f;
+                const float FootX = bLunging && bFrontLeg ? LegX + 42.0f
+                    : LegX + (bRaised ? 23.0f : 8.0f);
+                const float FootZ = bRaised ? -12.0f : (bLunging ? -45.0f : -47.0f);
+                const float LegOffsetX = bLunging && bFrontLeg ? 12.0f : 0.0f;
+                AddEllipsoid(FVector(LegX + LegOffsetX, LegY, -6), FVector(18, 16, 36),
                     bFrontLeg ? WinterCoat : Mantle);
-                AddTetraPoints(FVector(FootX - 13.0f,Side * 22.0f,FootZ + 13.0f),
-                    FVector(FootX - 1.0f,Side * 32.0f,FootZ + 12.0f),
-                    FVector(FootX + 12.0f,Side * 24.0f,FootZ), FVector(FootX + 9.0f,Side * 34.0f,FootZ + 3.0f), Paw);
+                AddEllipsoid(FVector(FootX, LegY, FootZ), FVector(22, 17, 12), Paw);
             }
-
-            AddTetraPoints(FVector(HeadX - 27.0f,Side * 10.0f,HeadZ + 4.0f),
-                FVector(HeadX - 18.0f,Side * 17.0f,HeadZ + 7.0f),
-                FVector(HeadX - 47.0f,Side * 18.0f,HeadZ + 37.0f),
-                FVector(HeadX - 57.0f,Side * 15.0f,HeadZ + 25.0f), Mantle);
-            AddTetraPoints(FVector(HeadX - 11.0f,Side * 12.0f,HeadZ + 7.0f),
-                FVector(HeadX - 4.0f,Side * 16.0f,HeadZ + 8.0f),
-                FVector(HeadX + 2.0f,Side * 15.0f,HeadZ + 11.0f),
-                FVector(HeadX,Side * 12.0f,HeadZ + 14.0f), Eye);
         }
 
-        AddTetraPoints(FVector(-91,-9,24), FVector(-91,9,24), FVector(-130,-15,27),
-            FVector(-135,15,26), Mantle);
-        AddTetraPoints(FVector(-130,-15,27), FVector(-135,15,26), FVector(-158,-13,20),
-            FVector(-165,13,18), WinterCoat);
+        AddEllipsoid(FVector(-106, 0, 49), FVector(34, 15, 13), Mantle);
+        AddEllipsoid(FVector(-135, 0, 38), FVector(20, 11, 10), WinterCoat);
         if (bTelegraph)
         {
             // The lifted paw and raised muzzle communicate the shared half-second warning.
-            AddTetraPoints(FVector(HeadX + 7.0f,-5,HeadZ - 19.0f), FVector(HeadX + 7.0f,5,HeadZ - 19.0f),
-                FVector(HeadX + 24.0f,-4,HeadZ - 28.0f), FVector(HeadX + 24.0f,4,HeadZ - 28.0f), Paw);
+            AddEllipsoid(FVector(HeadX + 22.0f, 0, HeadZ - 12.0f), FVector(9, 16, 4), Paw);
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Lynx)
