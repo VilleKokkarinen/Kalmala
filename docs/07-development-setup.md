@@ -5036,9 +5036,10 @@ separate side-view PNGs in one offscreen commandlet run. `-List` prints the
 available archetype names, `-Creature Deer` selects one, and `-Output` accepts
 either a new PNG path for one creature or a directory for the full set. Like
 the menu renderer, it uses a compiled Editor cache and supports `-SeedCache`,
-`-Cache`, and `-BuildModules`. Each commandlet result records its vertex count,
-so an archetype with no procedural mesh is visible in the log as well as its
-preview.
+`-Cache`, and `-BuildModules`. The cache mirrors project-local plugin sources
+and descriptors and hashes them in the freshness stamp, so plugin updates trigger
+a rebuild. Each commandlet result records its vertex count, so an archetype
+with no procedural mesh is visible in the log as well as its preview.
 
 ## Historical acceptance and limits
 

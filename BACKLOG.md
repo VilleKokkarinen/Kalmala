@@ -27,6 +27,21 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Creature renderer plugin-cache repair — 2026-10-28
+
+- **Selected task:** Fix the creature preview cache build failure caused by its
+  missing project-local `VisualStudioTools` plugin.
+- **Work completed:** Added local plugin mirroring to the creature renderer,
+  excluding generated build/save/cache folders, and included authored plugin
+  files in the source freshness stamp so plugin changes request a rebuild.
+- **Checks:** Inspected the project plugin declaration and local plugin
+  descriptor/source; PowerShell parser, `-List`, and `git diff --check` checks
+  passed; the authored plugin file set includes the required descriptor and
+  excludes generated folders. No Editor build or creature render has been
+  rerun.
+- **Status:** The cache-copy fix is implemented; build and render confirmation
+  remain pending.
+
 ### Live-creature render script — 2026-10-28
 
 - **Selected task:** Add a `Render-Menu.ps1`-style batch preview for every live

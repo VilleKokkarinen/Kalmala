@@ -37,6 +37,18 @@ function Assert-ShortPath([string]$Path) {
     if ($Path.Length -ge 260) { throw "MAX_PATH exceeded: $Path" }
 }
 
+function Get-AuthoredFiles([string]$RootPath) {
+    $generatedDirectories = @('Binaries','Intermediate','Saved','DerivedDataCache')
+    foreach ($file in Get-ChildItem -LiteralPath $RootPath -File -Recurse) {
+        $relativePath = Get-RelativePath $RootPath $file.FullName
+        $hasGeneratedAncestor = $false
+        foreach ($segment in ($relativePath -split '[\\/]')) {
+            if ($segment -in $generatedDirectories) { $hasGeneratedAncestor = $true; break }
+        }
+        if (!$hasGeneratedAncestor) { $file }
+    }
+}
+
 $creatureIds = @(
     'Mireling','Boar','Deer','Rat','Badger','MoonBear','DeathAdder','Viper','GiantSnake',
     'MosquitoSwarm','PeatHusk','Wolf','Lynx','PolarBear','HornedGoat','ThunderSentinel','ReefMaw'
@@ -104,9 +116,11 @@ if ($SeedCache) {
     if ($LASTEXITCODE -ge 8) { throw 'Editor cache seeding failed.' }
 }
 New-Item -ItemType Directory -Force -Path $Cache | Out-Null
-# Mirror only authored inputs; generated Unreal files stay in the separate cache.
-foreach ($directory in @('Source','Config','Content')) {
-    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $sourceRoot $directory) -File -Recurse) {
+# Mirror authored inputs and project-local plugins; generated Unreal files stay in the separate cache.
+foreach ($directory in @('Source','Config','Content','Plugins')) {
+    $sourceDirectory = Join-Path $sourceRoot $directory
+    if (!(Test-Path -LiteralPath $sourceDirectory -PathType Container)) { continue }
+    foreach ($file in Get-AuthoredFiles $sourceDirectory) {
         $destination = Join-Path $Cache (Get-RelativePath $sourceRoot $file.FullName)
         Assert-ShortPath $destination
         if (!(Test-Path -LiteralPath $destination) -or (Get-Item -LiteralPath $destination).LastWriteTimeUtc -ne $file.LastWriteTimeUtc) {
@@ -117,8 +131,17 @@ foreach ($directory in @('Source','Config','Content')) {
 }
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'Kalmala.uproject') -Destination (Join-Path $Cache 'Kalmala.uproject')
 $project = Join-Path $Cache 'Kalmala.uproject'
-$nativeSources = Get-ChildItem -LiteralPath (Join-Path $sourceRoot 'Source') -Recurse -File |
-    Sort-Object FullName | ForEach-Object { (Get-RelativePath $sourceRoot $_.FullName) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
+$nativeFiles = @(
+    foreach ($directory in @('Source','Plugins')) {
+        $sourceDirectory = Join-Path $sourceRoot $directory
+        if (Test-Path -LiteralPath $sourceDirectory -PathType Container) {
+            Get-AuthoredFiles $sourceDirectory
+        }
+    }
+) | Sort-Object FullName
+$nativeSources = $nativeFiles | ForEach-Object {
+    (Get-RelativePath $sourceRoot $_.FullName) + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+}
 $nativeSources += 'Kalmala.uproject:' + (Get-FileHash -LiteralPath $project -Algorithm SHA256).Hash
 $sourceDigest = Get-Sha256Hex ([Text.Encoding]::UTF8.GetBytes(($nativeSources -join "`n")))
 $stamp = Join-Path $Cache 'creature-source.sha256'

@@ -1,3 +1,29 @@
+## Creature renderer plugin-cache repair — 2026-10-28
+
+- **Selected task:** Repair the first `Render-Creatures.ps1 -BuildModules`
+  failure, which reported the required local `VisualStudioTools` plugin missing
+  from `%TEMP%\kmcreature`.
+- **Work completed:** The cache mirror now copies project-local `Plugins` files
+  while skipping generated `Binaries`, `Intermediate`, `Saved`, and
+  `DerivedDataCache` folders. Authored plugin files are also included in the
+  freshness digest, so plugin changes require a rebuild.
+- **Files changed:** `Scripts/Render-Creatures.ps1`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser, `-List`, local plugin descriptor
+  inspection, authored-plugin generated-folder and path-length inspection, and
+  `git diff --check` all passed. The authored plugin set contains 47 files; the
+  longest mirrored plugin path is 167 characters.
+- **Full verification:** Deferred. The Editor build and creature capture have
+  not been rerun.
+- **Observable impact:** A fresh preview cache now receives the enabled local
+  plugin needed for UnrealBuildTool to discover the project modules.
+- **Networking/authority:** No gameplay or networking code changed.
+- **Known limitations / remaining scope:** The plugin-enabled Editor build may
+  expose further build errors; actual compilation and all 17 rendered images
+  remain unverified.
+- **Next eligible task:** Rerun `Scripts/Render-Creatures.ps1 -BuildModules`; if
+  it succeeds, render all 17 archetypes and inspect the PNGs and vertex counts.
+
 ## Live-creature render script — 2026-10-28
 
 - **Selected task:** Add an offscreen renderer for every live wildlife
