@@ -23309,3 +23309,26 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Snake behavior and authority remain unchanged.
 - **Known limitations:** No fresh three-species render was produced in this run.
 - **Next eligible task:** None; all listed creature visual repairs are complete.
+
+## Run 2026-10-28 — Polar Bear leg attachment follow-up
+
+- **Selected increment:** Extend the Polar Bear's upper legs into its belly
+  and torso so the roots visibly connect.
+- **Work completed:** Raised and widened the leg roots so each overlaps the
+  underside of the body while remaining connected to its paw through the idle,
+  warning, and charge poses. Updated the Polar Bear description and reopened
+  the one-species visual queue for the requested Goat and Deer follow-ups.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Inspected the Polar Bear leg/body coordinates for idle and attack
+  poses; `git diff --check` passed. No build, render, or automated tests were
+  run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Polar Bear's upper legs overlap the torso and its
+  paws from the side and front instead of appearing detached below its belly.
+- **Networking/authority:** No gameplay, combat, or network state changed.
+  Polar Bear behavior and authority remain unchanged.
+- **Known limitations:** Horned Goat and Deer still need separate leg-attachment
+  increments.
+- **Next eligible task:** Join the Horned Goat's upper legs to its torso.

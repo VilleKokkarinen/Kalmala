@@ -160,8 +160,9 @@ together when inventory capacity permits. Legacy unsuffixed claims remain
 baseline-only.
 Polar Bear (750 health, 60 armor, 200 Crush) fills the final seeded 10% hard
 slot, remains on dry traversable Tundra and stays outside the 150 m generated
-start exclusion. Its broad shoulders, joined head, short sturdy legs, and wide
-paws give it a heavier original silhouette than the Moon Bear. Its replicated
+start exclusion. Its broad shoulders, joined head, short sturdy legs that
+overlap the belly, and wide paws give it a heavier original silhouette than the
+Moon Bear. Its replicated
 server-owned warning, committed charge, and
 retreat use a 25 m spawn leash and apply at most one hit within 220 cm before
 the 1.2-second hard recovery. Credited defeats queue three Bone Fragments and

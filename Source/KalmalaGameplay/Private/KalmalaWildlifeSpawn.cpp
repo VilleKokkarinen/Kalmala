@@ -4343,8 +4343,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 const float PawY = Side * (bBracedPaw ? 43.0f : 49.0f);
                 const float PawZ = bBracedPaw ? -4.0f : -44.0f;
                 const float LegPoseX = LegX + (bBracedPaw ? 15.0f : (bCharging && bFrontLeg ? 14.0f : 0.0f));
-                const float LegPoseZ = bBracedPaw ? 27.0f : (bCharging && bFrontLeg ? 2.0f : -3.0f);
-                AddEllipsoid(FVector(LegPoseX, Side * 50.0f, LegPoseZ), FVector(28, 25, 40),
+                const float LegPoseZ = bBracedPaw ? 35.0f : (bCharging && bFrontLeg ? 25.0f : 22.0f);
+                AddEllipsoid(FVector(LegPoseX, Side * 50.0f, LegPoseZ), FVector(34, 29, 45),
                     bFrontLeg ? SnowCoat : ShadowCoat);
                 AddEllipsoid(FVector(PawX, PawY, PawZ), FVector(35, 29, bBracedPaw ? 17.0f : 14.0f),
                     bBracedPaw ? Cream : ShadowCoat);

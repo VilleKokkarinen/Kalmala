@@ -2,7 +2,7 @@
 
 ## Active queue
 
-- [x] Four-view creature visual cleanup, one species per increment.
+- [ ] Four-view creature visual cleanup, one species per increment.
   - [x] Boar: replace detached spike legs with connected rounded limbs and
     clarify the snout, eyes, ears, and short bristle ridge.
   - [x] Badger: join the narrow head and legs to its low body and make the
@@ -24,6 +24,9 @@
   - [x] Thunder Sentinel: align its paired limbs and chest vein across its body.
   - [x] Snakes: replace segmented Viper, Giant Snake, and Death Adder coils
     with continuous tapered body meshes.
+  - [x] Polar Bear follow-up: extend upper legs into the belly and torso.
+  - [ ] Horned Goat follow-up: join upper legs to the torso.
+  - [ ] Deer follow-up: join upper legs to the belly and chest.
 
 Completed goal records are retained under Completed post-roadmap work.
 
