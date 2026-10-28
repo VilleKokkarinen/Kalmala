@@ -4134,25 +4134,17 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Cream(0.96f, 0.91f, 0.80f);
         const FLinearColor Nose(0.16f, 0.13f, 0.12f);
         const FLinearColor Eye(0.10f, 0.09f, 0.08f);
-        const float HeadX = bCharging ? 148.0f : 128.0f;
-        const float HeadZ = bWarning ? 109.0f : (bRetreating ? 128.0f : 139.0f);
+        const float HeadX = bCharging ? 104.0f : 91.0f;
+        const float HeadZ = bWarning ? 92.0f : (bRetreating ? 112.0f : 116.0f);
 
-        AddEllipsoid(FVector(-14, 0, 105), FVector(122, 66, 66), SnowCoat);
-        AddEllipsoid(FVector(HeadX - 7.0f, 0, HeadZ - 5.0f), FVector(47, 34, 34), Cream);
+        AddEllipsoid(FVector(-22, 0, 84), FVector(125, 67, 59), SnowCoat);
+        AddEllipsoid(FVector(39, 0, 91), FVector(84, 65, 60), SnowCoat);
         // Broad shoulders, pale coat and long muzzle distinguish the original
         // Tundra charger from the smaller Elderwood Moon Bear.
-        AddTetraPoints(FVector(HeadX - 35.0f,-29,HeadZ - 20.0f),
-            FVector(HeadX - 35.0f,29,HeadZ - 20.0f),
-            FVector(HeadX + 9.0f,-27,HeadZ + 8.0f),
-            FVector(HeadX + 9.0f,27,HeadZ + 8.0f), Cream);
-        AddTetraPoints(FVector(HeadX - 2.0f,-23,HeadZ - 14.0f),
-            FVector(HeadX - 2.0f,23,HeadZ - 14.0f),
-            FVector(HeadX + 49.0f,-16,HeadZ - 31.0f),
-            FVector(HeadX + 49.0f,16,HeadZ - 31.0f), SnowCoat);
-        AddTetraPoints(FVector(HeadX + 40.0f,-13,HeadZ - 31.0f),
-            FVector(HeadX + 40.0f,13,HeadZ - 31.0f),
-            FVector(HeadX + 64.0f,-10,HeadZ - 36.0f),
-            FVector(HeadX + 64.0f,10,HeadZ - 36.0f), Nose);
+        AddEllipsoid(FVector(72, 0, 101), FVector(55, 49, 47), Cream);
+        AddEllipsoid(FVector(HeadX, 0, HeadZ), FVector(44, 39, 38), Cream);
+        AddEllipsoid(FVector(HeadX + 30.0f, 0, HeadZ - 15.0f), FVector(26, 22, 16), SnowCoat);
+        AddEllipsoid(FVector(HeadX + 53.0f, 0, HeadZ - 12.0f), FVector(9, 13, 9), Nose);
 
         for (const float Side : {-1.0f, 1.0f})
         {
@@ -4160,47 +4152,25 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             {
                 const bool bFrontLeg = LegX > 0.0f;
                 const bool bBracedPaw = bWarning && bFrontLeg && Side < 0.0f;
-                const float PawX = bBracedPaw ? LegX + 45.0f : LegX + (bCharging && bFrontLeg ? 48.0f : 25.0f);
+                const float PawX = bBracedPaw ? LegX + 45.0f : LegX + (bCharging && bFrontLeg ? 45.0f : 16.0f);
                 const float PawY = Side * (bBracedPaw ? 43.0f : 49.0f);
-                const float PawZ = bBracedPaw ? -7.0f : -51.0f;
-                AddTetraPoints(FVector(LegX - 25.0f,Side * 32.0f,-52),
-                    FVector(LegX - 25.0f,Side * 57.0f,-52),
-                    FVector(LegX + 16.0f,Side * 37.0f,56),
-                    FVector(LegX + 19.0f,Side * 54.0f,59), SnowCoat);
-                AddTetraPoints(FVector(LegX + 8.0f,Side * 36.0f,-48),
-                    FVector(LegX + 8.0f,Side * 53.0f,-48),
-                    FVector(PawX,PawY - 14.0f,PawZ), FVector(PawX,PawY + 14.0f,PawZ + 9.0f),
+                const float PawZ = bBracedPaw ? -4.0f : -44.0f;
+                const float LegPoseX = LegX + (bBracedPaw ? 15.0f : (bCharging && bFrontLeg ? 14.0f : 0.0f));
+                const float LegPoseZ = bBracedPaw ? 27.0f : (bCharging && bFrontLeg ? 2.0f : -3.0f);
+                AddEllipsoid(FVector(LegPoseX, Side * 50.0f, LegPoseZ), FVector(28, 25, 40),
+                    bFrontLeg ? SnowCoat : ShadowCoat);
+                AddEllipsoid(FVector(PawX, PawY, PawZ), FVector(35, 29, bBracedPaw ? 17.0f : 14.0f),
                     bBracedPaw ? Cream : ShadowCoat);
-                if (!bBracedPaw)
-                    AddTetraPoints(FVector(PawX - 8.0f,PawY - 11.0f,-49),
-                        FVector(PawX - 8.0f,PawY + 11.0f,-49),
-                        FVector(PawX + 13.0f,PawY - 5.0f,-56),
-                        FVector(PawX + 13.0f,PawY + 5.0f,-56), Cream);
             }
-            const float EarX = HeadX - 12.0f;
-            AddTetraPoints(FVector(EarX - 7.0f,Side * 20.0f,HeadZ + 1.0f),
-                FVector(EarX + 5.0f,Side * 20.0f,HeadZ + 1.0f),
-                FVector(EarX - 4.0f,Side * 33.0f,HeadZ + 23.0f),
-                FVector(EarX + 5.0f,Side * 31.0f,HeadZ + 19.0f), ShadowCoat);
-            AddTetraPoints(FVector(HeadX - 3.0f,Side * 19.0f,HeadZ - 12.0f),
-                FVector(HeadX + 4.0f,Side * 19.0f,HeadZ - 10.0f),
-                FVector(HeadX + 11.0f,Side * 26.0f,HeadZ - 8.0f),
-                FVector(HeadX + 8.0f,Side * 27.0f,HeadZ - 2.0f), Eye);
+            AddEllipsoid(FVector(HeadX - 23.0f, Side * 26.0f, HeadZ + 27.0f),
+                FVector(12, 10, 13), ShadowCoat);
+            AddEllipsoid(FVector(HeadX + 10.0f, Side * 35.0f, HeadZ + 5.0f),
+                FVector(5, 3, 4), Eye);
         }
         if (bWarning)
         {
             // A braced paw and lowered muzzle give the charge a full second warning.
-            AddTetraPoints(FVector(HeadX + 4.0f,-8,HeadZ - 29.0f),
-                FVector(HeadX + 4.0f,8,HeadZ - 29.0f),
-                FVector(HeadX + 25.0f,-8,HeadZ - 33.0f),
-                FVector(HeadX + 25.0f,8,HeadZ - 33.0f), Nose);
-        }
-        else if (bCharging || bRetreating)
-        {
-            AddTetraPoints(FVector(HeadX + 28.0f,-8,HeadZ - 31.0f),
-                FVector(HeadX + 28.0f,8,HeadZ - 31.0f),
-                FVector(HeadX + 45.0f,-7,HeadZ - 27.0f),
-                FVector(HeadX + 45.0f,7,HeadZ - 27.0f), Nose);
+            AddEllipsoid(FVector(HeadX + 37.0f, 0, HeadZ - 24.0f), FVector(12, 4, 3), Nose);
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::HornedGoat)

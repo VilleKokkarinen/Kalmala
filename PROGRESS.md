@@ -23097,3 +23097,27 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   review.
 - **Next eligible task:** Give the Polar Bear's head and short legs a connected,
   heavier shape.
+
+## Run 2026-10-28 — Four-view creature review: Polar Bear
+
+- **Selected increment:** Give the Polar Bear's head and short legs a connected,
+  heavier shape.
+- **Work completed:** Lowered and joined the head through a rounded neck to the
+  shoulder mass, and replaced the long pointed leg meshes with thick connected
+  legs and broad paws. Kept the warning paw pose and charge/retreat head shifts.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature PolarBear -Output
+  "C:\Users\Ville\AppData\Local\Temp\kmcreature\review\PolarBear-final.png"
+  -BuildModules` compiled the Editor target successfully in four actions and
+  rendered a 2564×1924 sheet (1280×960 per view). Visually inspected all four
+  angles. `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Polar Bear now has a continuous shoulder-to-head
+  profile and short, weight-bearing limbs across the four preview angles.
+- **Networking/authority:** No gameplay, combat, or network state changed. Its
+  server-owned warning, charge, retreat, and damage behavior remain unchanged.
+- **Known limitations:** Horned Goat remains queued for individual review.
+- **Next eligible task:** Connect the Horned Goat's raised head and legs to its
+  body.
