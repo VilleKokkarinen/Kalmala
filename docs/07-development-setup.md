@@ -5033,7 +5033,12 @@ its five supported values) and `-Contrast -1`, `0`, or `1` for Low, Standard,
 or High contrast.
 
 Use `Scripts/Render-Creatures.ps1` to render all 17 live wildlife archetypes as
-separate side-view PNGs in one offscreen commandlet run. `-List` prints the
+separate four-view PNG sheets in one offscreen commandlet run. Each sheet has
+the current side view at top-left, direct front at top-right, direct back at
+bottom-left, and a fixed 45-degree front three-quarter view at bottom-right.
+The front and back views look along the creatures' forward/back axis; each
+view uses the configured `-Width` and `-Height`, so the full sheet is twice
+those dimensions plus a narrow divider. `-List` prints the
 available archetype names, `-Creature Deer` selects one, and `-Output` accepts
 either a new PNG path for one creature or a directory for the full set. Full
 sets go to `%TEMP%\kmcreature\png\Creatures` by default. Like
@@ -5042,11 +5047,12 @@ the menu renderer, it uses a compiled Editor cache and supports `-SeedCache`,
 and descriptors and hashes them in the shared freshness stamp, so plugin updates
 trigger a rebuild. Each commandlet result records its vertex count, so an
 archetype with no procedural mesh is visible in the log as well as its preview.
-The commandlet rasterizes the live procedural mesh sections directly into an
-orthographic side-view PNG using their vertex colors and normals. This avoids
-scene-capture render targets in the offscreen commandlet and rejects an
-archetype with no drawable triangles instead of saving a blank preview. The
-Mireling also has an explicit generated body mesh rather than an empty default.
+The commandlet rasterizes the live procedural mesh sections directly into four
+orthographic views using their vertex colors and normals, then combines the
+views into one PNG. This avoids scene-capture render targets in the offscreen
+commandlet and rejects an archetype with no drawable triangles instead of
+saving a blank preview. The Mireling also has an explicit generated body mesh
+rather than an empty default.
 
 To render both sets with one module build, double-click
 `Scripts/Render-All-Previews.cmd`. It builds once through the menu renderer,

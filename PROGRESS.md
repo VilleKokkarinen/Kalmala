@@ -22852,3 +22852,35 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   have not been moved or removed. Full Editor compilation remains unverified.
 - **Next eligible task:** Rerun `Scripts/Render-All-Previews.cmd`; review
   `%TEMP%\kmall\png\Menus` and `%TEMP%\kmall\png\Creatures`.
+
+## Run 2026-10-28 — Four-angle creature preview sheets
+
+- **Selected increment:** Show the current side view plus front, back, and a
+  preset angle for each live creature in a single PNG.
+- **Work completed:** The commandlet renders the live procedural mesh from four
+  orthographic directions and composes a 2×2 sheet with a narrow divider. The
+  first tile preserves the prior side camera; the front and back views look
+  level along the creature's forward/back axis; the final tile uses a fixed
+  45-degree front three-quarter angle. `-Width` and `-Height` still set each
+  view's resolution, and the PowerShell result reports the combined sheet and
+  per-view dimensions.
+- **Files changed:** `Source/KalmalaEditor/Private/RenderCreaturesCommandlet.cpp`,
+  `Scripts/Render-Creatures.ps1`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell parser and `-List` checks passed for
+  `Render-Creatures.ps1`; `git diff --check` passed. Inspected the four camera
+  directions, view-aware framing, 2×2 placement, output dimension reporting,
+  and existing duration-log parsing.
+- **Full verification:** Deferred. This is post-roadmap work, not a
+  milestone-final verification run. No Editor build or preview render has been
+  run during this increment.
+- **Observable impact:** Each successful creature output is now a four-view
+  sheet rather than one side-view image. Its dimensions are 2× the configured
+  view dimensions, with a four-pixel divider.
+- **Networking/authority:** No gameplay or network state changed. The renderer
+  reads the same live procedural mesh and does not alter creature state.
+- **Known limitations:** A rebuilt output still needs visual review. Full
+  Editor compilation remains unverified.
+- **Next eligible task:** Rebuild the preview cache with
+  `Scripts/Render-All-Previews.cmd`, then inspect the 17 sheets in
+  `%TEMP%\kmall\png\Creatures`.

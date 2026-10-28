@@ -219,5 +219,5 @@ foreach ($target in $renderTargets) {
         [double]::Parse($durationMatch.Groups[1].Value, [Globalization.CultureInfo]::InvariantCulture)
     }
     else { $timer.Elapsed.TotalSeconds }
-    [pscustomobject]@{ Creature=$creatureId; PNG=$outputPath; Width=$Width; Height=$Height; Seconds=[math]::Round($seconds,2); BatchSeconds=[math]::Round($timer.Elapsed.TotalSeconds,2); Log=$log }
+    [pscustomobject]@{ Creature=$creatureId; PNG=$outputPath; Width=(2 * $Width + 4); Height=(2 * $Height + 4); ViewWidth=$Width; ViewHeight=$Height; Seconds=[math]::Round($seconds,2); BatchSeconds=[math]::Round($timer.Elapsed.TotalSeconds,2); Log=$log }
 }

@@ -10,6 +10,7 @@
 #include "ProceduralMeshComponent.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformTime.h"
+#include "HAL/UnrealMemory.h"
 
 namespace
 {
@@ -17,6 +18,22 @@ namespace
     {
         const TCHAR* Name;
         EKalmalaWildlifeArchetype Archetype;
+    };
+
+    struct FCreatureRenderView
+    {
+        const TCHAR* Name;
+        float YawDegrees;
+        bool bPreserveCurrentSideView;
+        bool bLevelCamera;
+    };
+
+    constexpr int32 CreatureViewGap = 4;
+    const FCreatureRenderView CreatureRenderViews[] = {
+        {TEXT("Side"), 0.0f, true, false},
+        {TEXT("Front"), 90.0f, false, true},
+        {TEXT("Back"), -90.0f, false, true},
+        {TEXT("ThreeQuarter"), 45.0f, false, false}
     };
 
     const FCreatureRenderDefinition CreatureDefinitions[] = {
@@ -49,7 +66,7 @@ namespace
     }
 
     bool RasterizeCreatureMesh(UProceduralMeshComponent& Mesh, const int32 Width, const int32 Height,
-        TArray<FColor>& OutPixels, int32& OutVertexCount)
+        const FCreatureRenderView& View, TArray<FColor>& OutPixels, int32& OutVertexCount)
     {
         struct FProjectedVertex
         {
@@ -77,13 +94,30 @@ namespace
         const FVector BoundsOrigin = Bounds.GetCenter();
         const FVector BoundsExtent = Bounds.GetExtent();
         const float CameraDistance = FMath::Max(BoundsExtent.Size() * 3.0f, 600.0f);
-        const FVector CameraLocation = BoundsOrigin + FVector(BoundsExtent.X * 0.12f,
-            -CameraDistance, BoundsExtent.Z * 0.15f);
+        FVector CameraLocation;
+        if (View.bPreserveCurrentSideView)
+        {
+            CameraLocation = BoundsOrigin + FVector(BoundsExtent.X * 0.12f,
+                -CameraDistance, BoundsExtent.Z * 0.15f);
+        }
+        else
+        {
+            const float YawRadians = FMath::DegreesToRadians(View.YawDegrees);
+            const FVector HorizontalDirection(FMath::Sin(YawRadians), -FMath::Cos(YawRadians), 0.0f);
+            const float CameraHeight = View.bLevelCamera ? 0.0f : BoundsExtent.Z * 0.15f;
+            CameraLocation = BoundsOrigin + HorizontalDirection * CameraDistance + FVector(0.0f, 0.0f, CameraHeight);
+        }
         const FVector Forward = (BoundsOrigin - CameraLocation).GetSafeNormal();
         const FVector Right = FVector::CrossProduct(Forward, FVector::UpVector).GetSafeNormal();
         const FVector Up = FVector::CrossProduct(Right, Forward).GetSafeNormal();
         const float Aspect = static_cast<float>(Width) / static_cast<float>(Height);
-        const float OrthoWidth = 2.5f * FMath::Max(BoundsExtent.X, BoundsExtent.Z * Aspect);
+        const float ProjectedHalfWidth = FMath::Abs(Right.X) * BoundsExtent.X
+            + FMath::Abs(Right.Y) * BoundsExtent.Y + FMath::Abs(Right.Z) * BoundsExtent.Z;
+        const float ProjectedHalfHeight = FMath::Abs(Up.X) * BoundsExtent.X
+            + FMath::Abs(Up.Y) * BoundsExtent.Y + FMath::Abs(Up.Z) * BoundsExtent.Z;
+        const float SideHalfWidth = FMath::Max(BoundsExtent.X, BoundsExtent.Z * Aspect);
+        const float OrthoWidth = 2.5f * (View.bPreserveCurrentSideView
+            ? SideHalfWidth : FMath::Max(ProjectedHalfWidth, ProjectedHalfHeight * Aspect));
         const float OrthoHeight = OrthoWidth / Aspect;
 
         TArray<TArray<FProjectedVertex>> ProjectedSections;
@@ -277,10 +311,9 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
     Creature->InitializeServer(Spawn, Definition->Archetype, 0);
     Creature->SetActorLocation(FVector::ZeroVector, false, nullptr, ETeleportType::TeleportPhysics);
 
-    TArray<FColor> Pixels;
     UProceduralMeshComponent* Mesh = Creature->FindComponentByClass<UProceduralMeshComponent>();
     int32 VertexCount = 0;
-    if (Mesh == nullptr || !RasterizeCreatureMesh(*Mesh, Width, Height, Pixels, VertexCount))
+    if (Mesh == nullptr)
     {
         UE_LOG(LogTemp, Error, TEXT("CreatureRender: %s produced no rasterizable triangles (Vertices=%d); preview rejected."),
             Definition->Name, VertexCount);
@@ -288,15 +321,42 @@ int32 URenderCreaturesCommandlet::Main(const FString& Params)
         return 7;
     }
 
+    const int32 SheetWidth = Width * 2 + CreatureViewGap;
+    const int32 SheetHeight = Height * 2 + CreatureViewGap;
+    constexpr int32 CreatureRenderViewCount = static_cast<int32>(UE_ARRAY_COUNT(CreatureRenderViews));
+    TArray<FColor> Pixels;
+    Pixels.Init(FColor(20, 28, 34, 255), SheetWidth * SheetHeight);
+    for (int32 ViewIndex = 0; ViewIndex < CreatureRenderViewCount; ++ViewIndex)
+    {
+        const FCreatureRenderView& View = CreatureRenderViews[ViewIndex];
+        TArray<FColor> ViewPixels;
+        if (!RasterizeCreatureMesh(*Mesh, Width, Height, View, ViewPixels, VertexCount))
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("CreatureRender: %s view produced no rasterizable triangles (View=%s Vertices=%d); preview rejected."),
+                Definition->Name, View.Name, VertexCount);
+            DestroyPreviewWorld();
+            return 7;
+        }
+
+        const int32 DestinationX = (ViewIndex % 2) * (Width + CreatureViewGap);
+        const int32 DestinationY = (ViewIndex / 2) * (Height + CreatureViewGap);
+        for (int32 Y = 0; Y < Height; ++Y)
+        {
+            FMemory::Memcpy(Pixels.GetData() + (DestinationY + Y) * SheetWidth + DestinationX,
+                ViewPixels.GetData() + Y * Width, sizeof(FColor) * Width);
+        }
+    }
+
     TArray64<uint8> PNG;
-    FImageUtils::PNGCompressImageArray(Width, Height,
+    FImageUtils::PNGCompressImageArray(SheetWidth, SheetHeight,
         TArrayView64<const FColor>(Pixels.GetData(), Pixels.Num()), PNG);
     IFileManager::Get().MakeDirectory(*FPaths::GetPath(Output), true);
     const bool bSaved = FFileHelper::SaveArrayToFile(PNG, *Output, &IFileManager::Get(), FILEWRITE_NoReplaceExisting);
     DestroyPreviewWorld();
     UE_LOG(LogTemp, Display,
-        TEXT("CreatureRender: Creature=%s Size=%dx%d Vertices=%d Saved=%d Seconds=%.2f Output=%s"),
-        Definition->Name, Width, Height, VertexCount, bSaved,
-        FPlatformTime::Seconds() - RenderStartSeconds, *Output);
+        TEXT("CreatureRender: Creature=%s Size=%dx%d Vertices=%d Saved=%d Seconds=%.2f Output=%s ViewSize=%dx%d Views=Side,Front,Back,ThreeQuarter"),
+        Definition->Name, SheetWidth, SheetHeight, VertexCount, bSaved,
+        FPlatformTime::Seconds() - RenderStartSeconds, *Output, Width, Height);
     return bSaved ? 0 : 6;
 }

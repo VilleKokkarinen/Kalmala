@@ -27,6 +27,20 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Four-angle creature preview sheets — 2026-10-28
+
+- **Selected task:** Render each live creature from side, front, back, and a
+  preset three-quarter angle in one combined PNG.
+- **Work completed:** The creature commandlet now projects its live procedural
+  mesh from four orthographic camera directions and composes a 2×2 sheet. The
+  original side camera is preserved; front and back are level, and the fixed
+  front three-quarter camera is 45 degrees. Script results report sheet and
+  per-view dimensions.
+- **Checks:** PowerShell parser and `-List` check passed; source and output
+  dimensions were inspected, along with `git diff --check`. No Editor build or
+  preview render was performed.
+- **Status:** Implemented; rebuilt PNG sheets need visual review.
+
 ### Separate preview outputs and repair PeatHusk/Sentinel silhouettes — 2026-10-28
 
 - **Selected task:** Put menu and creature batches in separate folders and fix
