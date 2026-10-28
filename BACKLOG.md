@@ -2,6 +2,9 @@
 
 ## Active queue
 
+- [ ] Minimap notification queue.
+  - [ ] Research player-facing game actions and implement relevant queued
+    notices beneath the minimap with icons, including pickups and skill levels.
 - [ ] Four-view creature visual cleanup, one species per increment.
   - [x] Boar: replace detached spike legs with connected rounded limbs and
     clarify the snout, eyes, ears, and short bristle ridge.
@@ -25,7 +28,7 @@
   - [x] Snakes: replace segmented Viper, Giant Snake, and Death Adder coils
     with continuous tapered body meshes.
   - [x] Polar Bear follow-up: extend upper legs into the belly and torso.
-  - [ ] Horned Goat follow-up: join upper legs to the torso.
+  - [x] Horned Goat follow-up: join upper legs to the torso.
   - [ ] Deer follow-up: join upper legs to the belly and chest.
 
 Completed goal records are retained under Completed post-roadmap work.

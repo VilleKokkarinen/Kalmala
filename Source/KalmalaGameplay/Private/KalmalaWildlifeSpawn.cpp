@@ -4390,7 +4390,7 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             for (const float Side : {-1.0f, 1.0f})
             {
                 const float LegY = Side * 27.0f;
-                AddEllipsoid(FVector(LegX, LegY, -7), FVector(17, 15, 29), Coat);
+                AddEllipsoid(FVector(LegX, LegY, 7), FVector(20, 17, 37), Coat);
                 AddEllipsoid(FVector(LegX + 5.0f, LegY, -45), FVector(17, 14, 10), Hoof);
                 AddEllipsoid(FVector(LegX + 12.0f, LegY - 5.0f, -48), FVector(10, 6, 7), Hoof);
                 AddEllipsoid(FVector(LegX + 12.0f, LegY + 5.0f, -48), FVector(10, 6, 7), Hoof);

@@ -23332,3 +23332,25 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** Horned Goat and Deer still need separate leg-attachment
   increments.
 - **Next eligible task:** Join the Horned Goat's upper legs to its torso.
+
+## Run 2026-10-28 — Horned Goat leg attachment follow-up
+
+- **Selected increment:** Join the Horned Goat's upper legs to its torso.
+- **Work completed:** Raised and widened each upper leg so it overlaps the
+  belly and remains joined to the hoof. Updated the creature description and
+  checked off the Goat follow-up.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Inspected the upper-leg/body and leg/hoof extents;
+  `git diff --check` passed. No build, render, or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** All four Goat legs now visibly overlap into the belly
+  rather than starting below the body.
+- **Networking/authority:** No gameplay, combat, or network state changed.
+  Goat behavior and authority remain unchanged.
+- **Known limitations:** Deer still needs a separate leg-attachment increment;
+  no fresh four-angle render was produced in this run.
+- **Next eligible task:** Implement the Minimap notification queue, researching
+  player-facing game actions and adding queued icon notices including item
+  pickups and skill level-ups.

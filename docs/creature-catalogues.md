@@ -74,7 +74,8 @@ hard enemy.
 Horned Goat (200 health, 50 armor, 50 Crush) now occupies four seeded
 Thunder Mountains slots (40%), limited to dry traversable terrain. Its original
 silhouette has a joined neck and head, stout legs, cloven hooves, and paired
-swept horns. Its procedural presentation shows a half-second charge warning;
+swept horns, with the upper legs overlapping into its belly. Its procedural
+presentation shows a half-second charge warning;
 the server accepts one 50-Crush horn hit within 180 cm, then pushes a living
 target up to 250 cm and staggers it for 0.75 seconds, with collision clipping
 the displacement.
