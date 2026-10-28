@@ -22819,3 +22819,36 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   unverified.
 - **Next eligible task:** None listed in the active queue; rerun
   `Scripts/Render-All-Previews.cmd` and inspect the creature PNGs.
+
+## Run 2026-10-28 — Separate preview folders and repair two silhouettes
+
+- **Selected increment:** Split menu and creature output folders and repair the
+  PeatHusk and Thunder Sentinel silhouettes after the user's rendered review.
+- **Work completed:** Updated both individual render scripts and the combined
+  launcher so menu images go under `png\Menus` and creature images under
+  `png\Creatures`. Replaced the two tetrahedron-only character bodies with
+  overlapping ellipsoid masses, articulated limbs, and retained small detail
+  shapes. Preserved their server-selected warning, slam, and recovery poses.
+- **Files changed:** `Scripts/Render-All-Previews.ps1`,
+  `Scripts/Render-Menu.ps1`, `Scripts/Render-Creatures.ps1`,
+  `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/07-development-setup.md`, `docs/creature-catalogues.md`, `BACKLOG.md`,
+  and `PROGRESS.md`.
+- **Lightweight checks:** Inspected the two user preview PNGs, the successful
+  creature-render log, and the procedural-mesh code. PowerShell parser and
+  `-List` checks passed for the three render scripts; `git diff --check` passed.
+- **Full verification:** Deferred. This is post-roadmap work, not a
+  milestone-final verification run. No Editor build or new preview render was
+  run during this increment.
+- **Observable impact:** New combined and direct-batch outputs separate menus
+  from creatures. PeatHusk and Thunder Sentinel now use overlapping body
+  masses and limbs instead of stacks of long tetrahedral plates. Their updated
+  rendered appearance has not yet been confirmed.
+- **Networking/authority:** No gameplay or network state changed. Presentation
+  continues to use the existing archetype generation path; server-owned attack
+  cues still select the same warning, slam, and recovery stages.
+- **Known limitations:** The models and folders need a user-run cache rebuild
+  and preview review. Earlier generated images in the old flat `png` folder
+  have not been moved or removed. Full Editor compilation remains unverified.
+- **Next eligible task:** Rerun `Scripts/Render-All-Previews.cmd`; review
+  `%TEMP%\kmall\png\Menus` and `%TEMP%\kmall\png\Creatures`.

@@ -27,6 +27,22 @@ No active goals are currently listed. Completed goal records are retained under 
 
 ## Completed post-roadmap work
 
+### Separate preview outputs and repair PeatHusk/Sentinel silhouettes — 2026-10-28
+
+- **Selected task:** Put menu and creature batches in separate folders and fix
+  the PeatHusk and Thunder Sentinel meshes shown as disconnected triangles in
+  the user's renders.
+- **Work completed:** Changed menu and creature render defaults and the
+  combined launcher to use `png\Menus` and `png\Creatures`. Rebuilt the two
+  identified silhouettes from overlapping ellipsoid masses and articulated
+  limbs, retaining small mineral/moss details and their existing attack poses.
+- **Checks:** Inspected the user's PeatHusk and Thunder Sentinel PNGs and the
+  successful 17-creature render log, confirming the two models were built only
+  from tetrahedra. PowerShell parser and `-List` checks plus `git diff --check`
+  passed. No Editor build or render rerun was performed.
+- **Status:** Source and output routing are updated; the new silhouettes still
+  need a rebuilt preview run and visual confirmation.
+
 ### Creature preview rasterizer repair — 2026-10-28
 
 - **Selected task:** Fix the user's combined preview run stopping with creature

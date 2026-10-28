@@ -95,7 +95,7 @@ else {
             throw 'For multiple menus, Output must be a directory.'
         }
     }
-    else { $outputDirectory = Join-Path $Cache 'png' }
+    else { $outputDirectory = Join-Path $Cache 'png/Menus' }
     Assert-ShortPath $outputDirectory
 }
 $renderTargets = @(

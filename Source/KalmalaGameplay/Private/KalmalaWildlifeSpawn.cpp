@@ -4247,53 +4247,45 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const float RaisedFistZ = bWarning ? 416.0f : (bSlamming ? 18.0f : 192.0f);
         const float RaisedFistX = bSlamming ? 188.0f : 108.0f;
 
-        // An original towering stone silhouette uses broad plates, split feet,
-        // cyan mineral seams, and a raised-then-descending arm for the slam cue.
-        AddTetraPoints(FVector(-196,-98,132), FVector(-196,98,132),
-            FVector(128,-106,154), FVector(128,106,154), StoneShadow);
-        AddTetraPoints(FVector(-151,-112,166), FVector(-151,112,166),
-            FVector(98,-121,205), FVector(98,121,205), StoneBase);
-        AddTetraPoints(FVector(-104,-99,203), FVector(-104,99,203),
-            FVector(62,-92,ShoulderZ - 14.0f), FVector(62,92,ShoulderZ - 14.0f), StoneLight);
-        AddTetraPoints(FVector(10,-72,208), FVector(10,72,208),
-            FVector(98,-58,210), FVector(98,58,210), StoneBase);
-        AddTetraPoints(FVector(20,-73,207), FVector(20,73,207),
-            FVector(62,-39,287), FVector(62,39,287), StoneLight);
-        AddTetraPoints(FVector(60,-43,265), FVector(60,43,265),
-            FVector(115,-35,258), FVector(115,35,258), StoneShadow);
-        AddTetraPoints(FVector(18,-105,ShoulderZ - 36.0f), FVector(18,-8,ShoulderZ - 38.0f),
-            FVector(84,-88,ShoulderZ + 26.0f), FVector(83,-25,ShoulderZ + 22.0f), StoneLight);
-        AddTetraPoints(FVector(40,-93,ShoulderZ + 10.0f), FVector(85,-80,ShoulderZ - 6.0f),
-            FVector(RaisedFistX,-105,RaisedFistZ + 30.0f), FVector(RaisedFistX,-59,RaisedFistZ + 18.0f),
-            bWarning ? Warning : StoneBase);
-        AddTetraPoints(FVector(RaisedFistX - 19.0f,-110,RaisedFistZ - 14.0f),
-            FVector(RaisedFistX + 19.0f,-110,RaisedFistZ - 14.0f),
-            FVector(RaisedFistX - 13.0f,-64,RaisedFistZ + 21.0f),
-            FVector(RaisedFistX + 13.0f,-64,RaisedFistZ + 21.0f), bSlamming ? Warning : StoneLight);
-        AddTetraPoints(FVector(-138,-94,166), FVector(-138,94,166),
-            FVector(-117,-75,54), FVector(-117,75,54), StoneBase);
-        AddTetraPoints(FVector(-91,-78,151), FVector(-91,78,151),
-            FVector(-70,-60,38), FVector(-70,60,38), StoneLight);
-        AddTetraPoints(FVector(73,-74,159), FVector(73,74,159),
-            FVector(91,-52,46), FVector(91,52,46), StoneBase);
-        AddTetraPoints(FVector(112,-55,141), FVector(112,55,141),
-            FVector(130,-39,32), FVector(130,39,32), StoneLight);
+        // Build the mountain sentinel from overlapping stone masses and
+        // articulated limbs; sharp geometry is kept for small mineral details.
+        AddEllipsoid(FVector(-15,0,153), FVector(102,79,125), StoneShadow);
+        AddEllipsoid(FVector(-13,0,229), FVector(119,91,75), StoneBase);
+        AddEllipsoid(FVector(19,0,336), FVector(52,47,56), StoneLight);
+        AddEllipsoid(FVector(57,0,322), FVector(32,39,27), StoneBase);
+        AddEllipsoid(FVector(-92,0,ShoulderZ - 8.0f), FVector(58,72,61), StoneLight);
+        AddEllipsoid(FVector(80,0,ShoulderZ - 8.0f), FVector(57,70,58), StoneBase);
+
+        // The left arm hangs beside the torso; the right arm follows the
+        // replicated telegraph, slam, and recovery poses.
+        AddEllipsoid(FVector(-98,0,210), FVector(41,42,73), StoneBase);
+        AddEllipsoid(FVector(-137,-4,123), FVector(36,38,68), StoneLight);
+        AddEllipsoid(FVector(-151,-8,54), FVector(47,47,35), StoneShadow);
+        AddEllipsoid(FVector(91,-43,ShoulderZ - 43.0f), FVector(47,42,58), StoneLight);
+        const float ElbowZ = FMath::Lerp(ShoulderZ, RaisedFistZ, 0.55f);
+        const float ForearmHalfHeight = FMath::Max(39.0f, FMath::Abs(RaisedFistZ - ShoulderZ) * 0.42f);
+        AddEllipsoid(FVector((RaisedFistX + 87.0f) * 0.5f,-57,ElbowZ),
+            FVector(42,42,ForearmHalfHeight), bWarning ? Warning : StoneBase);
+        AddEllipsoid(FVector(RaisedFistX,-64,RaisedFistZ), FVector(42,40,39),
+            bSlamming ? Warning : StoneLight);
+
+        AddEllipsoid(FVector(-53,-30,43), FVector(43,40,66), StoneBase);
+        AddEllipsoid(FVector(54,30,43), FVector(43,40,66), StoneLight);
+        AddEllipsoid(FVector(-53,-34,7), FVector(56,48,29), StoneShadow);
+        AddEllipsoid(FVector(61,35,7), FVector(56,48,29), StoneShadow);
+
         for (const float Side : {-1.0f, 1.0f})
         {
-            AddTetraPoints(FVector(61,Side * 31.0f,274), FVector(76,Side * 29.0f,274),
-                FVector(75,Side * 32.0f,287), FVector(60,Side * 33.0f,286), bWarning ? Warning : ThunderVein);
-            AddTetraPoints(FVector(89,Side * 23.0f,252), FVector(101,Side * 22.0f,252),
-                FVector(100,Side * 24.0f,263), FVector(88,Side * 25.0f,262), StoneShadow);
-            AddTetraPoints(FVector(-91,Side * 78.0f,38), FVector(-70,Side * 60.0f,38),
-                FVector(-57,Side * 61.0f,0), FVector(-105,Side * 86.0f,0), StoneShadow);
-            AddTetraPoints(FVector(73,Side * 74.0f,46), FVector(91,Side * 52.0f,46),
-                FVector(104,Side * 55.0f,0), FVector(59,Side * 82.0f,0), StoneShadow);
+            AddEllipsoid(FVector(54,Side * 37.0f,347), FVector(8,7,9), bWarning ? Warning : ThunderVein);
+            AddEllipsoid(FVector(60,Side * 42.0f,347), FVector(3,2,4), StoneShadow);
+            AddEllipsoid(FVector(30,Side * 67.0f,229), FVector(28,15,43),
+                bWarning ? Warning : ThunderVein);
+            AddEllipsoid(FVector(-100,Side * 62.0f,280), FVector(30,17,25), StoneLight);
         }
         if (bSlamming)
         {
             // A bright fist at the ground makes the one-hit impact phase visible to clients.
-            AddTetraPoints(FVector(166,-114,5), FVector(210,-114,5),
-                FVector(167,-59,32), FVector(208,-60,31), Warning);
+            AddEllipsoid(FVector(188,-68,15), FVector(48,39,23), Warning);
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::ReefMaw)
@@ -4591,46 +4583,53 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor WarmEye(0.72f, 0.42f, 0.17f);
         const FLinearColor SweepWarning(0.94f, 0.57f, 0.16f);
 
-        AddTetra(FVector(-7,0,0), FVector(54,44,104), RootShadow);
-        AddTetra(FVector(27,0,5), FVector(42,37,78), PeatBark);
-        AddTetra(FVector(48,0,70), FVector(28,28,46), RootShadow);
-        AddTetra(FVector(61,0,bWarning ? 104.0f : 98.0f), FVector(43,35,52), Lichen);
+        // Broad overlapping masses make a compact peat-and-root brute, with a
+        // readable head, shoulders, belly, and root feet instead of a stack of
+        // disconnected pyramid plates.
+        AddEllipsoid(FVector(-17,0,73), FVector(70,59,82), RootShadow);
+        AddEllipsoid(FVector(-7,0,125), FVector(77,64,65), PeatBark);
+        AddEllipsoid(FVector(-28,0,178), FVector(55,51,43), RootShadow);
+        AddEllipsoid(FVector(34,0,174), FVector(48,45,40), Lichen);
+        AddEllipsoid(FVector(72,0,151), FVector(28,35,24), PeatBark);
+        AddEllipsoid(FVector(45,-30,121), FVector(35,27,37), Lichen);
+        AddEllipsoid(FVector(2,38,120), FVector(40,29,42), RootShadow);
 
-        AddTetra(FVector(36,-21,132), FVector(16,12,48), PeatBark);
-        AddTetra(FVector(36,21,132), FVector(16,12,48), PeatBark);
-        AddTetra(FVector(35,0,133), FVector(15,14,42), Lichen);
-        AddTetra(FVector(86,-13,122), FVector(6,5,7), bWarning ? SweepWarning : WarmEye);
-        AddTetra(FVector(86,13,122), FVector(6,5,7), bWarning ? SweepWarning : WarmEye);
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddEllipsoid(FVector(67,Side * 33.0f,184), FVector(8,7,9),
+                bWarning ? SweepWarning : WarmEye);
+            AddEllipsoid(FVector(72,Side * 37.0f,184), FVector(3,2,4), RootShadow);
+            const float LegX = Side < 0.0f ? -48.0f : 22.0f;
+            AddEllipsoid(FVector(LegX,Side * 29.0f,7), FVector(31,27,48), RootShadow);
+            AddEllipsoid(FVector(LegX + 15.0f,Side * 32.0f,-20), FVector(38,25,18), PeatBark);
+        }
 
         if (bWarning)
         {
-            // Lift one root-like arm into a clear one-second warning silhouette.
-            AddTetraPoints(FVector(16,-33,62), FVector(43,-51,73),
-                FVector(66,-38,105), FVector(112,-43,119), SweepWarning);
-            AddTetra(FVector(118,-43,116), FVector(22,17,18), SweepWarning);
+            // A raised glowing forearm and fist preserve the server warning pose.
+            AddEllipsoid(FVector(26,-53,112), FVector(37,28,48), PeatBark);
+            AddEllipsoid(FVector(64,-62,159), FVector(31,24,47), SweepWarning);
+            AddEllipsoid(FVector(93,-62,196), FVector(25,23,25), SweepWarning);
         }
         else if (bRecovering)
         {
-            // The arm follows through low and forward while the server recovery timer runs.
-            AddTetraPoints(FVector(16,-33,62), FVector(46,-51,49),
-                FVector(84,-39,34), FVector(133,-41,25), PeatBark);
-            AddTetra(FVector(140,-42,22), FVector(20,15,16), SweepWarning);
+            // The arm follows through low and forward during the server recovery timer.
+            AddEllipsoid(FVector(28,-53,105), FVector(37,28,48), PeatBark);
+            AddEllipsoid(FVector(71,-62,62), FVector(30,23,48), PeatBark);
+            AddEllipsoid(FVector(105,-64,20), FVector(25,23,23), SweepWarning);
         }
         else
         {
-            AddTetraPoints(FVector(16,-33,62), FVector(43,-51,54), FVector(54,-35,43), FVector(88,-69,5), PeatBark);
-            AddTetra(FVector(98,-68,0), FVector(17,13,20), RootShadow);
+            AddEllipsoid(FVector(27,-53,107), FVector(37,28,48), PeatBark);
+            AddEllipsoid(FVector(65,-62,62), FVector(29,23,45), RootShadow);
+            AddEllipsoid(FVector(91,-65,16), FVector(25,23,24), RootShadow);
         }
-        AddTetraPoints(FVector(16,33,62), FVector(54,35,43), FVector(43,51,54), FVector(88,69,5), PeatBark);
-        AddTetra(FVector(98,68,0), FVector(17,13,20), RootShadow);
-
-        AddTetra(FVector(-39,-22,0), FVector(21,17,72), RootShadow);
-        AddTetra(FVector(-39,22,0), FVector(21,17,72), RootShadow);
-        AddTetra(FVector(-4,-22,0), FVector(20,14,17), PeatBark);
-        AddTetra(FVector(-4,22,0), FVector(20,14,17), PeatBark);
-
-        AddTetra(FVector(15,-39,30), FVector(13,9,30), Lichen);
-        AddTetra(FVector(15,39,30), FVector(13,9,30), Lichen);
+        AddEllipsoid(FVector(21,52,101), FVector(31,24,48), PeatBark);
+        AddEllipsoid(FVector(63,59,56), FVector(28,22,43), RootShadow);
+        AddEllipsoid(FVector(89,62,12), FVector(24,22,23), RootShadow);
+        AddEllipsoid(FVector(23,-51,142), FVector(27,16,31), Lichen);
+        AddEllipsoid(FVector(-58,-16,183), FVector(28,18,21), Lichen);
+        AddEllipsoid(FVector(-73,12,159), FVector(20,17,16), Lichen);
     }
 
     // Preserve each original silhouette while tinting a sparse set of faces with

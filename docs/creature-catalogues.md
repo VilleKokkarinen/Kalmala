@@ -65,11 +65,13 @@ authenticated owner in the existing population-save escrow. The server commits
 both together and retains the claim until the complete bundle fits.
 Thunder Sentinel fills the rare 10% Thunder Mountains share and uses the dry,
 traversable mountain gate plus the shared 150 m generated-start exclusion. Its
-original stone silhouette raises an arm for a one-second warning, steps up to
-120 cm, and performs one server-validated downward slam within 300 cm
-horizontally, followed by a 1.2-second recovery. Credited defeats queue three
-Stone and a server-rolled 25% chance of one Thunder Core for the authenticated
-owner through the population-save escrow. The claim stores the roll, and the
+original golem silhouette uses a broad stone torso, distinct head, articulated
+limbs, and small cyan mineral seams; the right arm raises for a one-second
+warning and descends into the server-validated slam. It steps up to 120 cm and
+can slam within 300 cm horizontally, followed by a 1.2-second recovery.
+Credited defeats queue three Stone and a server-rolled 25% chance of one
+Thunder Core for the authenticated owner through the population-save escrow.
+The claim stores the roll, and the
 server commits Stone and an awarded Core together. Reef Maw uses ten percent of eligible
 deep-Ocean wildlife candidates, requires at least 150 cm sampled water depth,
 visibly approaches swimming players, and performs one server-validated 50-Stab
@@ -97,9 +99,11 @@ one swarm reserves each target, and accepted 5-Stab contacts every 0.2 seconds
 refresh the existing ten-second weak poison. Server-accepted dodges and visible
 active flames repel it; this adds no mosquito loot source. The planned 1% Dusk
 Diamond source remains disabled for A9.
-Peat Husk uses its reviewed 300-health, 50-armor, 150-Crush profile and the
-existing original peat-and-wood procedural silhouette. The server keeps it on
-dry Mossy Mire ground, excludes its hard spawn from within 150 m of the player
+Peat Husk uses its reviewed 300-health, 50-armor, 150-Crush profile and an
+original hunched root-brute silhouette made from overlapping peat masses,
+root-like limbs, moss plates, and warm eyes. Its sweep arm lifts for the
+warning and follows through low during recovery. The server keeps it on dry
+Mossy Mire ground, excludes its hard spawn from within 150 m of the player
 start, and controls a slow close sweep with a one-second warning, 260 cm reach,
 120-degree forward arc, and 1.2-second recovery. Each credited defeat queues
 one baseline Amber and makes a server-side 25% roll for one Peat Heart. The

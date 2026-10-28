@@ -5009,7 +5009,7 @@ Use `-Menu inventory` only when an Inventory-only capture is useful. To inspect
 every Options selection, run
 `Scripts/Render-Menu.ps1 -Menu settings.options`; it writes separate previews
 for Controls, Controller, Graphics, Audio, and Accessibility. It writes one PNG
-per rendered view to `%TEMP%\kmmenu\png` by default,
+per rendered view to `%TEMP%\kmmenu\png\Menus` by default,
 using names like `inventory-crafting-<random>.png`; the returned objects include
 each PNG, its per-image render time, the full batch elapsed time, and the shared
 batch log path. The timeout applies separately to each image after the previous
@@ -5035,7 +5035,8 @@ or High contrast.
 Use `Scripts/Render-Creatures.ps1` to render all 17 live wildlife archetypes as
 separate side-view PNGs in one offscreen commandlet run. `-List` prints the
 available archetype names, `-Creature Deer` selects one, and `-Output` accepts
-either a new PNG path for one creature or a directory for the full set. Like
+either a new PNG path for one creature or a directory for the full set. Full
+sets go to `%TEMP%\kmcreature\png\Creatures` by default. Like
 the menu renderer, it uses a compiled Editor cache and supports `-SeedCache`,
 `-Cache`, and `-BuildModules`. The cache mirrors project-local plugin sources
 and descriptors and hashes them in the shared freshness stamp, so plugin updates
@@ -5051,7 +5052,9 @@ To render both sets with one module build, double-click
 `Scripts/Render-All-Previews.cmd`. It builds once through the menu renderer,
 then runs both renderers against the same `%TEMP%\kmall` cache. The command
 window stays open at completion so the results or any error remain visible.
-PNG previews and logs are saved under `%TEMP%\kmall`.
+Menu previews are saved under `%TEMP%\kmall\png\Menus`; creature previews are
+saved under `%TEMP%\kmall\png\Creatures`. Logs remain under
+`%TEMP%\kmall\run`.
 
 ## Historical acceptance and limits
 

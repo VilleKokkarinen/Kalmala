@@ -85,7 +85,7 @@ else {
             throw 'For multiple creatures, Output must be a directory.'
         }
     }
-    else { $outputDirectory = Join-Path $Cache 'png' }
+    else { $outputDirectory = Join-Path $Cache 'png/Creatures' }
     Assert-ShortPath $outputDirectory
 }
 
