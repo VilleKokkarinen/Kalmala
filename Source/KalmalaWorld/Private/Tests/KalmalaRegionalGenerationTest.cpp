@@ -74,7 +74,7 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowRollingAmplitude, 60.0, 200.0, TEXT("Meadow rolling amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowFloorScale, 800.0, 2000.0, TEXT("Meadow floor scale"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MeadowFloorAmplitude, 10.0, 35.0, TEXT("Meadow floor amplitude"));
-    CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodBroadAmplitude, 400.0, 1600.0, TEXT("Elderwood broad amplitude"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodBroadAmplitude, 400.0, 2000.0, TEXT("Elderwood broad amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodMiddleAmplitude, 60.0, 400.0, TEXT("Elderwood middle amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ElderwoodLocalAmplitude, 10.0, 100.0, TEXT("Elderwood local amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::ShimmeringLakesMeadowShare, 0.35, 0.65, TEXT("Shimmering Lakes Meadow share"));
@@ -86,7 +86,7 @@ bool FKalmalaTerrainPreviewControlTest::RunTest(const FString& Parameters)
     CheckRange(&FKalmalaGenerationPreviewSettings::MireResidualDetailAmplitude, 10.0, 60.0, TEXT("Mire residual detail amplitude"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandThreshold, 500.0, 2000.0, TEXT("Mountain highland threshold"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandBlendRange, 500.0, 2000.0, TEXT("Mountain highland blend range"));
-    CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandGain, 0.1, 0.8, TEXT("Mountain highland gain"));
+    CheckRange(&FKalmalaGenerationPreviewSettings::MountainHighlandGain, 0.1, 1.0, TEXT("Mountain highland gain"));
     CheckRange(&FKalmalaGenerationPreviewSettings::MountainDetailAmplitude, 40.0, 160.0, TEXT("Mountain detail amplitude"));
     PreviewControls = FKalmalaGenerationPreviewSettings{};
     PreviewControls.ShimmeringLakesLowlandFloor = 500.0;
@@ -152,13 +152,13 @@ bool FKalmalaBiomeHeightFunctionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Highland amplification starts without a threshold step"),
         ShapeMountain(HighlandThreshold, 0.0, 1.0), HighlandThreshold);
     TestEqual(TEXT("Highland amplification ramps smoothly through its blend range"),
-        ShapeMountain(HighlandThreshold + 500.0, 0.0, 1.0), HighlandThreshold + 600.0);
+        ShapeMountain(HighlandThreshold + 500.0, 0.0, 1.0), HighlandThreshold + 750.0);
     TestEqual(TEXT("Low mountain-region factor leaves high base height unchanged"),
         ShapeMountain(HighlandThreshold + 1000.0, 0.0, 0.0), HighlandThreshold + 1000.0);
     TestEqual(TEXT("Mountain-region factor scales highland gain continuously"),
-        ShapeMountain(HighlandThreshold + 1000.0, 0.0, 0.5), HighlandThreshold + 1200.0);
+        ShapeMountain(HighlandThreshold + 1000.0, 0.0, 0.5), HighlandThreshold + 1500.0);
     TestEqual(TEXT("Full mountain-region factor amplifies only the high base component"),
-        ShapeMountain(HighlandThreshold + 1000.0, 0.0, 1.0), HighlandThreshold + 1400.0);
+        ShapeMountain(HighlandThreshold + 1000.0, 0.0, 1.0), HighlandThreshold + 2000.0);
     TestTrue(TEXT("Mountain candidate approaches the threshold without a foothill step"),
         FMath::Abs(ShapeMountain(HighlandThreshold, 0.0, 1.0)
             - ShapeMountain(HighlandThreshold - 0.01, 0.0, 1.0)) <= 0.02

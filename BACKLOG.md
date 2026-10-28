@@ -55,6 +55,24 @@ No active goals are currently listed. Completed goal records are retained under 
 - **Status:** Defaults and preview contracts are updated. Actual absolute
   height range and rendered terrain readability remain unverified.
 
+### Valheim-informed forest and mountain follow-up — 2026-10-28
+
+- **Selected task:** Compare the other Kalmala biome height functions with
+  Valheim's corresponding terrain formulas and adjust the close analogs.
+- **Work completed:** Raised shared Elderwood/Tundra broad relief from 4 m to
+  20 m at the existing 1 km scale, matching Valheim Black Forest's nominal
+  ±20 m detail contribution. Raised Thunder Mountain highland gain from 0.4
+  to 1.0, matching the full one-for-one amplification of source excess above
+  its threshold. Expanded preview bounds and the existing profile matrix to
+  cover the adjusted settings. Kept the intentionally compressed Mire,
+  mixed Lakes and master-constrained Ocean controls at their measured values.
+- **Checks:** Compared the formulas and control units, inspected all current
+  preview bounds and regression expectations, and ran `git diff --check`. No
+  build, automation, profile sweep or rendered review was run.
+- **Status:** Source settings and research notes are updated. Fresh profiles
+  and rendered terrain acceptance remain pending for Elderwood/Tundra,
+  Thunder Mountains, and Lakes after the Meadow change.
+
 ## Scope and history
 
 The [roadmap](docs/04-roadmap.md) and [feature contracts](docs/game-features.md)

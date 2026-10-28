@@ -35,8 +35,8 @@ struct FKalmalaRegionalTuning
     static constexpr uint64 ForestCandidateGeometrySalt = 0x4B414C4D414C4109ull;
     // Provisional density relative to the existing forest Flora curve; BH25 finalizes this trial.
     static constexpr float FreezingTundraForestDensityMultiplier = 0.85f;
-    // BH25b2-selected shared Elderwood/Tundra relief amplitudes, centimetres.
-    static constexpr double ElderwoodBroadAmplitude = 400.0;
+    // Valheim-informed shared Elderwood/Tundra broad relief; fresh profiles pending.
+    static constexpr double ElderwoodBroadAmplitude = 2000.0;
     static constexpr double ElderwoodMiddleAmplitude = 60.0;
     static constexpr double ElderwoodLocalAmplitude = 10.0;
     // Provisional Shimmering Lakes shoulder/low-pocket trials, centimetres
@@ -50,10 +50,10 @@ struct FKalmalaRegionalTuning
     static constexpr double MireTargetHeight = 300.0;
     static constexpr double MireCompressionScale = 700.0;
     static constexpr double MireResidualDetailAmplitude = 25.0;
-    // Provisional Thunder Mountains highland shaping, centimetres except gain.
+    // Valheim-informed Thunder Mountains highland shaping, centimetres except gain.
     static constexpr double MountainHighlandThreshold = 1000.0;
     static constexpr double MountainHighlandBlendRange = 1000.0;
-    static constexpr double MountainHighlandGain = 0.4;
+    static constexpr double MountainHighlandGain = 1.0; // Full highland excess is doubled.
     static constexpr double MountainDetailAmplitude = 80.0;
     static constexpr double ElevationFrequency = 1.0 / 100000.0;
     static constexpr double ClimateFrequency = 1.0 / 150000.0;

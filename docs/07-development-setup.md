@@ -3791,8 +3791,13 @@ The file uses one `Name=value` per line, with optional blank lines and full-line
 | `MeadowsMaximumKm` | 4 | Meadows cutoff; must exceed the starter radius and be at most 16 km. |
 | `EligibilityBlendKm` | 0.05 | Smooth eligibility ramp; 0.001 km through the Meadows maximum. |
 
-The production regional sampler consumes the selected Meadows hill, rolling
-and floor controls and the shared Elderwood/Tundra relief. This fast PNG exporter validates and reports its own map controls
+The production regional sampler currently uses 20 m Elderwood/Tundra broad
+relief at a 1 km scale (with 0.6 m / 0.1 m middle/local layers), and Thunder
+Mountain highland gain 1.0 above its 10 m threshold. These two Valheim-informed
+defaults have preview bounds of 4–20 m and 0.1–1.0 respectively and are
+provisional pending fresh profile and rendered acceptance. The production
+sampler also consumes the selected Meadows hill, rolling and floor controls.
+This fast PNG exporter validates and reports its own map controls
 but does not display shaped height; use the full visualization commandlet and
 the numeric profile runners below for final-height ranges.
 

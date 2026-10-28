@@ -334,9 +334,10 @@ This retains positive land clearance without flattening negative relief onto a
 constant shelf. Sea-side height remains constrained by source elevation.
 
 The Meadows candidate adds separate seed-derived absolute-world hill and
-rolling signals. Following a user report of insufficient visible relief, the
-2026-10-27 Valheim-informed defaults are 8 m hills at 160 m, 1.2 m rolling
-relief at 45 m, and 0.2 m floor detail at 12 m. BH25a/BH25b1/BH25c retain the
+rolling signals. Following user reports of insufficient visible relief and
+the later observation of roughly 30 m Valheim meadows, the current defaults
+are 20 m hills at 160 m, a 30 m shoulder threshold, 1.2 m rolling relief at
+45 m, and 0.2 m floor detail at 12 m. BH25a/BH25b1/BH25c retain the
 historical one-factor measurements for the 4 m hill, 0.6 m rolling and 8 m /
 0.1 m floor selections. Across the eight fixed profiles, the historical 0.6 m
 rolling trial's final-height min/mean/max ranges
@@ -344,18 +345,25 @@ were 42.4/176.2/767.8 cm at 30 m, 49.5/226.8/935.1 cm at 45 m, and
 66.4/286.3/1,074.0 cm at 70 m; dry collision-slope p50/p90/p95/maximum was
 2.31/4.55/28.07/36.20 degrees. BH12a adds a third independently seeded floor
 signal; BH25c selected 8 m / 0.1 m after the nine-trial fresh-source matrix.
-At 125 cm collision spacing, the selected scale has 6.4 intervals per scale
-length and a maximum 2.765 cm adjacent floor-input step. These layers enter the smooth, monotonic shoulder
-curve; candidates below 10 m remain unchanged and the curve approaches a 40 m
-upper bound. The broad layer replaces the previous 40 cm Meadows detail term.
-Lakes tuning remains provisional pending BH25d. BH26 retains rendered
-gentler-route and under-vegetation inspection; numeric profiles do not claim
-rendered traversal or floor readability acceptance.
+At 125 cm collision spacing, the historical 8 m floor scale had 6.4 intervals
+per scale length and a maximum 2.765 cm adjacent floor-input step. These layers
+enter the smooth, monotonic shoulder curve; candidates below 30 m remain unchanged and
+the curve approaches a 60 m upper bound. The broad layer replaces the previous
+40 cm Meadows detail term.
+The Lakes controls remain at the BH25d measured values, but their candidate now
+inherits the Meadow retune; a fresh combined profile is pending. BH26's
+rendered gentler-route and under-vegetation acceptance used the earlier height
+defaults and does not verify the current retune.
 
 Elderwood and Tundra share the same uncompressed candidate over the absolute-
 world 1,000 / 150 / 30 m relief stack, plus its bounded legacy detail. BH25b2
-selected broad/middle/local amplitudes of 4 / 0.6 / 0.1 m from fresh-source
-one-layer trials spanning 4–16 / 0.6–4 / 0.1–1 m. On the selected trials,
+historically measured broad/middle/local amplitudes of 4 / 0.6 / 0.1 m in
+fresh-source one-layer trials spanning 4–16 / 0.6–4 / 0.1–1 m. The current
+Valheim-informed follow-up raises only the broad amplitude to 20 m, matching
+the Black Forest detail coefficient's nominal ±20 m contribution after
+Valheim's height multiplier. This 20 m setting is outside the earlier sweep
+and still needs fresh profiles and rendered acceptance. On the historical
+selected trials,
 the six dry 100 m profile ranges (min/mean/max, cm) were 62.59/212.16/561.43
 (broad), 33.58/194.91/557.29 (middle), and 33.77/176.00/519.75 (local); the
 corresponding collision-slope p50/p90/p95/maximum values were
@@ -364,7 +372,8 @@ corresponding collision-slope p50/p90/p95/maximum values were
 so candidate height cannot drift between those biomes; continuous
 classification weights still determine each final blend. Detailed trial data
 and the cost/budget comparison are in [the biome-height plan](biome-height-rework.md).
-BH25d owns Lakes blend/lowland selection, and BH26 owns rendered profile acceptance.
+BH25d selected the prior Lakes controls; the new combined Meadow/Lakes profile
+and rendered review remain pending.
 
 The BH25b measurements did not change fixed map or terrain payload sizes. Each
 terrain patch remains 30 m across with a 24x24 collision-cell lattice (625
@@ -376,15 +385,17 @@ independent frame-time promises.
 
 Thunder Mountains now increase gain only above the named `MountainHighlandThreshold`
 of 1,000 cm. The increase ramps with smoothstep across a further 1,000 cm,
-scales by the existing continuous Mountain region field, and reaches a provisional
-0.4 gain at full region strength. The separate detail term is clamped to ±1 and
-uses a provisional 80 cm amplitude. Commandlet preview bounds are 500–2,000 cm
-for the threshold and blend range, 0.1–0.8 for gain, and 40–160 cm for detail.
+scales by the existing continuous Mountain region field, and reaches a gain of
+1.0 at full region strength, matching Valheim's one-for-one amplification of
+highland excess above its mountain base threshold. The separate detail term is
+clamped to ±1 and remains at 80 cm because its Kalmala noise wavelength is much
+shorter than Valheim's mountain detail field. Commandlet preview bounds are
+500–2,000 cm for the threshold and blend range, 0.1–1.0 for gain, and 40–160 cm for detail.
 Thus low source-height fallback and foothills retain their base height (apart
 from bounded detail), while only high terrain receives the broad amplification.
 Biome weights, distance eligibility, coast attenuation, river order and seeded
-sampling are unchanged. These source settings are provisional; rendered
-mountain/foothill acceptance remains BH26.
+sampling are unchanged. The updated gain has not been profile-swept or rendered;
+mountain/foothill acceptance remains pending.
 
 The master seed is a compiled constant. Crop transforms derive from the game seed. Rivers remain enabled and small streams are disabled. Authority, population IDs, collision and maps derive from the same server-owned seed and current build.
 

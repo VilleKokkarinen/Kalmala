@@ -1,9 +1,9 @@
 # Biome height rework plan
 
-Status: implementation and BH26 integrated acceptance passed 2026-10-26. On
-2026-10-27, a user-directed Meadows relief retune changed the compiled hill,
-rolling and floor settings; fresh profile and rendered acceptance for those
-new defaults remain pending. See [`PROGRESS.md`](../PROGRESS.md). The user
+Status: implementation and BH26 integrated acceptance passed 2026-10-26. User-
+directed Valheim-informed retunes changed Meadow, Elderwood/Tundra and Mountain
+height defaults through 2026-10-28; fresh profile and rendered acceptance for
+the new defaults remain pending. See [`PROGRESS.md`](../PROGRESS.md). The user
 confirmed the earlier editor terrain/traversal inspection worked and had closed
 the editor before the final headless checks.
 Implementation is tracked in `BACKLOG.md` after A10 acceptance and before
@@ -41,6 +41,33 @@ content; the earlier Valheim comparison is inspiration, not a code specification
 | Freezing Tundra | Reuse Elderwood terrain character farther out, with snow and slightly fewer trees. | A snowy outer forest with modestly more open canopy. |
 | Thunder Mountains | Amplify already-high base terrain; add snow and storm presentation. | Pronounced peaks and ridges rather than small bumps on ordinary land. |
 | Enclosed lakes | Disable analytic basin shaping and enclosed-lake water generation. | No generated inland bowls, elevated lake sheets or lake shore overlays. Ocean and rivers remain. |
+
+## Valheim height comparison
+
+Valheim's reconstructed height function uses a height multiplier of 200 over
+normalized terrain. That makes its `.1` forest detail coefficient a nominal
+±20 m contribution and its `.2` Mountain detail coefficient ±40 m; these are
+noise amplitudes, not measured biome-wide minimum/maximum/average heights. A
+biome has no seed-independent min, max or average because its base-height field,
+seed, sampled area and coastline all affect the result. The available public
+transcription of the generator is [ValheimSeedFinder's WorldGenerator.cs](https://github.com/igentuman/ValheimSeedFinder/blob/main/WorldGenerator.cs);
+[Valheim Database](https://valheimdb.com/biomes) reports its current 1.0.20
+formulas are read from game files. Treat these as a code-level reference, not
+an official specification.
+
+| Kalmala biome | Closest Valheim height behavior | Kalmala check and adjustment |
+| --- | --- | --- |
+| Meadows | Meadows adds `.1` detail and compresses upper shoulders; player-observed terrain reaches about 30 m. | Kalmala now uses 20 m broad hills and starts shoulder compression at 30 m. Combined profile/rendered acceptance is pending. |
+| Elderwood | Black Forest adds the same nominal ±20 m `.1` detail without Meadows shoulder compression. | Broad relief increased from 4 m to 20 m at the shared 1 km scale; middle/local remain 0.6/0.1 m. The earlier six-profile data measured the 4 m setting only, so remeasurement is pending. |
+| Freezing Tundra | No direct match: Deep North uses a separate elevated/snowy height function; Kalmala defines Tundra as an outer forest using Elderwood terrain. | Shares the 20 m broad Elderwood setting to retain the project's forest contract. |
+| Thunder Mountains | Mountain height doubles source excess above its normalized 0.4 threshold, then adds nominal ±40 m `.2` detail. | Highland gain raised from 0.4 to 1.0, so full Mountain weight now doubles Kalmala source excess above 10 m. Fine detail stays 0.8 m because its noise wavelength is roughly 67 m, unlike Valheim's 1 km mountain detail. Fresh profile/render review is pending. |
+| Mossy Mire | Swamp uses a narrow normalized band around `.137` with `.03` noise, nominally about 27.4 m ±6 m relative to Valheim's sea-level datum. | Retained the measured 3 m target / 7 m compression / 0.25 m detail lowland profile. Its compressed, near-coast role and Kalmala sea-level datum make a direct absolute-height copy inappropriate. |
+| Shimmering Lakes | No direct Valheim equivalent. | Keeps its measured 50% Meadow / Elderwood blend; it inherits half the stronger Meadow relief. The earlier four-profile measurement predates the Meadow retune. |
+| Ocean | Valheim returns its base terrain height; Kalmala constrains the seabed to its master land/water atlas. | Different ocean and world-height contracts; no numeric port. |
+
+The historical Elderwood, Lakes and Mire profile measurements below are fixed
+100 m transects from specific seeds, not global biome-wide ranges. They should
+not be read as the new defaults' measured output.
 
 ## Current starting point
 
@@ -100,13 +127,17 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   high ground onto a flat shelf. Threshold and compression strength remain
   tunable and must be inspected in cross-section.
 - **Elderwood:** Use the shared broad/middle/local world-space relief base and
-  bounded existing detail without the Meadows compression curve. The first
-  amplitude trial is 9 / 2.4 / 0.4 m at the shared 1,000 / 150 / 30 m scales;
-  trial ranges to validate are 4–16 / 0.6–4 / 0.1–1 m. These are provisional only.
+  bounded existing detail without the Meadows compression curve. Historical
+  amplitude trials used 4–16 / 0.6–4 / 0.1–1 m at the shared 1,000 / 150 / 30 m
+  scales. The current 20 / 0.6 / 0.1 m values are provisional; the broad layer
+  is outside that measured range and the preview accepts 4–20 m. These are
+  provisional only.
   `ShapeTundra` directly calls the Elderwood candidate, so the two cannot
   silently diverge into unrelated terrain styles. BH25b sweeps each layer one
-  at a time against fixed numeric profiles and selects measured values; BH26
-  remains the rendered/parity acceptance gate.
+  at a time against fixed numeric profiles and selected historical values.
+  The user-directed follow-up sets broad relief to 20 m, beyond that measured
+  range, while retaining 0.6 / 0.1 m middle/local relief; its profiles and BH26
+  rendered/parity acceptance remain pending.
 - **Shimmering Lakes:** Interpret the requested similarity as a continuous
   mixture: Meadows-style rounded upper shoulders, Elderwood-style undulation,
   and Mire-style compressed lower pockets. Derive the lowland blend from base
@@ -144,9 +175,9 @@ determinism and channel-connectivity acceptance, not an incidental side effect.
   rewards or harvesting tiers as part of this terrain work.
 - **Thunder Mountains:** `ShapeMountains` preserves source height below a named
   high-base threshold, then smoothly increases gain above it using the continuous
-  Mountain region field. Provisional settings are a 1,000 cm threshold, a
-  1,000 cm smooth blend range, 0.4 gain, and 80 cm fine detail clamped to a
-  ±1 input; bounded preview ranges are 500–2,000 cm, 500–2,000 cm, 0.1–0.8,
+  Mountain region field. Current settings are a 1,000 cm threshold, a
+  1,000 cm smooth blend range, 1.0 gain, and 80 cm fine detail clamped to a
+  ±1 input; bounded preview ranges are 500–2,000 cm, 500–2,000 cm, 0.1–1.0,
   and 40–160 cm respectively. The candidate is
   `source + max(source-threshold, 0) * smoothstep(threshold, threshold+range, source) * region * gain + clamp(detail,-1,1) * detailAmplitude`.
   This amplifies existing high base terrain without lifting every Mountain-

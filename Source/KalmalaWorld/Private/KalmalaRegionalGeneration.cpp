@@ -337,7 +337,7 @@ double FKalmalaRegionalGeneration::ShapeMountains(
         HighlandThreshold + HighlandBlendRange, SourceHeight);
     const double HeightAboveThreshold = FMath::Max(0.0, SourceHeight - HighlandThreshold);
     const double HighlandAmplification = HeightAboveThreshold * HighBaseBlend
-        * FMath::Clamp(MountainRegion, 0.0, 1.0) * FMath::Clamp(HighlandGain, 0.0, 0.8);
+        * FMath::Clamp(MountainRegion, 0.0, 1.0) * FMath::Clamp(HighlandGain, 0.0, 1.0);
     const double BoundedDetail = FMath::Clamp(Detail, -1.0, 1.0)
         * FMath::Clamp(DetailAmplitude, 0.0, 160.0);
     return SourceHeight + double(float(HighlandAmplification)) + double(float(BoundedDetail));

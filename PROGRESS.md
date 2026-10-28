@@ -1,3 +1,48 @@
+## Valheim-informed forest and mountain follow-up — 2026-10-28
+
+- **Selected task:** Audit other biome heights against Valheim's comparable
+  biome formulas, then adjust the close terrain analogs.
+- **Work completed:** Raised shared Elderwood/Tundra broad relief from 4 m to
+  20 m at its 1 km scale, corresponding to Valheim Black Forest's nominal
+  ±20 m detail term (`0.1 × 200`). Raised Thunder Mountain highland gain from
+  0.4 to 1.0 so full Mountain weight doubles source excess above the 10 m
+  threshold, matching Valheim's one-for-one highland amplification. Expanded
+  the preview validation bounds, updated the Elderwood profile runner to
+  include 20 m, and updated mountain gain expectations. Kept the measured
+  compressed Mire and blended Lakes controls; Lakes already receives half the
+  increased Meadow candidate. Added a biome comparison and its limits to the
+  terrain documentation.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`,
+  `Scripts/Tests/World/BiomeWoodProfiles.ps1`,
+  `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaRegionalGeneration.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaRegionalGenerationTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaGenerationPreview.h`,
+  `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, and `docs/meadows-plan.md`.
+- **Lightweight checks:** Manually reviewed the Valheim formula conversion,
+  updated defaults, preview bounds and source regression expectations;
+  `git diff --check` passed. No build or automation was run.
+- **Full verification:** Deferred. The 20 m forest broad setting exceeds the
+  historical 4–16 m profile sweep, and Mountain gain 1.0 exceeds the previous
+  0.1–0.8 range. Fresh-source profiles and rendered review are still needed.
+- **Observable impact:** Elderwood and outer Tundra now have a 20 m broad
+  relief amplitude; full-weight Mountain terrain can add the full source-height
+  excess above 10 m. Mire remains a narrow lowland, Lakes inherits half the
+  Meadow relief, and Ocean remains controlled by the master atlas.
+- **Networking/authority:** Deterministic terrain sampling remains unchanged
+  in ownership; the same seed-derived settings are used by server and clients.
+  No RPC, replication, gameplay authority or save behavior changed.
+- **Known limitations / remaining scope:** No fresh height ranges or slopes
+  were measured after these changes. The Valheim values are formula amplitudes,
+  not universal biome-wide minimum/average/maximum heights; actual terrain
+  depends on the seed and sampled footprint. Rendered traversal and shoreline
+  acceptance remain pending.
+- **Next eligible task:** Build the updated source and capture new Elderwood,
+  Tundra, Mountain and Lakes profiles, then inspect the rendered height and
+  traversal before accepting these defaults.
+
 ## Backlog cleanup — 2026-10-27
 
 - **Selected task:** Remove completed goals from the active backlog.

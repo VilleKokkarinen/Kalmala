@@ -71,7 +71,7 @@ struct FKalmalaGenerationPreviewSettings
             && InRange(MeadowRollingAmplitude, 60.0, 200.0)
             && InRange(MeadowFloorScale, 800.0, 2000.0)
             && InRange(MeadowFloorAmplitude, 10.0, 35.0)
-            && InRange(ElderwoodBroadAmplitude, 400.0, 1600.0)
+            && InRange(ElderwoodBroadAmplitude, 400.0, 2000.0)
             && InRange(ElderwoodMiddleAmplitude, 60.0, 400.0)
             && InRange(ElderwoodLocalAmplitude, 10.0, 100.0)
             && InRange(ShimmeringLakesMeadowShare, 0.35, 0.65)
@@ -86,7 +86,7 @@ struct FKalmalaGenerationPreviewSettings
                 > MireResidualDetailAmplitude
             && InRange(MountainHighlandThreshold, 500.0, 2000.0)
             && InRange(MountainHighlandBlendRange, 500.0, 2000.0)
-            && InRange(MountainHighlandGain, 0.1, 0.8)
+            && InRange(MountainHighlandGain, 0.1, 1.0)
             && InRange(MountainDetailAmplitude, 40.0, 160.0);
     }
 };
