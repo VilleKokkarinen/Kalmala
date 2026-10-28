@@ -23071,3 +23071,29 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** Lynx, Polar Bear, and Horned Goat remain queued for
   individual review.
 - **Next eligible task:** Connect the Lynx's head, tail, and feet to its torso.
+
+## Run 2026-10-28 — Four-view creature review: Lynx
+
+- **Selected increment:** Connect the Lynx's head, tail, and feet to its torso.
+- **Work completed:** Joined the head, cheek ruffs, muzzle, torso, short tail,
+  and rounded paws. Replaced the pointed ears and angular legs with short
+  black-tipped ear tufts and connected rounded limbs. Moved the six flank spots
+  onto the coat surface and flattened them so they read as markings.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature Lynx -Output
+  "C:\Users\Ville\AppData\Local\Temp\kmcreature\review\Lynx-final3.png"
+  -BuildModules` compiled the Editor target successfully in four actions and
+  rendered a 2564×1924 sheet (1280×960 per view). Visually inspected all four
+  angles. `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Lynx now has a continuous body/head/leg silhouette
+  with visible coat markings and lynx-specific ear and cheek shapes across the
+  four preview angles.
+- **Networking/authority:** No gameplay, combat, or network state changed. Its
+  server-owned pounce and loot behavior remain unchanged.
+- **Known limitations:** Polar Bear and Horned Goat remain queued for individual
+  review.
+- **Next eligible task:** Give the Polar Bear's head and short legs a connected,
+  heavier shape.

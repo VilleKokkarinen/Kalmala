@@ -4431,29 +4431,27 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor EarTip(0.08f, 0.075f, 0.065f);
         const FLinearColor Nose(0.26f, 0.19f, 0.17f);
         const FLinearColor Eye(0.91f, 0.65f, 0.19f);
-        const float HeadX = bLeaping ? 139.0f : 122.0f;
-        const float HeadZ = bTelegraph ? 56.0f : (bLeaping ? 82.0f : 72.0f);
+        const float HeadX = bLeaping ? 123.0f : 103.0f;
+        const float HeadZ = bTelegraph ? 54.0f : (bLeaping ? 72.0f : 63.0f);
 
-        AddEllipsoid(FVector(-14, 0, 47), FVector(88, 38, 43), SnowCoat);
-        AddEllipsoid(FVector(HeadX - 6.0f, 0, HeadZ - 5.0f), FVector(32, 24, 25), SnowCoat);
+        AddEllipsoid(FVector(-18, 0, 47), FVector(86, 40, 41), SnowCoat);
+        AddEllipsoid(FVector(39, 0, 49), FVector(56, 39, 39), SnowCoat);
         // A compact spotted body, cheek ruffs, short tail and tufted ears distinguish
         // this Tundra pouncer from the longer, darker Wolf.
-        AddEllipsoid(FVector(-29, 0, bTelegraph ? 73.0f : 81.0f), FVector(49, 30, 14), BackCoat);
-        AddTetraPoints(FVector(43,-22,43), FVector(43,22,43), FVector(HeadX - 18.0f,-15,HeadZ + 3.0f),
-            FVector(HeadX - 18.0f,15,HeadZ + 3.0f), Cream);
-        AddTetraPoints(FVector(HeadX - 23.0f,-16,HeadZ), FVector(HeadX - 23.0f,16,HeadZ),
-            FVector(HeadX + 11.0f,-11,HeadZ - 9.0f), FVector(HeadX + 11.0f,11,HeadZ - 9.0f), SnowCoat);
-        AddTetraPoints(FVector(HeadX + 7.0f,-10,HeadZ - 10.0f), FVector(HeadX + 7.0f,10,HeadZ - 10.0f),
-            FVector(HeadX + 27.0f,-6,HeadZ - 16.0f), FVector(HeadX + 27.0f,6,HeadZ - 16.0f), Nose);
+        AddEllipsoid(FVector(-30, 0, bTelegraph ? 70.0f : 76.0f), FVector(50, 32, 13), BackCoat);
+        AddEllipsoid(FVector(HeadX - 31.0f, 0, HeadZ - 6.0f), FVector(43, 29, 28), Cream);
+        AddEllipsoid(FVector(HeadX, 0, HeadZ), FVector(30, 23, 24), SnowCoat);
+        AddEllipsoid(FVector(HeadX + 19.0f, 0, HeadZ - 10.0f), FVector(21, 18, 12), Cream);
+        AddEllipsoid(FVector(HeadX + 38.0f, 0, HeadZ - 10.0f), FVector(6, 10, 5), Nose);
 
         for (int32 SpotIndex = 0; SpotIndex < 6; ++SpotIndex)
         {
             const float X = -48.0f + static_cast<float>(SpotIndex) * 15.0f;
             const float Side = SpotIndex % 2 == 0 ? -1.0f : 1.0f;
             const float Z = 38.0f + (SpotIndex % 3) * 7.0f;
-            AddTetraPoints(FVector(X - 5.0f,Side * 24.0f,Z - 4.0f),
-                FVector(X - 5.0f,Side * 30.0f,Z - 4.0f), FVector(X + 5.0f,Side * 27.0f,Z - 4.0f),
-                FVector(X,Side * 27.0f,Z + 3.0f), Spot);
+            const float BodySurfaceY = 40.0f * FMath::Sqrt(FMath::Max(0.0f,
+                1.0f - FMath::Square((X + 18.0f) / 86.0f) - FMath::Square((Z - 47.0f) / 41.0f)));
+            AddEllipsoid(FVector(X, Side * (BodySurfaceY + 0.2f), Z), FVector(5, 1.1f, 4), Spot);
         }
 
         for (const float Side : {-1.0f, 1.0f})
@@ -4464,43 +4462,30 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
                 const bool bCrouchedForeleg = bTelegraph && bForeleg && Side < 0.0f;
                 const float FootX = bLeaping ? LegX + (bForeleg ? 45.0f : -24.0f)
                     : (LegX + (bCrouchedForeleg ? 24.0f : 4.0f));
-                const float FootZ = bCrouchedForeleg ? -13.0f : (bLeaping ? -31.0f : -55.0f);
-                AddTetraPoints(FVector(LegX - 10.0f,Side * 18.0f,31),
-                    FVector(LegX + 10.0f,Side * 28.0f,27),
-                    FVector(FootX - 8.0f,Side * 18.0f,-8), FVector(FootX + 9.0f,Side * 25.0f,-11),
+                const float FootZ = bCrouchedForeleg ? -13.0f : (bLeaping ? -31.0f : -44.0f);
+                const float LegOffsetX = bLeaping && bForeleg ? 15.0f : 0.0f;
+                const float LegY = Side * 28.0f;
+                AddEllipsoid(FVector(LegX + LegOffsetX, LegY, -5), FVector(17, 15, 35),
                     bForeleg ? SnowCoat : BackCoat);
-                AddTetraPoints(FVector(FootX - 9.0f,Side * 18.0f,FootZ + 10.0f),
-                    FVector(FootX - 2.0f,Side * 27.0f,FootZ + 10.0f),
-                    FVector(FootX + 11.0f,Side * 18.0f,FootZ), FVector(FootX + 9.0f,Side * 27.0f,FootZ + 2.0f), Spot);
+                AddEllipsoid(FVector(FootX, LegY, FootZ), FVector(20, 16, 11), BackCoat);
             }
 
-            // Wide cheek tufts and black-tipped triangular ears give the short face a lynx outline.
-            AddTetraPoints(FVector(HeadX - 27.0f,Side * 11.0f,HeadZ - 1.0f),
-                FVector(HeadX - 20.0f,Side * 26.0f,HeadZ + 6.0f),
-                FVector(HeadX - 5.0f,Side * 18.0f,HeadZ - 18.0f),
-                FVector(HeadX + 3.0f,Side * 13.0f,HeadZ - 16.0f), Cream);
-            AddTetraPoints(FVector(HeadX - 15.0f,Side * 10.0f,HeadZ + 5.0f),
-                FVector(HeadX - 7.0f,Side * 16.0f,HeadZ + 4.0f),
-                FVector(HeadX - 12.0f,Side * 13.0f,HeadZ + 33.0f),
-                FVector(HeadX - 25.0f,Side * 12.0f,HeadZ + 22.0f), BackCoat);
-            AddTetraPoints(FVector(HeadX - 13.0f,Side * 11.0f,HeadZ + 24.0f),
-                FVector(HeadX - 9.0f,Side * 13.0f,HeadZ + 23.0f),
-                FVector(HeadX - 12.0f,Side * 12.0f,HeadZ + 39.0f),
-                FVector(HeadX - 20.0f,Side * 11.0f,HeadZ + 30.0f), EarTip);
-            AddTetraPoints(FVector(HeadX + 1.0f,Side * 11.0f,HeadZ + 1.0f),
-                FVector(HeadX + 8.0f,Side * 14.0f,HeadZ + 2.0f),
-                FVector(HeadX + 7.0f,Side * 14.0f,HeadZ + 7.0f),
-                FVector(HeadX + 2.0f,Side * 12.0f,HeadZ + 9.0f), Eye);
+            // Full cheek ruffs and short black-tipped ear tufts define the lynx face.
+            AddEllipsoid(FVector(HeadX - 9.0f, Side * 20.0f, HeadZ - 6.0f),
+                FVector(16, 10, 13), Cream);
+            AddEllipsoid(FVector(HeadX - 14.0f, Side * 11.0f, HeadZ + 17.0f),
+                FVector(8, 7, 12), BackCoat);
+            AddEllipsoid(FVector(HeadX - 14.0f, Side * 12.0f, HeadZ + 24.0f),
+                FVector(4, 4, 7), EarTip);
+            AddEllipsoid(FVector(HeadX + 4.0f, Side * 19.0f, HeadZ + 5.0f),
+                FVector(4, 3, 4), Eye);
         }
-        AddTetraPoints(FVector(-84,-7,28), FVector(-84,7,28), FVector(-111,-11,23),
-            FVector(-118,11,22), BackCoat);
-        AddTetraPoints(FVector(-114,-11,23), FVector(-118,11,22), FVector(-130,-10,18),
-            FVector(-133,10,17), EarTip);
+        AddEllipsoid(FVector(-94, 0, 37), FVector(27, 13, 12), BackCoat);
+        AddEllipsoid(FVector(-113, 0, 30), FVector(15, 10, 9), EarTip);
         if (bTelegraph)
         {
             // The lowered shoulders and tucked forelegs expose the half-second pounce warning.
-            AddTetraPoints(FVector(-7,-5,49), FVector(-7,5,49), FVector(22,-4,29),
-                FVector(22,4,29), Spot);
+            AddEllipsoid(FVector(5, 0, 40), FVector(20, 9, 4), Spot);
         }
     }
     else if (bSnake)

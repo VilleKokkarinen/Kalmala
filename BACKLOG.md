@@ -13,7 +13,7 @@
   - [x] Viper: lower and connect the head to the coiled body.
   - [x] Giant Snake: lower and connect the head to the coiled body.
   - [x] Wolf: connect the head, tail, and feet to the torso.
-  - [ ] Lynx: connect the head, tail, and feet to the torso.
+  - [x] Lynx: connect the head, tail, and feet to the torso.
   - [ ] Polar Bear: give the head and short legs a connected, heavier shape.
   - [ ] Horned Goat: connect the raised head and legs to the body.
 

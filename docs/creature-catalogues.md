@@ -134,7 +134,9 @@ Wolf Fang. The durable owner claim stores the roll, preserving it across retries
 and reloads. The complete awarded bundle commits together when inventory
 capacity permits.
 Lynx (150 health, 30 armor, 75 Slash) occupies the next seeded 20% of Tundra
-candidate slots and stays on dry, traversable Tundra. The server-owned pounce
+candidate slots and stays on dry, traversable Tundra. Its compact, spotted
+silhouette has a joined head and short muzzle, cheek ruffs, black-tipped ear
+tufts, a short tail, and rounded paws. The server-owned pounce
 shows a half-second warning, closes toward the target, and applies damage only
 within the user-reviewed 350 cm impact boundary and clear line of sight. A hit
 recovers for 0.8 seconds; a miss takes 1.2 seconds. Credited defeats queue two
