@@ -23193,3 +23193,26 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   behavior and authority remain unchanged.
 - **Known limitations:** None in this visual follow-up.
 - **Next eligible task:** None; the reviewed creature visual repairs are complete.
+
+## Run 2026-10-28 — Reef Maw geometry follow-up
+
+- **Selected increment:** Replace Reef Maw's paper-thin fins, tail, and jaw
+  pieces with rounded 3D forms.
+- **Work completed:** Replaced the planar tail, side and lower fins, dorsal
+  ridges, and angular jaw pieces with overlapping ellipsoid volumes. Kept the
+  lower-jaw warning and bite movement, eye cue colors, coral gill marks, and
+  teeth. Updated the creature description and checked off the visual repair.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Reviewed the Reef Maw presentation source and confirmed all its
+  former fin, tail, and jaw tetrahedra were removed; `git diff --check` passed.
+  No build, render, or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The creature's fins, forked tail, and animated lower
+  jaw are now formed from solid rounded meshes, removing the flat triangle
+  silhouettes visible in the supplied sheet.
+- **Networking/authority:** No gameplay, combat, or network state changed.
+  Reef Maw behavior and authority remain unchanged.
+- **Known limitations:** No fresh four-angle render was produced in this run.
+- **Next eligible task:** None; all listed creature visual repairs are complete.

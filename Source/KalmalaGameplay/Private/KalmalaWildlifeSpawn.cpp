@@ -4550,47 +4550,42 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor ReefLight(0.075f, 0.34f, 0.39f);
         const FLinearColor ReefShadow(0.018f, 0.085f, 0.12f);
         const FLinearColor CoralMark(0.78f, 0.39f, 0.18f);
+        const FLinearColor Belly(0.24f, 0.53f, 0.52f);
+        const FLinearColor Tooth(0.91f, 0.82f, 0.60f);
         const FLinearColor Eye = bWarning ? FLinearColor(1.0f, 0.59f, 0.12f)
             : FLinearColor(0.46f, 0.93f, 0.84f);
         const float JawDrop = bBiting ? -25.0f : (bWarning ? -8.0f : 0.0f);
         AddEllipsoid(FVector(-18, 0, 17), FVector(137, 62, 42), ReefBack);
         AddEllipsoid(FVector(-24, 0, 47), FVector(88, 48, 20), ReefLight);
-        AddEllipsoid(FVector(-20, 0, -9), FVector(96, 50, 20), FLinearColor(0.24f,0.53f,0.52f));
+        AddEllipsoid(FVector(-20, 0, -9), FVector(96, 50, 20), Belly);
 
-        // Original deep-bodied reef predator with a forked tail, coral ridges,
-        // angular fins, and a warning-to-bite jaw pose.
-        AddTetraPoints(FVector(-162,-8,10), FVector(-162,8,10),
-            FVector(-205,-52,4), FVector(-205,52,4), ReefShadow);
-        AddTetraPoints(FVector(-205,-52,4), FVector(-205,52,4),
-            FVector(-239,-40,14), FVector(-239,40,14), ReefLight);
-        AddTetraPoints(FVector(47,-43,21), FVector(47,43,21),
-            FVector(137,-27,14), FVector(137,27,14), ReefLight);
-        AddTetraPoints(FVector(91,-33,5), FVector(91,33,5),
-            FVector(157,-22,-12 + JawDrop), FVector(157,22,-12 + JawDrop), ReefShadow);
-        AddTetraPoints(FVector(97,-29,0), FVector(97,29,0),
-            FVector(151,-17,-22 + JawDrop), FVector(151,17,-22 + JawDrop), CoralMark);
-        AddTetraPoints(FVector(-82,-28,40), FVector(-80,28,40),
-            FVector(-18,-17,104), FVector(-20,17,104), ReefBack);
-        AddTetraPoints(FVector(-20,-24,42), FVector(-20,24,42),
-            FVector(12,-13,83), FVector(12,13,83), ReefLight);
-        AddTetraPoints(FVector(-66,-43,8), FVector(-66,43,8),
-            FVector(-112,-101,-9), FVector(-112,101,-9), ReefLight);
-        AddTetraPoints(FVector(-112,-101,-9), FVector(-112,101,-9),
-            FVector(-35,-72,-24), FVector(-35,72,-24), ReefShadow);
-        AddTetraPoints(FVector(23,-44,8), FVector(23,44,8),
-            FVector(72,-92,-11), FVector(72,92,-11), ReefBack);
+        // Build the fins, tail, and jaw from overlapping volumes so their depth
+        // reads from the side, front, rear, and three-quarter preview angles.
+        AddEllipsoid(FVector(62, 0, 21), FVector(55, 47, 27), ReefBack);
+        AddEllipsoid(FVector(111, 0, 17), FVector(44, 39, 20), ReefLight);
+        AddEllipsoid(FVector(111, 0, -23 + JawDrop), FVector(40, 35, 11), ReefShadow);
+        AddEllipsoid(FVector(130, 0, -8 + JawDrop * 0.45f), FVector(20, 25, 4), CoralMark);
+
+        // A thick tail stock and paired lobes keep the fork visible without a
+        // paper-thin fin plane.
+        AddEllipsoid(FVector(-157, 0, 13), FVector(39, 28, 15), ReefBack);
+        AddEllipsoid(FVector(-190, -21, 13), FVector(34, 22, 14), ReefShadow);
+        AddEllipsoid(FVector(-190, 21, 13), FVector(34, 22, 14), ReefLight);
+
+        // Low, fleshy dorsal ridges sit into the back rather than standing as
+        // detached triangular sheets.
+        AddEllipsoid(FVector(-54, 0, 72), FVector(34, 27, 31), ReefBack);
+        AddEllipsoid(FVector(-4, 0, 67), FVector(23, 23, 21), ReefLight);
+
         for (const float Side : {-1.0f, 1.0f})
         {
-            AddTetraPoints(FVector(78,Side * 43.0f,16), FVector(94,Side * 38.0f,17),
-                FVector(71,Side * 48.0f,35), FVector(86,Side * 44.0f,38), Eye);
-            AddTetraPoints(FVector(-80,Side * 50.0f,10), FVector(-73,Side * 51.0f,25),
-                FVector(-45,Side * 54.0f,-1), FVector(-42,Side * 55.0f,14), CoralMark);
-            AddTetraPoints(FVector(127,Side * 17.0f,-5), FVector(140,Side * 14.0f,-5),
-                FVector(139,Side * 12.0f,-16 + JawDrop), FVector(128,Side * 15.0f,-17 + JawDrop),
-                FLinearColor(0.91f, 0.82f, 0.60f));
-            AddTetraPoints(FVector(101,Side * 25.0f,1), FVector(111,Side * 22.0f,1),
-                FVector(110,Side * 20.0f,-9 + JawDrop), FVector(102,Side * 23.0f,-10 + JawDrop),
-                FLinearColor(0.91f, 0.82f, 0.60f));
+            AddEllipsoid(FVector(-61, Side * 58.0f, 5), FVector(35, 28, 12), ReefLight);
+            AddEllipsoid(FVector(-87, Side * 77.0f, -2), FVector(23, 20, 10), ReefShadow);
+            AddEllipsoid(FVector(37, Side * 45.0f, -12), FVector(25, 20, 9), ReefBack);
+            AddEllipsoid(FVector(77, Side * 46.0f, 35), FVector(9, 6, 8), Eye);
+            AddEllipsoid(FVector(-82, Side * 55.0f, 17), FVector(12, 4, 12), CoralMark);
+            AddEllipsoid(FVector(139, Side * 17.0f, -5), FVector(4, 4, 7), Tooth);
+            AddEllipsoid(FVector(116, Side * 20.0f, -24 + JawDrop), FVector(4, 4, 6), Tooth);
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Wolf)

@@ -94,6 +94,8 @@ queues three Bone Fragments and a server-rolled 50% chance of one Reef Tooth
 for its authenticated credited owner through the population-save escrow. The
 claim stores the roll, and the server commits Bone Fragments and an awarded
 Tooth together. The Maw never targets skiff hulls or attached occupants.
+Its forked tail, fins, and warning-to-bite lower jaw use rounded forms with
+visible volume from every preview angle.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder
