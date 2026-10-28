@@ -3053,8 +3053,8 @@ The same tab provides a local colour-independent feedback choice in a labeled
 shared-theme dropdown between
 `Text only` and `Text + markers`. Marker mode adds bracketed text markers for
 nearby hearth and construction context in an owner-only overlay that follows
-the scaled viewport in a center-right safe area. Combat/support action results
-and discovery acknowledgements use the separate bounded notification queue;
+the scaled viewport in a center-right safe area. Support action results and
+discovery acknowledgements use the separate bounded notification queue;
 the support selection strip has explicit text in either feedback mode. These
 surfaces read only the existing local pawn and accepted replicated results,
 follow the local contrast palette, and send no request.
@@ -3395,21 +3395,22 @@ and broad regressions remain in the milestone-final matrix.
 The selected support effect appears in a separate passive owner-local strip,
 using the character's local selection and the owner's learned-effect state.
 Input still uses the existing 1–4/D-pad selection actions and Q/controller
-activation action. The transient notification queue now also observes the
-owner-only combat and support result serials, plus concise discovery
-found/already-found/unavailable acknowledgements from the existing owner
-source. The Inventory menu must not supply these results or own the support
-glyph selection. No new gameplay request or authority path is introduced.
+activation action. The transient notification queue observes the owner-only
+support result serial and concise discovery found/already-found/unavailable
+acknowledgements from the existing owner source. Combat outcomes stay outside
+the notification queue. The Inventory menu must not supply support or
+discovery results or own the support glyph selection. No new gameplay request
+or authority path is introduced.
 
 Run `Scripts/Tests/Presentation/LocalInputContract.ps1`,
 `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
 `Scripts/Tests/Acceptance/DocumentationContracts.ps1`, and `git diff --check` after an
 affected editor compile. `Kalmala.UI.SupportSelection.LocalHudCue` checks the
 selection label for learned, unavailable, and no-selection cases.
-`Kalmala.UI.Notifications.CombinedPresentation` checks silent combat/support
-baselines, new serial feedback, deduplication, bounded expiry, and that combat
-text contains no target identity. Rendered strip positioning, action notices,
-modal behavior, and host/client privacy remain in M12 milestone-final review.
+`Kalmala.UI.Notifications.CombinedPresentation` checks silent support baselines,
+new serial feedback, deduplication, and bounded expiry. Rendered strip
+positioning, support notices, modal behavior, and host/client privacy remain in
+M12 milestone-final review.
 
 ## M12 persistent left-panel removal increment
 
@@ -3418,8 +3419,8 @@ panel is retired. Its pack/tool rows, duplicate support glyphs, build/craft
 shortcut, prepared-food banner, HUD-suppression hook and screenshot fixture no
 longer exist. Inventory remains available through its owner-local modal; it is
 collapsed until opened and continues to read only that owner's pack/tools.
-Support selection remains on its separate top-centre strip and combat/support/
-discovery results remain in transient owner notifications.
+Support selection remains on its separate top-centre strip and support/discovery
+results remain in transient owner notifications.
 
 The focused `Kalmala.UI.InventoryMenu.Selection` automation covers normal
 collapsed startup, owner-specific rows, selection fallback, no-results recovery,

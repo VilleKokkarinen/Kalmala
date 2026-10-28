@@ -23386,3 +23386,31 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Generic item-gain receipts intentionally say “You gained” because the same
   source covers pickups, crafting, rewards, and storage withdrawals.
 - **Next eligible task:** Join the Deer’s upper legs to its belly and chest.
+
+## Run 2026-10-28 — Remove combat outcome notifications
+
+- **Selected increment:** Keep combat outcomes out of the minimap notification
+  queue while retaining the other player-facing notice sources.
+- **Work completed:** Removed combat feedback observation, queue rows, and icon
+  mapping from the local notification subsystem. Kept support, discovery, item
+  gain, and skill-level notices. Updated existing acceptance expectations and
+  the queue contract.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaSkillNotice.h`,
+  `Source/KalmalaUI/Private/KalmalaSkillNotice.cpp`,
+  `Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaNotificationAcceptanceTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Inspected queue source references and retained support feedback;
+  `git diff --check` passed. No build or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap UI work, not a
+  milestone-final verification run.
+- **Observable impact:** Combat hit, defeat, and attack-unavailable results no
+  longer create minimap queue entries or evict item, skill, discovery, or
+  support notices.
+- **Networking/authority:** No gameplay or network behavior changed. The local
+  queue no longer reads owner-only combat feedback; combat authority stays in
+  the existing gameplay component.
+- **Known limitations:** No rendered review was run; the queue remains limited
+  to three simultaneous rows.
+- **Next eligible task:** Join the Deer’s upper legs to its belly and chest.

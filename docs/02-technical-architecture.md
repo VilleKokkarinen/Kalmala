@@ -1938,8 +1938,9 @@ placement and costs.
 
 The first M11 child adds passive icon/text feedback for skill **levels**, not
 each experience award. The local-player subsystem reads only its local
-controller's owning pawn for detailed progression and accepted item/discovery
-feedback. It never reads peer-private presentation or changes gameplay state.
+controller's owning pawn for detailed progression, accepted item/discovery,
+and support feedback. Combat outcomes do not enter the notification queue. It
+never reads peer-private presentation or changes gameplay state.
 Gameplay's existing server-owned ledgers and owner-only replication remain the
 authority boundary.
 
@@ -1963,8 +1964,8 @@ including reduced-motion use. Text scale and high contrast use the shared theme.
 The widget cannot focus or hit-test. Its top-right anchor shares the minimap's
 right edge and begins below the full map footprint with the standard status
 group gap, with a maximum width of 320. It clears the centered arrival prompt
-at the supported 1024x768/150% layout. Item, skill, discovery, combat, and
-support notices pair concise text with their corresponding original icon.
+at the supported 1024x768/150% layout. Item, skill, discovery, and support
+notices pair concise text with their corresponding original icon.
 It collapses while the controller ignores movement for a modal; timers continue
 so closing a modal does not replay expired messages. Tiny/unavailable viewports
 collapse the widget. The combined acceptance below checks both supported
@@ -2035,28 +2036,26 @@ covers silent initial/reconnect baselines, accepted/already-found/unavailable
 acknowledgements, unchanged refresh, expiry, label bounds, passive text and
 owner-local queue behavior.
 
-## Combat and support action results
+## Support action results
 
-The local queue also observes the owner's existing owner-only combat and
-support feedback serials. Initial attachment and pawn replacement silently
-baseline both values; a newer serial adds one short text-and-icon notice for
-`Hit confirmed`, `Defeated`, `Attack unavailable`, `Support accepted`, or
-`Support unavailable`. Repeated snapshots do not renew a notice, serial
-rollback silently rebaselines, and the combat notice contains no target name or
-identity. Discovery acknowledgements remain their own existing notice source.
+The local queue observes the owner's existing owner-only support feedback
+serial. Initial attachment and pawn replacement silently baseline it; a newer
+serial adds one short text-and-icon notice for `Support accepted` or
+`Support unavailable`. Repeated snapshots do not renew a notice, and serial
+rollback silently rebaselines. Combat outcomes do not enter this queue.
+Discovery acknowledgements remain their own existing notice source.
 
-These events use the same three-row bound, theme lifetime, passive presentation,
-and modal collapse as skill, item-gain, and discovery notices. The notification
-subsystem reads only the local owning pawn. The server-owned components still
-validate and publish every result; this presentation adds no request, RPC,
-replicated field, save data, or gameplay mutation. The Inventory menu no longer
-duplicates combat, support, or discovery result text.
+Support events use the same three-row bound, theme lifetime, passive
+presentation, and modal collapse as skill, item-gain, and discovery notices.
+The notification subsystem reads only the local owning pawn. The server-owned
+support component still validates and publishes every result; this presentation
+adds no request, RPC, replicated field, save data, or gameplay mutation. The
+Inventory menu does not duplicate support or discovery result text.
 
-`Kalmala.UI.Notifications.CombinedPresentation` checks silent action baselines,
-serial deduplication, concise text, expiry, and absence of hidden target
-identity. The existing rendered capture fixture continues to review the
-skill/item/discovery combination; action-result rendering remains part of the
-M12 milestone-final HUD matrix.
+`Kalmala.UI.Notifications.CombinedPresentation` checks silent support baselines,
+serial deduplication, concise text, and expiry. The existing rendered capture
+fixture continues to review the skill/item/discovery combination; support
+result rendering remains part of the M12 milestone-final HUD matrix.
 
 ## Recipe and build activity
 
@@ -2254,8 +2253,8 @@ M11 places Wet, meal, exposure, support and weather status markers in one
 transparent owner-local hotbar, with hidden accessible labels and existing
 timers. The Escape home menu contains Options and Quit only. The optional feedback overlay retains nearby
 hearth/construction context, with no duplicate active status rows.
-Owner-local notifications now carry concise combat/support outcomes and
-discovery acknowledgements; a separate text-plus-glyph strip shows the selected
+Owner-local notifications carry concise support outcomes and discovery
+acknowledgements; a separate text-plus-glyph strip shows the selected
 support effect without control-binding labels. The colour-independent feedback
 system covers Wet, hearth, construction, combat, discovery, and support: the
 optional owner-only overlay shows nearby hearth/construction context while the
@@ -2291,7 +2290,7 @@ render distance uses a 64–576 m local cull-distance cap in 32 m increments.
   changing what the server validates.
 - **Accessibility:** local text scale and contrast choices, together with the
   colour-independent feedback preference for the optional nearby hearth and
-  construction text overlay. Combat/support outcomes, discovery notices, and
+  construction text overlay. Support outcomes, discovery notices, and
   selected-support text remain explicit in their separate HUD surfaces.
 
 The Escape home menu remains transparent in standard contrast. All five visible
@@ -2767,7 +2766,7 @@ child. See `02-technical-architecture.md` for identities and verification bounda
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content; generated Meadow rocks align to the final sampled terrain normal and remain collision-free | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
 | UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; Settings' Controls (keyboard/mouse), Controller, Graphics, Audio, and Accessibility groups expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
-| Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents combat/support results and discovery acknowledgements; the optional Text + markers overlay remains for nearby hearth/construction context |
+| Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents item, skill, support, and discovery notices; the optional Text + markers overlay remains for nearby hearth/construction context |
 
 The terrain mesh writes normalized grass, soil and rock weights into vertex
 colour RGB from its final-surface normal, world-humidity field and final

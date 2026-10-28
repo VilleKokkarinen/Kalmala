@@ -1,6 +1,5 @@
 #include "KalmalaNotificationSubsystem.h"
 #include "KalmalaSkillProgressionComponent.h"
-#include "KalmalaCombatComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaCharacter.h"
@@ -109,7 +108,6 @@ void UKalmalaNotificationWidget::SetNotices(const TArray<FKalmalaSkillNotice>& N
         switch (Notices[Index].Kind)
         {
         case EKalmalaNoticeKind::Discovery: Kind = EKalmalaIcon::Discovery; break;
-        case EKalmalaNoticeKind::Combat: Kind = EKalmalaIcon::Axe; break;
         case EKalmalaNoticeKind::Support: Kind = EKalmalaIcon::Shield; break;
         case EKalmalaNoticeKind::ItemGain:
             UKalmalaIconWidget::FindCatalogueIcon(Notices[Index].ItemId, Kind, Variant);
@@ -181,14 +179,6 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     const bool bDiscoveryObserved = Discovery && Queue.ObserveDiscovery(Discovery->GetFeedbackSerial(), Discovery->GetFeedback(),
         Discovery->GetFeedbackLabel(), FKalmalaUITheme::Get().NotificationLifetime);
 #endif
-    const auto* Combat = Pawn ? Pawn->FindComponentByClass<UKalmalaCombatComponent>() : nullptr;
-#if !UE_BUILD_SHIPPING
-    const bool bCombatObserved = bReviewPresentationActive || (Combat && Queue.ObserveCombat(
-        Combat->GetFeedbackSerial(), Combat->GetFeedback(), FKalmalaUITheme::Get().NotificationLifetime));
-#else
-    const bool bCombatObserved = Combat && Queue.ObserveCombat(
-        Combat->GetFeedbackSerial(), Combat->GetFeedback(), FKalmalaUITheme::Get().NotificationLifetime);
-#endif
     const auto* Character = Cast<AKalmalaCharacter>(Pawn);
     const auto* Support = Character ? Character->GetSupportMagicComponent() : nullptr;
 #if !UE_BUILD_SHIPPING
@@ -202,11 +192,11 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
 #if !UE_BUILD_SHIPPING
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaNotificationBaselineAudit"))
         && !bOwnerBaselineAudited && !bReviewPresentationActive && bSkillObserved && bGainsObserved
-        && bDiscoveryObserved && bCombatObserved && bSupportObserved)
+        && bDiscoveryObserved && bSupportObserved)
     {
         bOwnerBaselineAudited = true;
         const bool bSilent = Queue.GetRows().IsEmpty();
-        UE_LOG(LogTemp, Display, TEXT("Notification owner baseline: Silent=%d Rows=%d Sources=5"),
+        UE_LOG(LogTemp, Display, TEXT("Notification owner baseline: Silent=%d Rows=%d Sources=4"),
             bSilent, Queue.GetRows().Num());
     }
 
@@ -260,7 +250,7 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
             && bSkillBaselineReady && bSkillNoticeReady && bGainBaselineReady && bGainNoticeReady
             && bDiscoveryBaselineReady && bDiscoveryNoticeReady && Queue.GetRows().Num() == 3
             && SkillRows == 1 && ItemRows == 1 && DiscoveryRows == 1;
-        UE_LOG(LogTemp, Display, TEXT("Notification reconnect baseline: Silent=%d Rows=%d Sources=5"),
+        UE_LOG(LogTemp, Display, TEXT("Notification reconnect baseline: Silent=%d Rows=%d Sources=4"),
             bFirstBaselineSilent && bReconnectBaselineSilent,
             (bFirstBaselineSilent && bReconnectBaselineSilent) ? 0 : Queue.GetRows().Num());
         UE_LOG(LogTemp, Display, TEXT("Notification combined fixture: Ready=%d Rows=%d Skill=%d Item=%d Discovery=%d Owner=%s"),

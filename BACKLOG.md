@@ -5,7 +5,7 @@
 - [x] Minimap notification queue.
   - [x] Research player-facing actions and implement a bounded owner-local queue
     beneath the minimap with icons for item gains, skill levels, discoveries,
-    combat results, and support results.
+    and support results; combat outcomes stay outside the queue.
 - [ ] Four-view creature visual cleanup, one species per increment.
   - [x] Boar: replace detached spike legs with connected rounded limbs and
     clarify the snout, eyes, ears, and short bristle ridge.

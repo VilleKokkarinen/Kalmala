@@ -5,7 +5,6 @@ void FKalmalaSkillNoticeQueue::Reset()
 {
     Levels.Reset(); Rows.Reset(); LastGainSequence = 0; bGainBaseline = false;
     LastDiscoverySerial = 0; bDiscoveryBaseline = false;
-    LastCombatSerial = 0; bCombatBaseline = false;
     LastSupportSerial = 0; bSupportBaseline = false;
 }
 
@@ -134,41 +133,6 @@ bool FKalmalaSkillNoticeQueue::ObserveDiscovery(
         default: Row.DiscoveryText = TEXT("Discovery found"); break;
         }
     }
-    if (Rows.Num() == MaxRows) Rows.RemoveAt(0);
-    Rows.Add(MoveTemp(Row));
-    return true;
-}
-
-bool FKalmalaSkillNoticeQueue::ObserveCombat(
-    const uint32 Serial, const EKalmalaCombatFeedback Feedback, const float Lifetime)
-{
-    if (!bCombatBaseline)
-    {
-        LastCombatSerial = Serial;
-        bCombatBaseline = true;
-        return true;
-    }
-    if (Serial < LastCombatSerial)
-    {
-        LastCombatSerial = Serial;
-        return true;
-    }
-    if (Serial == LastCombatSerial) return true;
-    LastCombatSerial = Serial;
-
-    const TCHAR* Text = nullptr;
-    switch (Feedback)
-    {
-    case EKalmalaCombatFeedback::Hit: Text = TEXT("Hit confirmed"); break;
-    case EKalmalaCombatFeedback::Defeat: Text = TEXT("Defeated"); break;
-    case EKalmalaCombatFeedback::Unavailable: Text = TEXT("Attack unavailable"); break;
-    default: return true;
-    }
-
-    FKalmalaSkillNotice Row;
-    Row.Remaining = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
-    Row.Kind = EKalmalaNoticeKind::Combat;
-    Row.ActionText = Text;
     if (Rows.Num() == MaxRows) Rows.RemoveAt(0);
     Rows.Add(MoveTemp(Row));
     return true;
