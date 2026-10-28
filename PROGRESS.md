@@ -23262,3 +23262,27 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Mosquito behavior and authority remain unchanged.
 - **Known limitations:** No fresh four-angle render was produced in this run.
 - **Next eligible task:** None; all listed creature visual repairs are complete.
+
+## Run 2026-10-28 — Thunder Sentinel alignment follow-up
+
+- **Selected increment:** Align the Sentinel's paired shoulders, arms, legs,
+  and chest vein with its front-facing body axis.
+- **Work completed:** Moved both shoulders and legs onto matching left-right
+  positions and rebuilt the hanging and attack arms on opposite flanks. Joined
+  their forms through the shoulder and elbow, aligned both feet beneath the
+  torso, and moved the cyan vein onto the forward chest. Preserved the existing
+  warning, raised-fist, and slam poses and updated the creature description.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Reviewed the presentation coordinates against the model's
+  forward-facing X axis and left-right Y axis; `git diff --check` passed. No
+  build, render, or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Sentinel's shoulder pads, hanging arm, attack arm,
+  legs, and chest accent now read as a forward-facing symmetric golem instead
+  of parts distributed along its front-to-back axis.
+- **Networking/authority:** No gameplay, combat, or network state changed.
+  Thunder Sentinel behavior and authority remain unchanged.
+- **Known limitations:** No fresh four-angle render was produced in this run.
+- **Next eligible task:** None; all listed creature visual repairs are complete.

@@ -4512,35 +4512,42 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         AddEllipsoid(FVector(-13,0,229), FVector(119,91,75), StoneBase);
         AddEllipsoid(FVector(19,0,336), FVector(52,47,56), StoneLight);
         AddEllipsoid(FVector(57,0,322), FVector(32,39,27), StoneBase);
-        AddEllipsoid(FVector(-92,0,ShoulderZ - 8.0f), FVector(58,72,61), StoneLight);
-        AddEllipsoid(FVector(80,0,ShoulderZ - 8.0f), FVector(57,70,58), StoneBase);
-
-        // The left arm hangs beside the torso; the right arm follows the
-        // replicated telegraph, slam, and recovery poses.
-        AddEllipsoid(FVector(-98,0,210), FVector(41,42,73), StoneBase);
-        AddEllipsoid(FVector(-137,-4,123), FVector(36,38,68), StoneLight);
-        AddEllipsoid(FVector(-151,-8,54), FVector(47,47,35), StoneShadow);
-        AddEllipsoid(FVector(91,-43,ShoulderZ - 43.0f), FVector(47,42,58), StoneLight);
-        const float ElbowZ = FMath::Lerp(ShoulderZ, RaisedFistZ, 0.55f);
-        const float ForearmHalfHeight = FMath::Max(39.0f, FMath::Abs(RaisedFistZ - ShoulderZ) * 0.42f);
-        AddEllipsoid(FVector((RaisedFistX + 87.0f) * 0.5f,-57,ElbowZ),
-            FVector(42,42,ForearmHalfHeight), bWarning ? Warning : StoneBase);
-        AddEllipsoid(FVector(RaisedFistX,-64,RaisedFistZ), FVector(42,40,39),
-            bSlamming ? Warning : StoneLight);
-
-        AddEllipsoid(FVector(-53,-30,43), FVector(43,40,66), StoneBase);
-        AddEllipsoid(FVector(54,30,43), FVector(43,40,66), StoneLight);
-        AddEllipsoid(FVector(-53,-34,7), FVector(56,48,29), StoneShadow);
-        AddEllipsoid(FVector(61,35,7), FVector(56,48,29), StoneShadow);
-
         for (const float Side : {-1.0f, 1.0f})
         {
-            AddEllipsoid(FVector(54,Side * 37.0f,347), FVector(8,7,9), bWarning ? Warning : ThunderVein);
-            AddEllipsoid(FVector(60,Side * 42.0f,347), FVector(3,2,4), StoneShadow);
-            AddEllipsoid(FVector(30,Side * 67.0f,229), FVector(28,15,43),
+            AddEllipsoid(FVector(-12,Side * 78.0f,ShoulderZ - 8.0f), FVector(58,48,61),
+                Side < 0.0f ? StoneLight : StoneBase);
+
+            // Two matching legs sit beneath the torso, with their feet facing forward.
+            AddEllipsoid(FVector(-34,Side * 42.0f,43), FVector(42,34,62),
+                Side < 0.0f ? StoneBase : StoneLight);
+            AddEllipsoid(FVector(-9,Side * 44.0f,-28), FVector(55,38,20), StoneShadow);
+
+            AddEllipsoid(FVector(54,Side * 37.0f,347), FVector(8,7,9),
                 bWarning ? Warning : ThunderVein);
-            AddEllipsoid(FVector(-100,Side * 62.0f,280), FVector(30,17,25), StoneLight);
+            AddEllipsoid(FVector(60,Side * 42.0f,347), FVector(3,2,4), StoneShadow);
         }
+
+        // The left arm hangs at the opposite flank from the raised right fist.
+        AddEllipsoid(FVector(-20,104,ShoulderZ - 58.0f), FVector(43,39,60), StoneBase);
+        AddEllipsoid(FVector(-2,108,122), FVector(39,36,59), StoneLight);
+        AddEllipsoid(FVector(8,115,46), FVector(48,43,31), StoneShadow);
+
+        // Keep the attack arm on one side and move its elbow along the fist pose.
+        AddEllipsoid(FVector(-16,-84,ShoulderZ - 36.0f), FVector(46,43,55), StoneLight);
+        const float ArmStartZ = ShoulderZ - 70.0f;
+        const float ElbowZ = FMath::Lerp(ArmStartZ, RaisedFistZ, 0.55f);
+        const float ElbowX = FMath::Lerp(12.0f, RaisedFistX, 0.55f);
+        const float ForearmHalfHeight = FMath::Max(39.0f, FMath::Abs(RaisedFistZ - ArmStartZ) * 0.42f);
+        AddEllipsoid(FVector(12,-102,ArmStartZ + 8.0f), FVector(42,41,57), StoneBase);
+        AddEllipsoid(FVector(ElbowX,-112,ElbowZ), FVector(42,40,ForearmHalfHeight),
+            bWarning ? Warning : StoneBase);
+        AddEllipsoid(FVector(RaisedFistX,-122,RaisedFistZ), FVector(42,40,39),
+            bSlamming ? Warning : StoneLight);
+
+        // A single forward-facing chest vein replaces the flank-mounted pair.
+        AddEllipsoid(FVector(93,0,229), FVector(19,14,44),
+            bWarning ? Warning : ThunderVein);
+
         if (bSlamming)
         {
             // A bright fist at the ground makes the one-hit impact phase visible to clients.

@@ -82,8 +82,9 @@ both together and retains the claim until the complete bundle fits.
 Thunder Sentinel fills the rare 10% Thunder Mountains share and uses the dry,
 traversable mountain gate plus the shared 150 m generated-start exclusion. Its
 original golem silhouette uses a broad stone torso, distinct head, articulated
-limbs, and small cyan mineral seams; the right arm raises for a one-second
-warning and descends into the server-validated slam. It steps up to 120 cm and
+limbs paired across its width, and a cyan vein on its forward chest; the right
+arm raises for a one-second warning and descends into the server-validated slam.
+It steps up to 120 cm and
 can slam within 300 cm horizontally, followed by a 1.2-second recovery.
 Credited defeats queue three Stone and a server-rolled 25% chance of one
 Thunder Core for the authenticated owner through the population-save escrow.
