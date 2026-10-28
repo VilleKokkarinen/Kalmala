@@ -22996,3 +22996,29 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Goat remain queued for individual review.
 - **Next eligible task:** Lower the Viper's head and connect it to the coiled
   body.
+
+## Run 2026-10-28 — Four-view creature review: Viper
+
+- **Selected increment:** Lower and connect the Viper's head to the coiled
+  body.
+- **Work completed:** Lowered the warning and idle head positions and replaced
+  the detached tetrahedral neck and face with a slender rounded neck, compact
+  head, pale underside, narrow muzzle, and eyes seated against the head. The
+  segmented green coil and attack cue remain unchanged.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature Viper -Output
+  "$env:TEMP\kmcreature\review\Viper-final.png" -BuildModules` compiled the
+  Editor target successfully in four actions and rendered a 2564×1924 sheet
+  (1280×960 per view). Visually inspected all four angles.
+  `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Viper now has a narrow neck-to-head profile that
+  joins the coil in side and three-quarter views.
+- **Networking/authority:** No gameplay, combat, or network state changed. The
+  server-owned lunge and poison behavior are unchanged.
+- **Known limitations:** Giant Snake, Wolf, Lynx, Polar Bear, and Horned Goat
+  remain queued for individual review.
+- **Next eligible task:** Lower the Giant Snake's head and join its neck to the
+  coil.

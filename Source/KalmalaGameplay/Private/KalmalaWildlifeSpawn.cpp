@@ -4521,7 +4521,7 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const float BodyRadius = bGiant ? 36.0f : (bDeathAdder ? 21.0f : 16.0f);
         const float CoilWidth = bGiant ? 62.0f : (bDeathAdder ? 38.0f : 27.0f);
         const float HeadHeight = bGiant ? (bCoiled ? 214.0f : 146.0f)
-            : (bDeathAdder ? (bCoiled ? 76.0f : 51.0f) : (bCoiled ? 104.0f : 69.0f));
+            : (bDeathAdder ? (bCoiled ? 76.0f : 51.0f) : (bCoiled ? 64.0f : 51.0f));
         const FLinearColor ScaleBase = bGiant ? FLinearColor(0.12f, 0.20f, 0.16f)
             : (bDeathAdder ? FLinearColor(0.25f, 0.23f, 0.11f) : FLinearColor(0.27f, 0.34f, 0.18f));
         const FLinearColor ScaleDark = bGiant ? FLinearColor(0.055f, 0.095f, 0.075f)
@@ -4568,6 +4568,21 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             {
                 AddEllipsoid(FVector(HeadX + 4.0f, Side * 15.0f, HeadZ + 6.0f),
                     FVector(4.0f, 3.0f, 4.0f), Eye);
+            }
+        }
+        else if (!bGiant)
+        {
+            const float HeadX = NeckX + 23.0f;
+            const float NeckZ = bCoiled ? 35.0f : 21.0f;
+            AddEllipsoid(FVector(NeckX + 10.0f, 0.0f, NeckZ),
+                FVector(19.0f, BodyRadius * 0.75f, bCoiled ? 31.0f : 20.0f), ScaleBase);
+            AddEllipsoid(FVector(HeadX, 0.0f, HeadZ), FVector(18.0f, 15.0f, 14.0f), ScaleBase);
+            AddEllipsoid(FVector(HeadX + 13.0f, 0.0f, HeadZ - 7.0f), FVector(12.0f, 12.0f, 7.0f), Belly);
+            AddEllipsoid(FVector(HeadX + 24.0f, 0.0f, HeadZ - 8.0f), FVector(5.0f, 7.0f, 4.0f), ScaleDark);
+            for (const float Side : {-1.0f, 1.0f})
+            {
+                AddEllipsoid(FVector(HeadX + 4.0f, Side * 11.0f, HeadZ + 4.0f),
+                    FVector(3.0f, 2.0f, 3.0f), Eye);
             }
         }
         else

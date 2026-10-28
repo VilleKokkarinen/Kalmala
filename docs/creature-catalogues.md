@@ -49,8 +49,9 @@ Bone Fragments for its credited attacker in the existing population-save
 escrow. The separate A9
 Moonstone source is not enabled here. The server-side stat lookup covers all 17
 reviewed A8a profiles. Viper (100 health, 10 armor, 50 Stab) occupies the seeded
-40% Shimmering Lakes share, is filtered to eligible dry shoreline, and uses the
-server-owned narrow lunge to apply the existing five-second weak-poison status
+40% Shimmering Lakes share, is filtered to eligible dry shoreline, and has an
+original slender coil with a low, connected head and neck. Its server-owned
+narrow lunge applies the existing five-second weak-poison status
 after an accepted bite. Its one-Bone-Fragment baseline and guaranteed Viper
 Fang rewards share a durable authenticated-owner claim in the same
 population-save escrow, and the server commits them together. Fang Arrows remain
