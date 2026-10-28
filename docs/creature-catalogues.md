@@ -35,7 +35,8 @@ raised neck, head, and branching antlers to its body with four supported legs.
 Rat (10 health,
 zero armor, 5 Pierce) now has deterministic
 Meadows selection, procedural presentation, an authority-validated 100 cm bite,
-and credited Bone Fragment/Rat Tail rewards. Full-pack Rat rewards stay in
+and credited Bone Fragment/Rat Tail rewards. Its long bare tail is now a curved,
+tapered tube with visible width and depth. Full-pack Rat rewards stay in
 world-population save escrow until both items fit. Badger (100 health, 10 armor,
 20 Slash) now uses the reviewed 40% Elderwood common share and a low, broad
 generated silhouette with a blunt muzzle, short joined legs, and a pale crown

@@ -23169,3 +23169,27 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   behavior and authority remain unchanged.
 - **Known limitations:** None in the four-view creature cleanup queue.
 - **Next eligible task:** None; the reviewed creature visual repairs are complete.
+
+## Run 2026-10-28 — Rat tail depth follow-up
+
+- **Selected increment:** Replace the Rat's flat tail with a curved, tapered
+  three-dimensional tail.
+- **Work completed:** Replaced the thin planar tail wedges with a continuous
+  ring-built tube that curves in height and depth and tapers toward its tip.
+  Its root starts inside the rump, and its muted pink-brown color separates the
+  bare tail from the fur.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature Rat -Output
+  "C:\Users\Ville\AppData\Local\Temp\kmcreature\review\Rat-final.png"
+  -BuildModules` compiled the Editor target successfully in four actions and
+  rendered a 2564×1924 sheet (1280×960 per view). Visually inspected all four
+  angles. `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Rat tail now has visible cross-section and a
+  continuous tapered curve from side and three-quarter views.
+- **Networking/authority:** No gameplay, combat, or network state changed. Rat
+  behavior and authority remain unchanged.
+- **Known limitations:** None in this visual follow-up.
+- **Next eligible task:** None; the reviewed creature visual repairs are complete.

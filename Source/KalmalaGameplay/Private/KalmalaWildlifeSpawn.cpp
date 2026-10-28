@@ -4089,6 +4089,7 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Ear(0.70f, 0.31f, 0.29f);
         const FLinearColor Eye(0.035f, 0.022f, 0.015f);
         const FLinearColor Tooth(0.92f, 0.86f, 0.70f);
+        const FLinearColor Tail(0.48f, 0.25f, 0.20f);
 
         AddEllipsoid(FVector(-15, 0, 24), FVector(47, 24, 22), Fur);
         AddEllipsoid(FVector(43, 0, 25), FVector(25, 16, 15), Fur);
@@ -4103,9 +4104,85 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             AddTetraPoints(FVector(48,Side * 9,28), FVector(55,Side * 8,27), FVector(52,Side * 12,32), FVector(50,Side * 9,34), Eye);
             AddTetraPoints(FVector(62,Side * 1.5f,19), FVector(65,Side * 3.0f,19), FVector(72,Side * 1.0f,20), FVector(68,Side * 1.5f,23), Tooth);
         }
-        AddTetraPoints(FVector(-62,-3,10), FVector(-62,3,10), FVector(-89,-5,14), FVector(-91,5,13), FurDark);
-        AddTetraPoints(FVector(-89,-5,14), FVector(-91,5,13), FVector(-118,-5,8), FVector(-121,4,11), Fur);
-        AddTetraPoints(FVector(-118,-5,8), FVector(-121,4,11), FVector(-143,-2,14), FVector(-145,3,17), FurDark);
+        const auto AddTailTube = [&Vertices, &Triangles, &Normals, &UV, &Colors, &Tail]
+            (const FVector* Path, const float* Radii, const int32 PathCount)
+        {
+            constexpr int32 CrossSectionCount = 8;
+            const FVector AxisY(0, 1, 0);
+            TArray<TArray<int32>> RingIndices;
+            RingIndices.SetNum(PathCount);
+
+            for (int32 PointIndex = 0; PointIndex < PathCount; ++PointIndex)
+            {
+                const int32 PreviousIndex = FMath::Max(0, PointIndex - 1);
+                const int32 NextIndex = FMath::Min(PathCount - 1, PointIndex + 1);
+                const FVector Tangent = (Path[NextIndex] - Path[PreviousIndex]).GetSafeNormal();
+                const FVector Perpendicular = FVector::CrossProduct(Tangent, AxisY).GetSafeNormal();
+                TArray<int32>& Ring = RingIndices[PointIndex];
+                Ring.Reserve(CrossSectionCount);
+
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const float Angle = 2.0f * PI * static_cast<float>(SectionIndex)
+                        / static_cast<float>(CrossSectionCount);
+                    const FVector Normal = (Perpendicular * FMath::Cos(Angle) + AxisY * FMath::Sin(Angle))
+                        .GetSafeNormal();
+                    Ring.Add(Vertices.Add(Path[PointIndex] + Normal * Radii[PointIndex]));
+                    Normals.Add(Normal);
+                    UV.Add(FVector2D::ZeroVector);
+                    Colors.Add(Tail);
+                }
+            }
+
+            const auto AddTailTriangle = [&Vertices, &Triangles, &Normals](const int32 A, int32 B, int32 C)
+            {
+                const FVector FaceNormal = FVector::CrossProduct(Vertices[B] - Vertices[A],
+                    Vertices[C] - Vertices[A]).GetSafeNormal();
+                const FVector ExpectedNormal = (Normals[A] + Normals[B] + Normals[C]).GetSafeNormal();
+                if (FVector::DotProduct(FaceNormal, ExpectedNormal) < 0.0f)
+                    Triangles.Append({A, C, B});
+                else
+                    Triangles.Append({A, B, C});
+            };
+
+            for (int32 RingIndex = 0; RingIndex < PathCount - 1; ++RingIndex)
+            {
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                    const int32 A = RingIndices[RingIndex][SectionIndex];
+                    const int32 B = RingIndices[RingIndex][NextSection];
+                    const int32 C = RingIndices[RingIndex + 1][SectionIndex];
+                    const int32 D = RingIndices[RingIndex + 1][NextSection];
+                    AddTailTriangle(A, B, C);
+                    AddTailTriangle(B, D, C);
+                }
+            }
+
+            const FVector StartTangent = (Path[1] - Path[0]).GetSafeNormal();
+            const int32 RootCap = Vertices.Add(Path[0] - StartTangent * 2.0f);
+            Normals.Add(-StartTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(Tail);
+            const FVector EndTangent = (Path[PathCount - 1] - Path[PathCount - 2]).GetSafeNormal();
+            const int32 Tip = Vertices.Add(Path[PathCount - 1] + EndTangent * 2.0f);
+            Normals.Add(EndTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(Tail);
+            for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+            {
+                const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                AddTailTriangle(RootCap, RingIndices[0][NextSection], RingIndices[0][SectionIndex]);
+                AddTailTriangle(Tip, RingIndices.Last()[SectionIndex], RingIndices.Last()[NextSection]);
+            }
+        };
+        const FVector TailPath[] = {
+            FVector(-52, 0, 16), FVector(-69, 0, 19), FVector(-87, 1, 14),
+            FVector(-105, 3, 10), FVector(-123, 6, 14), FVector(-140, 8, 21),
+            FVector(-151, 9, 27)
+        };
+        const float TailRadii[] = {6.0f, 5.5f, 4.6f, 3.7f, 2.8f, 1.9f, 0.7f};
+        AddTailTube(TailPath, TailRadii, UE_ARRAY_COUNT(TailPath));
         if (bTelegraph)
         {
             // A dark open mouth and lifted muzzle mark the half-second defensive bite warning.
