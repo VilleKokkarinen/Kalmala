@@ -21,6 +21,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UBorder> Panel;
     UPROPERTY(Transient) TObjectPtr<class UVerticalBox> Rows;
     FString Presentation;
+    FString IconPresentation;
     int32 LastScale = INDEX_NONE;
     int32 LastContrast = INDEX_NONE;
 };

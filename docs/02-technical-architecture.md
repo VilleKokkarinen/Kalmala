@@ -1947,7 +1947,12 @@ authority boundary.
 The first complete valid six-skill snapshot is a silent baseline. Missing,
 partial, duplicate or invalid snapshots cannot advance that baseline. A later
 level increase displays `You leveled up [skill] to Level N` with the skill name
-and original shared line art. Repeated replication and XP changes within a
+and imported artwork for its matching tool or station. Item gains display the
+received item's imported inventory image. Discovery uses the existing scroll
+image; support results use the active effect's imported status image (or the
+hearth-shield image when an unavailable result has no effect identity). Notice
+rows never draw vector glyphs; if an imported texture cannot load, that image is
+hidden. Repeated replication and XP changes within a
 level do not renew or replay feedback. Pawn replacement clears the queue and baseline; a level
 rollback silently rebaselines all skills. Reconnect therefore does not announce
 existing levels. These are transient session notices, with no save-schema change.
@@ -1965,7 +1970,8 @@ The widget cannot focus or hit-test. Its top-right anchor shares the minimap's
 right edge and begins below the full map footprint with the standard status
 group gap, with a maximum width of 320. It clears the centered arrival prompt
 at the supported 1024x768/150% layout. Item, skill, discovery, and support
-notices pair concise text with their corresponding original icon.
+notices pair concise text with imported item or status textures rather than
+vector glyphs.
 It collapses while the controller ignores movement for a modal; timers continue
 so closing a modal does not replay expired messages. Tiny/unavailable viewports
 collapse the widget. The combined acceptance below checks both supported

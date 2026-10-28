@@ -139,7 +139,7 @@ bool FKalmalaSkillNoticeQueue::ObserveDiscovery(
 }
 
 bool FKalmalaSkillNoticeQueue::ObserveSupport(
-    const uint32 Serial, const EKalmalaSupportFeedback Feedback, const float Lifetime)
+    const uint32 Serial, const EKalmalaSupportFeedback Feedback, const float Lifetime, const FName StatusIconId)
 {
     if (!bSupportBaseline)
     {
@@ -161,6 +161,7 @@ bool FKalmalaSkillNoticeQueue::ObserveSupport(
     FKalmalaSkillNotice Row;
     Row.Remaining = FMath::IsFinite(Lifetime) ? FMath::Clamp(Lifetime, 1.f, 10.f) : 4.f;
     Row.Kind = EKalmalaNoticeKind::Support;
+    Row.StatusIconId = StatusIconId.IsNone() ? FName(TEXT("HearthShield")) : StatusIconId;
     Row.ActionText = Feedback == EKalmalaSupportFeedback::Accepted
         ? TEXT("Support accepted") : TEXT("Support unavailable");
     if (Rows.Num() == MaxRows) Rows.RemoveAt(0);

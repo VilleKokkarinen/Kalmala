@@ -5,7 +5,8 @@
 #include "KalmalaCharacter.h"
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaUITheme.h"
-#include "KalmalaIconWidget.h"
+#include "KalmalaCatalogueIconLibrary.h"
+#include "KalmalaStatusIconLibrary.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaMinimapSubsystem.h"
 #include "KalmalaMinimapWidget.h"
@@ -16,8 +17,10 @@
 #include "Components/HorizontalBox.h"
 #include "Components/HorizontalBoxSlot.h"
 #include "Components/SizeBox.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/LocalPlayer.h"
+#include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "Misc/CommandLine.h"
@@ -40,16 +43,47 @@ const TCHAR* SkillName(EKalmalaSkill Skill)
     default: return TEXT("Skill");
     }
 }
-EKalmalaIcon SkillIcon(EKalmalaSkill Skill)
+FName SkillIconItemId(EKalmalaSkill Skill)
 {
     switch (Skill)
     {
-    case EKalmalaSkill::Gathering: return EKalmalaIcon::Gathering;
-    case EKalmalaSkill::Woodcutting: return EKalmalaIcon::Axe;
-    case EKalmalaSkill::Mining: return EKalmalaIcon::Pick;
-    case EKalmalaSkill::Crafting: return EKalmalaIcon::Hammer;
-    case EKalmalaSkill::Cooking: return EKalmalaIcon::Bowl;
-    default: return EKalmalaIcon::Shield;
+    case EKalmalaSkill::Gathering: return TEXT("StoneKnife");
+    case EKalmalaSkill::Woodcutting: return TEXT("StoneAxe");
+    case EKalmalaSkill::Mining: return TEXT("StonePick");
+    case EKalmalaSkill::Crafting: return TEXT("ConstructionHammer");
+    case EKalmalaSkill::Cooking: return TEXT("CauldronKit");
+    case EKalmalaSkill::Survival: return TEXT("BasicTorch");
+    default: return NAME_None;
+    }
+}
+FName NoticeIconItemId(const FKalmalaSkillNotice& Notice)
+{
+    switch (Notice.Kind)
+    {
+    case EKalmalaNoticeKind::ItemGain: return Notice.ItemId;
+    case EKalmalaNoticeKind::Discovery: return TEXT("MendingScroll");
+    case EKalmalaNoticeKind::Support: return NAME_None;
+    case EKalmalaNoticeKind::Skill: return SkillIconItemId(Notice.Skill);
+    default: return NAME_None;
+    }
+}
+FString NoticeIconKey(const FKalmalaSkillNotice& Notice)
+{
+    return Notice.Kind == EKalmalaNoticeKind::Support
+        ? FString::Printf(TEXT("Status:%s"), *Notice.StatusIconId.ToString())
+        : FString::Printf(TEXT("Item:%s"), *NoticeIconItemId(Notice).ToString());
+}
+FName SupportStatusIconId(const UKalmalaSupportMagicComponent& Support)
+{
+    if (Support.GetFeedback() != EKalmalaSupportFeedback::Accepted)
+        return TEXT("HearthShield");
+    switch (Support.GetActiveEffect())
+    {
+    case EKalmalaSupportEffect::Mending: return TEXT("Mending");
+    case EKalmalaSupportEffect::HearthShield: return TEXT("HearthShield");
+    case EKalmalaSupportEffect::BearsVigor: return TEXT("BearsVigor");
+    case EKalmalaSupportEffect::DeerCall: return TEXT("DeerCall");
+    default: return TEXT("HearthShield");
     }
 }
 FString NoticeText(const FKalmalaSkillNotice& Notice)
@@ -91,10 +125,14 @@ void UKalmalaNotificationWidget::SetNotices(const TArray<FKalmalaSkillNotice>& N
     if (!Panel) TakeWidget();
     if (!Panel) return;
     FString Next;
+    FString NextIcons;
     for (int32 Index = 0; Index < FMath::Min(Notices.Num(), FKalmalaSkillNoticeQueue::MaxRows); ++Index)
+    {
         Next += NoticeText(Notices[Index]) + TEXT("\n");
-    if (Next == Presentation && Scale == LastScale && Contrast == LastContrast) return;
-    Presentation = Next; LastScale = Scale; LastContrast = Contrast;
+        NextIcons += NoticeIconKey(Notices[Index]) + TEXT("\n");
+    }
+    if (Next == Presentation && NextIcons == IconPresentation && Scale == LastScale && Contrast == LastContrast) return;
+    Presentation = Next; IconPresentation = NextIcons; LastScale = Scale; LastContrast = Contrast;
     Rows->ClearChildren();
     const auto& Theme = FKalmalaUITheme::Get();
     const FString NoImage; Theme.ApplyPanel(*Panel, Contrast, &NoImage);
@@ -103,18 +141,13 @@ void UKalmalaNotificationWidget::SetNotices(const TArray<FKalmalaSkillNotice>& N
         auto* Row = WidgetTree->ConstructWidget<UHorizontalBox>();
         auto* Box = WidgetTree->ConstructWidget<USizeBox>();
         Box->SetWidthOverride(28); Box->SetHeightOverride(28);
-        auto* Icon = WidgetTree->ConstructWidget<UKalmalaIconWidget>();
-        EKalmalaIcon Kind = SkillIcon(Notices[Index].Skill); int32 Variant = 0;
-        switch (Notices[Index].Kind)
-        {
-        case EKalmalaNoticeKind::Discovery: Kind = EKalmalaIcon::Discovery; break;
-        case EKalmalaNoticeKind::Support: Kind = EKalmalaIcon::Shield; break;
-        case EKalmalaNoticeKind::ItemGain:
-            UKalmalaIconWidget::FindCatalogueIcon(Notices[Index].ItemId, Kind, Variant);
-            break;
-        default: break;
-        }
-        Icon->SetIcon(Kind, Variant);
+        auto* Icon = WidgetTree->ConstructWidget<UImage>();
+        UTexture2D* Texture = Notices[Index].Kind == EKalmalaNoticeKind::Support
+            ? FKalmalaStatusIconLibrary::LoadTexture(Notices[Index].StatusIconId)
+            : FKalmalaCatalogueIconLibrary::LoadTexture(NoticeIconItemId(Notices[Index]));
+        if (Texture != nullptr)
+            Icon->SetBrushFromTexture(Texture, false);
+        Icon->SetVisibility(Texture != nullptr ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
         Box->SetContent(Icon); Row->AddChild(Box);
         auto* Text = WidgetTree->ConstructWidget<UTextBlock>(); Text->SetAutoWrapText(true);
         Text->SetText(FText::FromString(NoticeText(Notices[Index])));
@@ -183,10 +216,12 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     const auto* Support = Character ? Character->GetSupportMagicComponent() : nullptr;
 #if !UE_BUILD_SHIPPING
     const bool bSupportObserved = bReviewPresentationActive || (Support && Queue.ObserveSupport(
-        Support->GetFeedbackSerial(), Support->GetFeedback(), FKalmalaUITheme::Get().NotificationLifetime));
+        Support->GetFeedbackSerial(), Support->GetFeedback(), FKalmalaUITheme::Get().NotificationLifetime,
+        SupportStatusIconId(*Support)));
 #else
     const bool bSupportObserved = Support && Queue.ObserveSupport(
-        Support->GetFeedbackSerial(), Support->GetFeedback(), FKalmalaUITheme::Get().NotificationLifetime);
+        Support->GetFeedbackSerial(), Support->GetFeedback(), FKalmalaUITheme::Get().NotificationLifetime,
+        SupportStatusIconId(*Support));
 #endif
 
 #if !UE_BUILD_SHIPPING

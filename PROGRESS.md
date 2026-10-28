@@ -23414,3 +23414,35 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** No rendered review was run; the queue remains limited
   to three simultaneous rows.
 - **Next eligible task:** Join the Deer’s upper legs to its belly and chest.
+
+## Run 2026-10-28 — Use raster artwork in minimap notices
+
+- **Selected increment:** Replace vector-drawn notification glyphs with the
+  game's imported item and status textures.
+- **Work completed:** Item gain notices now load the received item's catalogue
+  image. Skill notices use the existing tool/station artwork for Gathering,
+  Woodcutting, Mining, Crafting, Cooking, and Survival. Discovery uses the
+  existing scroll image; support notices use the active effect's status image,
+  with Hearth Shield for an unavailable result that has no effect identity.
+  Notification rows use image widgets only, and a missing texture is hidden
+  rather than replaced by a vector drawing.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaSkillNotice.h`,
+  `Source/KalmalaUI/Private/KalmalaSkillNotice.cpp`,
+  `Source/KalmalaUI/Public/KalmalaNotificationSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp`,
+  `docs/02-technical-architecture.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Validate-UIIcons.ps1 -Category Catalogue` passed for all
+  152 catalogue identities. Targeted validation passed for the Mending,
+  HearthShield, BearsVigor, and DeerCall status textures. `git diff --check`
+  passed. No build or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap UI work, not a
+  milestone-final verification run.
+- **Observable impact:** All visible minimap notices now use imported raster
+  artwork; they no longer render the custom vector glyphs.
+- **Networking/authority:** No gameplay or network behavior changed. Notices
+  remain owner-local and read the same accepted owner-only events.
+- **Known limitations:** Discovery uses the existing Mending Scroll image
+  because the project has no dedicated discovery texture. An unavailable
+  support result has no selected-effect identity and therefore uses the Hearth
+  Shield status texture.
+- **Next eligible task:** Join the Deer’s upper legs to its belly and chest.

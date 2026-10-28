@@ -22,6 +22,7 @@ struct FKalmalaSkillNotice
     int32 Quantity = 0;
     FString DiscoveryText;
     FString ActionText;
+    FName StatusIconId;
     EKalmalaNoticeKind Kind = EKalmalaNoticeKind::Skill;
 };
 
@@ -34,7 +35,7 @@ public:
     bool Observe(const TArray<FKalmalaSkillState>& Snapshot, float Lifetime);
     bool ObserveGains(const TArray<FKalmalaItemGainReceipt>& Receipts, float Lifetime);
     bool ObserveDiscovery(uint32 Serial, EKalmalaDiscoveryFeedback Feedback, const FString& Label, float Lifetime);
-    bool ObserveSupport(uint32 Serial, EKalmalaSupportFeedback Feedback, float Lifetime);
+    bool ObserveSupport(uint32 Serial, EKalmalaSupportFeedback Feedback, float Lifetime, FName StatusIconId = NAME_None);
     void Tick(float DeltaTime);
     const TArray<FKalmalaSkillNotice>& GetRows() const { return Rows; }
 private:

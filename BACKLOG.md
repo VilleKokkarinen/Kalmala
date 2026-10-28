@@ -6,6 +6,8 @@
   - [x] Research player-facing actions and implement a bounded owner-local queue
     beneath the minimap with icons for item gains, skill levels, discoveries,
     and support results; combat outcomes stay outside the queue.
+  - [x] Use imported item/status textures for every notice instead of vector
+    glyphs; hide an unavailable texture instead of drawing a vector fallback.
 - [ ] Four-view creature visual cleanup, one species per increment.
   - [x] Boar: replace detached spike legs with connected rounded limbs and
     clarify the snout, eyes, ears, and short bristle ridge.
