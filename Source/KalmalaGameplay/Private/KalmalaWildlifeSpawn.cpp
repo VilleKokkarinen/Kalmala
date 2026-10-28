@@ -4521,7 +4521,7 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const float BodyRadius = bGiant ? 36.0f : (bDeathAdder ? 21.0f : 16.0f);
         const float CoilWidth = bGiant ? 62.0f : (bDeathAdder ? 38.0f : 27.0f);
         const float HeadHeight = bGiant ? (bCoiled ? 214.0f : 146.0f)
-            : (bDeathAdder ? (bCoiled ? 130.0f : 85.0f) : (bCoiled ? 104.0f : 69.0f));
+            : (bDeathAdder ? (bCoiled ? 76.0f : 51.0f) : (bCoiled ? 104.0f : 69.0f));
         const FLinearColor ScaleBase = bGiant ? FLinearColor(0.12f, 0.20f, 0.16f)
             : (bDeathAdder ? FLinearColor(0.25f, 0.23f, 0.11f) : FLinearColor(0.27f, 0.34f, 0.18f));
         const FLinearColor ScaleDark = bGiant ? FLinearColor(0.055f, 0.095f, 0.075f)
@@ -4555,22 +4555,40 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
 
         const float NeckX = HalfLength * 0.60f;
         const float HeadZ = bCoiled ? HeadHeight : HeadHeight * 0.78f;
-        AddEllipsoid(FVector(NeckX + BodyRadius * 2.35f, 0.0f, HeadZ),
-            FVector(BodyRadius * 1.2f, BodyRadius * 0.72f, BodyRadius * 0.82f), ScaleBase);
-        AddTetraPoints(FVector(NeckX - BodyRadius, -BodyRadius, BodyRadius * 0.4f),
-            FVector(NeckX - BodyRadius, BodyRadius, BodyRadius * 0.4f),
-            FVector(NeckX + BodyRadius * 1.4f, -BodyRadius * 0.55f, HeadZ - BodyRadius),
-            FVector(NeckX + BodyRadius * 1.4f, BodyRadius * 0.55f, HeadZ - BodyRadius), Belly);
-        AddTetraPoints(FVector(NeckX + BodyRadius, -BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
-            FVector(NeckX + BodyRadius, BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
-            FVector(NeckX + BodyRadius * 3.2f, -BodyRadius * 0.45f, HeadZ),
-            FVector(NeckX + BodyRadius * 3.2f, BodyRadius * 0.45f, HeadZ + BodyRadius * 0.25f), ScaleBase);
-        for (const float Side : {-1.0f, 1.0f})
+        if (bDeathAdder)
         {
-            AddTetraPoints(FVector(NeckX + BodyRadius * 2.0f, Side * BodyRadius * 0.48f, HeadZ + BodyRadius * 0.12f),
-                FVector(NeckX + BodyRadius * 2.0f, Side * BodyRadius * 0.72f, HeadZ + BodyRadius * 0.08f),
-                FVector(NeckX + BodyRadius * 2.45f, Side * BodyRadius * 0.53f, HeadZ + BodyRadius * 0.34f),
-                FVector(NeckX + BodyRadius * 2.55f, Side * BodyRadius * 0.65f, HeadZ + BodyRadius * 0.13f), Eye);
+            const float HeadX = NeckX + 30.0f;
+            const float NeckZ = bCoiled ? 43.0f : 24.0f;
+            AddEllipsoid(FVector(NeckX + 11.0f, 0.0f, NeckZ),
+                FVector(25.0f, BodyRadius * 0.84f, bCoiled ? 39.0f : 22.0f), ScaleBase);
+            AddEllipsoid(FVector(HeadX, 0.0f, HeadZ), FVector(24.0f, 20.0f, 19.0f), ScaleBase);
+            AddEllipsoid(FVector(HeadX + 19.0f, 0.0f, HeadZ - 9.0f), FVector(15.0f, 16.0f, 10.0f), Belly);
+            AddEllipsoid(FVector(HeadX + 31.0f, 0.0f, HeadZ - 9.0f), FVector(6.0f, 10.0f, 5.0f), ScaleDark);
+            for (const float Side : {-1.0f, 1.0f})
+            {
+                AddEllipsoid(FVector(HeadX + 4.0f, Side * 15.0f, HeadZ + 6.0f),
+                    FVector(4.0f, 3.0f, 4.0f), Eye);
+            }
+        }
+        else
+        {
+            AddEllipsoid(FVector(NeckX + BodyRadius * 2.35f, 0.0f, HeadZ),
+                FVector(BodyRadius * 1.2f, BodyRadius * 0.72f, BodyRadius * 0.82f), ScaleBase);
+            AddTetraPoints(FVector(NeckX - BodyRadius, -BodyRadius, BodyRadius * 0.4f),
+                FVector(NeckX - BodyRadius, BodyRadius, BodyRadius * 0.4f),
+                FVector(NeckX + BodyRadius * 1.4f, -BodyRadius * 0.55f, HeadZ - BodyRadius),
+                FVector(NeckX + BodyRadius * 1.4f, BodyRadius * 0.55f, HeadZ - BodyRadius), Belly);
+            AddTetraPoints(FVector(NeckX + BodyRadius, -BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
+                FVector(NeckX + BodyRadius, BodyRadius * 0.75f, HeadZ - BodyRadius * 0.85f),
+                FVector(NeckX + BodyRadius * 3.2f, -BodyRadius * 0.45f, HeadZ),
+                FVector(NeckX + BodyRadius * 3.2f, BodyRadius * 0.45f, HeadZ + BodyRadius * 0.25f), ScaleBase);
+            for (const float Side : {-1.0f, 1.0f})
+            {
+                AddTetraPoints(FVector(NeckX + BodyRadius * 2.0f, Side * BodyRadius * 0.48f, HeadZ + BodyRadius * 0.12f),
+                    FVector(NeckX + BodyRadius * 2.0f, Side * BodyRadius * 0.72f, HeadZ + BodyRadius * 0.08f),
+                    FVector(NeckX + BodyRadius * 2.45f, Side * BodyRadius * 0.53f, HeadZ + BodyRadius * 0.34f),
+                    FVector(NeckX + BodyRadius * 2.55f, Side * BodyRadius * 0.65f, HeadZ + BodyRadius * 0.13f), Eye);
+            }
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::MosquitoSwarm)

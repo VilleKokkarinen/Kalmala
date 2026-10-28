@@ -90,8 +90,8 @@ Tooth together. The Maw never targets skiff hulls or attached occupants.
 Mireling (75 health, 15 armor, 20 Crush) now occupies half of Mossy Mire's
 seeded candidate slots and is accepted only on dry Mossy Mire ground; its
 existing melee and optional boss-scroll reward remain unchanged. Death Adder
-(125 health, 20 armor, 75 Stab) uses 20% of the Mire slots, a thicker original
-coiled snake model, and the server-owned close bite. Its accepted bite applies
+(125 health, 20 armor, 75 Stab) uses 20% of the Mire slots and an original
+thick coil with a low, joined head and neck. The server-owned close bite applies
 the owner-visible five-damage-per-second major poison for ten seconds; weak and
 major effects share a tick clock and the strongest dose wins. Credited defeats
 queue one baseline Bone Fragment and one guaranteed Venom Sac for the

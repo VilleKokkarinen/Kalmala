@@ -22969,3 +22969,30 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Bear, and Horned Goat remain queued for individual review.
 - **Next eligible task:** Lower the Death Adder's head and connect it to its
   coiled body.
+
+## Run 2026-10-28 — Four-view creature review: Death Adder
+
+- **Selected increment:** Lower and connect the Death Adder's head to its
+  coiled body.
+- **Work completed:** Lowered the idle head, shortened the warning lift,
+  replaced the floating tetrahedral neck and face with overlapping rounded
+  neck, head, muzzle, and jaw masses, and placed the eyes against the head.
+  Preserved the patterned thick coil and server-selected warning pose.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature DeathAdder -Output
+  "$env:TEMP\kmcreature\review\DeathAdder-final.png" -BuildModules` compiled
+  the Editor target successfully in four actions and rendered a 2564×1924
+  sheet (1280×960 per view). Visually inspected all four angles.
+  `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Death Adder now has a continuous low neck-to-coil
+  silhouette from side and three-quarter views, with its warning lift still
+  visible in the front views.
+- **Networking/authority:** No gameplay, combat, or network state changed. Its
+  server-owned bite and poison behavior are unchanged.
+- **Known limitations:** Viper, Giant Snake, Wolf, Lynx, Polar Bear, and Horned
+  Goat remain queued for individual review.
+- **Next eligible task:** Lower the Viper's head and connect it to the coiled
+  body.

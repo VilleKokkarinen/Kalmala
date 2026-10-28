@@ -9,7 +9,7 @@
     facial stripe visible.
   - [x] Moon Bear: connect its head and feet to the body with a heavier bear
     silhouette.
-  - [ ] Death Adder: lower and connect the head to the coiled body.
+  - [x] Death Adder: lower and connect the head to the coiled body.
   - [ ] Viper: lower and connect the head to the coiled body.
   - [ ] Giant Snake: lower and connect the head to the coiled body.
   - [ ] Wolf: connect the head, tail, and feet to the torso.
