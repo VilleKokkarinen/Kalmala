@@ -30,7 +30,9 @@ table's health, armor, and base attack values directly. Server-side player-hit
 validation accepts up to 300 total wildlife damage, matching the largest
 authored A8a attack. The Boar's original low-poly presentation now joins its
 barrel, chest, head, short legs, and feet into one compact silhouette, with a
-blunt muzzle, tusks, small ears, and a short bristle ridge. Rat (10 health,
+blunt muzzle, tusks, small ears, and a short bristle ridge. Deer connects the
+raised neck, head, and branching antlers to its body with four supported legs.
+Rat (10 health,
 zero armor, 5 Pierce) now has deterministic
 Meadows selection, procedural presentation, an authority-validated 100 cm bite,
 and credited Bone Fragment/Rat Tail rewards. Full-pack Rat rewards stay in

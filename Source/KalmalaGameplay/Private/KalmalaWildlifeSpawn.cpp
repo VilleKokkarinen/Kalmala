@@ -3931,48 +3931,152 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Antler(0.73f, 0.60f, 0.39f);
         const FLinearColor Eye(0.07f, 0.045f, 0.025f);
 
-        AddEllipsoid(FVector(-34, 0, 40), FVector(88, 31, 45), DeerHide);
-        AddEllipsoid(FVector(107, 0, 98), FVector(30, 16, 20), DeerHide);
-        // A raised neck, long legs, and antlers give the herd animal a light, alert outline.
+        const float HeadX = 91.0f;
+        const float HeadZ = 112.0f;
+        AddEllipsoid(FVector(-34, 0, 49), FVector(84, 38, 42), DeerHide);
+        AddEllipsoid(FVector(20, 0, 55), FVector(56, 39, 43), DeerShoulder);
+        // Overlapping shoulder and neck masses carry the head forward from the chest.
+        AddEllipsoid(FVector(43, 0, 69), FVector(34, 29, 39), DeerShoulder);
+        AddEllipsoid(FVector(65, 0, 93), FVector(28, 25, 38), DeerHide);
+        AddEllipsoid(FVector(HeadX, 0, HeadZ), FVector(29, 22, 26), DeerHide);
+        AddEllipsoid(FVector(HeadX + 22.0f, 0, HeadZ - 10.0f), FVector(23, 17, 12), Muzzle);
+        AddEllipsoid(FVector(HeadX + 43.0f, 0, HeadZ - 11.0f), FVector(6, 8, 6), DeerHoof);
+        AddEllipsoid(FVector(-114, 0, 47), FVector(15, 8, 10), DeerShoulder);
+
         for (const float Side : {-1.0f, 1.0f})
         {
-            AddTetraPoints(FVector(-99,Side * 22.0f,29), FVector(-85,Side * 24.0f,28),
-                FVector(-72,Side * 20.0f,48), FVector(-83,Side * 16.0f,57), RumpMark);
+            const float MarkX = -88.0f;
+            const float MarkZ = 54.0f;
+            const float FlankY = 38.0f * FMath::Sqrt(FMath::Max(0.0f,
+                1.0f - FMath::Square((MarkX + 34.0f) / 84.0f) - FMath::Square((MarkZ - 49.0f) / 42.0f)));
+            AddEllipsoid(FVector(MarkX, Side * (FlankY + 0.1f), MarkZ), FVector(12, 0.6f, 10), RumpMark);
         }
 
-        // The narrow neck reaches forward from the shoulder into a raised head and tapered muzzle.
-        AddTetraPoints(FVector(26,-18,39), FVector(26,18,39), FVector(77,-10,84), FVector(59,0,108), DeerShoulder);
-        AddTetraPoints(FVector(69,-12,91), FVector(69,12,91), FVector(115,0,87), FVector(99,0,119), DeerHide);
-        AddTetraPoints(FVector(101,-7,88), FVector(101,7,88), FVector(137,0,81), FVector(123,0,98), Muzzle);
+        const auto AddAntlerBeam = [&Vertices, &Triangles, &Normals, &UV, &Colors, &Antler]
+            (const FVector* Path, const float* Radii, const int32 PathCount)
+        {
+            constexpr int32 CrossSectionCount = 8;
+            const FVector AxisY(0, 1, 0);
+            TArray<TArray<int32>> RingIndices;
+            RingIndices.SetNum(PathCount);
+
+            for (int32 PointIndex = 0; PointIndex < PathCount; ++PointIndex)
+            {
+                const int32 PreviousIndex = FMath::Max(0, PointIndex - 1);
+                const int32 NextIndex = FMath::Min(PathCount - 1, PointIndex + 1);
+                const FVector Tangent = (Path[NextIndex] - Path[PreviousIndex]).GetSafeNormal();
+                const FVector Perpendicular = FVector::CrossProduct(Tangent, AxisY).GetSafeNormal();
+                TArray<int32>& Ring = RingIndices[PointIndex];
+                Ring.Reserve(CrossSectionCount);
+
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const float Angle = 2.0f * PI * static_cast<float>(SectionIndex)
+                        / static_cast<float>(CrossSectionCount);
+                    const FVector Normal = (Perpendicular * FMath::Cos(Angle) + AxisY * FMath::Sin(Angle))
+                        .GetSafeNormal();
+                    Ring.Add(Vertices.Add(Path[PointIndex] + Normal * Radii[PointIndex]));
+                    Normals.Add(Normal);
+                    UV.Add(FVector2D::ZeroVector);
+                    Colors.Add(Antler);
+                }
+            }
+
+            const auto AddBeamTriangle = [&Vertices, &Triangles, &Normals](const int32 A, int32 B, int32 C)
+            {
+                const FVector FaceNormal = FVector::CrossProduct(Vertices[B] - Vertices[A],
+                    Vertices[C] - Vertices[A]).GetSafeNormal();
+                const FVector ExpectedNormal = (Normals[A] + Normals[B] + Normals[C]).GetSafeNormal();
+                if (FVector::DotProduct(FaceNormal, ExpectedNormal) < 0.0f)
+                    Triangles.Append({A, C, B});
+                else
+                    Triangles.Append({A, B, C});
+            };
+
+            for (int32 RingIndex = 0; RingIndex < PathCount - 1; ++RingIndex)
+            {
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                    const int32 A = RingIndices[RingIndex][SectionIndex];
+                    const int32 B = RingIndices[RingIndex][NextSection];
+                    const int32 C = RingIndices[RingIndex + 1][SectionIndex];
+                    const int32 D = RingIndices[RingIndex + 1][NextSection];
+                    AddBeamTriangle(A, B, C);
+                    AddBeamTriangle(B, D, C);
+                }
+            }
+
+            const FVector StartTangent = (Path[1] - Path[0]).GetSafeNormal();
+            const int32 StartCap = Vertices.Add(Path[0] - StartTangent * 2.0f);
+            Normals.Add(-StartTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(Antler);
+            const FVector EndTangent = (Path[PathCount - 1] - Path[PathCount - 2]).GetSafeNormal();
+            const int32 Tip = Vertices.Add(Path[PathCount - 1] + EndTangent * 2.0f);
+            Normals.Add(EndTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(Antler);
+            for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+            {
+                const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                AddBeamTriangle(StartCap, RingIndices[0][NextSection], RingIndices[0][SectionIndex]);
+                AddBeamTriangle(Tip, RingIndices.Last()[SectionIndex], RingIndices.Last()[NextSection]);
+            }
+        };
 
         for (const float Side : {-1.0f, 1.0f})
         {
-            // Side-set eyes and pointed ears make the forward-facing head legible at a distance.
-            AddTetraPoints(FVector(100,Side * 10.0f,99), FVector(108,Side * 10.0f,98),
-                FVector(109,Side * 16.0f,101), FVector(105,Side * 12.0f,104), Eye);
-            AddTetraPoints(FVector(79,Side * 10.0f,105), FVector(72,Side * 16.0f,103),
-                FVector(52,Side * 29.0f,121), FVector(81,Side * 27.0f,117), DeerShoulder);
-
-            // Four separated leg lines and small dark hooves keep the body visibly off the ground.
-            const auto AddLongLeg = [&AddTetraPoints, &DeerLeg, &DeerHoof](const float HipX, const float KneeX, const float LegSide)
+            for (const float HipX : {-91.0f, 28.0f})
             {
-                AddTetraPoints(FVector(HipX - 8.0f, LegSide * 19.0f, 32), FVector(HipX + 8.0f, LegSide * 23.0f, 29),
-                    FVector(KneeX + 7.0f, LegSide * 17.0f, -7), FVector(KneeX - 6.0f, LegSide * 20.0f, -19), DeerLeg);
-                AddTetraPoints(FVector(KneeX - 6.0f, LegSide * 17.0f, -16), FVector(KneeX + 7.0f, LegSide * 19.0f, -17),
-                    FVector(KneeX + 5.0f, LegSide * 15.0f, -45), FVector(KneeX - 5.0f, LegSide * 17.0f, -54), DeerLeg);
-                AddTetraPoints(FVector(KneeX - 8.0f, LegSide * 12.0f, -51), FVector(KneeX + 8.0f, LegSide * 12.0f, -51),
-                    FVector(KneeX + 12.0f, LegSide * 11.0f, -58), FVector(KneeX - 12.0f, LegSide * 11.0f, -58), DeerHoof);
-            };
-            AddLongLeg(-61.0f, -70.0f, Side);
-            AddLongLeg(36.0f, 43.0f, Side);
+                const float KneeX = HipX + (HipX < 0.0f ? 7.0f : 5.0f);
+                const float LegY = Side * 27.0f;
+                AddEllipsoid(FVector(HipX, LegY, -5), FVector(13, 12, 27), DeerLeg);
+                AddEllipsoid(FVector(KneeX, LegY, -24), FVector(9, 8, 17), DeerLeg);
+                AddEllipsoid(FVector(KneeX + 3.0f, LegY, -42), FVector(7, 7, 20), DeerLeg);
+                AddEllipsoid(FVector(KneeX + 8.0f, LegY, -59), FVector(10, 9, 8), DeerHoof);
+            }
 
-            // Keep the paired antlers, with a forked backward tine on each warm ivory beam.
-            AddTetraPoints(FVector(83,Side * 8.0f,110), FVector(90,Side * 11.0f,112),
-                FVector(87,Side * 27.0f,127), FVector(77,Side * 33.0f,139), Antler);
-            AddTetraPoints(FVector(86,Side * 24.0f,126), FVector(92,Side * 28.0f,129),
-                FVector(101,Side * 34.0f,139), FVector(97,Side * 38.0f,144), Antler);
-            AddTetraPoints(FVector(80,Side * 29.0f,132), FVector(86,Side * 33.0f,135),
-                FVector(67,Side * 41.0f,140), FVector(59,Side * 44.0f,145), Antler);
+            AddEllipsoid(FVector(HeadX - 13.0f, Side * 20.0f, HeadZ + 4.0f),
+                FVector(15, 9, 7), DeerShoulder);
+            AddEllipsoid(FVector(HeadX + 7.0f, Side * 20.0f, HeadZ + 2.0f),
+                FVector(4, 3, 4), Eye);
+
+            // Each antler grows from the crown as one tapered beam with three joined tines.
+            const FVector MainBeam[] = {
+                FVector(HeadX - 8.0f, Side * 13.0f, HeadZ + 17.0f),
+                FVector(HeadX - 18.0f, Side * 16.0f, HeadZ + 34.0f),
+                FVector(HeadX - 29.0f, Side * 19.0f, HeadZ + 50.0f),
+                FVector(HeadX - 41.0f, Side * 22.0f, HeadZ + 65.0f),
+                FVector(HeadX - 51.0f, Side * 24.0f, HeadZ + 72.0f)
+            };
+            const float MainRadii[] = {7.0f, 6.0f, 5.0f, 3.5f, 1.5f};
+            AddAntlerBeam(MainBeam, MainRadii, UE_ARRAY_COUNT(MainBeam));
+
+            const FVector BrowTine[] = {
+                FVector(HeadX - 13.0f, Side * 15.0f, HeadZ + 25.0f),
+                FVector(HeadX + 1.0f, Side * 18.0f, HeadZ + 40.0f),
+                FVector(HeadX + 16.0f, Side * 20.0f, HeadZ + 43.0f)
+            };
+            const float BrowRadii[] = {4.5f, 3.0f, 1.2f};
+            AddAntlerBeam(BrowTine, BrowRadii, UE_ARRAY_COUNT(BrowTine));
+
+            const FVector CrownTine[] = {
+                FVector(HeadX - 24.0f, Side * 18.0f, HeadZ + 42.0f),
+                FVector(HeadX - 20.0f, Side * 21.0f, HeadZ + 58.0f),
+                FVector(HeadX - 13.0f, Side * 23.0f, HeadZ + 71.0f)
+            };
+            const float CrownRadii[] = {4.0f, 2.6f, 1.0f};
+            AddAntlerBeam(CrownTine, CrownRadii, UE_ARRAY_COUNT(CrownTine));
+
+            // A rear tine branches from the far end of the beam.
+            const FVector RearTine[] = {
+                FVector(HeadX - 33.0f, Side * 20.0f, HeadZ + 53.0f),
+                FVector(HeadX - 47.0f, Side * 23.0f, HeadZ + 57.0f),
+                FVector(HeadX - 59.0f, Side * 25.0f, HeadZ + 64.0f)
+            };
+            const float RearRadii[] = {3.8f, 2.5f, 1.0f};
+            AddAntlerBeam(RearTine, RearRadii, UE_ARRAY_COUNT(RearTine));
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Rat)
