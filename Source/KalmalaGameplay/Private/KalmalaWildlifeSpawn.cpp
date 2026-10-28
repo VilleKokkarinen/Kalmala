@@ -4182,50 +4182,128 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
         const FLinearColor Neck(0.42f, 0.34f, 0.23f);
         const FLinearColor Horn(0.78f, 0.69f, 0.51f);
         const FLinearColor Hoof(0.12f, 0.10f, 0.08f);
+        const FLinearColor Nose(0.16f, 0.12f, 0.09f);
         const FLinearColor Eye(0.95f, 0.58f, 0.12f);
-        const float HeadZ = bWarning ? 49.0f : 65.0f;
+        const float HeadX = bWarning ? 84.0f : 78.0f;
+        const float HeadZ = bWarning ? 48.0f : 60.0f;
 
-        AddEllipsoid(FVector(-20, 0, 48), FVector(70, 36, 43), Coat);
-        AddEllipsoid(FVector(85, 0, HeadZ - 8.0f), FVector(30, 19, 23), CoatLight);
-        // A compact ridged body, split hooves, beard and swept-back paired horns
-        // identify the Mountain goat; its lowered warning pose precedes the charge.
-        AddTetraPoints(FVector(2,-27,19), FVector(2,27,19), FVector(54,-22,34),
-            FVector(35,0,77.0f), Neck);
-        AddTetraPoints(FVector(36,-20,28), FVector(36,20,28), FVector(83,-15,36),
-            FVector(67,0,HeadZ), CoatLight);
-        AddTetraPoints(FVector(70,-14,HeadZ - 8.0f), FVector(70,14,HeadZ - 8.0f),
-            FVector(104,-8,HeadZ - 12.0f), FVector(104,8,HeadZ - 12.0f), Coat);
-        AddTetraPoints(FVector(101,-8,HeadZ - 12.0f), FVector(101,8,HeadZ - 12.0f),
-            FVector(112,-6,HeadZ - 18.0f), FVector(112,6,HeadZ - 18.0f), Hoof);
+        AddEllipsoid(FVector(-23, 0, 49), FVector(82, 42, 39), Coat);
+        AddEllipsoid(FVector(23, 0, 55), FVector(53, 42, 43), Coat);
+        // A raised neck, compact muzzle, beard and swept-back paired horns
+        // identify the mountain goat; its lowered warning pose precedes the charge.
+        AddEllipsoid(FVector(48, 0, HeadZ + 6.0f), FVector(36, 30, 34), Neck);
+        AddEllipsoid(FVector(HeadX, 0, HeadZ), FVector(32, 25, 26), CoatLight);
+        AddEllipsoid(FVector(HeadX + 24.0f, 0, HeadZ - 10.0f), FVector(23, 18, 14), CoatLight);
+        AddEllipsoid(FVector(HeadX + 43.0f, 0, HeadZ - 11.0f), FVector(7, 11, 7), Nose);
+        AddEllipsoid(FVector(HeadX + 7.0f, 0, HeadZ - 24.0f), FVector(9, 8, 10), Neck);
+        AddEllipsoid(FVector(-101, 0, 44), FVector(17, 8, 8), CoatLight);
 
         for (const float LegX : {-58.0f, 35.0f})
         {
             for (const float Side : {-1.0f, 1.0f})
             {
-                AddTetraPoints(FVector(LegX - 8.0f,Side * 18.0f,22.0f),
-                    FVector(LegX + 8.0f,Side * 21.0f,18.0f),
-                    FVector(LegX + 6.0f,Side * 18.0f,-42.0f),
-                    FVector(LegX - 5.0f,Side * 18.0f,-42.0f), Coat);
-                AddTetraPoints(FVector(LegX - 7.0f,Side * 18.0f,-39.0f),
-                    FVector(LegX + 7.0f,Side * 18.0f,-39.0f),
-                    FVector(LegX + 11.0f,Side * 20.0f,-52.0f),
-                    FVector(LegX - 11.0f,Side * 20.0f,-52.0f), Hoof);
-                AddTetraPoints(FVector(77,Side * 11.0f,HeadZ + 9.0f),
-                    FVector(82,Side * 13.0f,HeadZ + 24.0f),
-                    FVector(63,Side * 18.0f,HeadZ + 38.0f),
-                    FVector(46,Side * 20.0f,HeadZ + 34.0f), Horn);
-                AddTetraPoints(FVector(63,Side * 18.0f,HeadZ + 38.0f),
-                    FVector(46,Side * 20.0f,HeadZ + 34.0f),
-                    FVector(26,Side * 21.0f,HeadZ + 23.0f),
-                    FVector(19,Side * 22.0f,HeadZ + 11.0f), Horn);
-                AddTetraPoints(FVector(75,Side * 13.0f,HeadZ - 2.0f),
-                    FVector(80,Side * 14.0f,HeadZ + 1.0f),
-                    FVector(83,Side * 14.0f,HeadZ - 4.0f),
-                    FVector(78,Side * 14.0f,HeadZ - 6.0f), Eye);
+                const float LegY = Side * 27.0f;
+                AddEllipsoid(FVector(LegX, LegY, -7), FVector(17, 15, 29), Coat);
+                AddEllipsoid(FVector(LegX + 5.0f, LegY, -45), FVector(17, 14, 10), Hoof);
+                AddEllipsoid(FVector(LegX + 12.0f, LegY - 5.0f, -48), FVector(10, 6, 7), Hoof);
+                AddEllipsoid(FVector(LegX + 12.0f, LegY + 5.0f, -48), FVector(10, 6, 7), Hoof);
             }
         }
-        AddTetraPoints(FVector(89,-6,HeadZ - 11.0f), FVector(89,6,HeadZ - 11.0f),
-            FVector(95,-7,HeadZ - 35.0f), FVector(95,7,HeadZ - 35.0f), Coat);
+
+        const auto AddHorn = [&Vertices, &Triangles, &Normals, &UV, &Colors, &Horn]
+            (const FVector* Path, const float* Radii, const int32 PathCount)
+        {
+            constexpr int32 CrossSectionCount = 8;
+            const FVector AxisY(0, 1, 0);
+            TArray<TArray<int32>> RingIndices;
+            RingIndices.SetNum(PathCount);
+
+            for (int32 PointIndex = 0; PointIndex < PathCount; ++PointIndex)
+            {
+                const int32 PreviousIndex = FMath::Max(0, PointIndex - 1);
+                const int32 NextIndex = FMath::Min(PathCount - 1, PointIndex + 1);
+                const FVector Tangent = (Path[NextIndex] - Path[PreviousIndex]).GetSafeNormal();
+                const FVector Perpendicular = FVector::CrossProduct(Tangent, AxisY).GetSafeNormal();
+                TArray<int32>& Ring = RingIndices[PointIndex];
+                Ring.Reserve(CrossSectionCount);
+
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const float Angle = 2.0f * PI * static_cast<float>(SectionIndex)
+                        / static_cast<float>(CrossSectionCount);
+                    const FVector Normal = (Perpendicular * FMath::Cos(Angle) + AxisY * FMath::Sin(Angle))
+                        .GetSafeNormal();
+                    Ring.Add(Vertices.Add(Path[PointIndex] + Normal * Radii[PointIndex]));
+                    Normals.Add(Normal);
+                    UV.Add(FVector2D::ZeroVector);
+                    Colors.Add(Horn);
+                }
+            }
+
+            const auto AddHornTriangle = [&Vertices, &Triangles, &Normals](const int32 A, int32 B, int32 C)
+            {
+                const FVector FaceNormal = FVector::CrossProduct(Vertices[B] - Vertices[A],
+                    Vertices[C] - Vertices[A]).GetSafeNormal();
+                const FVector ExpectedNormal = (Normals[A] + Normals[B] + Normals[C]).GetSafeNormal();
+                if (FVector::DotProduct(FaceNormal, ExpectedNormal) < 0.0f)
+                    Triangles.Append({A, C, B});
+                else
+                    Triangles.Append({A, B, C});
+            };
+
+            for (int32 RingIndex = 0; RingIndex < PathCount - 1; ++RingIndex)
+            {
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                    const int32 A = RingIndices[RingIndex][SectionIndex];
+                    const int32 B = RingIndices[RingIndex][NextSection];
+                    const int32 C = RingIndices[RingIndex + 1][SectionIndex];
+                    const int32 D = RingIndices[RingIndex + 1][NextSection];
+                    AddHornTriangle(A, B, C);
+                    AddHornTriangle(B, D, C);
+                }
+            }
+
+            const FVector StartTangent = (Path[1] - Path[0]).GetSafeNormal();
+            const int32 StartCap = Vertices.Add(Path[0] - StartTangent * 2.0f);
+            Normals.Add(-StartTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(Horn);
+            const FVector EndTangent = (Path[PathCount - 1] - Path[PathCount - 2]).GetSafeNormal();
+            const int32 Tip = Vertices.Add(Path[PathCount - 1] + EndTangent * 2.0f);
+            Normals.Add(EndTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(Horn);
+            for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+            {
+                const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                AddHornTriangle(StartCap, RingIndices[0][NextSection], RingIndices[0][SectionIndex]);
+                AddHornTriangle(Tip, RingIndices.Last()[SectionIndex], RingIndices.Last()[NextSection]);
+            }
+        };
+
+        for (const float Side : {-1.0f, 1.0f})
+        {
+            AddEllipsoid(FVector(HeadX - 22.0f, Side * 22.0f, HeadZ + 2.0f),
+                FVector(12, 8, 7), Neck);
+            AddEllipsoid(FVector(HeadX + 10.0f, Side * 22.0f, HeadZ + 3.0f),
+                FVector(4, 3, 4), Eye);
+
+            // Each swept horn is one tapered surface rooted inside the skull.
+            const FVector HornPath[] = {
+                FVector(HeadX - 10.0f, Side * 12.0f, HeadZ + 15.0f),
+                FVector(HeadX - 16.0f, Side * 14.0f, HeadZ + 28.0f),
+                FVector(HeadX - 27.0f, Side * 16.0f, HeadZ + 38.0f),
+                FVector(HeadX - 39.0f, Side * 18.0f, HeadZ + 39.0f),
+                FVector(HeadX - 49.0f, Side * 19.0f, HeadZ + 30.0f),
+                FVector(HeadX - 51.0f, Side * 20.0f, HeadZ + 17.0f)
+            };
+            const float HornRadii[] = {10.0f, 9.0f, 7.5f, 6.5f, 4.5f, 1.5f};
+            AddHorn(HornPath, HornRadii, UE_ARRAY_COUNT(HornPath));
+        }
+        if (bWarning)
+            AddEllipsoid(FVector(HeadX + 34.0f, 0, HeadZ - 19.0f), FVector(11, 3, 2), Nose);
     }
     else if (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel)
     {

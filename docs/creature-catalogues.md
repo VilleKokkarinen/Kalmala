@@ -66,9 +66,11 @@ It does not apply poison. The 150 m generated-start exclusion applies to this
 hard enemy.
 Horned Goat (200 health, 50 armor, 50 Crush) now occupies four seeded
 Thunder Mountains slots (40%), limited to dry traversable terrain. Its original
-procedural presentation shows a half-second charge warning; the server accepts
-one 50-Crush horn hit within 180 cm, then pushes a living target up to 250 cm
-and staggers it for 0.75 seconds, with collision clipping the displacement.
+silhouette has a joined neck and head, stout legs, cloven hooves, and paired
+swept horns. Its procedural presentation shows a half-second charge warning;
+the server accepts one 50-Crush horn hit within 180 cm, then pushes a living
+target up to 250 cm and staggers it for 0.75 seconds, with collision clipping
+the displacement.
 Credited defeats queue two Bone Fragments and one guaranteed Goat Horn for the
 authenticated owner in the existing population-save escrow. The server commits
 both together and retains the claim until the complete bundle fits.

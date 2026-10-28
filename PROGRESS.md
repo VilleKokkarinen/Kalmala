@@ -23121,3 +23121,27 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** Horned Goat remains queued for individual review.
 - **Next eligible task:** Connect the Horned Goat's raised head and legs to its
   body.
+
+## Run 2026-10-28 — Four-view creature review: Horned Goat
+
+- **Selected increment:** Connect the Horned Goat's raised head and legs to its
+  body.
+- **Work completed:** Joined the raised head and muzzle to the body through a
+  rounded neck, replaced the long narrow legs with stout limbs and split hooves,
+  and built each swept horn as one tapered curved surface attached at the crown.
+  Kept the lowered charge-warning head pose.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `Scripts/Render-Creatures.ps1 -Creature HornedGoat -Output
+  "C:\Users\Ville\AppData\Local\Temp\kmcreature\review\HornedGoat-final2.png"
+  -BuildModules` compiled the Editor target successfully in four actions and
+  rendered a 2564×1924 sheet (1280×960 per view). Visually inspected all four
+  angles. `git diff --check` passed. No automated test suites were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Goat's head, limbs, hooves, and paired curved horns
+  now read as connected anatomy across the four preview angles.
+- **Networking/authority:** No gameplay, combat, or network state changed. Its
+  server-owned warning and horn charge remain unchanged.
+- **Known limitations:** None in the four-view creature cleanup queue.
+- **Next eligible task:** None; all listed creature visual repairs are complete.
