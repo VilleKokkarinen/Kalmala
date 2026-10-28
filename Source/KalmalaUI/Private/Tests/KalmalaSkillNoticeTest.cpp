@@ -51,7 +51,7 @@ bool FKalmalaSkillNoticeTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Overflow evicts oldest row deterministically"), Queue.GetRows()[0].Skill == EKalmalaSkill::Woodcutting);
     auto* Widget = NewObject<UKalmalaNotificationWidget>();
     Widget->SetNotices(Queue.GetRows(), 150, 1);
-    TestTrue(TEXT("Widget contains meaningful skill text"), Widget->GetPresentationText().Contains(TEXT("Cooking reached level 2")));
+    TestTrue(TEXT("Widget contains meaningful skill text"), Widget->GetPresentationText().Contains(TEXT("You leveled up Cooking to Level 2")));
     TestFalse(TEXT("Passive notification cannot take focus"), Widget->IsFocusable());
     Widget->SetNotices({}, 100, 0);
     TestTrue(TEXT("Clearing removes stale presentation"), Widget->GetPresentationText().IsEmpty());

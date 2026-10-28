@@ -8,6 +8,8 @@
 #include "KalmalaUITheme.h"
 #include "KalmalaIconWidget.h"
 #include "KalmalaSettingsWidget.h"
+#include "KalmalaMinimapSubsystem.h"
+#include "KalmalaMinimapWidget.h"
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/Border.h"
@@ -57,10 +59,10 @@ FString NoticeText(const FKalmalaSkillNotice& Notice)
     if (!Notice.ItemId.IsNone())
     {
         const auto* Item = UKalmalaItemCatalogue::Get()->FindItem(Notice.ItemId);
-        return FString::Printf(TEXT("Gained %d %s"), Notice.Quantity, Item ? *Item->DisplayName : *Notice.ItemId.ToString());
+        return FString::Printf(TEXT("You gained %d %s"), Notice.Quantity, Item ? *Item->DisplayName : *Notice.ItemId.ToString());
     }
     if (!Notice.DiscoveryText.IsEmpty()) return Notice.DiscoveryText;
-    return FString::Printf(TEXT("%s reached level %d"), SkillName(Notice.Skill), Notice.Level);
+    return FString::Printf(TEXT("You leveled up %s to Level %d"), SkillName(Notice.Skill), Notice.Level);
 }
 }
 
@@ -312,12 +314,29 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
         return;
     }
     const float DPI = FMath::Max(0.1f, UWidgetLayoutLibrary::GetViewportScale(Widget));
-    Widget->SetAlignmentInViewport(FVector2D(1,1));
-    Widget->SetPositionInViewport(FVector2D(Width / DPI - 24, Height / DPI - 280), false);
+    const float LogicalWidth = Width / DPI;
+    const float LogicalHeight = Height / DPI;
     const auto& Theme = FKalmalaUITheme::Get();
     const float FontSize = Theme.MakeFont(Theme.BodySize, false, UKalmalaSettingsWidget::GetTextScalePercent()).Size;
     const float PanelHeight = Queue.GetRows().Num() * (FontSize * 2 + 28) + Theme.PaddingY * 2;
-    Widget->SetDesiredSizeInViewport(FVector2D(FMath::Max(1.f, FMath::Min(320.f, Width / DPI - 48)), PanelHeight));
+    FVector2D Position = UKalmalaMinimapWidget::GetDefaultNotificationQueueViewportPosition();
+    if (const ULocalPlayer* LocalPlayer = GetLocalPlayer())
+    {
+        if (const UKalmalaMinimapSubsystem* MinimapSubsystem = LocalPlayer->GetSubsystem<UKalmalaMinimapSubsystem>())
+        {
+            if (const UKalmalaMinimapWidget* MinimapWidget = MinimapSubsystem->GetMinimapWidget())
+                Position = MinimapWidget->GetNotificationQueueViewportPosition();
+        }
+    }
+    if (LogicalWidth <= 48.0f || Position.Y + PanelHeight > LogicalHeight - UKalmalaMinimapWidget::ViewportInset)
+    {
+        Widget->SetVisibility(ESlateVisibility::Collapsed);
+        return;
+    }
+    Widget->SetDesiredSizeInViewport(FVector2D(FMath::Max(1.f, FMath::Min(320.f, LogicalWidth - 48.f)), PanelHeight));
+    Widget->SetPositionInViewport(Position, false);
+    Widget->SetAlignmentInViewport(FVector2D(1.0f, 0.0f));
+    Widget->SetAnchorsInViewport(FAnchors(1.0f, 0.0f));
     Widget->SetNotices(Queue.GetRows(), UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
     Widget->SetVisibility(ESlateVisibility::HitTestInvisible);
 #if !UE_BUILD_SHIPPING
@@ -331,8 +350,8 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
             const FString PeerLabel = Pawn->HasAuthority() ? TEXT("Client owner discovery") : TEXT("Host owner discovery");
             const bool bOwnerLocalLabel = Presented.Contains(OwnerLabel);
             const bool bPeerPrivateLabelHidden = !Presented.Contains(PeerLabel);
-            const bool bTextComplete = Presented.Contains(TEXT("Crafting reached level 2"))
-                && Presented.Contains(TEXT("Gained 2 Wood")) && bOwnerLocalLabel;
+            const bool bTextComplete = Presented.Contains(TEXT("You leveled up Crafting to Level 2"))
+                && Presented.Contains(TEXT("You gained 2 Wood")) && bOwnerLocalLabel;
             const bool bPassive = !Widget->IsFocusable() && Widget->GetVisibility() == ESlateVisibility::HitTestInvisible;
             UE_LOG(LogTemp, Display, TEXT("Notification combined layout: Complete=%d OwnerLocal=%d PeerPrivateHidden=%d Passive=%d Rows=%d Scale=%d Contrast=%d Motion=Static"),
                 bTextComplete, bOwnerLocalLabel, bPeerPrivateLabelHidden, bPassive, Queue.GetRows().Num(), UKalmalaSettingsWidget::GetTextScalePercent(),

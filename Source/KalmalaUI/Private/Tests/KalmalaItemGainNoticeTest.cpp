@@ -50,7 +50,7 @@ bool FKalmalaItemGainNoticeTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Stale candidate emits nothing"), Inventory->GetGainReceipts().Last().Sequence, Last);
     Queue.ObserveGains(Inventory->GetGainReceipts(), 4);
     auto* Widget = NewObject<UKalmalaNotificationWidget>(); Widget->SetNotices(Queue.GetRows(), 150, 1);
-    TestTrue(TEXT("Canonical owner gain label"), Widget->GetPresentationText().Contains(TEXT("Gained 6 Wood")));
+    TestTrue(TEXT("Canonical owner gain label"), Widget->GetPresentationText().Contains(TEXT("You gained 6 Wood")));
     Queue.Tick(4); Queue.ObserveGains(Inventory->GetGainReceipts(), 4);
     TestEqual(TEXT("Expired gains do not replay"), Queue.GetRows().Num(), 0);
     Queue.Reset(); Queue.ObserveGains(Inventory->GetGainReceipts(), 4);

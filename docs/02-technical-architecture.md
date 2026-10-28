@@ -1945,9 +1945,9 @@ authority boundary.
 
 The first complete valid six-skill snapshot is a silent baseline. Missing,
 partial, duplicate or invalid snapshots cannot advance that baseline. A later
-level increase displays the skill name and reached level with original shared
-line art. Repeated replication and XP changes within a level do not renew or
-replay feedback. Pawn replacement clears the queue and baseline; a level
+level increase displays `You leveled up [skill] to Level N` with the skill name
+and original shared line art. Repeated replication and XP changes within a
+level do not renew or replay feedback. Pawn replacement clears the queue and baseline; a level
 rollback silently rebaselines all skills. Reconnect therefore does not announce
 existing levels. These are transient session notices, with no save-schema change.
 
@@ -1960,9 +1960,11 @@ theme values outside 1–10 seconds fall back to the default. Runtime queue
 durations are also bounded. No entrance, exit or scrolling animation occurs,
 including reduced-motion use. Text scale and high contrast use the shared theme.
 
-The widget cannot focus or hit-test. Its bottom-right anchor is 280 logical
-pixels above the viewport bottom, with a maximum width of 320; this clears the
-centered arrival prompt at the supported 1024x768/150% layout.
+The widget cannot focus or hit-test. Its top-right anchor shares the minimap's
+right edge and begins below the full map footprint with the standard status
+group gap, with a maximum width of 320. It clears the centered arrival prompt
+at the supported 1024x768/150% layout. Item, skill, discovery, combat, and
+support notices pair concise text with their corresponding original icon.
 It collapses while the controller ignores movement for a modal; timers continue
 so closing a modal does not replay expired messages. Tiny/unavailable viewports
 collapse the widget. The combined acceptance below checks both supported
@@ -1996,8 +1998,8 @@ or save-schema change. Reliable delivery follows the existing pawn's owning
 connection; there is no multicast or peer detail replication.
 
 New item receipts share the existing three-row queue with skill notices. Same
-canonical item gains coalesce into a summed `Gained N Item` label and renew the
-bounded lifetime; summed labels saturate at int32 maximum. Overflow evicts the
+canonical item gains coalesce into a summed `You gained N Item` label and renew
+the bounded lifetime; summed labels saturate at int32 maximum. Overflow evicts the
 oldest row. Canonical catalogue names and original catalogue icons are used.
 Late initial skill replication does not clear already accepted item feedback.
 

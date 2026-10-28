@@ -69,6 +69,33 @@ FVector2D UKalmalaMinimapWidget::GetDefaultStatusGroupViewportPosition(const flo
     return FVector2D(-(ViewportInset + SafeDiameter + StatusGroupGap), ViewportInset + BiomeHeaderHeight);
 }
 
+FVector2D UKalmalaMinimapWidget::GetNotificationQueueViewportPosition() const
+{
+    if (UGameViewportSubsystem* ViewportSubsystem = UGameViewportSubsystem::Get())
+    {
+        const FGameViewportWidgetSlot MapSlot = ViewportSubsystem->GetWidgetSlot(this);
+        if (MapSlot.Anchors == FAnchors(1.0f, 0.0f)
+            && MapSlot.Alignment == FVector2D(1.0f, 0.0f)
+            && FMath::IsFinite(MapSlot.Offsets.Left)
+            && FMath::IsFinite(MapSlot.Offsets.Top)
+            && FMath::IsFinite(MapSlot.Offsets.Bottom)
+            && MapSlot.Offsets.Bottom > 0.0f)
+        {
+            return FVector2D(MapSlot.Offsets.Left,
+                MapSlot.Offsets.Top + MapSlot.Offsets.Bottom + StatusGroupGap);
+        }
+    }
+
+    return GetDefaultNotificationQueueViewportPosition(MapDiameter);
+}
+
+FVector2D UKalmalaMinimapWidget::GetDefaultNotificationQueueViewportPosition(const float InMapDiameter)
+{
+    const float SafeDiameter = FMath::Max(0.0f, InMapDiameter);
+    return FVector2D(-ViewportInset,
+        ViewportInset + BiomeHeaderHeight + SafeDiameter + StatusGroupGap);
+}
+
 void UKalmalaMinimapWidget::UpdateMapTexture()
 {
     if (ViewModel == nullptr || !ViewModel->IsReady() || UploadedRevision == ViewModel->GetPresentationRevision()) return;

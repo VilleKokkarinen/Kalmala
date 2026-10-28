@@ -23354,3 +23354,35 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Next eligible task:** Implement the Minimap notification queue, researching
   player-facing game actions and adding queued icon notices including item
   pickups and skill level-ups.
+
+## Run 2026-10-28 — Minimap notification queue placement
+
+- **Selected increment:** Research player-facing game actions and complete the
+  icon notification queue beneath the minimap.
+- **Work completed:** Audited the existing owner-local notice sources: accepted
+  inventory gains (including pickups, crafting outputs, rewards, and storage
+  withdrawals), skill level-ups, discovery acknowledgements, combat outcomes,
+  and support results. Moved the bounded queue from the bottom-right corner to
+  the right-aligned area below the live minimap footprint, with a safe default
+  position and collapse behavior when it cannot fit. Updated item and skill
+  message wording and refreshed existing copy expectations.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaMinimapWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaMinimapWidget.cpp`,
+  `Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp`, the three
+  existing notification expectation files under `Source/KalmalaUI/Private/Tests/`,
+  `docs/02-technical-architecture.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Inspected existing owner-only event publication and minimap slot
+  geometry; `git diff --check` passed. No build, render, or automated tests were
+  run.
+- **Full verification:** Deferred. This is post-roadmap UI work, not a
+  milestone-final verification run.
+- **Observable impact:** Notices now appear beneath the minimap with a matching
+  right edge and category icons for items, skills, discoveries, combat, and
+  support outcomes in the same bounded queue.
+- **Networking/authority:** No gameplay or network authority changed. The local
+  subsystem continues to read only its owner's replicated feedback and accepted
+  item-gain receipts.
+- **Known limitations:** The new placement has not yet had a rendered review.
+  Generic item-gain receipts intentionally say “You gained” because the same
+  source covers pickups, crafting, rewards, and storage withdrawals.
+- **Next eligible task:** Join the Deer’s upper legs to its belly and chest.

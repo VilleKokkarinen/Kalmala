@@ -66,8 +66,8 @@ bool FKalmalaNotificationAcceptanceTest::RunTest(const FString& Parameters)
     auto* Widget = NewObject<UKalmalaNotificationWidget>();
     Widget->SetNotices(Queue.GetRows(), 150, 1);
     const FString Combined = Widget->GetPresentationText();
-    TestTrue(TEXT("Combined text includes reached level"), Combined.Contains(TEXT("Crafting reached level 2")));
-    TestTrue(TEXT("Combined text includes accepted item quantity"), Combined.Contains(TEXT("Gained 2 Wood")));
+    TestTrue(TEXT("Combined text includes reached level"), Combined.Contains(TEXT("You leveled up Crafting to Level 2")));
+    TestTrue(TEXT("Combined text includes accepted item quantity"), Combined.Contains(TEXT("You gained 2 Wood")));
     TestTrue(TEXT("Combined text includes accepted discovery label"), Combined.Contains(TEXT("Scroll found: Field Notes")));
     TestFalse(TEXT("Combined notification remains passive at high contrast and 150 percent"), Widget->IsFocusable());
 

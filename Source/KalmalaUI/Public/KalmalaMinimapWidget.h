@@ -31,7 +31,11 @@ public:
     /** Position for a right-anchored status group beside the map, below its biome label. */
     FVector2D GetStatusGroupViewportPosition() const;
 
+    /** Position for the right-anchored notification queue directly below the map. */
+    FVector2D GetNotificationQueueViewportPosition() const;
+
     static FVector2D GetDefaultStatusGroupViewportPosition(float InMapDiameter = DefaultMapDiameter);
+    static FVector2D GetDefaultNotificationQueueViewportPosition(float InMapDiameter = DefaultMapDiameter);
 
     /** Pure geometry seam: all drawn map points must remain inside this circle. */
     static bool IsInsideCircularMap(const FVector2D& NormalizedMapPosition);
