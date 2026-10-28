@@ -4740,32 +4740,110 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             : (bDeathAdder ? FLinearColor(0.25f, 0.23f, 0.11f) : FLinearColor(0.27f, 0.34f, 0.18f));
         const FLinearColor ScaleDark = bGiant ? FLinearColor(0.055f, 0.095f, 0.075f)
             : (bDeathAdder ? FLinearColor(0.12f, 0.15f, 0.075f) : FLinearColor(0.13f, 0.19f, 0.11f));
-        const FLinearColor ScaleMark = bGiant ? FLinearColor(0.53f, 0.47f, 0.27f)
-            : (bDeathAdder ? FLinearColor(0.60f, 0.47f, 0.18f) : FLinearColor(0.70f, 0.60f, 0.31f));
         const FLinearColor Belly = bGiant ? FLinearColor(0.40f, 0.34f, 0.20f)
             : (bDeathAdder ? FLinearColor(0.47f, 0.40f, 0.22f) : FLinearColor(0.72f, 0.65f, 0.43f));
         const FLinearColor Eye = bDeathAdder ? FLinearColor(0.96f, 0.36f, 0.08f) : FLinearColor(0.95f, 0.72f, 0.12f);
-        const int32 BodySegments = bGiant ? 16 : (bDeathAdder ? 11 : 9);
-        for (int32 Segment = 0; Segment < BodySegments; ++Segment)
+        const auto AddSnakeBody = [&Vertices, &Triangles, &Normals, &UV, &Colors]
+            (const TArray<FVector>& Path, const TArray<float>& Radii,
+                const FLinearColor BodyColour, const FLinearColor BellyColour)
         {
-            const float T = static_cast<float>(Segment) / static_cast<float>(BodySegments - 1);
+            constexpr int32 CrossSectionCount = 10;
+            if (Path.Num() < 2 || Radii.Num() != Path.Num()) return;
+
+            TArray<TArray<int32>> RingIndices;
+            RingIndices.SetNum(Path.Num());
+            for (int32 PathIndex = 0; PathIndex < Path.Num(); ++PathIndex)
+            {
+                const int32 PreviousIndex = FMath::Max(0, PathIndex - 1);
+                const int32 NextIndex = FMath::Min(Path.Num() - 1, PathIndex + 1);
+                const FVector Tangent = (Path[NextIndex] - Path[PreviousIndex]).GetSafeNormal();
+                FVector SideAxis = FVector::CrossProduct(Tangent, FVector::UpVector).GetSafeNormal();
+                if (SideAxis.IsNearlyZero())
+                    SideAxis = FVector::CrossProduct(Tangent, FVector::RightVector).GetSafeNormal();
+                const FVector UpAxis = FVector::CrossProduct(SideAxis, Tangent).GetSafeNormal();
+                TArray<int32>& Ring = RingIndices[PathIndex];
+                Ring.Reserve(CrossSectionCount);
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const float Angle = 2.0f * PI * static_cast<float>(SectionIndex)
+                        / static_cast<float>(CrossSectionCount);
+                    const float Around = FMath::Cos(Angle);
+                    const float Vertical = FMath::Sin(Angle);
+                    const FVector Normal = (SideAxis * Around + UpAxis * (Vertical / 0.78f)).GetSafeNormal();
+                    const FVector Offset = SideAxis * (Radii[PathIndex] * Around)
+                        + UpAxis * (Radii[PathIndex] * 0.78f * Vertical);
+                    Ring.Add(Vertices.Add(Path[PathIndex] + Offset));
+                    Normals.Add(Normal);
+                    UV.Add(FVector2D::ZeroVector);
+                    Colors.Add(Normal.Z < -0.62f ? BellyColour : BodyColour);
+                }
+            }
+
+            const auto AddSnakeTriangle = [&Vertices, &Triangles](const int32 A,
+                const int32 B, const int32 C, const FVector& ExpectedNormal)
+            {
+                const FVector FaceNormal = FVector::CrossProduct(Vertices[B] - Vertices[A],
+                    Vertices[C] - Vertices[A]).GetSafeNormal();
+                if (FVector::DotProduct(FaceNormal, ExpectedNormal) < 0.0f)
+                    Triangles.Append({A, C, B});
+                else
+                    Triangles.Append({A, B, C});
+            };
+            for (int32 RingIndex = 0; RingIndex < Path.Num() - 1; ++RingIndex)
+            {
+                for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+                {
+                    const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                    const int32 A = RingIndices[RingIndex][SectionIndex];
+                    const int32 B = RingIndices[RingIndex][NextSection];
+                    const int32 C = RingIndices[RingIndex + 1][SectionIndex];
+                    const int32 D = RingIndices[RingIndex + 1][NextSection];
+                    const FVector SideNormal = (Normals[A] + Normals[B] + Normals[C]).GetSafeNormal();
+                    AddSnakeTriangle(A, B, C, SideNormal);
+                    AddSnakeTriangle(B, D, C, (Normals[B] + Normals[D] + Normals[C]).GetSafeNormal());
+                }
+            }
+
+            const FVector StartTangent = (Path[1] - Path[0]).GetSafeNormal();
+            const int32 StartCap = Vertices.Add(Path[0] - StartTangent);
+            Normals.Add(-StartTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(BodyColour);
+            const FVector EndTangent = (Path.Last() - Path[Path.Num() - 2]).GetSafeNormal();
+            const int32 EndCap = Vertices.Add(Path.Last() + EndTangent);
+            Normals.Add(EndTangent);
+            UV.Add(FVector2D::ZeroVector);
+            Colors.Add(BodyColour);
+            for (int32 SectionIndex = 0; SectionIndex < CrossSectionCount; ++SectionIndex)
+            {
+                const int32 NextSection = (SectionIndex + 1) % CrossSectionCount;
+                AddSnakeTriangle(StartCap, RingIndices[0][NextSection], RingIndices[0][SectionIndex],
+                    -StartTangent);
+                AddSnakeTriangle(EndCap, RingIndices.Last()[SectionIndex], RingIndices.Last()[NextSection],
+                    EndTangent);
+            }
+        };
+
+        const int32 BodyPathSegments = bGiant ? 33 : (bDeathAdder ? 25 : 21);
+        TArray<FVector> BodyPath;
+        TArray<float> BodyRadii;
+        BodyPath.Reserve(BodyPathSegments);
+        BodyRadii.Reserve(BodyPathSegments);
+        for (int32 PathIndex = 0; PathIndex < BodyPathSegments; ++PathIndex)
+        {
+            const float T = static_cast<float>(PathIndex) / static_cast<float>(BodyPathSegments - 1);
             const float X = FMath::Lerp(-HalfLength, HalfLength * 0.60f, T);
             const float Curve = FMath::Sin(T * 3.0f * PI) * CoilWidth;
             const float Z = BodyRadius * 0.45f + FMath::Sin(T * 2.0f * PI) * BodyRadius * 0.20f;
-            const float SegmentHalf = bGiant ? 16.0f : (bDeathAdder ? 11.0f : 9.0f);
-            const float Radius = BodyRadius * (0.72f + 0.28f * FMath::Sin(T * PI));
-            const FLinearColor BodyColour = Segment % 3 == 1 ? ScaleDark : ScaleBase;
-            AddEllipsoid(FVector(X, Curve, Z + Radius * 0.2f),
-                FVector(SegmentHalf * 1.65f, Radius, Radius * 0.78f), BodyColour);
-            if (Segment % 2 == 0)
-            {
-                // Repeated diamond plates give the larger shoreline ambusher its own scale pattern.
-                AddTetraPoints(FVector(X - SegmentHalf * 0.35f, Curve - Radius * 0.55f, Z + Radius * 0.45f),
-                    FVector(X - SegmentHalf * 0.35f, Curve + Radius * 0.55f, Z + Radius * 0.45f),
-                    FVector(X + SegmentHalf * 0.35f, Curve, Z + Radius * 0.48f),
-                    FVector(X, Curve, Z + Radius * 1.05f), ScaleMark);
-            }
+            const float TailTaper = FMath::Clamp(T / 0.15f, 0.0f, 1.0f);
+            const float NeckTaper = FMath::Clamp((1.0f - T) / 0.18f, 0.0f, 1.0f);
+            const float RadiusScale = FMath::Min(0.18f + 0.82f * TailTaper,
+                0.48f + 0.52f * NeckTaper);
+            const float Radius = BodyRadius * RadiusScale;
+            BodyPath.Add(FVector(X, Curve, Z + Radius * 0.2f));
+            BodyRadii.Add(Radius);
         }
+        AddSnakeBody(BodyPath, BodyRadii, ScaleBase, Belly);
 
         const float NeckX = HalfLength * 0.60f;
         const float HeadZ = bCoiled ? HeadHeight : HeadHeight * 0.78f;

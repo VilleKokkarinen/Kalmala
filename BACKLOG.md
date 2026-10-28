@@ -22,6 +22,8 @@
   - [x] Mireling: replace flat arm, leg, and crown geometry with rounded forms.
   - [x] Mosquito: replace the triangular beak with a pointed 3D needle.
   - [x] Thunder Sentinel: align its paired limbs and chest vein across its body.
+  - [x] Snakes: replace segmented Viper, Giant Snake, and Death Adder coils
+    with continuous tapered body meshes.
 
 Completed goal records are retained under Completed post-roadmap work.
 

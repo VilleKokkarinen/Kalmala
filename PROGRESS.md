@@ -23286,3 +23286,26 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Thunder Sentinel behavior and authority remain unchanged.
 - **Known limitations:** No fresh four-angle render was produced in this run.
 - **Next eligible task:** None; all listed creature visual repairs are complete.
+
+## Run 2026-10-28 — Snake body continuity follow-up
+
+- **Selected increment:** Replace the Viper, Giant Snake, and Death Adder's
+  bead-like coils with continuous tapered body meshes.
+- **Work completed:** Replaced repeated body ellipsoids and raised diamond
+  plates with ring-built tube meshes following each species' existing coil
+  path. Added a tapered tail and neck junction plus a continuous lighter
+  underside. Preserved each species' body width, palette, head, and attack pose.
+  Updated the creature description and checked off the visual repair.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Reviewed the shared snake branch and verified all three species
+  now use the same continuous mesh builder; `git diff --check` passed. No build,
+  render, or automated tests were run.
+- **Full verification:** Deferred. This is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Viper, Giant Snake, and Death Adder bodies now
+  have smooth continuous silhouettes instead of visibly separate spheres.
+- **Networking/authority:** No gameplay, combat, or network state changed.
+  Snake behavior and authority remain unchanged.
+- **Known limitations:** No fresh three-species render was produced in this run.
+- **Next eligible task:** None; all listed creature visual repairs are complete.

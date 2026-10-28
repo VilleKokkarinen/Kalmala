@@ -53,7 +53,9 @@ broad paws, and has a server-owned 220 cm overhead paw strike. It queues three
 Bone Fragments for its credited attacker in the existing population-save
 escrow. The separate A9
 Moonstone source is not enabled here. The server-side stat lookup covers all 17
-reviewed A8a profiles. Viper (100 health, 10 armor, 50 Stab) occupies the seeded
+reviewed A8a profiles. The Viper, Giant Snake, and Death Adder use continuous
+tapered body meshes along their coils instead of repeated sphere segments.
+Viper (100 health, 10 armor, 50 Stab) occupies the seeded
 40% Shimmering Lakes share, is filtered to eligible dry shoreline, and has an
 original slender coil with a low, connected head and neck. Its server-owned
 narrow lunge applies the existing five-second weak-poison status
