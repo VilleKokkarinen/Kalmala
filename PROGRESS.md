@@ -23840,7 +23840,8 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   matching name is reported only as no known record when enumeration is
   supported. Unsupported enumeration fails closed to review. Multiple
   same-seed records must all match before confirmation is offered. Added focused
-  automation coverage and left the confirmation child incomplete.
+  automation coverage, marked the duplicate-decision child complete, and left
+  the separate confirmation/selection child incomplete.
 - **Files changed:** `Source/KalmalaUI/Public/KalmalaLocalWorldSaveListing.h`,
   `Source/KalmalaUI/Private/KalmalaLocalWorldSaveListing.cpp`,
   `Source/KalmalaUI/Private/Tests/KalmalaWorldListTest.cpp`, `BACKLOG.md`, and

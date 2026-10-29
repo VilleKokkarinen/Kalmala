@@ -66,7 +66,7 @@
   - [ ] **SM08 — Connect New world.**
     - [x] Add strict decimal seed parsing for the full runtime `uint64` range; reject empty, non-decimal, trailing text, and overflow without wraparound.
     - [x] Classify listed ocean-save revisions against the current generator revision through the read-only adapter; retain unknown and conflicting states without claiming payload compatibility.
-    - [ ] Classify duplicate seed/revision outcomes; require confirmation only for an exact match and hold uncertain existing seeds for review.
+    - [x] Classify duplicate seed/revision outcomes; require confirmation only for an exact match and hold uncertain existing seeds for review.
     - [ ] Confirm before reusing a duplicate identity, then select the existing world without overwriting it.
     - [ ] Connect New world to a validated server-owned world lifecycle API.
     - **Implement:** Use the existing seed and world-lifecycle API. Validate the full runtime seed range and handle duplicate seed/revision identities.
