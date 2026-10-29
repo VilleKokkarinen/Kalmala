@@ -50,6 +50,9 @@ public:
     /** Revalidates the selected identity and starts one local, unadvertised solo world. */
     bool TryStartSoloFromServer(class APlayerController* RequestingController,
         uint64 Seed, bool bConfirmedExisting);
+    /** Revalidates the selected identity and starts one direct-address listen host. */
+    bool TryStartListenHostFromServer(class APlayerController* RequestingController,
+        uint64 Seed, bool bConfirmedExisting);
     bool HasPendingWorldSeedSelection() const { return bHasPendingWorldSeedSelection; }
     uint64 GetPendingWorldSeed() const { return PendingWorldSeed; }
     bool IsPendingWorldSeedExisting() const { return bPendingWorldSeedIsExisting; }
@@ -59,8 +62,10 @@ public:
     virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 
 private:
+    bool TryStartGameplayFromServer(class APlayerController* RequestingController,
+        uint64 Seed, bool bConfirmedExisting, bool bListenHost);
     bool bHasPendingWorldSeedSelection = false;
     uint64 PendingWorldSeed = 0;
     bool bPendingWorldSeedIsExisting = false;
-    bool bSoloLaunchInProgress = false;
+    bool bGameplayLaunchInProgress = false;
 };

@@ -121,9 +121,21 @@ bool AKalmalaMenuGameMode::TrySelectWorldSeedFromServer(const uint64 Seed, const
 bool AKalmalaMenuGameMode::TryStartSoloFromServer(APlayerController* RequestingController,
     const uint64 Seed, const bool bConfirmedExisting)
 {
+    return TryStartGameplayFromServer(RequestingController, Seed, bConfirmedExisting, false);
+}
+
+bool AKalmalaMenuGameMode::TryStartListenHostFromServer(APlayerController* RequestingController,
+    const uint64 Seed, const bool bConfirmedExisting)
+{
+    return TryStartGameplayFromServer(RequestingController, Seed, bConfirmedExisting, true);
+}
+
+bool AKalmalaMenuGameMode::TryStartGameplayFromServer(APlayerController* RequestingController,
+    const uint64 Seed, const bool bConfirmedExisting, const bool bListenHost)
+{
     UWorld* World = GetWorld();
     if (!HasAuthority() || World == nullptr || World->GetNetMode() != NM_Standalone
-        || bSoloLaunchInProgress || !IsValid(RequestingController)
+        || bGameplayLaunchInProgress || !IsValid(RequestingController)
         || !RequestingController->IsA<AKalmalaMenuPlayerController>()
         || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
         || !RequestingController->IsLocalController()) return false;
@@ -135,10 +147,12 @@ bool AKalmalaMenuGameMode::TryStartSoloFromServer(APlayerController* RequestingC
     const int32 GeneratorRevision = FKalmalaM7SaveIdentity::ForWorld(PendingWorldSeed).GeneratorRevision;
     if (GeneratorRevision <= 0) return false;
 
+    const FString ListenOption = bListenHost ? TEXT("listen?") : TEXT("");
+    const FString LaunchKind = bListenHost ? TEXT("HostCoop") : TEXT("Solo");
     const FString LaunchOptions = FString::Printf(
-        TEXT("KalmalaSoloLaunch=1?KalmalaSoloSeed=%llu?KalmalaSoloRevision=%d"),
-        PendingWorldSeed, GeneratorRevision);
-    bSoloLaunchInProgress = true;
+        TEXT("%sKalmalaMenuLaunch=%s?KalmalaMenuSeed=%llu?KalmalaMenuRevision=%d"),
+        *ListenOption, *LaunchKind, PendingWorldSeed, GeneratorRevision);
+    bGameplayLaunchInProgress = true;
     UGameplayStatics::OpenLevel(RequestingController,
         FName(TEXT("/Game/Kalmala/Maps/Prototype/L_Prototype")), true, LaunchOptions);
     return true;

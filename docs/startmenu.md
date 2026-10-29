@@ -171,12 +171,15 @@ World details offers Play solo, Host co-op and Back. Play solo revalidates the
 selected seed and revision on the server, then opens the configured gameplay map
 as a standalone world without creating or advertising an online session. A
 front-end request token and server launch latch reject repeated submissions.
-Hosting uses the existing listen-server path, capped at four players.
-Explain that the session ends when its host exits. Only display password, discovery
-or visibility options if an existing backend enforces them end to end; otherwise
-show address-based joining with a clear connection explanation. Do not store or
-log passwords. Dedicated-server clients use Join; the menu does not spawn an
-unmanaged background dedicated-server process.
+Hosting uses the existing listen-server path and the engine's server-side
+`GameSession.MaxPlayers=4` limit, which includes the host. The game does not list
+or advertise the session, show a host address or join code, or provide a password.
+Tell the host to share a reachable IP address and configured gameplay port directly;
+network and firewall settings may affect access. The session ends when the host
+leaves. Do not display password, discovery or visibility controls unless an existing
+backend enforces them end to end, and never store or log passwords. Dedicated-server
+clients use Join; the menu does not spawn an unmanaged background dedicated-server
+process.
 
 New world accepts the existing world-seed type and active generator revision.
 Default to a fresh valid seed from the existing generator's seed helper; expose
@@ -330,16 +333,21 @@ world and does not change overall saved-world compatibility from unknown.
 - **Seed and travel:** `AKalmalaWorldGenerationGameState::PostInitializeComponents`
   selects its default or the process `WorldSeed=` on the authority and replicates
   it. A standalone menu launch uses `AKalmalaMenuGameMode::TryStartSoloFromServer`
-  to revalidate the selected identity and open the configured prototype map with
-  the current seed and generator revision. The gameplay GameState validates those
-  server-built options before selecting and replicating the seed.
+  or `TryStartListenHostFromServer` to revalidate the selected identity and open
+  the configured prototype map with the current seed and generator revision. The
+  listen-host path uses the engine `listen` travel option. The gameplay GameState
+  validates the server-built launch kind, network mode, seed and revision before
+  selecting and replicating the seed.
 - **Authentication:** the GameMode's private `GetAuthenticatedPlayerIdentity`
   reads the PlayerState network ID for server save ownership; it is not a friendly
   menu label or a client-selectable identity. Missing identity remains unavailable.
 - **Logout and sessions:** `AKalmalaGameMode::Logout` calls server player-state
-  persistence before engine logout, but exposes no completion callback. No project
-  session creation/teardown adapter or verified four-player enforcement was found.
-  Launch, hosting and return remain work for their respective later children.
+  persistence before engine logout, but exposes no completion callback. SM10 uses
+  the existing listen server with the native `GameSession.MaxPlayers=4` capacity
+  check, including the host. No project session discovery/advertising, password or
+  host-address display exists; the host shares a reachable address and configured
+  port directly, and leaving ends the listen session. Session teardown and return
+  to Home remain later work.
 
 ## SM02 coordinator contract
 

@@ -75,7 +75,7 @@
   - [x] **SM09 — Connect solo play.**
     - **Implement:** Route Play solo through the validated launch adapter and protect against repeated submissions.
     - **Complete when:** Server-owned setup receives the selected seed/revision and starts one unadvertised solo session.
-  - [ ] **SM10 — Connect co-op hosting.**
+  - [x] **SM10 — Connect co-op hosting.**
     - **Implement:** Use the existing listen-server backend with a four-player cap and explain that the session ends when the host leaves.
     - **Complete when:** Address/visibility information is truthful and password/discovery controls appear only when enforced by the backend.
   - [ ] **SM11 — Connect joining by address.**

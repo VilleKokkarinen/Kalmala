@@ -147,10 +147,12 @@ void UKalmalaWorldListWidget::BuildWorldList()
     SeedInput = nullptr;
     SeedInputLabel = nullptr;
     DetailsText = nullptr;
+    HostingInfo = nullptr;
     NewWorldButton = nullptr;
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
     PlaySoloButton = nullptr;
+    HostCoopButton = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -252,12 +254,14 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
     SeedInputLabel = nullptr;
     CreationStatus = nullptr;
     DetailsText = nullptr;
+    HostingInfo = nullptr;
     WorldPicker = nullptr;
     SeedInput = nullptr;
     NewWorldButton = nullptr;
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
     PlaySoloButton = nullptr;
+    HostCoopButton = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -329,10 +333,12 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
     WorldPicker = nullptr;
     SeedInput = nullptr;
     SeedInputLabel = nullptr;
+    HostingInfo = nullptr;
     NewWorldButton = nullptr;
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
     PlaySoloButton = nullptr;
+    HostCoopButton = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -353,11 +359,19 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
         Config.WorldSeed = SelectedSeed;
         const FKalmalaWorldDescriptor Descriptor = FKalmalaWorldDescriptorAdapter::Describe(Config);
         DetailsText->SetText(FText::FromString(FString::Printf(
-            TEXT("Seed: %llu\nGenerator revision: %d\nStatus: No recognized save was listed when this seed was checked. The server will recheck it before Play solo. Fresh world data starts only after launch."),
+            TEXT("Seed: %llu\nGenerator revision: %d\nStatus: No recognized save was listed when this seed was checked. The server will recheck it before launch. Fresh world data starts only after launch."),
             SelectedSeed, Descriptor.CurrentIdentityRevision)));
     }
     DetailsText->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(DetailsText)->SetPadding(FMargin(0, 0, 0, 16));
+
+    HostingInfo = WidgetTree->ConstructWidget<UTextBlock>();
+    HostingInfo->SetText(FText::FromString(TEXT(
+        "Host co-op uses a direct connection. Kalmala does not list the session, display an address, or provide a password. "
+        "Share your reachable IP and the configured gameplay port with friends; network or firewall settings may affect access. "
+        "Up to four players total, including the host. The session ends when the host leaves.")));
+    HostingInfo->SetAutoWrapText(true);
+    Content->AddChildToVerticalBox(HostingInfo)->SetPadding(FMargin(0, 0, 0, 16));
 
     Message = WidgetTree->ConstructWidget<UTextBlock>();
     Message->SetAutoWrapText(true);
@@ -372,6 +386,15 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
     PlaySoloButton->SetContent(PlaySoloLabel);
     PlaySoloButton->OnClicked.AddDynamic(this, &ThisClass::HandleSoloPlay);
     Content->AddChildToVerticalBox(PlaySoloButton)->SetPadding(FMargin(0, 0, 0, 8));
+
+    HostCoopButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* HostCoopLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    HostCoopLabel->SetText(FText::FromString(TEXT("Host co-op")));
+    HostCoopLabel->SetAutoWrapText(true);
+    HostCoopLabel->SetJustification(ETextJustify::Center);
+    HostCoopButton->SetContent(HostCoopLabel);
+    HostCoopButton->OnClicked.AddDynamic(this, &ThisClass::HandleHostCoop);
+    Content->AddChildToVerticalBox(HostCoopButton)->SetPadding(FMargin(0, 0, 0, 8));
 
     BackButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
     UTextBlock* BackLabel = WidgetTree->ConstructWidget<UTextBlock>();
@@ -399,6 +422,8 @@ void UKalmalaWorldListWidget::BuildWorldReuseConfirmation()
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
     PlaySoloButton = nullptr;
+    HostCoopButton = nullptr;
+    HostingInfo = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -459,6 +484,7 @@ void UKalmalaWorldListWidget::RefreshTheme()
     if (Message) Theme.ApplyText(*Message, Theme.BodySize + 3, false, LastTextScale, LastContrast);
     if (CreationStatus) Theme.ApplyText(*CreationStatus, Theme.BodySize, false, LastTextScale, LastContrast);
     if (DetailsText) Theme.ApplyText(*DetailsText, Theme.BodySize + 2, false, LastTextScale, LastContrast);
+    if (HostingInfo) Theme.ApplyText(*HostingInfo, Theme.BodySize + 2, false, LastTextScale, LastContrast);
     if (SeedInputLabel) Theme.ApplyText(*SeedInputLabel, Theme.BodySize + 2, false, LastTextScale, LastContrast);
     if (WorldPicker) Theme.ApplyDropdown(*WorldPicker, LastContrast);
     if (SeedInput)
@@ -472,7 +498,8 @@ void UKalmalaWorldListWidget::RefreshTheme()
     }
     UKalmalaThemedButton* Buttons[] =
     {
-        NewWorldButton.Get(), SeedCheckButton.Get(), DetailsButton.Get(), PlaySoloButton.Get(), BackButton.Get(),
+        NewWorldButton.Get(), SeedCheckButton.Get(), DetailsButton.Get(), PlaySoloButton.Get(),
+        HostCoopButton.Get(), BackButton.Get(),
         ReuseConfirmButton.Get(), ReuseCancelButton.Get()
     };
     for (UKalmalaThemedButton* Button : Buttons)
@@ -758,20 +785,27 @@ void UKalmalaWorldListWidget::HandleSoloPlay()
     SoloPlayRequested.Broadcast(SelectedSeed, !bSelectedSeedIsNew);
 }
 
-void UKalmalaWorldListWidget::SetSoloPlayEnabled(const bool bEnabled)
+void UKalmalaWorldListWidget::HandleHostCoop()
 {
-    if (PlaySoloButton) PlaySoloButton->SetIsEnabled(bEnabled);
+    if (!bShowingDetails || !bHasSelectedWorld || !HostCoopButton || !HostCoopButton->GetIsEnabled()) return;
+    HostCoopRequested.Broadcast(SelectedSeed, !bSelectedSeedIsNew);
 }
 
-void UKalmalaWorldListWidget::ShowSoloPlayFailure()
+void UKalmalaWorldListWidget::SetWorldLaunchActionsEnabled(const bool bEnabled)
+{
+    if (PlaySoloButton) PlaySoloButton->SetIsEnabled(bEnabled);
+    if (HostCoopButton) HostCoopButton->SetIsEnabled(bEnabled);
+}
+
+void UKalmalaWorldListWidget::ShowWorldLaunchFailure()
 {
     if (Message)
     {
         Message->SetText(FText::FromString(TEXT(
-            "The server could not validate this world for solo play. No travel started and no save was changed.")));
+            "The server could not validate this world for launch. No travel started and no save was changed.")));
         Message->SetVisibility(ESlateVisibility::Visible);
     }
-    SetSoloPlayEnabled(true);
+    SetWorldLaunchActionsEnabled(true);
     FocusPrimary();
 }
 

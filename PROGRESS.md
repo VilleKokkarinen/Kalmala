@@ -24126,3 +24126,45 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   to Home remain for SM12/SM14. Runtime UI and travel behavior are unverified;
   normal startup remains unchanged until SM14.
 - **Next eligible task:** SM10 — Connect co-op hosting.
+
+## Run 2026-10-29 — SM10 Connect co-op hosting
+
+- **Selected increment:** Connect Host co-op to the existing listen-server path
+  with the project's four-player limit and truthful connection/session details.
+- **Work completed:** Added Host co-op to World details and connected it to the
+  same request-token and server-side seed/revision revalidation used by solo
+  launch. The server opens the prototype map with Unreal's `listen` option and
+  a server-built launch kind, seed and revision. The gameplay GameState accepts
+  only matching standalone Solo or listen-server HostCoop options before it
+  selects and replicates the world seed. Set `GameSession.MaxPlayers=4`; Unreal's
+  capacity check uses the current player count, including the host. The hosting
+  panel explains direct-address connection, the lack of listing, displayed
+  address, join code and password support, possible network/firewall limits, and
+  that the session ends when the host leaves. SM10 is checked; the menu parent
+  remains unchecked until SM15 acceptance.
+- **Files changed:** `BACKLOG.md`, `Config/DefaultGame.ini`,
+  `Source/KalmalaGameplay/Public/KalmalaMenuContext.h`,
+  `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp`,
+  `docs/startmenu.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Reviewed the authority gate, repeated-launch guard,
+  launch URL construction and network-mode/seed/revision validation. `rg`
+  confirmed no stale solo-only launch option or widget method references;
+  `git diff --check` passed. No build, test or automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** A selected world can now start as a listen host from
+  World details, and the server limits sessions to four total players.
+- **Networking/authority:** Only the authoritative local menu controller may
+  launch. The server re-enumerates its own save records and resolves the seed
+  before travel. Clients receive the world identity through existing GameState
+  replication. The engine's listen-server capacity check includes the host.
+- **Known limitations:** The menu does not advertise sessions, display an
+  address or join code, or enforce a password. Joining by address is the next
+  task, SM11. Runtime multiplayer, rendered layout and session teardown remain
+  unverified or incomplete for SM15/SM14.
+- **Next eligible task:** SM11 — Connect joining by address.

@@ -42,24 +42,29 @@ void AKalmalaWorldGenerationGameState::PostInitializeComponents()
     }
 
     const FURL& TravelUrl = GetWorld()->URL;
-    const TCHAR* SoloLaunchOption = TravelUrl.GetOption(TEXT("KalmalaSoloLaunch="), nullptr);
-    const TCHAR* SoloSeedOption = TravelUrl.GetOption(TEXT("KalmalaSoloSeed="), nullptr);
-    const TCHAR* SoloRevisionOption = TravelUrl.GetOption(TEXT("KalmalaSoloRevision="), nullptr);
-    const bool bHasSoloLaunchOption = SoloLaunchOption != nullptr
-        || SoloSeedOption != nullptr || SoloRevisionOption != nullptr;
-    if (bHasSoloLaunchOption)
+    const TCHAR* MenuLaunchOption = TravelUrl.GetOption(TEXT("KalmalaMenuLaunch="), nullptr);
+    const TCHAR* MenuSeedOption = TravelUrl.GetOption(TEXT("KalmalaMenuSeed="), nullptr);
+    const TCHAR* MenuRevisionOption = TravelUrl.GetOption(TEXT("KalmalaMenuRevision="), nullptr);
+    const bool bHasMenuLaunchOption = MenuLaunchOption != nullptr
+        || MenuSeedOption != nullptr || MenuRevisionOption != nullptr;
+    if (bHasMenuLaunchOption)
     {
         uint64 Seed = 0;
         uint64 Revision = 0;
-        const bool bValidSoloOptions = GetWorld()->GetNetMode() == NM_Standalone
-            && SoloLaunchOption != nullptr && FCString::Stricmp(SoloLaunchOption, TEXT("1")) == 0
-            && TryParseUnsignedDecimalOption(SoloSeedOption, Seed)
-            && TryParseUnsignedDecimalOption(SoloRevisionOption, Revision)
+        const bool bSoloLaunch = MenuLaunchOption != nullptr
+            && FCString::Stricmp(MenuLaunchOption, TEXT("Solo")) == 0
+            && GetWorld()->GetNetMode() == NM_Standalone;
+        const bool bListenHostLaunch = MenuLaunchOption != nullptr
+            && FCString::Stricmp(MenuLaunchOption, TEXT("HostCoop")) == 0
+            && GetWorld()->GetNetMode() == NM_ListenServer;
+        const bool bValidMenuOptions = (bSoloLaunch || bListenHostLaunch)
+            && TryParseUnsignedDecimalOption(MenuSeedOption, Seed)
+            && TryParseUnsignedDecimalOption(MenuRevisionOption, Revision)
             && Revision <= static_cast<uint64>(MAX_int32)
             && Revision == static_cast<uint64>(FKalmalaM7SaveIdentity::ForWorld(Seed).GeneratorRevision);
-        if (!bValidSoloOptions || !SelectWorldSeedFromServer(Seed))
+        if (!bValidMenuOptions || !SelectWorldSeedFromServer(Seed))
         {
-            UE_LOG(LogTemp, Error, TEXT("Rejected invalid or stale server-owned solo launch identity options."));
+            UE_LOG(LogTemp, Error, TEXT("Rejected invalid, stale, or network-mode-mismatched server-owned menu launch identity options."));
         }
         return;
     }

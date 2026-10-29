@@ -35,6 +35,8 @@ private:
     void HandleReturnToWorldsRequested();
     void HandleWorldSelected(uint64 Seed);
     void HandleSoloPlayRequested(uint64 Seed, bool bConfirmedExisting);
+    void HandleHostCoopRequested(uint64 Seed, bool bConfirmedExisting);
+    void HandleWorldLaunchRequested(uint64 Seed, bool bConfirmedExisting, bool bListenHost);
     void ReleasePlayerStep();
     void ReleaseWorldList();
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;
