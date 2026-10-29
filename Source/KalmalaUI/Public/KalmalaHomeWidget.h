@@ -12,7 +12,7 @@ class UKalmalaThemedButton;
 enum class EKalmalaHomeAction : uint8 { Play, Options, SaveInformation, Credits, Exit };
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaHomeActionRequested, EKalmalaHomeAction);
 
-/** Local Home presentation; navigation and branch implementations are supplied later. */
+/** Local Home presentation; the local-player subsystem owns branch navigation. */
 UCLASS()
 class KALMALAUI_API UKalmalaHomeWidget : public UUserWidget
 {
@@ -26,6 +26,7 @@ public:
     void FocusPlay();
     void FocusOptions();
     void FocusSaveInformation();
+    void FocusCredits();
     // A subscriber may report an action whose later branch is not wired yet.
     void ShowUnavailable();
 

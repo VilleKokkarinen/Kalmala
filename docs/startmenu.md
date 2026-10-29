@@ -419,9 +419,11 @@ The local-player Home owner mounts `UKalmalaHomeWidget` only for the dedicated
 menu controller and Home flow state, then requests focus for Play. Its ordered
 Play, Options, Save information, Credits and Exit actions emit a local event;
 without a listener they report that the option is not available yet. Save
-information is now bound to a read-only screen; Credits and Exit remain
-unavailable until their branches are wired. A build-version footer uses
-`FApp::GetBuildVersion`, with a truthful empty-value fallback. Theme, text scale,
+information and Credits are now bound to read-only screens; Exit remains
+unavailable until its confirmation is wired. Credits shows the project label
+`Kalmala` and states when no additional project credits are available in this
+build; it adds no unverified contributor or license claims. A build-version
+footer uses `FApp::GetBuildVersion`, with a truthful empty-value fallback. Theme, text scale,
 contrast and reduced-motion preferences come from the existing settings and
 theme. A 32-unit safe area contains a bounded 420-unit action column with 48-unit
 minimum rows, 8-unit gaps and a scrollable region for content overflow. Normal
@@ -502,6 +504,15 @@ when it accesses a player save. The page summarizes the current supported world
 and player persistence fields and explicitly avoids promising full inventory,
 wearable or skill-XP restoration. Back returns focus to the Home Save
 information action. Listing slot names does not load or modify save contents.
+
+## SM13 Credits branch
+
+The Home Credits action opens a scrollable, themed project-credit screen.
+Repository attribution contains no additional authored project credits, so the
+screen identifies the project as `Kalmala` and says no additional project
+credits are available in this build. It does not invent contributors or
+third-party licenses. Back, Escape, or gamepad Back returns to Home with focus
+on the Credits action. Exit confirmation remains for the next SM13 increment.
 
 ## Ordered delivery and acceptance
 

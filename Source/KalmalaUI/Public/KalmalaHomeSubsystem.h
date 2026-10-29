@@ -5,6 +5,7 @@
 #include "KalmalaHomeSubsystem.generated.h"
 
 class APlayerController;
+class UKalmalaCreditsWidget;
 class UKalmalaHomeWidget;
 class UKalmalaJoinAddressWidget;
 class UKalmalaPlayerStepWidget;
@@ -37,6 +38,7 @@ private:
     void HandleJoinCancelRequested();
     void HandleJoinAddressRequested(FString Address);
     void HandleSaveInformationBack();
+    void HandleCreditsBack();
     void StartWatchingConnection(uint64 Token);
     void StopWatchingConnection();
     void FinishConnectionFailure(uint64 Token, const FText& Message);
@@ -55,11 +57,13 @@ private:
     void ReleasePlayerStep();
     void ReleaseJoinAddressWidget();
     void ReleaseSaveInformationWidget();
+    void ReleaseCreditsWidget();
     void ReleaseWorldList();
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaJoinAddressWidget> JoinAddressWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaPlayerStepWidget> PlayerStep;
     UPROPERTY(Transient) TObjectPtr<UKalmalaSaveInformationWidget> SaveInformationWidget;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaCreditsWidget> CreditsWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaWorldListWidget> WorldList;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;
     TWeakObjectPtr<UWorld> ConnectionOriginWorld;

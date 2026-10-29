@@ -154,6 +154,7 @@ void UKalmalaHomeWidget::RefreshTheme()
 void UKalmalaHomeWidget::FocusPlay() { FocusAction(0); }
 void UKalmalaHomeWidget::FocusOptions() { FocusAction(1); }
 void UKalmalaHomeWidget::FocusSaveInformation() { FocusAction(2); }
+void UKalmalaHomeWidget::FocusCredits() { FocusAction(3); }
 
 void UKalmalaHomeWidget::FocusAction(const int32 Index)
 {

@@ -24334,3 +24334,39 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   implemented.
 - **Next eligible task:** Continue SM13 with the existing project Credits
   branch; then implement Exit confirmation.
+
+## Run 2026-10-29 — SM13 Credits branch
+
+- **Selected increment:** Connect Home's Credits action to the existing
+  project-attribution fallback screen.
+- **Work completed:** Added a scrollable, themed local Credits screen. The
+  repository provides the project name but no additional project-credit list,
+  so the screen identifies `Kalmala` and states that no additional project
+  credits are available in this build. Home now routes Credits into the
+  Credits flow state; Back, Escape and gamepad Back return to Home and restore
+  focus to Credits. Widget teardown removes the delegate and closes its flow
+  state. No contributor or license credits were invented.
+- **Files changed:** `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaUI/Public/KalmalaCreditsWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaCreditsWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeWidget.h`, and
+  `Source/KalmalaUI/Private/KalmalaHomeWidget.cpp`.
+- **Backlog state:** SM13 remains unchecked because Exit confirmation and its
+  initial Cancel focus are still outstanding.
+- **Lightweight checks:** `git diff --check` passed. Focused source checks
+  confirmed Credits routing, widget mounting, Back focus restoration, scroll
+  support, factual project text, and keyboard/gamepad Back. Changed absolute
+  paths are below `MAX_PATH`. No build, test suite or automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Home's Credits action now opens a themed project
+  credits page, and returning from it restores the selected Home action.
+- **Networking/authority:** Local presentation and flow navigation only; no
+  network request, save listing, save access or gameplay authority changed.
+- **Known limitations:** No additional project credits are available in the
+  repository. Rendered layout and live focus behavior remain for SM15. Exit
+  confirmation is not implemented yet.
+- **Next eligible task:** Continue SM13 by implementing Exit confirmation,
+  initially focusing Cancel.
