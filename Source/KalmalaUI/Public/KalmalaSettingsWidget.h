@@ -180,6 +180,8 @@ private:
     void HandleQuitClicked();
     UFUNCTION()
     void HandleReturnToHomeClicked();
+    void HandleNetworkReturnResult(bool bSaved);
+    void UnbindPendingReturnCharacter();
     UFUNCTION()
     void HandleGraphicsClicked();
     UFUNCTION()
@@ -242,6 +244,7 @@ private:
     TObjectPtr<UButton> ReturnToHomeButton;
     UPROPERTY(Transient)
     TObjectPtr<UTextBlock> ReturnToHomeStatus;
+    TWeakObjectPtr<class AKalmalaCharacter> PendingReturnCharacter;
     UPROPERTY(Transient)
     TObjectPtr<UComboBoxString> ResolutionDropdown;
     UPROPERTY(Transient)

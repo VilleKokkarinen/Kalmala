@@ -9598,6 +9598,29 @@ bool AKalmalaGameMode::TryReturnToHomeFromSolo(APlayerController* RequestingCont
     return true;
 }
 
+bool AKalmalaGameMode::TryReturnNetworkClientToHomeFromServer(
+    APlayerController* RequestingController, AKalmalaCharacter* Character)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || World == nullptr
+        || (World->GetNetMode() != NM_ListenServer && World->GetNetMode() != NM_DedicatedServer)
+        || !IsValid(RequestingController) || !IsValid(Character)
+        || RequestingController->GetWorld() != World || RequestingController->IsLocalController()
+        || RequestingController->GetNetConnection() == nullptr || RequestingController->GetPawn() != Character
+        || Character->GetWorld() != World || !Character->HasAuthority()
+        || Character->GetController() != RequestingController) return false;
+
+    const TWeakObjectPtr<APlayerController> ReturnOwner(RequestingController);
+    if (PendingNetworkHomeReturns.Contains(ReturnOwner)) return false;
+    PendingNetworkHomeReturns.Add(ReturnOwner);
+    if (!PersistPlayerStateFromServer(Character))
+    {
+        PendingNetworkHomeReturns.Remove(ReturnOwner);
+        return false;
+    }
+    return true;
+}
+
 void AKalmalaGameMode::LoadOceanTravelWorldSave()
 {
     bOceanTravelPersistenceWritable = HasAuthority() && WorldGenerationConfig.IsValid();
@@ -10683,6 +10706,8 @@ void AKalmalaGameMode::Logout(AController* Exiting)
 {
     if (HasAuthority() && Exiting != nullptr)
     {
+        if (APlayerController* PlayerController = Cast<APlayerController>(Exiting))
+            PendingNetworkHomeReturns.Remove(TWeakObjectPtr<APlayerController>(PlayerController));
         if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Exiting->GetPawn()))
             PersistPlayerStateFromServer(Character);
     }

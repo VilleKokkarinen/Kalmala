@@ -19,9 +19,12 @@
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
+#include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "KalmalaInteractable.h"
 #include "KalmalaShimmeringLakeSampler.h"
 #include "KalmalaOceanSampler.h"
@@ -1626,6 +1629,55 @@ void AKalmalaCharacter::ReleaseAttack()
 {
     if (IsLocallyControlled() && Combat)
         Combat->ReleaseBowDraw(++LocalCombatSequence, !Controller || Controller->IsMoveInputIgnored());
+}
+
+void AKalmalaCharacter::RequestReturnToHome()
+{
+    if (!IsLocallyControlled()) return;
+    if (HasAuthority())
+    {
+        ProcessReturnToHomeRequest();
+        return;
+    }
+    ServerRequestReturnToHome();
+}
+
+void AKalmalaCharacter::ServerRequestReturnToHome_Implementation()
+{
+    ProcessReturnToHomeRequest();
+}
+
+void AKalmalaCharacter::ProcessReturnToHomeRequest()
+{
+    bool bSaved = false;
+    if (HasAuthority() && GetWorld())
+    {
+        if (AKalmalaGameMode* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())
+        {
+            bSaved = GameMode->TryReturnNetworkClientToHomeFromServer(
+                Cast<APlayerController>(GetController()), this);
+        }
+    }
+    ClientReturnToHomeResult(bSaved);
+}
+
+void AKalmalaCharacter::ClientReturnToHomeResult_Implementation(const bool bSaved)
+{
+    if (!bSaved)
+    {
+        NetworkHomeReturnResult.Broadcast(false);
+        return;
+    }
+
+    UWorld* World = GetWorld();
+    if (HasAuthority() || World == nullptr || World->GetNetMode() != NM_Client || !IsLocallyControlled())
+    {
+        NetworkHomeReturnResult.Broadcast(false);
+        return;
+    }
+
+    NetworkHomeReturnResult.Broadcast(true);
+    UGameplayStatics::OpenLevel(this, FName(TEXT("/Game/Kalmala/Maps/Menu/L_Menu")), true);
 }
 
 

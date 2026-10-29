@@ -24477,3 +24477,45 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   for SM15. Existing player-save scope is unchanged.
 - **Next eligible task:** SM14.3 — return networked players through the session
   owner.
+
+## Run 2026-10-29 — SM14.3.1 network-client return after persistence
+
+- **Selected increment:** Route a remote client's Return to Home request through
+  the authoritative server and travel that client only after its existing player
+  record is saved.
+- **Work completed:** Added an owning-character server RPC and server-side
+  validation for the remote controller, connection, pawn, world and authority.
+  The GameMode synchronously persists the existing authenticated player state,
+  rejects duplicate pending requests, and keeps the client connected when saving
+  fails. On success, the owner receives a client RPC and opens the dedicated
+  Home map locally; the pause menu reports saving/failure and supports retry.
+  Existing logout persistence remains in place. SM14.3 was split into ordered
+  client and listen-host children; only SM14.3.1 is checked.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+  `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`, and
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`.
+- **Backlog state:** SM14.3.1 is checked after source review and the lightweight
+  whitespace check. SM14.3 remains unchecked because listen-host session
+  teardown is still outstanding.
+- **Lightweight checks:** `git diff --check` passed. Source inspection confirmed
+  that controller/pawn ownership and server authority are checked before the
+  existing persistence API, failed saves do not trigger client travel, successful
+  replies travel only the owning client, and the menu has a retry path. No build,
+  test suite or Unreal runtime automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** A connected remote player can return to one local Home
+  flow after the server confirms its existing player save; persistence failure
+  keeps that player in the session.
+- **Networking/authority:** Persistence and request validation stay on the
+  server. The client supplies no save identity or save payload and opens Home
+  only after the server's success reply. The existing logout save still runs.
+- **Known limitations:** Client/server success and failure paths have not been
+  exercised in Unreal. Listen-host teardown, repeated round trips, normal
+  packaged startup and integrated acceptance remain outstanding.
+- **Next eligible task:** SM14.3.2 — return the listen host through session
+  teardown.

@@ -1,6 +1,7 @@
 #include "KalmalaSettingsWidget.h"
 
 #include "Engine/World.h"
+#include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaUITheme.h"
 
@@ -863,14 +864,25 @@ bool UKalmalaSettingsWidget::IsHomeMenuSurfaceTransparentForVerification() const
 
 bool UKalmalaSettingsWidget::HasOnlyHomeMenuOptionsForVerification() const
 {
-    if (ContentBox == nullptr || ContentBox->GetChildrenCount() != 2) return false;
-    static const FName ExpectedNames[] = { TEXT("OptionsButton"), TEXT("QuitButton") };
-    for (int32 Index = 0; Index < UE_ARRAY_COUNT(ExpectedNames); ++Index)
+    if (ContentBox == nullptr) return false;
+    const int32 ExpectedChildren = ReturnToHomeButton != nullptr ? 4 : 2;
+    if (ContentBox->GetChildrenCount() != ExpectedChildren) return false;
+
+    const UWidget* Options = ContentBox->GetChildAt(0);
+    if (Options == nullptr || Options->GetFName() != TEXT("OptionsButton") || !Cast<UButton>(Options)) return false;
+
+    const int32 QuitIndex = ReturnToHomeButton != nullptr ? 3 : 1;
+    if (ReturnToHomeButton != nullptr)
     {
-        const UWidget* Child = ContentBox->GetChildAt(Index);
-        if (Child == nullptr || Child->GetFName() != ExpectedNames[Index] || !Cast<UButton>(Child)) return false;
+        const UWidget* ReturnButton = ContentBox->GetChildAt(1);
+        if (ReturnButton != ReturnToHomeButton.Get()
+            || ReturnButton->GetFName() != TEXT("ReturnToHomeButton")
+            || !Cast<UButton>(ReturnButton)
+            || ContentBox->GetChildAt(2) != ReturnToHomeStatus.Get()) return false;
     }
-    return true;
+
+    const UWidget* Quit = ContentBox->GetChildAt(QuitIndex);
+    return Quit != nullptr && Quit->GetFName() == TEXT("QuitButton") && Cast<UButton>(Quit) != nullptr;
 }
 
 bool UKalmalaSettingsWidget::HasVisibleFocusedHomeMenuOptionForVerification() const
@@ -946,6 +958,7 @@ void UKalmalaSettingsWidget::ResetOptionsOpeningAnimation()
 
 void UKalmalaSettingsWidget::Close()
 {
+    UnbindPendingReturnCharacter();
     FlushAudioSettingsIfDirty();
     if (!bMenuOpen) return;
     bMenuOpen = false;
@@ -1642,6 +1655,7 @@ void UKalmalaSettingsWidget::ShowMainMenu()
 {
     bShowingOptions = false;
     OptionsTabButtons.Reset();
+    UnbindPendingReturnCharacter();
     ReturnToHomeButton = nullptr;
     ReturnToHomeStatus = nullptr;
     ApplyHomeMenuPalette();
@@ -1650,8 +1664,9 @@ void UKalmalaSettingsWidget::ShowMainMenu()
     Options->OnClicked.AddDynamic(this, &ThisClass::HandleOptionsClicked);
     APlayerController* Controller = GetOwningPlayer();
     UWorld* World = Controller ? Controller->GetWorld() : nullptr;
-    if (World && World->GetNetMode() == NM_Standalone
-        && World->GetAuthGameMode<AKalmalaGameMode>() != nullptr)
+    if (World && ((World->GetNetMode() == NM_Standalone
+            && World->GetAuthGameMode<AKalmalaGameMode>() != nullptr)
+        || World->GetNetMode() == NM_Client))
     {
         ReturnToHomeButton = AddButton(ContentBox, FText::FromString(TEXT("Return to Home")), TEXT("ReturnToHomeButton"));
         ReturnToHomeButton->OnClicked.AddDynamic(this, &ThisClass::HandleReturnToHomeClicked);
@@ -2598,6 +2613,27 @@ void UKalmalaSettingsWidget::HandleReturnToHomeClicked()
 {
     APlayerController* Controller = GetOwningPlayer();
     UWorld* World = Controller ? Controller->GetWorld() : nullptr;
+    if (World && World->GetNetMode() == NM_Client)
+    {
+        AKalmalaCharacter* Character = Controller && Controller->IsLocalController()
+            ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+        if (Character && Character->IsLocallyControlled())
+        {
+            UnbindPendingReturnCharacter();
+            PendingReturnCharacter = Character;
+            Character->OnNetworkHomeReturnResult().AddUObject(
+                this, &ThisClass::HandleNetworkReturnResult);
+            if (ReturnToHomeButton) ReturnToHomeButton->SetIsEnabled(false);
+            if (ReturnToHomeStatus)
+            {
+                ReturnToHomeStatus->SetText(FText::FromString(TEXT("Saving player state before returning...")));
+                ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
+            }
+            Character->RequestReturnToHome();
+            return;
+        }
+    }
+
     AKalmalaGameMode* GameMode = World ? World->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
     if (GameMode && GameMode->TryReturnToHomeFromSolo(Controller))
     {
@@ -2612,6 +2648,31 @@ void UKalmalaSettingsWidget::HandleReturnToHomeClicked()
         ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
     }
 }
+void UKalmalaSettingsWidget::HandleNetworkReturnResult(const bool bSaved)
+{
+    UnbindPendingReturnCharacter();
+    if (bSaved)
+    {
+        if (ReturnToHomeButton) ReturnToHomeButton->SetIsEnabled(false);
+        return;
+    }
+
+    if (ReturnToHomeButton) ReturnToHomeButton->SetIsEnabled(true);
+    if (ReturnToHomeStatus)
+    {
+        ReturnToHomeStatus->SetText(FText::FromString(
+            TEXT("Could not save player state. You are still connected; try again.")));
+        ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UKalmalaSettingsWidget::UnbindPendingReturnCharacter()
+{
+    if (AKalmalaCharacter* Character = PendingReturnCharacter.Get())
+        Character->OnNetworkHomeReturnResult().RemoveAll(this);
+    PendingReturnCharacter.Reset();
+}
+
 void UKalmalaSettingsWidget::HandleGraphicsClicked() { ShowGraphicsTab(); }
 void UKalmalaSettingsWidget::HandleKeyboardAndMouseClicked() { ShowKeyboardAndMouseTab(); }
 void UKalmalaSettingsWidget::HandleControllerClicked() { ShowControllerTab(); }

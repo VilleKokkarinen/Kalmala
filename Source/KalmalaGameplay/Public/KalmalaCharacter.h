@@ -6,6 +6,8 @@
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaCharacter.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaNetworkHomeReturnResult, bool);
+
 class UCameraComponent;
 class USpringArmComponent;
 class UKalmalaPlayerModelComponent;
@@ -78,6 +80,9 @@ public:
     bool GetLocalInteractionCandidate(FHitResult& OutHit) const;
     /** Submit the current local interaction intent; the server validates the request. */
     void RequestInteract();
+    /** Ask the gameplay server to save this owner's state before local Home travel. */
+    void RequestReturnToHome();
+    FKalmalaNetworkHomeReturnResult& OnNetworkHomeReturnResult() { return NetworkHomeReturnResult; }
     /** Resolve the current local tool/action intent for this visible node; server validation remains authoritative. */
     bool GetLocalHarvestInteractionIntent(const AKalmalaHarvestNode* Node, FName& OutItemId,
         uint8& OutAction, bool& bOutHasUsableTool) const;
@@ -290,6 +295,15 @@ private:
 
     UFUNCTION(Server, Reliable)
     void ServerRequestInteract(FName ClientItemId, uint8 ClientAction);
+
+    UFUNCTION(Server, Reliable)
+    void ServerRequestReturnToHome();
+
+    UFUNCTION(Client, Reliable)
+    void ClientReturnToHomeResult(bool bSaved);
+
+    void ProcessReturnToHomeRequest();
+    FKalmalaNetworkHomeReturnResult NetworkHomeReturnResult;
 
     UFUNCTION(Server, Unreliable)
     void ServerSubmitOceanSkiffSteeringInput(float Throttle, float Rudder, uint32 Sequence);

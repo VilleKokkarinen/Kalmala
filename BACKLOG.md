@@ -99,6 +99,12 @@
     - [ ] **SM14.3 — Return networked players through the session owner.**
       - **Implement:** Validate each client's return request and complete server persistence before the client leaves; when the listen host leaves, persist players and tear down the owned session.
       - **Complete when:** Clients arrive in local Home after accepted departure, and a host departure ends its listen session without bypassing logout saves.
+    - [x] **SM14.3.1 — Return a network client after server persistence.**
+      - **Implement:** Route the owning client's gameplay return request to the server; validate its controller and pawn, persist the existing player record, and send only that client to local Home after success.
+      - **Complete when:** A failed save keeps the client in the session; an accepted save returns that client to one local Home flow.
+    - [ ] **SM14.3.2 — Return the listen host through session teardown.**
+      - **Implement:** Persist every active player's existing record before the host closes its owned listen session; return remote clients and host to local Home while retaining logout-save behavior.
+      - **Complete when:** The host no longer owns a listen session after return, and connected players arrive in local Home only after their saves complete.
     - [ ] **SM14.4 — Clean up repeated gameplay/Home round trips.**
       - **Implement:** Release stale gameplay HUD, menu widgets, delegates, timers, request tokens and input bindings as travel changes contexts.
       - **Complete when:** Repeated solo and listen-host round trips recreate one Home presentation and one input/delegate owner per local player.

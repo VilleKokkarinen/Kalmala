@@ -310,11 +310,13 @@ as gameplay begins, and saves follow existing gameplay persistence behavior.
 Solo return saves the local player's existing server-owned state synchronously
 before opening the dedicated Home map. If persistence fails, the pause menu stays
 open in gameplay and allows a retry. The persistent local menu flow returns to
-Home only after the menu controller is active in that map. Networked client and
-listen-host returns still wait for logout/save completion and session teardown
-through their owner. On shutdown/failure release widgets, delegates, timers and
-pending request tokens. Never overwrite unrelated main-checkout changes during
-implementation handoffs.
+Home only after the menu controller is active in that map. A network client asks
+the server through its owning character; the server validates that character and
+controller, saves the existing authenticated player record, and only then sends
+the client to local Home. A rejected save leaves the client connected and able to
+retry. Listen-host session teardown remains a separate return path. On
+shutdown/failure release widgets, delegates, timers and pending request tokens.
+Never overwrite unrelated main-checkout changes during implementation handoffs.
 
 ## SM01 runtime mapping
 
