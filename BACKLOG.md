@@ -64,6 +64,10 @@
     - **Implement:** Bind Your worlds and World details to validated descriptors. Add empty/unsupported states, planned sorting and read-only world rules.
     - **Complete when:** Selecting a world shows its accurate identity/status without launching it or rewriting saves.
   - [ ] **SM08 — Connect New world.**
+    - [x] Add strict decimal seed parsing for the full runtime `uint64` range; reject empty, non-decimal, trailing text, and overflow without wraparound.
+    - [ ] Inspect known current-revision world records through a read-only adapter; keep creation disabled until the result can be handled safely.
+    - [ ] Confirm before reusing a duplicate seed/revision identity, then select the existing world without overwriting it.
+    - [ ] Connect New world to a validated server-owned world lifecycle API.
     - **Implement:** Use the existing seed and world-lifecycle API. Validate the full runtime seed range and handle duplicate seed/revision identities.
     - **Complete when:** Invalid seeds are rejected and duplicate identities select the existing world only after confirmation, without overwriting it.
   - [ ] **SM09 — Connect solo play.**

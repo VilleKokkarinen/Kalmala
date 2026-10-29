@@ -23766,3 +23766,34 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   current records. Rendered focus and full UI behavior remain unverified.
 - **Next eligible task:** SM08, connect New world through the existing validated
   seed and lifecycle APIs.
+
+## Run 2026-10-29 — SM08 seed input parser
+
+- **Selected increment:** Split SM08 into ordered implementation steps and add
+  strict decimal parsing for the complete runtime `uint64` seed range.
+- **Work completed:** Added an exported parser that accepts decimal digits,
+  supports zero and leading zeroes, distinguishes empty, invalid-character and
+  out-of-range input, and rejects overflow without wrapping. Added focused
+  automation coverage for zero, leading zeroes, `MAX_uint64`, overflow, signs,
+  whitespace and trailing text. Marked only the parser child complete; SM08
+  remains incomplete.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaWorldSeedParser.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldSeedParser.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldSeedParserTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `git diff --check -- BACKLOG.md` passed. New source files passed
+  whitespace and Windows path-length checks. Reviewed the overflow guard and
+  authored boundary cases. The automation test and Unreal build were not run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** The menu module now has a reusable, strict seed-input
+  parser. The New world button remains disabled and no travel or save operation
+  is added.
+- **Networking/authority:** Parsing is local-only and does not change seed
+  ownership. Server authority, replication and save behavior are unchanged.
+- **Known limitations:** The parser is not yet wired to a screen. It rejects
+  whitespace and signs, accepts leading zeroes, and cannot create or select a
+  world without the validated lifecycle integration.
+- **Next eligible task:** SM08, add a read-only adapter for inspecting known
+  current-revision world records; keep creation disabled until safe lifecycle
+  handling is available.
