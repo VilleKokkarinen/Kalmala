@@ -23594,3 +23594,35 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   menu/game round trips, HUD recreation and shared settings input remain to be
   verified in SM15; the authored Unreal automation test was not run here.
 - **Next eligible task:** SM04, build the Home screen.
+
+## Run 2026-10-29 — SM04 Home screen
+
+- **Selected increment:** Build the themed Home screen with ordered actions,
+  build-version footer, initial Play focus and adaptive layout.
+- **Work completed:** Added a Home widget and local-player owner restricted to
+  the menu controller and Home flow. Added five ordered actions, a build footer,
+  theme/accessibility refresh, focus request after mounting, and a bounded
+  scrollable layout. Unwired actions report unavailability; an event exposes
+  requests to later branches. Added focused action/width automation coverage.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaHomeWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaHomeWidgetTest.cpp`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Inspected ordered labels, theme and focus calls, bounded scroll
+  structure and startup configuration. A source/size sanity check covered
+  1280x720 and 1920x1080 with 100% and 150% text settings: the 420-unit column
+  and 272-unit minimum rows fit the stated safe area, with overflow scrollable.
+  This does not measure glyphs, DPI, actual Slate geometry or focus.
+  `git diff --check` passed. The authored Unreal test, build and editor were
+  not run.
+- **Full verification:** Deferred to SM15 integrated acceptance.
+- **Observable impact:** The isolated menu context can mount a themed Home
+  screen; normal startup remains on the existing gameplay map.
+- **Networking/authority:** Owner-local UI only; no gameplay, save, travel or
+  network authority changes.
+- **Known limitations:** There is no startup menu world or wired branch yet.
+  Live Play focus and the rendered resolution/text-scale matrix remain
+  unverified; later integrations must bind each recreated Home widget.
+- **Next eligible task:** SM05, connect the existing Options screen.

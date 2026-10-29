@@ -51,7 +51,7 @@
   - [x] **SM03 — Isolate the menu from gameplay.**
     - **Implement:** Add a lightweight menu context. Prevent gameplay HUD and player-pawn creation in that context.
     - **Complete when:** The menu context has no gameplay HUD/pawn and the existing gameplay context still creates them normally.
-  - [ ] **SM04 — Build the Home screen.**
+  - [x] **SM04 — Build the Home screen.**
     - **Implement:** Use the existing theme; add Play, Options, Save information, Credits and Exit in that order, plus the build-version footer.
     - **Complete when:** Play receives initial focus and the layout fits both resolutions and text-scale cases specified in the plan.
   - [ ] **SM05 — Connect the existing Options screen.**

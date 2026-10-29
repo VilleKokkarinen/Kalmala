@@ -313,6 +313,21 @@ empty menu world must explicitly select this mode and its controller; normal
 startup still uses the prototype gameplay map. SM15 must verify live menu/game
 round trips, widget cleanup and recreation, and settings input ownership.
 
+## SM04 Home presentation
+
+The local-player Home owner mounts `UKalmalaHomeWidget` only for the dedicated
+menu controller and Home flow state, then requests focus for Play. Its ordered
+Play, Options, Save information, Credits and Exit actions emit a local event;
+without a listener they report that the option is not available yet. Later
+branches must bind each newly mounted widget and report unavailable actions until
+implemented. A build-version footer uses `FApp::GetBuildVersion`, with a truthful
+empty-value fallback. Theme, text scale, contrast and reduced-motion preferences
+come from the existing settings and theme. A 32-unit safe area contains a bounded
+420-unit action column with 48-unit minimum rows, 8-unit gaps and a scrollable
+region for content overflow. Normal startup is unchanged; no menu world is wired.
+Actual viewport focus, measured layout and both resolution/text-scale render
+cases remain part of integrated acceptance.
+
 ## Ordered delivery and acceptance
 
 The backlog's SM01-SM15 children implement only the initial delivery described
