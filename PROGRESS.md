@@ -24632,3 +24632,39 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   exercised in Unreal. Runtime round-trip verification remains for SM15.
 - **Next eligible task:** SM14.4.3 — rebuild Home presentation and retire stale
   menu callbacks after travel.
+
+## Run 2026-10-29 — SM14.4.3 Home callback and travel cleanup
+
+- **Selected increment:** Ensure Home actions and Join cancellation callbacks
+  cannot change the flow after their menu controller or screen is no longer
+  current.
+- **Work completed:** The Home owner already releases all screen widgets and
+  their delegates, stops connection/launch failure watchers, clears request
+  tokens on successful travel or owner release, and recreates one Home widget
+  when the persistent flow returns from Gameplay. Added current-controller and
+  Home-screen checks to Home action callbacks, plus current-controller,
+  Connecting-screen and active-token checks to Join cancellation. Marked
+  SM14.4.3 and its parent complete after focused lifecycle inspection; the
+  integrated solo/listen-host round-trip remains for SM15.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`, and
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`.
+- **Backlog state:** SM14.4.3 and SM14.4 are checked after source inspection and
+  the whitespace check. SM14 remains unchecked; packaged startup and SM15
+  acceptance are outstanding.
+- **Lightweight checks:** `git diff --check` passed. Source inspection confirmed
+  successful launch/join stops its failure watcher and releases old widgets;
+  gameplay return transitions the persistent flow to Home and creates a widget
+  only when absent. Widget delegate removal and token-checked travel callbacks
+  remain paired with release. No build, test suite or Unreal runtime automation
+  was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Home actions from a non-current controller or
+  non-Home screen are ignored, and a stale Join cancel cannot cancel a request
+  outside the current Connecting flow.
+- **Networking/authority:** This change guards local front-end callbacks only;
+  world launch authority and persistence remain unchanged.
+- **Known limitations:** Repeated solo and listen-host round trips, visible
+  single-widget presentation, and travel-failure timing were not exercised in
+  Unreal. They remain in SM15 acceptance.
+- **Next eligible task:** SM14.5 — route normal packaged startup to Home.

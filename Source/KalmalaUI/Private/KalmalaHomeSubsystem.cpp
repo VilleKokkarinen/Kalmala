@@ -351,43 +351,44 @@ void UKalmalaHomeSubsystem::Tick(float)
 
 void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
 {
-    if (!HomeWidget || !HomeController || !GetLocalPlayer()) return;
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    UWorld* World = GetWorld();
+    if (!HomeWidget || !HomeController || !LocalPlayer || !World
+        || LocalPlayer->GetPlayerController(World) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Home) return;
+    FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     if (Action == EKalmalaHomeAction::Play)
     {
-        UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
-        if (Coordinator && Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Player))
+        if (Flow.Navigate(EKalmalaMenuScreen::Player))
             HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
         else HomeWidget->ShowUnavailable();
         return;
     }
     if (Action == EKalmalaHomeAction::SaveInformation)
     {
-        UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
-        if (Coordinator && Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::SaveInformation))
+        if (Flow.Navigate(EKalmalaMenuScreen::SaveInformation))
             HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
         else HomeWidget->ShowUnavailable();
         return;
     }
     if (Action == EKalmalaHomeAction::Credits)
     {
-        UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
-        if (Coordinator && Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Credits))
+        if (Flow.Navigate(EKalmalaMenuScreen::Credits))
             HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
         else HomeWidget->ShowUnavailable();
         return;
     }
     if (Action == EKalmalaHomeAction::Exit)
     {
-        UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
-        if (Coordinator && Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::ExitConfirmation))
+        if (Flow.Navigate(EKalmalaMenuScreen::ExitConfirmation))
             HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
         else HomeWidget->ShowUnavailable();
         return;
     }
     if (Action != EKalmalaHomeAction::Options) { HomeWidget->ShowUnavailable(); return; }
-    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
-    UKalmalaSettingsSubsystem* Settings = GetLocalPlayer()->GetSubsystem<UKalmalaSettingsSubsystem>();
-    if (!Coordinator || !Settings || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Options))
+    UKalmalaSettingsSubsystem* Settings = LocalPlayer->GetSubsystem<UKalmalaSettingsSubsystem>();
+    if (!Settings || !Flow.Navigate(EKalmalaMenuScreen::Options))
     {
         HomeWidget->ShowUnavailable();
         return;
@@ -396,7 +397,7 @@ void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
     HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
     if (!Settings->OpenOptionsFromHome(HomeController) && RequestedHome.IsValid() && HomeWidget == RequestedHome.Get())
     {
-        Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Home);
+        Flow.Navigate(EKalmalaMenuScreen::Home);
         HomeWidget->SetVisibility(ESlateVisibility::Visible);
         HomeWidget->FocusOptions();
         HomeWidget->ShowUnavailable();
@@ -482,6 +483,12 @@ void UKalmalaHomeSubsystem::HandleJoinBackRequested()
 
 void UKalmalaHomeSubsystem::HandleJoinCancelRequested()
 {
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    UWorld* World = GetWorld();
+    if (!JoinAddressWidget || !HomeController || !LocalPlayer || !World
+        || LocalPlayer->GetPlayerController(World) != HomeController || ActiveConnectToken == 0) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Connecting) return;
     CancelConnectionAttempt(FText::FromString(TEXT("Connection cancelled.")));
 }
 

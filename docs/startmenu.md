@@ -319,7 +319,10 @@ requesting remote clients to return locally. It waits for their disconnects,
 retains the existing logout saves, closes its listen net driver, and then opens
 Home locally. A failed initial save leaves the session active and retryable. On
 shutdown/failure release widgets, delegates, timers and pending request tokens.
-Never overwrite unrelated main-checkout changes during implementation handoffs.
+Home actions and Join cancellation also verify the current menu controller and
+flow screen before changing state, so callbacks from a prior world cannot affect
+the active Home flow. Never overwrite unrelated main-checkout changes during
+implementation handoffs.
 
 ## SM01 runtime mapping
 
