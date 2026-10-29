@@ -22,10 +22,12 @@ class KALMALAUI_API UKalmalaWorldListWidget : public UUserWidget
     GENERATED_BODY()
 public:
     static const TCHAR* EmptyOrUnavailableMessage(EKalmalaWorldMetadataAvailability Availability);
+    static FString ReuseConfirmationMessage(uint64 Seed, int32 GeneratorRevision);
     FKalmalaWorldListBack& OnBackRequested() { return BackRequested; }
     FKalmalaWorldListSelection& OnWorldSelected() { return WorldSelected; }
     void FocusBack();
     void FocusPrimary();
+    bool BeginWorldReuseConfirmation(uint64 Seed);
     bool ShowWorldDetails(uint64 Seed);
     void ShowWorldList();
 
@@ -37,8 +39,13 @@ protected:
 private:
     void BuildWorldList();
     void BuildWorldDetails();
+    void BuildWorldReuseConfirmation();
     void RefreshTheme();
+    void RefreshWorldRecords();
+    bool HasExactCurrentReuseCandidate(uint64 Seed) const;
     UFUNCTION() void HandleBack();
+    UFUNCTION() void HandleReuseConfirmed();
+    UFUNCTION() void HandleReuseCancelled();
     UFUNCTION() void HandleWorldSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
     UFUNCTION() void HandleViewDetails();
     void FocusWidget(UWidget* Widget);
@@ -56,13 +63,17 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> NewWorldButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> DetailsButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> BackButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> ReuseConfirmButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> ReuseCancelButton;
     FKalmalaWorldListBack BackRequested;
     FKalmalaWorldListSelection WorldSelected;
     TArray<FKalmalaLocalWorldSaveRecord> WorldRecords;
     EKalmalaLocalWorldSaveListingAvailability ListingAvailability = EKalmalaLocalWorldSaveListingAvailability::Unsupported;
     uint64 SelectedSeed = 0;
+    uint64 PendingReuseSeed = 0;
     bool bHasSelectedWorld = false;
     bool bShowingDetails = false;
+    bool bShowingReuseConfirmation = false;
     int32 LastTextScale = -1;
     int32 LastContrast = -2;
     bool bLastReducedMotion = false;

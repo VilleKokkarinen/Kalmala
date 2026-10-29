@@ -23861,3 +23861,37 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   path remain unimplemented; New world remains disabled.
 - **Next eligible task:** SM08, show duplicate confirmation and select the
   existing world only after the player confirms.
+
+## Run 2026-10-29 — SM08 duplicate confirmation panel
+
+- **Selected increment:** Split duplicate reuse confirmation into a guarded
+  confirmation panel and its later New world seed-entry integration.
+- **Work completed:** Added an exact-current-identity-gated confirmation panel
+  to the read-only world-list widget. It identifies the seed and revision
+  evidence, says save contents are not validated, and tells the player that
+  opening details will not change saves. Cancel and Escape return to the world
+  list with its previous selection; Cancel has initial focus. Confirm refreshes
+  the save-name listing and revalidates the exact match before broadcasting
+  selection through the existing World details route. Creation remains disabled.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldListTest.cpp`, `BACKLOG.md`, and
+  `PROGRESS.md`.
+- **Checks:** Focused source assertions passed for the exact-match opening gate,
+  revalidation on confirm, theme application, cancel/focus navigation, and no
+  save or travel calls. `git diff --check` passed for the five run-owned paths;
+  Git reported only CRLF-to-LF normalization warnings. Windows path checks
+  passed (longest run-owned path: 70 characters). The authored automation test
+  and Unreal build were not run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** The world-list widget can request confirmation for a
+  known exact duplicate and route accepted reuse to the existing read-only
+  details screen. The New world action remains disabled pending lifecycle work.
+- **Networking/authority:** Owner-local confirmation and read-only listing;
+  server authority and save mutation are unchanged.
+- **Known limitations:** No New world seed-entry screen calls this panel yet.
+  Revision evidence comes from recognized slot names and does not validate
+  payload compatibility. No validated creation lifecycle API exists.
+- **Next eligible task:** SM08, connect the New world seed-entry flow to this
+  confirmation and open existing details after confirmation.

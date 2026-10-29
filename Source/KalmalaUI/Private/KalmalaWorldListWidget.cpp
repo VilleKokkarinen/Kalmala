@@ -41,6 +41,14 @@ const TCHAR* UKalmalaWorldListWidget::EmptyOrUnavailableMessage(const EKalmalaWo
     }
 }
 
+FString UKalmalaWorldListWidget::ReuseConfirmationMessage(const uint64 Seed, const int32 GeneratorRevision)
+{
+    return FString::Printf(
+        TEXT("A recognized ocean-travel slot name lists world seed %llu at generator revision %d. "
+             "The save contents have not been validated. This opens details only and will not change saves."),
+        Seed, GeneratorRevision);
+}
+
 void UKalmalaWorldListWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
@@ -61,8 +69,13 @@ void UKalmalaWorldListWidget::NativeOnInitialized()
     Content = WidgetTree->ConstructWidget<UVerticalBox>();
     Column->SetContent(Content);
 
-    ListingAvailability = FKalmalaLocalWorldSaveListing::Enumerate(WorldRecords);
+    RefreshWorldRecords();
     BuildWorldList();
+}
+
+void UKalmalaWorldListWidget::RefreshWorldRecords()
+{
+    ListingAvailability = FKalmalaLocalWorldSaveListing::Enumerate(WorldRecords);
 }
 
 void UKalmalaWorldListWidget::BuildWorldList()
@@ -70,6 +83,8 @@ void UKalmalaWorldListWidget::BuildWorldList()
     if (!WidgetTree || !Content) return;
     const uint64 PreviouslySelectedSeed = SelectedSeed;
     bShowingDetails = false;
+    bShowingReuseConfirmation = false;
+    PendingReuseSeed = 0;
     bHasSelectedWorld = false;
     SelectedSeed = 0;
     Content->ClearChildren();
@@ -78,6 +93,8 @@ void UKalmalaWorldListWidget::BuildWorldList()
     NewWorldButton = nullptr;
     DetailsButton = nullptr;
     BackButton = nullptr;
+    ReuseConfirmButton = nullptr;
+    ReuseCancelButton = nullptr;
 
     Title = WidgetTree->ConstructWidget<UTextBlock>();
     Title->SetText(FText::FromString(TEXT("Your worlds")));
@@ -172,6 +189,8 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
     NewWorldButton = nullptr;
     DetailsButton = nullptr;
     BackButton = nullptr;
+    ReuseConfirmButton = nullptr;
+    ReuseCancelButton = nullptr;
 
     Title = WidgetTree->ConstructWidget<UTextBlock>();
     Title->SetText(FText::FromString(TEXT("World details")));
@@ -191,6 +210,56 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
     BackButton->SetContent(BackLabel);
     BackButton->OnClicked.AddDynamic(this, &ThisClass::HandleBack);
     Content->AddChildToVerticalBox(BackButton);
+    RefreshTheme();
+}
+
+void UKalmalaWorldListWidget::BuildWorldReuseConfirmation()
+{
+    if (!WidgetTree || !Content || !bShowingReuseConfirmation) return;
+
+    Content->ClearChildren();
+    Message = nullptr;
+    CreationStatus = nullptr;
+    DetailsText = nullptr;
+    WorldPicker = nullptr;
+    NewWorldButton = nullptr;
+    DetailsButton = nullptr;
+    BackButton = nullptr;
+    ReuseConfirmButton = nullptr;
+    ReuseCancelButton = nullptr;
+
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = PendingReuseSeed;
+    const FKalmalaWorldDescriptor Descriptor = FKalmalaWorldDescriptorAdapter::Describe(Config);
+
+    Title = WidgetTree->ConstructWidget<UTextBlock>();
+    Title->SetText(FText::FromString(TEXT("Use existing world?")));
+    Title->SetAutoWrapText(true);
+    Content->AddChildToVerticalBox(Title)->SetPadding(FMargin(0, 0, 0, 16));
+
+    Message = WidgetTree->ConstructWidget<UTextBlock>();
+    Message->SetText(FText::FromString(ReuseConfirmationMessage(
+        PendingReuseSeed, Descriptor.CurrentIdentityRevision)));
+    Message->SetAutoWrapText(true);
+    Content->AddChildToVerticalBox(Message)->SetPadding(FMargin(0, 0, 0, 16));
+
+    ReuseConfirmButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* ConfirmLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    ConfirmLabel->SetText(FText::FromString(TEXT("Open existing world details")));
+    ConfirmLabel->SetAutoWrapText(true);
+    ConfirmLabel->SetJustification(ETextJustify::Center);
+    ReuseConfirmButton->SetContent(ConfirmLabel);
+    ReuseConfirmButton->OnClicked.AddDynamic(this, &ThisClass::HandleReuseConfirmed);
+    Content->AddChildToVerticalBox(ReuseConfirmButton)->SetPadding(FMargin(0, 0, 0, 8));
+
+    ReuseCancelButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* CancelLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    CancelLabel->SetText(FText::FromString(TEXT("Cancel")));
+    CancelLabel->SetAutoWrapText(true);
+    CancelLabel->SetJustification(ETextJustify::Center);
+    ReuseCancelButton->SetContent(CancelLabel);
+    ReuseCancelButton->OnClicked.AddDynamic(this, &ThisClass::HandleReuseCancelled);
+    Content->AddChildToVerticalBox(ReuseCancelButton);
     RefreshTheme();
 }
 
@@ -216,7 +285,11 @@ void UKalmalaWorldListWidget::RefreshTheme()
     if (CreationStatus) Theme.ApplyText(*CreationStatus, Theme.BodySize, false, LastTextScale, LastContrast);
     if (DetailsText) Theme.ApplyText(*DetailsText, Theme.BodySize + 2, false, LastTextScale, LastContrast);
     if (WorldPicker) Theme.ApplyDropdown(*WorldPicker, LastContrast);
-    UKalmalaThemedButton* Buttons[] = {NewWorldButton.Get(), DetailsButton.Get(), BackButton.Get()};
+    UKalmalaThemedButton* Buttons[] =
+    {
+        NewWorldButton.Get(), DetailsButton.Get(), BackButton.Get(),
+        ReuseConfirmButton.Get(), ReuseCancelButton.Get()
+    };
     for (UKalmalaThemedButton* Button : Buttons)
     {
         if (!Button) continue;
@@ -284,7 +357,8 @@ void UKalmalaWorldListWidget::FocusBack()
 
 void UKalmalaWorldListWidget::FocusPrimary()
 {
-    if (bShowingDetails) FocusBack();
+    if (bShowingReuseConfirmation) FocusWidget(ReuseCancelButton);
+    else if (bShowingDetails) FocusBack();
     else if (WorldPicker) FocusWidget(WorldPicker);
     else FocusBack();
 }
@@ -292,10 +366,60 @@ void UKalmalaWorldListWidget::FocusPrimary()
 bool UKalmalaWorldListWidget::ShowWorldDetails(const uint64 Seed)
 {
     if (!FindWorld(Seed)) return false;
+    bShowingReuseConfirmation = false;
+    PendingReuseSeed = 0;
     SelectedSeed = Seed;
     bHasSelectedWorld = true;
     BuildWorldDetails();
     return bShowingDetails;
+}
+
+bool UKalmalaWorldListWidget::HasExactCurrentReuseCandidate(const uint64 Seed) const
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = Seed;
+    const FKalmalaWorldDescriptor Descriptor = FKalmalaWorldDescriptorAdapter::Describe(Config);
+    return Descriptor.IdentityRevisionAvailability == EKalmalaWorldMetadataAvailability::Available
+        && FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+            ListingAvailability, WorldRecords, Seed, Descriptor.CurrentIdentityRevision)
+            == EKalmalaWorldSeedReuseDecision::ConfirmExisting;
+}
+
+bool UKalmalaWorldListWidget::BeginWorldReuseConfirmation(const uint64 Seed)
+{
+    if (bShowingDetails || bShowingReuseConfirmation) return false;
+    RefreshWorldRecords();
+    if (!HasExactCurrentReuseCandidate(Seed)) return false;
+
+    PendingReuseSeed = Seed;
+    bShowingReuseConfirmation = true;
+    BuildWorldReuseConfirmation();
+    FocusPrimary();
+    return true;
+}
+
+void UKalmalaWorldListWidget::HandleReuseConfirmed()
+{
+    if (!bShowingReuseConfirmation) return;
+    RefreshWorldRecords();
+    if (!HasExactCurrentReuseCandidate(PendingReuseSeed))
+    {
+        HandleReuseCancelled();
+        return;
+    }
+
+    const uint64 Seed = PendingReuseSeed;
+    if (WorldSelected.IsBound()) WorldSelected.Broadcast(Seed);
+    else ShowWorldDetails(Seed);
+}
+
+void UKalmalaWorldListWidget::HandleReuseCancelled()
+{
+    if (!bShowingReuseConfirmation) return;
+    bShowingReuseConfirmation = false;
+    PendingReuseSeed = 0;
+    BuildWorldList();
+    FocusPrimary();
 }
 
 void UKalmalaWorldListWidget::ShowWorldList()
@@ -322,6 +446,11 @@ void UKalmalaWorldListWidget::HandleViewDetails()
 
 void UKalmalaWorldListWidget::HandleBack()
 {
+    if (bShowingReuseConfirmation)
+    {
+        HandleReuseCancelled();
+        return;
+    }
     BackRequested.Broadcast();
 }
 

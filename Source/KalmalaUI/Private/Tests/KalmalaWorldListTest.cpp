@@ -15,6 +15,11 @@ bool FKalmalaWorldListAvailabilityTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Available metadata alone does not prove an empty world list"), Available.Contains(TEXT("No worlds")));
     TestTrue(TEXT("The descriptor adapter does not claim project-level enumeration support"),
         FKalmalaWorldDescriptorAdapter::WorldEnumerationAvailability() == EKalmalaWorldMetadataAvailability::Unavailable);
+    const FString ReusePrompt = UKalmalaWorldListWidget::ReuseConfirmationMessage(42, 7);
+    TestTrue(TEXT("Reuse confirmation names the exact seed and revision"),
+        ReusePrompt.Contains(TEXT("42")) && ReusePrompt.Contains(TEXT("revision 7")));
+    TestTrue(TEXT("Reuse confirmation identifies evidence limits and the read-only result"),
+        ReusePrompt.Contains(TEXT("not been validated")) && ReusePrompt.Contains(TEXT("will not change saves")));
     return true;
 }
 
