@@ -25,6 +25,14 @@ enum class EKalmalaNamedSaveRevisionStatus : uint8
     Conflicting
 };
 
+/** Next menu action for a seed; NoKnownRecord is not proof that the seed has no saves. */
+enum class EKalmalaWorldSeedReuseDecision : uint8
+{
+    NoKnownRecord,
+    ConfirmExisting,
+    ExistingSeedNeedsReview
+};
+
 /** A seed recovered from a recognized world-scoped save slot name. */
 struct KALMALAUI_API FKalmalaLocalWorldSaveRecord
 {
@@ -46,6 +54,9 @@ class KALMALAUI_API FKalmalaLocalWorldSaveListing
 {
 public:
     static EKalmalaLocalWorldSaveListingAvailability Enumerate(TArray<FKalmalaLocalWorldSaveRecord>& OutRecords);
+    static EKalmalaWorldSeedReuseDecision ResolveSeedReuse(
+        EKalmalaLocalWorldSaveListingAvailability Availability,
+        const TArray<FKalmalaLocalWorldSaveRecord>& Records, uint64 Seed, int32 CurrentRevision);
     static bool ParseSlotName(const FString& SlotName, EKalmalaLocalWorldSaveKind& OutKind,
         uint64& OutSeed, bool& bOutHasGeneratorRevision, int32& OutGeneratorRevision);
 };

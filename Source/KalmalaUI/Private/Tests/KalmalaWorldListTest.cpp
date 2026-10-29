@@ -57,6 +57,47 @@ bool FKalmalaWorldSaveSlotNameTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Conflicting listed revisions remain explicit"),
         RevisionRecord.GetNamedSaveRevisionStatus(7) == EKalmalaNamedSaveRevisionStatus::Conflicting);
 
+    TArray<FKalmalaLocalWorldSaveRecord> Records;
+    TestTrue(TEXT("No matching slot is only reported as no known record"),
+        FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+            EKalmalaLocalWorldSaveListingAvailability::Supported, Records, 42, 7)
+            == EKalmalaWorldSeedReuseDecision::NoKnownRecord);
+    TestTrue(TEXT("Unsupported enumeration must not imply a seed is unused"),
+        FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+            EKalmalaLocalWorldSaveListingAvailability::Unsupported, Records, 42, 7)
+            == EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview);
+
+    FKalmalaLocalWorldSaveRecord Existing;
+    Existing.Seed = 42;
+    Existing.bHasOceanTravel = true;
+    Existing.bHasStoredGeneratorRevision = true;
+    Existing.StoredGeneratorRevision = 7;
+    Records.Add(Existing);
+    TestTrue(TEXT("An exact seed and revision requires explicit confirmation"),
+        FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+            EKalmalaLocalWorldSaveListingAvailability::Supported, Records, 42, 7)
+            == EKalmalaWorldSeedReuseDecision::ConfirmExisting);
+    TestTrue(TEXT("A different seed does not match the listed record"),
+        FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+            EKalmalaLocalWorldSaveListingAvailability::Supported, Records, 43, 7)
+            == EKalmalaWorldSeedReuseDecision::NoKnownRecord);
+
+    Existing.Seed = 43;
+    Existing.bHasStoredGeneratorRevision = false;
+    Existing.bHasPopulation = true;
+    Records.Add(Existing);
+    TestTrue(TEXT("A seed without revision evidence requires review"),
+        FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+            EKalmalaLocalWorldSaveListingAvailability::Supported, Records, 43, 7)
+            == EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview);
+
+    Existing.Seed = 42;
+    Records.Add(Existing);
+    TestTrue(TEXT("An exact match plus uncertain same-seed evidence requires review"),
+        FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+            EKalmalaLocalWorldSaveListingAvailability::Supported, Records, 42, 7)
+            == EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview);
+
     TestFalse(TEXT("Trailing seed text is rejected"),
         FKalmalaLocalWorldSaveListing::ParseSlotName(TEXT("KalmalaConstruction_42x"), Kind, Seed, bHasRevision, Revision));
     TestFalse(TEXT("Seed overflow is rejected"),

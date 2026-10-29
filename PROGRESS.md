@@ -23829,3 +23829,34 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Next eligible task:** SM08, require explicit confirmation before selecting
   an existing world for a duplicate seed/revision identity, without overwriting
   it.
+
+## Run 2026-10-29 — SM08 duplicate identity decision
+
+- **Selected increment:** Split duplicate handling into a decision step and a
+  later confirmation/selection UI step; classify listed evidence first.
+- **Work completed:** Added a read-only reuse decision for a requested seed and
+  revision. An exact listed match requires confirmation; an existing seed with
+  missing, different or conflicting revision evidence requires review; no
+  matching name is reported only as no known record when enumeration is
+  supported. Unsupported enumeration fails closed to review. Multiple
+  same-seed records must all match before confirmation is offered. Added focused
+  automation coverage and left the confirmation child incomplete.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaLocalWorldSaveListing.h`,
+  `Source/KalmalaUI/Private/KalmalaLocalWorldSaveListing.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldListTest.cpp`, `BACKLOG.md`, and
+  `PROGRESS.md`.
+- **Checks:** `git diff --check`, focused whitespace checks, Windows path-length
+  checks and source assertions for fail-closed enumeration/current-revision
+  decisions passed. The Unreal automation test and build were not run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Future menu code can request explicit confirmation
+  for a known duplicate and avoid treating incomplete evidence as safe to
+  create. No confirmation screen, travel, or save write is added.
+- **Networking/authority:** Owner-local read-only decision over listed slot
+  names; server authority and persistence are unchanged.
+- **Known limitations:** `NoKnownRecord` depends on supported enumeration and
+  does not prove the seed is unused. A confirmation UI and validated lifecycle
+  path remain unimplemented; New world remains disabled.
+- **Next eligible task:** SM08, show duplicate confirmation and select the
+  existing world only after the player confirms.

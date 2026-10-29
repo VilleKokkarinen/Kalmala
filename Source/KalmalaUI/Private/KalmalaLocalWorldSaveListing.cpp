@@ -69,6 +69,26 @@ EKalmalaNamedSaveRevisionStatus FKalmalaLocalWorldSaveRecord::GetNamedSaveRevisi
         : EKalmalaNamedSaveRevisionStatus::Different;
 }
 
+EKalmalaWorldSeedReuseDecision FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
+    const EKalmalaLocalWorldSaveListingAvailability Availability,
+    const TArray<FKalmalaLocalWorldSaveRecord>& Records, const uint64 Seed, const int32 CurrentRevision)
+{
+    if (Availability != EKalmalaLocalWorldSaveListingAvailability::Supported)
+        return EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview;
+
+    bool bFoundSeed = false;
+    for (const FKalmalaLocalWorldSaveRecord& Record : Records)
+    {
+        if (Record.Seed != Seed) continue;
+        bFoundSeed = true;
+        if (Record.GetNamedSaveRevisionStatus(CurrentRevision) != EKalmalaNamedSaveRevisionStatus::Current)
+            return EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview;
+    }
+
+    return !bFoundSeed ? EKalmalaWorldSeedReuseDecision::NoKnownRecord
+        : EKalmalaWorldSeedReuseDecision::ConfirmExisting;
+}
+
 bool FKalmalaLocalWorldSaveListing::ParseSlotName(const FString& SlotName,
     EKalmalaLocalWorldSaveKind& OutKind, uint64& OutSeed,
     bool& bOutHasGeneratorRevision, int32& OutGeneratorRevision)
