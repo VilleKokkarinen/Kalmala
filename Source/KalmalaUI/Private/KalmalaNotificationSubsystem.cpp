@@ -166,9 +166,14 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     if (!World || !World->IsGameWorld() || !LocalPlayer
         || (Controller && Controller->IsA<AKalmalaMenuPlayerController>()))
     {
+#if !UE_BUILD_SHIPPING
+        if (ReviewCaptureStage == 1)
+            if (APlayerController* PreviousController = OwnerController.Get())
+                PreviousController->SetIgnoreMoveInput(bReviewPriorMoveInputIgnored);
+#endif
         if (Widget) Widget->RemoveFromParent();
         Widget = nullptr;
-        Queue.Reset(); OwnerPawn.Reset(); bOwnerBaselineAudited = false;
+        Queue.Reset(); OwnerController.Reset(); OwnerPawn.Reset(); bOwnerBaselineAudited = false;
 #if !UE_BUILD_SHIPPING
         bReviewFixtureInitialized = false;
         bReviewSettingsApplied = false;
@@ -177,6 +182,25 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
         ReviewCaptureBasePath.Reset();
 #endif
         return;
+    }
+    if (OwnerController.Get() != Controller || (Controller == nullptr && Widget != nullptr))
+    {
+#if !UE_BUILD_SHIPPING
+        if (ReviewCaptureStage == 1)
+            if (APlayerController* PreviousController = OwnerController.Get())
+                PreviousController->SetIgnoreMoveInput(bReviewPriorMoveInputIgnored);
+#endif
+        if (Widget) Widget->RemoveFromParent();
+        Widget = nullptr;
+        OwnerController = Controller;
+        bOwnerBaselineAudited = false;
+#if !UE_BUILD_SHIPPING
+        bReviewFixtureInitialized = false;
+        bReviewSettingsApplied = false;
+        ReviewCaptureStage = 0;
+        ReviewCaptureElapsed = 0.0f;
+        ReviewCaptureBasePath.Reset();
+#endif
     }
     APawn* Pawn = Controller && Controller->IsLocalController() ? Controller->GetPawn() : nullptr;
     if (OwnerPawn.Get() != Pawn)
@@ -421,12 +445,12 @@ void UKalmalaNotificationSubsystem::Deinitialize()
 #if !UE_BUILD_SHIPPING
     if (ReviewCaptureStage == 1)
     {
-        if (APlayerController* Controller = GetLocalPlayer() ? GetLocalPlayer()->GetPlayerController(GetWorld()) : nullptr)
-            Controller->SetIgnoreMoveInput(bReviewPriorMoveInputIgnored);
+        if (APlayerController* PreviousController = OwnerController.Get())
+            PreviousController->SetIgnoreMoveInput(bReviewPriorMoveInputIgnored);
     }
 #endif
     if (Widget) Widget->RemoveFromParent(); Widget = nullptr;
-    Queue.Reset(); OwnerPawn.Reset(); bOwnerBaselineAudited = false;
+    Queue.Reset(); OwnerController.Reset(); OwnerPawn.Reset(); bOwnerBaselineAudited = false;
 #if !UE_BUILD_SHIPPING
     bReviewFixtureInitialized = false;
     bReviewSettingsApplied = false;

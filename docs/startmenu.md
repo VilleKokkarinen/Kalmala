@@ -424,7 +424,9 @@ SM14 return and packaged-startup steps are complete. SM15 must verify live
 menu/game round trips, widget cleanup and recreation, and settings input
 ownership. The weather presentation owner clears local fog and material-response
 state when the menu controller becomes active so a later gameplay world does not
-inherit the previous world's visual response.
+inherit the previous world's visual response. The notification HUD also tracks
+its owning player controller separately from its pawn, so replacing a controller
+cannot leave a widget attached to the prior controller when the pawn is reused.
 
 ## SM04 Home presentation
 

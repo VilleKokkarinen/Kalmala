@@ -24596,3 +24596,39 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   SM15.
 - **Next eligible task:** SM14.4.2 — reconcile gameplay HUD and input owners
   across controller changes.
+
+## Run 2026-10-29 — SM14.4.2 gameplay HUD controller ownership
+
+- **Selected increment:** Ensure active local gameplay HUD/input owners release
+  their prior controller presentation and bindings when the controller changes.
+- **Work completed:** Audited the active local inventory, minimap, world-map,
+  crafting, settings, survival-status, accessibility-feedback and notification
+  owners. The notification subsystem was the remaining HUD owner that tracked
+  only its pawn. It now also tracks its controller, removes the old widget on
+  controller replacement, and recreates the notification view for the current
+  controller. The notice queue remains intact when the same pawn is reused.
+  Development capture input is restored on its original controller during
+  owner release. SM14.4.2 is checked; the Home callback child remains.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaUI/Public/KalmalaNotificationSubsystem.h`, and
+  `Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp`.
+- **Backlog state:** SM14.4.2 is checked after the controller-owner audit and
+  focused source inspection. SM14.4 remains unchecked pending its Home
+  presentation/callback cleanup child.
+- **Lightweight checks:** `git diff --check` passed. Source inspection
+  confirmed the notification widget releases on menu/world exit and controller
+  replacement, while its per-pawn notice queue is preserved for a reused pawn.
+  Other active gameplay HUD/input owners already compare controller identity
+  and release/rebind their widgets or input handlers. No build, test suite, or
+  Unreal runtime automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** A notification widget cannot remain owned by the
+  previous local player controller after a replacement, even if the same pawn
+  transfers to the new controller.
+- **Networking/authority:** This change is local presentation ownership only;
+  it does not change gameplay or replicated state.
+- **Known limitations:** Controller replacement and UI recreation were not
+  exercised in Unreal. Runtime round-trip verification remains for SM15.
+- **Next eligible task:** SM14.4.3 — rebuild Home presentation and retire stale
+  menu callbacks after travel.

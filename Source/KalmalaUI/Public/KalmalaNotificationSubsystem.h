@@ -39,6 +39,7 @@ public:
     virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKalmalaNotificationSubsystem, STATGROUP_Tickables); }
 private:
     FKalmalaSkillNoticeQueue Queue;
+    TWeakObjectPtr<class APlayerController> OwnerController;
     TWeakObjectPtr<class APawn> OwnerPawn;
     UPROPERTY(Transient) TObjectPtr<UKalmalaNotificationWidget> Widget;
     bool bOwnerBaselineAudited = false;

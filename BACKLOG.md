@@ -111,7 +111,7 @@
       - [x] **SM14.4.1 — Reset world-scoped weather presentation on Home entry.**
         - **Implement:** Clear transient regional fog and the local weather material response when the dedicated menu controller becomes active.
         - **Complete when:** The next gameplay world begins without the previous world's weather response or fog state.
-      - [ ] **SM14.4.2 — Reconcile gameplay HUD and input owners across controller changes.**
+      - [x] **SM14.4.2 — Reconcile gameplay HUD and input owners across controller changes.**
         - **Implement:** Release stale local gameplay widgets, delegates, timers and input bindings when gameplay controllers are replaced by menu controllers, then create one owner for the new gameplay controller.
         - **Complete when:** Each local gameplay HUD/input owner has one current controller and no presentation or binding remains attached to the prior controller.
       - [ ] **SM14.4.3 — Rebuild Home presentation and retire stale menu callbacks after travel.**
