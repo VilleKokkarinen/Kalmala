@@ -81,7 +81,7 @@
   - [x] **SM11 — Connect joining by address.**
     - **Implement:** Add the plan's structured address parser and route accepted endpoints through validated client travel.
     - **Complete when:** Supported address/port forms work and malformed inputs, unsupported forms and travel-option injection are rejected.
-  - [ ] **SM12 — Handle loading, cancellation and failures.**
+  - [x] **SM12 — Handle loading, cancellation and failures.**
     - **Implement:** Add loading states, connection timeout/cancel, stale-callback protection and return to the originating panel on failure.
     - **Complete when:** The plan's timing rules hold; retry preserves input, canceled requests cannot travel and failed attempts do not mutate saves.
   - [ ] **SM13 — Add the remaining Home branches.**

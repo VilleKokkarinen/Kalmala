@@ -364,8 +364,13 @@ world and does not change overall saved-world compatibility from unknown.
   and reports timeout. Network and travel failure callbacks are scoped to the
   originating world and request token; they restore Join, preserve the address,
   clear engine-scheduled fallback travel, and show a backend reason when one is
-  supplied. Retry is an explicit new submission. World-generation/loading
-  feedback and recovery remain SM12 work.
+  supplied. Retry is an explicit new submission. Solo and listen-host launches
+  keep World details visible with launch and Back actions disabled until a new
+  local gameplay world with the requested network mode becomes active. A
+  monotonic 60-second warning asks the player to keep waiting and never aborts
+  travel. An engine travel failure clears its scheduled fallback, returns to
+  World details, restores the launch gate and offers an explicit retry with the
+  selected world preserved.
 
 ## SM02 coordinator contract
 
@@ -379,9 +384,11 @@ flow commits before calling it, so duplicate or reentrant dispatch fails. A
 committed launch cannot be canceled. A committed address connection remains
 cancellable until the remote client world becomes active; cancellation closes
 the pending net game and clears its scheduled travel URL. Success requires
-committed travel, and stale success/failure callbacks cannot change state. Token
-exhaustion fails closed; shutdown invalidates the attempt without resetting the
-counter.
+committed travel. A committed world launch remains in PreparingWorld until the
+new local gameplay world is active; a travel failure restores World details and
+clears only that launch's request. Stale success/failure callbacks cannot change
+state. Token exhaustion fails closed; shutdown invalidates the attempt without
+resetting the counter.
 
 Later async integrations must capture a weak pointer to the original subsystem,
 not a flow reference or a replacement owner. They must dispatch travel through

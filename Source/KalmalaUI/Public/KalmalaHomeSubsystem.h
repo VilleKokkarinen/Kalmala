@@ -39,7 +39,10 @@ private:
     void StopWatchingConnection();
     void FinishConnectionFailure(uint64 Token, const FText& Message);
     void CancelConnectionAttempt(const FText& Message);
-    void ClearScheduledConnectionTravel(UWorld* OriginWorld);
+    void ClearScheduledTravel(UWorld* OriginWorld);
+    void StartWatchingLaunch(uint64 Token);
+    void StopWatchingLaunch();
+    void FinishLaunchFailure(uint64 Token, const FText& Message);
     void HandleWorldListBack();
     void HandleNewWorldRequested();
     void HandleReturnToWorldsRequested();
@@ -56,8 +59,14 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaWorldListWidget> WorldList;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;
     TWeakObjectPtr<UWorld> ConnectionOriginWorld;
+    TWeakObjectPtr<UWorld> LaunchOriginWorld;
     FDelegateHandle NetworkFailureHandle;
     FDelegateHandle TravelFailureHandle;
+    FDelegateHandle LaunchTravelFailureHandle;
     uint64 ActiveConnectToken = 0;
     double ConnectionStartedAtSeconds = 0.0;
+    uint64 ActiveLaunchToken = 0;
+    double LaunchStartedAtSeconds = 0.0;
+    bool bLaunchIsListenHost = false;
+    bool bLaunchDelayWarningShown = false;
 };

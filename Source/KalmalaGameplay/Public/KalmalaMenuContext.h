@@ -53,6 +53,8 @@ public:
     /** Revalidates the selected identity and starts one direct-address listen host. */
     bool TryStartListenHostFromServer(class APlayerController* RequestingController,
         uint64 Seed, bool bConfirmedExisting);
+    /** Reopens the explicit menu launch gate after engine-reported travel failure. */
+    void ResetGameplayLaunchAfterTravelFailure(class APlayerController* RequestingController);
     bool HasPendingWorldSeedSelection() const { return bHasPendingWorldSeedSelection; }
     uint64 GetPendingWorldSeed() const { return PendingWorldSeed; }
     bool IsPendingWorldSeedExisting() const { return bPendingWorldSeedIsExisting; }

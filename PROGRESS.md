@@ -24252,3 +24252,42 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   UI behavior remain unverified for SM15.
 - **Next eligible task:** SM12 — continue launch preparation/loading feedback
   and failure recovery; the parent remains incomplete.
+
+## Run 2026-10-29 — SM12 World launch loading and failure recovery
+
+- **Selected increment:** Complete SM12's launch preparation feedback, delayed
+  loading warning and engine-reported travel failure recovery.
+- **Work completed:** Solo and listen-host launches now retain the World details
+  screen while travel is active, disable launch and Back actions, and record
+  success only after a new local world with the requested network mode becomes
+  active. A monotonic 60-second warning asks the player to wait without
+  canceling travel. Token-scoped travel failures clear scheduled fallback
+  travel, restore the originating details screen, reset the authority-checked
+  menu launch gate, and allow an explicit retry with the selected world kept.
+  SM12 implementation criteria are complete; the parent remains subject to
+  SM15 integrated verification.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaGameplay/Public/KalmalaMenuContext.h`,
+  `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`, and
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected launch token
+  lifecycle, expected destination net mode, travel-failure callback scoping,
+  retry state restoration and stale helper references. No build, test or
+  automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Players see a clear loading state, cannot back out
+  after launch travel is committed, receive a wait warning after 60 seconds,
+  and can retry from World details if engine travel fails.
+- **Networking/authority:** Seed and world launch validation remain on the
+  standalone menu GameMode. Recovery resets its launch gate only for the
+  authority-owned local menu controller. The loading UI does not mutate saves.
+- **Known limitations:** The travel failure message falls back to generic
+  wording when the engine supplies no error string. Supplied reasons are
+  trimmed and bounded. Actual loading, failure and save-safety behavior remains
+  for SM15 runtime verification; the 60-second warning intentionally never
+  aborts active travel.
+- **Next eligible task:** SM13 — Add the remaining Home branches.

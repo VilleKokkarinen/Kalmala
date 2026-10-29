@@ -44,8 +44,9 @@ public:
     bool ShowNewWorldSeedEntry();
     bool ShowWorldDetails(uint64 Seed);
     void ShowWorldList();
-    void SetWorldLaunchActionsEnabled(bool bEnabled);
-    void ShowWorldLaunchFailure();
+    void ShowWorldLaunchInProgress();
+    void ShowWorldLaunchDelayWarning();
+    void ShowWorldLaunchFailure(const FText& Message);
 
 protected:
     virtual void NativeOnInitialized() override;
@@ -115,6 +116,7 @@ private:
     bool bShowingNewWorldSeedEntry = false;
     bool bShowingDetails = false;
     bool bShowingReuseConfirmation = false;
+    bool bWorldLaunchInProgress = false;
     bool bPendingWorldSeedRequestIsConfirmation = false;
     bool bAwaitingWorldSeedRequest = false;
     int32 LastTextScale = -1;

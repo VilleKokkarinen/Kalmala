@@ -158,6 +158,18 @@ bool AKalmalaMenuGameMode::TryStartGameplayFromServer(APlayerController* Request
     return true;
 }
 
+void AKalmalaMenuGameMode::ResetGameplayLaunchAfterTravelFailure(APlayerController* RequestingController)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || World == nullptr || World->GetNetMode() != NM_Standalone
+        || !bGameplayLaunchInProgress || !IsValid(RequestingController)
+        || !RequestingController->IsA<AKalmalaMenuPlayerController>()
+        || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
+        || !RequestingController->IsLocalController()) return;
+
+    bGameplayLaunchInProgress = false;
+}
+
 void AKalmalaMenuGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) {}
 void AKalmalaMenuGameMode::RestartPlayer(AController* NewPlayer) {}
 APawn* AKalmalaMenuGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) { return nullptr; }

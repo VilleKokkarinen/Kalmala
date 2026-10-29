@@ -323,6 +323,7 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
 void UKalmalaWorldListWidget::BuildWorldDetails()
 {
     if (!WidgetTree || !Content) return;
+    bWorldLaunchInProgress = false;
     const FKalmalaLocalWorldSaveRecord* Record = FindWorld(SelectedSeed);
     if (!Record && !bSelectedSeedIsNew) return;
     bShowingDetails = true;
@@ -791,21 +792,40 @@ void UKalmalaWorldListWidget::HandleHostCoop()
     HostCoopRequested.Broadcast(SelectedSeed, !bSelectedSeedIsNew);
 }
 
-void UKalmalaWorldListWidget::SetWorldLaunchActionsEnabled(const bool bEnabled)
+void UKalmalaWorldListWidget::ShowWorldLaunchInProgress()
 {
-    if (PlaySoloButton) PlaySoloButton->SetIsEnabled(bEnabled);
-    if (HostCoopButton) HostCoopButton->SetIsEnabled(bEnabled);
-}
-
-void UKalmalaWorldListWidget::ShowWorldLaunchFailure()
-{
+    if (!bShowingDetails) return;
+    bWorldLaunchInProgress = true;
+    if (PlaySoloButton) PlaySoloButton->SetIsEnabled(false);
+    if (HostCoopButton) HostCoopButton->SetIsEnabled(false);
+    if (BackButton) BackButton->SetIsEnabled(false);
     if (Message)
     {
         Message->SetText(FText::FromString(TEXT(
-            "The server could not validate this world for launch. No travel started and no save was changed.")));
+            "Preparing world. Going back is unavailable while the world loads.")));
         Message->SetVisibility(ESlateVisibility::Visible);
     }
-    SetWorldLaunchActionsEnabled(true);
+}
+
+void UKalmalaWorldListWidget::ShowWorldLaunchDelayWarning()
+{
+    if (!bWorldLaunchInProgress || !Message) return;
+    Message->SetText(FText::FromString(TEXT(
+        "World loading is taking longer than expected. Keep waiting; do not close the game during an active save or load.")));
+    Message->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UKalmalaWorldListWidget::ShowWorldLaunchFailure(const FText& FailureMessage)
+{
+    bWorldLaunchInProgress = false;
+    if (Message)
+    {
+        Message->SetText(FailureMessage);
+        Message->SetVisibility(ESlateVisibility::Visible);
+    }
+    if (PlaySoloButton) PlaySoloButton->SetIsEnabled(true);
+    if (HostCoopButton) HostCoopButton->SetIsEnabled(true);
+    if (BackButton) BackButton->SetIsEnabled(true);
     FocusPrimary();
 }
 
@@ -845,6 +865,7 @@ void UKalmalaWorldListWidget::HandleSeedTextCommitted(const FText& Text, const E
 
 void UKalmalaWorldListWidget::HandleBack()
 {
+    if (bWorldLaunchInProgress) return;
     if (bShowingReuseConfirmation)
     {
         HandleReuseCancelled();

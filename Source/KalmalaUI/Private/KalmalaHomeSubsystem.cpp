@@ -19,6 +19,7 @@
 namespace
 {
     constexpr double JoinConnectionTimeoutSeconds = 30.0;
+    constexpr double WorldLaunchWarningSeconds = 60.0;
 
     FText BackendFailureOrFallback(const FString& BackendMessage, const TCHAR* Fallback)
     {
@@ -60,6 +61,12 @@ namespace
             return FText::FromString(TEXT("Could not load the host's world. Check compatibility and try again."));
         }
     }
+
+    FText WorldLaunchTravelFailureMessage(const FString& BackendMessage)
+    {
+        return BackendFailureOrFallback(BackendMessage,
+            TEXT("Could not load the selected world. Return to details and try again."));
+    }
 }
 
 void UKalmalaHomeSubsystem::Tick(float)
@@ -71,6 +78,34 @@ void UKalmalaHomeSubsystem::Tick(float)
     if (!Coordinator) { Release(); return; }
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     APlayerController* Controller = World ? LocalPlayer->GetPlayerController(World) : nullptr;
+    if (Flow.GetScreen() == EKalmalaMenuScreen::PreparingWorld && ActiveLaunchToken != 0)
+    {
+        const ENetMode ExpectedNetMode = bLaunchIsListenHost ? NM_ListenServer : NM_Standalone;
+        if (World && World != LaunchOriginWorld.Get() && Controller && Controller->IsLocalController()
+            && World->GetNetMode() == ExpectedNetMode)
+        {
+            const uint64 CompletedToken = ActiveLaunchToken;
+            if (Flow.CompleteSuccess(CompletedToken))
+            {
+                StopWatchingLaunch();
+                ActiveLaunchToken = 0;
+                LaunchOriginWorld.Reset();
+                LaunchStartedAtSeconds = 0.0;
+                bLaunchIsListenHost = false;
+                bLaunchDelayWarningShown = false;
+                Release();
+                return;
+            }
+        }
+
+        if (!bLaunchDelayWarningShown
+            && FPlatformTime::Seconds() - LaunchStartedAtSeconds >= WorldLaunchWarningSeconds)
+        {
+            bLaunchDelayWarningShown = true;
+            if (WorldList) WorldList->ShowWorldLaunchDelayWarning();
+        }
+        return;
+    }
     if (Flow.GetScreen() == EKalmalaMenuScreen::Connecting && ActiveConnectToken != 0)
     {
         if (World && World != ConnectionOriginWorld.Get() && Controller && Controller->IsLocalController()
@@ -287,7 +322,7 @@ void UKalmalaHomeSubsystem::StartWatchingConnection(const uint64 Token)
             if (ActiveConnectToken != Token || !FailedWorld) return;
             UWorld* OriginWorld = ConnectionOriginWorld.Get();
             if (FailedWorld != OriginWorld && FailedWorld != GetWorld()) return;
-            ClearScheduledConnectionTravel(FailedWorld);
+            ClearScheduledTravel(FailedWorld);
             FinishConnectionFailure(Token, JoinTravelFailureMessage(FailureType));
         });
 }
@@ -303,7 +338,7 @@ void UKalmalaHomeSubsystem::StopWatchingConnection()
     TravelFailureHandle.Reset();
 }
 
-void UKalmalaHomeSubsystem::ClearScheduledConnectionTravel(UWorld* OriginWorld)
+void UKalmalaHomeSubsystem::ClearScheduledTravel(UWorld* OriginWorld)
 {
     if (!GEngine || !OriginWorld) return;
     if (FWorldContext* Context = GEngine->GetWorldContextFromWorld(OriginWorld))
@@ -327,7 +362,7 @@ void UKalmalaHomeSubsystem::FinishConnectionFailure(const uint64 Token, const FT
     ConnectionOriginWorld.Reset();
     ConnectionStartedAtSeconds = 0.0;
     if (GEngine && OriginWorld) GEngine->CancelPending(OriginWorld);
-    ClearScheduledConnectionTravel(OriginWorld);
+    ClearScheduledTravel(OriginWorld);
     if (!bRestoredOrigin || !JoinAddressWidget) return;
 
     JoinAddressWidget->SetConnecting(false);
@@ -350,12 +385,60 @@ void UKalmalaHomeSubsystem::CancelConnectionAttempt(const FText& Message)
     ConnectionOriginWorld.Reset();
     ConnectionStartedAtSeconds = 0.0;
     if (GEngine && OriginWorld) GEngine->CancelPending(OriginWorld);
-    ClearScheduledConnectionTravel(OriginWorld);
+    ClearScheduledTravel(OriginWorld);
     if (!JoinAddressWidget) return;
 
     JoinAddressWidget->SetConnecting(false);
     JoinAddressWidget->ShowMessage(Message);
     JoinAddressWidget->FocusAddress();
+}
+
+void UKalmalaHomeSubsystem::StartWatchingLaunch(const uint64 Token)
+{
+    StopWatchingLaunch();
+    if (!GEngine) return;
+
+    LaunchTravelFailureHandle = GEngine->OnTravelFailure().AddWeakLambda(this,
+        [this, Token](UWorld* FailedWorld, const ETravelFailure::Type, const FString& ErrorString)
+        {
+            if (ActiveLaunchToken != Token || !FailedWorld) return;
+            UWorld* OriginWorld = LaunchOriginWorld.Get();
+            if (FailedWorld != OriginWorld && FailedWorld != GetWorld()) return;
+            ClearScheduledTravel(FailedWorld);
+            FinishLaunchFailure(Token, WorldLaunchTravelFailureMessage(ErrorString));
+        });
+}
+
+void UKalmalaHomeSubsystem::StopWatchingLaunch()
+{
+    if (GEngine && LaunchTravelFailureHandle.IsValid())
+        GEngine->OnTravelFailure().Remove(LaunchTravelFailureHandle);
+    LaunchTravelFailureHandle.Reset();
+}
+
+void UKalmalaHomeSubsystem::FinishLaunchFailure(const uint64 Token, const FText& Message)
+{
+    if (Token == 0 || ActiveLaunchToken != Token) return;
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    UKalmalaMenuFlowSubsystem* Coordinator = LocalPlayer
+        ? LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>() : nullptr;
+    const bool bRestoredOrigin = Coordinator && Coordinator->GetFlow().CompleteFailure(Token);
+    UWorld* OriginWorld = LaunchOriginWorld.Get();
+    APlayerController* Controller = LocalPlayer && OriginWorld
+        ? LocalPlayer->GetPlayerController(OriginWorld) : nullptr;
+    if (OriginWorld)
+        if (AKalmalaMenuGameMode* MenuGameMode = OriginWorld->GetAuthGameMode<AKalmalaMenuGameMode>())
+            MenuGameMode->ResetGameplayLaunchAfterTravelFailure(Controller);
+
+    StopWatchingLaunch();
+    ActiveLaunchToken = 0;
+    LaunchOriginWorld.Reset();
+    LaunchStartedAtSeconds = 0.0;
+    bLaunchIsListenHost = false;
+    bLaunchDelayWarningShown = false;
+    ClearScheduledTravel(OriginWorld);
+    if (!bRestoredOrigin || !WorldList || !OriginWorld || GetWorld() != OriginWorld) return;
+    WorldList->ShowWorldLaunchFailure(Message);
 }
 
 void UKalmalaHomeSubsystem::HandleJoinAddressRequested(FString Address)
@@ -506,7 +589,13 @@ void UKalmalaHomeSubsystem::HandleWorldLaunchRequested(const uint64 Seed, const 
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     uint64 LaunchToken = 0;
     if (!Flow.TryBegin(EKalmalaMenuRequest::Launch, LaunchToken)) return;
-    WorldList->SetWorldLaunchActionsEnabled(false);
+    ActiveLaunchToken = LaunchToken;
+    LaunchOriginWorld = GetWorld();
+    LaunchStartedAtSeconds = FPlatformTime::Seconds();
+    bLaunchIsListenHost = bListenHost;
+    bLaunchDelayWarningShown = false;
+    WorldList->ShowWorldLaunchInProgress();
+    StartWatchingLaunch(LaunchToken);
 
     AKalmalaMenuPlayerController* MenuController = Cast<AKalmalaMenuPlayerController>(HomeController);
     AKalmalaMenuGameMode* MenuGameMode = GetWorld()->GetAuthGameMode<AKalmalaMenuGameMode>();
@@ -523,12 +612,10 @@ void UKalmalaHomeSubsystem::HandleWorldLaunchRequested(const uint64 Seed, const 
 
     if (!bCommitted || !bStartedLaunch)
     {
-        Flow.CompleteFailure(LaunchToken);
-        WorldList->ShowWorldLaunchFailure();
+        FinishLaunchFailure(LaunchToken, FText::FromString(TEXT(
+            "The server could not validate this world for launch. No travel started and no save was changed.")));
         return;
     }
-
-    Flow.CompleteSuccess(LaunchToken);
 }
 
 void UKalmalaHomeSubsystem::ReleaseWorldList()
@@ -616,7 +703,19 @@ void UKalmalaHomeSubsystem::Release()
         ConnectionOriginWorld.Reset();
         ConnectionStartedAtSeconds = 0.0;
         if (GEngine && OriginWorld) GEngine->CancelPending(OriginWorld);
-        ClearScheduledConnectionTravel(OriginWorld);
+        ClearScheduledTravel(OriginWorld);
+    }
+    if (ActiveLaunchToken != 0)
+    {
+        if (ULocalPlayer* Player = GetLocalPlayer())
+            if (UKalmalaMenuFlowSubsystem* Coordinator = Player->GetSubsystem<UKalmalaMenuFlowSubsystem>())
+                Coordinator->GetFlow().Shutdown();
+        StopWatchingLaunch();
+        ActiveLaunchToken = 0;
+        LaunchOriginWorld.Reset();
+        LaunchStartedAtSeconds = 0.0;
+        bLaunchIsListenHost = false;
+        bLaunchDelayWarningShown = false;
     }
     if (HomeWidget && GetLocalPlayer())
         if (UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>())
