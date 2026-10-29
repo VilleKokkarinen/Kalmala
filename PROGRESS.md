@@ -23469,3 +23469,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   management, cloud/crossplay and new world modifiers require separate contracts.
 - **Next eligible task:** Existing Deer upper-leg follow-up remains first.
   First start-menu task afterward is SM01's read-only world/lifecycle adapter.
+
+## Run 2026-10-29 — Clarify start-menu checklist
+
+- **Scope/work:** Planning-only rewrite of SM01-SM15 as a nested bulleted checklist,
+  with separate implementation instructions and observable completion criteria.
+  Preserved task IDs, order, unchecked state and the start-menu plan's scope.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`.
+- **Checks:** Reviewed nesting, all 15 sequential IDs, scope and whitespace.
+  No runtime tests or builds; implementation/full verification remains deferred.
+- **Impact/authority:** Instructions are clearer; no gameplay/networking changes.
+- **Remaining scope:** Implement the existing queue in order. Deer upper-leg
+  follow-up remains next; SM01 is the first start-menu increment afterward.

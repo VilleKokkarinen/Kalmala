@@ -34,48 +34,62 @@
   - [x] Horned Goat follow-up: join upper legs to the torso.
   - [ ] Deer follow-up: join upper legs to the belly and chest.
 
-- [ ] Pre-game start menu following [the researched plan](docs/startmenu.md).
-  - Run rule: complete the first unchecked, unblocked child in order, exactly
-    one per run; split further before implementation if it exceeds one turn;
-    use lightweight checks, update backlog/progress, commit only run-owned
-    changes and stop. Keep normal boot unchanged until SM14; no new services,
-    portable character saves or gameplay save schemas are authorized.
-  - [ ] SM01: Map existing world enumeration, creation, travel, authentication
-    and logout APIs to the plan; add a read-only descriptor adapter and narrow
-    contract checks, explicitly reporting unsupported metadata.
-  - [ ] SM02: Add the isolated front-end coordinator and request-token state
-    transitions; verify duplicate submit and stale callback rejection without
-    changing the default startup map.
-  - [ ] SM03: Add the lightweight menu context and gate gameplay HUD/pawn
-    creation there; verify the existing gameplay context remains enabled.
-  - [ ] SM04: Build Home with the existing theme, build footer and ordered
-    actions; verify initial Play focus and safe layout at both planned sizes.
-  - [ ] SM05: Reuse the existing Options presenter from Home and gameplay;
-    verify caller focus restoration and one settings/input owner.
-  - [ ] SM06: Add the read-only current-player step and authentication failure
-    explanation; verify display labels cannot select saved-player identities.
-  - [ ] SM07: Bind Your worlds and details to validated descriptors, with
-    empty/unsupported states, sorting and read-only current world rules.
-  - [ ] SM08: Bind New world to the existing seed/lifecycle API; validate
-    runtime seed bounds and duplicate identity selection without overwrite.
-  - [ ] SM09: Wire solo launch through the adapter with duplicate-submit
-    protection; verify the selected seed/revision reaches server-owned setup.
-  - [ ] SM10: Wire listen hosting through the existing backend with the
-    four-player cap and truthful address/visibility capabilities; verify no
-    unsupported password or discovery controls appear.
-  - [ ] SM11: Add Join address parsing and validated client travel; check
-    accepted endpoint forms and rejection of travel-option injection.
-  - [ ] SM12: Connect loading, connection timeout/cancel, stale callbacks and
-    failure return states; verify retry preserves input without mutating saves.
-  - [ ] SM13: Add read-only Save information, existing credits and Exit
-    confirmation; verify compatibility wording and Cancel-first focus.
-  - [ ] SM14: Wire save-complete return/session teardown and normal packaged
-    boot into Home; preserve explicit server/gameplay startup overrides and
-    verify no duplicate HUD, delegates or input handlers across round trips.
-  - [ ] SM15: Perform integrated feature acceptance from docs/startmenu.md and
-    applicable docs/07-development-setup.md builds, automation and packaged
-    solo/host/client/dedicated checks; repair feature defects, record actual
-    commands/results and finalize workflow docs before checking the parent.
+- [ ] Pre-game start menu — implement [docs/startmenu.md](docs/startmenu.md).
+  - **Instructions for every run:**
+    - Read the plan and current backlog/progress before changing files.
+    - Complete the first unchecked, unblocked SM task in order; exactly one per run.
+    - Split a task before implementation if it cannot fit one ordinary run.
+    - Perform lightweight checks, update backlog/progress, commit only run-owned changes, then stop.
+    - Keep normal startup unchanged until SM14. Add no new services, portable character saves or gameplay save schemas.
+    - Leave the parent unchecked until SM15 acceptance succeeds.
+  - [ ] **SM01 — Expose existing world and session information.**
+    - **Implement:** Map world enumeration, creation, travel, authentication and logout APIs to the plan. Add a read-only world-descriptor adapter.
+    - **Complete when:** Narrow adapter checks confirm supported metadata is returned accurately and unsupported metadata is explicitly identified.
+  - [ ] **SM02 — Add the menu flow coordinator.**
+    - **Implement:** Add isolated front-end states and a request token for each launch/connection attempt. Keep the default startup map unchanged.
+    - **Complete when:** Duplicate submissions and callbacks from canceled or superseded requests cannot start travel or change the active screen.
+  - [ ] **SM03 — Isolate the menu from gameplay.**
+    - **Implement:** Add a lightweight menu context. Prevent gameplay HUD and player-pawn creation in that context.
+    - **Complete when:** The menu context has no gameplay HUD/pawn and the existing gameplay context still creates them normally.
+  - [ ] **SM04 — Build the Home screen.**
+    - **Implement:** Use the existing theme; add Play, Options, Save information, Credits and Exit in that order, plus the build-version footer.
+    - **Complete when:** Play receives initial focus and the layout fits both resolutions and text-scale cases specified in the plan.
+  - [ ] **SM05 — Connect the existing Options screen.**
+    - **Implement:** Reuse the existing Options presenter from Home and gameplay. Retain one settings store and one input owner.
+    - **Complete when:** Closing Options returns focus to its caller and settings retain their existing apply/revert behavior.
+  - [ ] **SM06 — Show the current player.**
+    - **Implement:** Add the read-only current-player step, Continue/Back actions and authentication-failure explanation.
+    - **Complete when:** Friendly labels reveal no authentication keys and cannot select or override saved-player ownership.
+  - [ ] **SM07 — Add world selection and details.**
+    - **Implement:** Bind Your worlds and World details to validated descriptors. Add empty/unsupported states, planned sorting and read-only world rules.
+    - **Complete when:** Selecting a world shows its accurate identity/status without launching it or rewriting saves.
+  - [ ] **SM08 — Connect New world.**
+    - **Implement:** Use the existing seed and world-lifecycle API. Validate the full runtime seed range and handle duplicate seed/revision identities.
+    - **Complete when:** Invalid seeds are rejected and duplicate identities select the existing world only after confirmation, without overwriting it.
+  - [ ] **SM09 — Connect solo play.**
+    - **Implement:** Route Play solo through the validated launch adapter and protect against repeated submissions.
+    - **Complete when:** Server-owned setup receives the selected seed/revision and starts one unadvertised solo session.
+  - [ ] **SM10 — Connect co-op hosting.**
+    - **Implement:** Use the existing listen-server backend with a four-player cap and explain that the session ends when the host leaves.
+    - **Complete when:** Address/visibility information is truthful and password/discovery controls appear only when enforced by the backend.
+  - [ ] **SM11 — Connect joining by address.**
+    - **Implement:** Add the plan's structured address parser and route accepted endpoints through validated client travel.
+    - **Complete when:** Supported address/port forms work and malformed inputs, unsupported forms and travel-option injection are rejected.
+  - [ ] **SM12 — Handle loading, cancellation and failures.**
+    - **Implement:** Add loading states, connection timeout/cancel, stale-callback protection and return to the originating panel on failure.
+    - **Complete when:** The plan's timing rules hold; retry preserves input, canceled requests cannot travel and failed attempts do not mutate saves.
+  - [ ] **SM13 — Add the remaining Home branches.**
+    - **Implement:** Add read-only Save information, existing project credits and Exit confirmation.
+    - **Complete when:** Save status wording matches actual persistence support, Back restores focus and Exit confirmation initially focuses Cancel.
+  - [ ] **SM14 — Enable normal startup and return from play.**
+    - **Implement:** Wait for save completion, tear down the owned session and return to Home. Route normal packaged startup into Home.
+    - **Complete when:** Explicit server/gameplay startup overrides still work and repeated play/Home round trips leave no duplicate HUD, delegates or input handlers.
+  - [ ] **SM15 — Verify and finalize the complete menu.**
+    - **Run:** The integrated acceptance in docs/startmenu.md and applicable builds, automation and packaged-session checks in docs/07-development-setup.md.
+    - **Cover:** Fresh launch, world creation/selection, solo return/restart, listen host/client, dedicated join, failures/cancel, save safety, focus and text scaling.
+    - **Repair and record:** Fix feature-related defects; record actual commands, results and reruns; finalize affected workflow documentation.
+    - **Complete when:** Required acceptance succeeds. Only then check this task and the parent; report any genuine blocker without claiming completion.
+
 Completed goal records are retained under Completed post-roadmap work.
 
 ## Completed roadmap
