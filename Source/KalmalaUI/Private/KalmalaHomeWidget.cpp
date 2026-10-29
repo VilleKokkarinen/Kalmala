@@ -151,16 +151,19 @@ void UKalmalaHomeWidget::RefreshTheme()
     }
 }
 
-void UKalmalaHomeWidget::FocusPlay()
+void UKalmalaHomeWidget::FocusPlay() { FocusAction(0); }
+void UKalmalaHomeWidget::FocusOptions() { FocusAction(1); }
+
+void UKalmalaHomeWidget::FocusAction(const int32 Index)
 {
-    if (Buttons.IsEmpty() || !Buttons[0] || !GetOwningPlayer()) return;
+    if (!Buttons.IsValidIndex(Index) || !Buttons[Index] || !GetOwningPlayer()) return;
     APlayerController* Controller = GetOwningPlayer();
     Controller->SetShowMouseCursor(true);
     FInputModeUIOnly InputMode;
-    InputMode.SetWidgetToFocus(Buttons[0]->TakeWidget());
+    InputMode.SetWidgetToFocus(Buttons[Index]->TakeWidget());
     Controller->SetInputMode(InputMode);
-    Buttons[0]->SetUserFocus(Controller);
-    Buttons[0]->SetKeyboardFocus();
+    Buttons[Index]->SetUserFocus(Controller);
+    Buttons[Index]->SetKeyboardFocus();
 }
 
 void UKalmalaHomeWidget::Request(const EKalmalaHomeAction Action)

@@ -24,6 +24,7 @@ public:
     FKalmalaHomeActionRequested& OnActionRequested() { return ActionRequested; }
     // Call after adding the widget to the owning player's screen.
     void FocusPlay();
+    void FocusOptions();
     // A subscriber may report an action whose later branch is not wired yet.
     void ShowUnavailable();
 
@@ -33,6 +34,7 @@ protected:
 
 private:
     void RefreshTheme();
+    void FocusAction(int32 Index);
     void Request(EKalmalaHomeAction Action);
     UFUNCTION() void HandlePlay();
     UFUNCTION() void HandleOptions();

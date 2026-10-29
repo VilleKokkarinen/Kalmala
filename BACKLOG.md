@@ -54,7 +54,7 @@
   - [x] **SM04 — Build the Home screen.**
     - **Implement:** Use the existing theme; add Play, Options, Save information, Credits and Exit in that order, plus the build-version footer.
     - **Complete when:** Play receives initial focus and the layout fits both resolutions and text-scale cases specified in the plan.
-  - [ ] **SM05 — Connect the existing Options screen.**
+  - [x] **SM05 — Connect the existing Options screen.**
     - **Implement:** Reuse the existing Options presenter from Home and gameplay. Retain one settings store and one input owner.
     - **Complete when:** Closing Options returns focus to its caller and settings retain their existing apply/revert behavior.
   - [ ] **SM06 — Show the current player.**

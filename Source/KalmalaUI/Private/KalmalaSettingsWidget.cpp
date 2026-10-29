@@ -738,6 +738,7 @@ void UKalmalaSettingsWidget::Open(APlayerController* InOwningPlayer)
 {
     if (InOwningPlayer == nullptr) return;
     SetOwningPlayer(InOwningPlayer);
+    bHomeOptionsCaller = false;
     bMenuOpen = true;
     SetVisibility(ESlateVisibility::Visible);
     InOwningPlayer->SetShowMouseCursor(true);
@@ -748,6 +749,32 @@ void UKalmalaSettingsWidget::Open(APlayerController* InOwningPlayer)
     InOwningPlayer->SetIgnoreLookInput(true);
     ShowMainMenu();
     StartOptionsOpeningAnimation();
+}
+
+void UKalmalaSettingsWidget::OpenOptionsFromHome(APlayerController* InOwningPlayer)
+{
+    if (InOwningPlayer == nullptr || bMenuOpen) return;
+    SetOwningPlayer(InOwningPlayer);
+    bHomeOptionsCaller = true;
+    bMenuOpen = true;
+    SetVisibility(ESlateVisibility::Visible);
+    InOwningPlayer->SetShowMouseCursor(true);
+    FInputModeUIOnly InputMode;
+    InputMode.SetWidgetToFocus(TakeWidget());
+    InOwningPlayer->SetInputMode(InputMode);
+    ShowOptionsMenu();
+    StartOptionsOpeningAnimation();
+}
+
+FReply UKalmalaSettingsWidget::NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event)
+{
+    if (bHomeOptionsCaller && bMenuOpen && !Event.IsRepeat()
+        && (Event.GetKey() == EKeys::Escape || Event.GetKey() == EKeys::Gamepad_FaceButton_Right))
+    {
+        BackOrClose();
+        return FReply::Handled();
+    }
+    return Super::NativeOnKeyDown(Geometry, Event);
 }
 
 #if !UE_BUILD_SHIPPING
@@ -919,8 +946,16 @@ void UKalmalaSettingsWidget::Close()
     FlushAudioSettingsIfDirty();
     if (!bMenuOpen) return;
     bMenuOpen = false;
+    bShowingOptions = false;
+    const bool bReturnToHome = bHomeOptionsCaller;
+    bHomeOptionsCaller = false;
     ResetOptionsOpeningAnimation();
     SetVisibility(ESlateVisibility::Collapsed);
+    if (bReturnToHome)
+    {
+        HomeOptionsClosed.Broadcast();
+        return;
+    }
     if (APlayerController* Controller = GetOwningPlayer())
     {
         Controller->SetShowMouseCursor(false);
@@ -929,6 +964,16 @@ void UKalmalaSettingsWidget::Close()
         Controller->SetIgnoreLookInput(false);
     }
 }
+
+void UKalmalaSettingsWidget::BackOrClose()
+{
+    if (!bMenuOpen) return;
+    if (bHomeOptionsCaller) Close();
+    else if (bShowingOptions) ShowMainMenu();
+    else Close();
+}
+
+void UKalmalaSettingsWidget::HandleOptionsBack() { BackOrClose(); }
 
 void UKalmalaSettingsWidget::ApplyModalPalette(const FString* ImageOverride)
 {
@@ -1592,6 +1637,7 @@ void UKalmalaSettingsWidget::SelectOptionsTab(const int32 SelectedIndex)
 
 void UKalmalaSettingsWidget::ShowMainMenu()
 {
+    bShowingOptions = false;
     OptionsTabButtons.Reset();
     ApplyHomeMenuPalette();
     ContentBox->ClearChildren();
@@ -1605,10 +1651,28 @@ void UKalmalaSettingsWidget::ShowMainMenu()
 
 void UKalmalaSettingsWidget::ShowOptionsMenu()
 {
+    bShowingOptions = true;
     OptionsTabButtons.Reset();
     ContentBox->ClearChildren();
     ApplyModalPalette(&FKalmalaUITheme::Get().InventoryPanelImage);
-    AddLabel(ContentBox, FText::FromString(TEXT("Options")), 30.0f)->SetJustification(ETextJustify::Center);
+    UHorizontalBox* Header = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
+    UTextBlock* HeaderLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    HeaderLabel->SetText(FText::FromString(TEXT("Options")));
+    HeaderLabel->SetAutoWrapText(true);
+    const FKalmalaUITheme& HeaderTheme = FKalmalaUITheme::Get();
+    HeaderTheme.ApplyText(*HeaderLabel, 30 + HeaderTheme.EmphasisSize - 17, true, GetTextScalePercent(), GetContrastMode());
+    UHorizontalBoxSlot* HeaderLabelSlot = Header->AddChildToHorizontalBox(HeaderLabel);
+    HeaderLabelSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    HeaderLabelSlot->SetVerticalAlignment(VAlign_Center);
+    UButton* Back = WidgetTree->ConstructWidget<UKalmalaThemedButton>(UKalmalaThemedButton::StaticClass(), TEXT("OptionsBackButton"));
+    ApplyButtonPalette(Back);
+    UTextBlock* BackLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    BackLabel->SetText(FText::FromString(TEXT("Back")));
+    HeaderTheme.ApplyText(*BackLabel, HeaderTheme.BodySize + 3, false, GetTextScalePercent(), GetContrastMode());
+    Back->SetContent(BackLabel);
+    Back->OnClicked.AddDynamic(this, &ThisClass::HandleOptionsBack);
+    Header->AddChildToHorizontalBox(Back)->SetVerticalAlignment(VAlign_Center);
+    ContentBox->AddChildToVerticalBox(Header)->SetPadding(FMargin(4.0f, 8.0f));
     UHorizontalBox* Tabs = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
     const auto AddTab = [this, Tabs](const FText& Label, FName Name, FScriptDelegate Delegate)
     {

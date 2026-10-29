@@ -328,6 +328,20 @@ region for content overflow. Normal startup is unchanged; no menu world is wired
 Actual viewport focus, measured layout and both resolution/text-scale render
 cases remain part of integrated acceptance.
 
+## SM05 shared Options entry
+
+Home's Options action opens the existing `UKalmalaSettingsSubsystem` presenter
+and keeps Home collapsed until the presenter closes. The visible Back action
+returns a Home caller to its Options button with UI-only input; in gameplay it
+returns to the existing in-game shell. Home Options also handles unconsumed
+Escape or gamepad Back within the widget. The gameplay Settings input binding
+is not installed for the menu controller. Both paths use the same settings
+widget and store, including the existing immediate/apply behavior and audio
+flush; no new rollback semantics are introduced. If the menu owner disappears,
+the close callback is removed and the Options flow is abandoned without focusing
+an old controller. Actual focus, control-specific Back handling and round-trip
+input ownership require integrated live verification.
+
 ## Ordered delivery and acceptance
 
 The backlog's SM01-SM15 children implement only the initial delivery described

@@ -23626,3 +23626,36 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Live Play focus and the rendered resolution/text-scale matrix remain
   unverified; later integrations must bind each recreated Home widget.
 - **Next eligible task:** SM05, connect the existing Options screen.
+
+## Run 2026-10-29 — SM05 shared Options entry
+
+- **Selected increment:** Connect the existing Options presenter to Home and
+  gameplay with one settings store and input owner, restoring caller focus.
+- **Work completed:** Home now opens the existing settings widget through its
+  local-player subsystem and retains its caller while Options is open. A shared
+  Back action returns Home callers to the Options button and gameplay callers
+  to their existing shell. Home-only unconsumed Escape/gamepad Back closes the
+  presenter; the gameplay input binding is omitted for the menu controller.
+  Teardown removes the callback and abandons the menu flow without refocusing
+  an old controller. Existing settings updates and audio flush remain in place.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaHomeWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaSettingsSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Inspected and source-checked Home action wiring, retained caller,
+  focus restoration, menu-only key routing, persistent Back header, teardown,
+  gameplay close path and unchanged settings mutation/flush handlers.
+  `git diff --check` passed. No Unreal build, automated test or editor run.
+- **Full verification:** Deferred to SM15 integrated acceptance.
+- **Observable impact:** In the isolated menu context Options is accessible
+  from Home and returns to its caller; normal startup remains unchanged.
+- **Networking/authority:** Owner-local presentation and settings only; no
+  gameplay authority, replication, travel or save behavior changed.
+- **Known limitations:** Live Slate focus, dropdown Back handling and menu/game
+  input transitions are unverified. The menu world and startup remain unwired.
+- **Next eligible task:** SM06, show the current player.

@@ -5,6 +5,7 @@
 #include "KalmalaHomeWidget.h"
 #include "KalmalaMenuContext.h"
 #include "KalmalaMenuFlowSubsystem.h"
+#include "KalmalaSettingsSubsystem.h"
 
 void UKalmalaHomeSubsystem::Tick(float DeltaTime)
 {
@@ -21,6 +22,7 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
     if (!Coordinator) { Release(); return; }
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Inactive) Flow.Activate();
+    if (Flow.GetScreen() == EKalmalaMenuScreen::Options && HomeWidget && HomeController == Controller) return;
     if (Flow.GetScreen() != EKalmalaMenuScreen::Home) { Release(); return; }
     if (HomeController != Controller) Release();
     if (!HomeWidget)
@@ -34,13 +36,60 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
             HomeController = nullptr;
             return;
         }
+        HomeWidget->OnActionRequested().AddUObject(this, &ThisClass::HandleHomeAction);
         HomeWidget->FocusPlay();
     }
 }
 
+void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
+{
+    if (!HomeWidget || !HomeController || !GetLocalPlayer()) return;
+    if (Action != EKalmalaHomeAction::Options) { HomeWidget->ShowUnavailable(); return; }
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    UKalmalaSettingsSubsystem* Settings = GetLocalPlayer()->GetSubsystem<UKalmalaSettingsSubsystem>();
+    if (!Coordinator || !Settings || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Options))
+    {
+        HomeWidget->ShowUnavailable();
+        return;
+    }
+    TWeakObjectPtr<UKalmalaHomeWidget> RequestedHome = HomeWidget;
+    HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
+    if (!Settings->OpenOptionsFromHome(HomeController) && RequestedHome.IsValid() && HomeWidget == RequestedHome.Get())
+    {
+        Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Home);
+        HomeWidget->SetVisibility(ESlateVisibility::Visible);
+        HomeWidget->FocusOptions();
+        HomeWidget->ShowUnavailable();
+    }
+}
+
+void UKalmalaHomeSubsystem::ReturnFromOptions()
+{
+    ULocalPlayer* Player = GetLocalPlayer();
+    UWorld* World = GetWorld();
+    if (!Player || !World || !HomeWidget || !HomeController
+        || Player->GetPlayerController(World) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = Player->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Options
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Home)) return;
+    HomeWidget->SetVisibility(ESlateVisibility::Visible);
+    HomeWidget->FocusOptions();
+}
+
+void UKalmalaHomeSubsystem::AbandonOptions()
+{
+    if (ULocalPlayer* Player = GetLocalPlayer())
+        if (UKalmalaMenuFlowSubsystem* Coordinator = Player->GetSubsystem<UKalmalaMenuFlowSubsystem>())
+            if (Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Options) Coordinator->GetFlow().Shutdown();
+    Release();
+}
+
 void UKalmalaHomeSubsystem::Release()
 {
-    if (HomeWidget) HomeWidget->RemoveFromParent();
+    if (HomeWidget && GetLocalPlayer())
+        if (UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>())
+            if (Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Options) Coordinator->GetFlow().Shutdown();
+    if (HomeWidget) { HomeWidget->OnActionRequested().RemoveAll(this); HomeWidget->RemoveFromParent(); }
     HomeWidget = nullptr;
     HomeController = nullptr;
 }

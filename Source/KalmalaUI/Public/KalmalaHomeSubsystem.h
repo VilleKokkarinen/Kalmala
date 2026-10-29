@@ -6,6 +6,7 @@
 
 class APlayerController;
 class UKalmalaHomeWidget;
+enum class EKalmalaHomeAction : uint8;
 
 /** Shows Home only for the dedicated menu controller and active Home state. */
 UCLASS()
@@ -14,6 +15,8 @@ class KALMALAUI_API UKalmalaHomeSubsystem : public ULocalPlayerSubsystem, public
     GENERATED_BODY()
 public:
     UKalmalaHomeWidget* GetHomeWidget() const { return HomeWidget; }
+    void ReturnFromOptions();
+    void AbandonOptions();
     virtual void Tick(float DeltaTime) override;
     virtual void Deinitialize() override;
     virtual UWorld* GetTickableGameObjectWorld() const override { return GetWorld(); }
@@ -21,6 +24,7 @@ public:
     virtual bool IsTickable() const override { return !IsTemplate(); }
 private:
     void Release();
+    void HandleHomeAction(EKalmalaHomeAction Action);
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;
 };

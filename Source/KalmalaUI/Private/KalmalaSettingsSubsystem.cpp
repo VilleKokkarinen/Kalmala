@@ -1,4 +1,6 @@
 #include "KalmalaSettingsSubsystem.h"
+#include "KalmalaHomeSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Components/InputComponent.h"
 #include "Components/PrimitiveComponent.h"
@@ -141,7 +143,7 @@ void UKalmalaSettingsSubsystem::Tick(float DeltaTime)
     if (LocalController != FoundController) ReleaseController();
     if (FoundController == nullptr || !FoundController->IsLocalController()) return;
     LocalController = FoundController;
-    BindLocalInput(LocalController);
+    if (!LocalController->IsA<AKalmalaMenuPlayerController>()) BindLocalInput(LocalController);
     if (auto* Character = Cast<AKalmalaCharacter>(LocalController->GetPawn()))
     {
         const bool bEnabled = UKalmalaSettingsWidget::IsAutomaticPickupEnabled();
@@ -360,8 +362,11 @@ void UKalmalaSettingsSubsystem::ReleaseController()
         }
     }
     BoundInputComponent.Reset();
-    if (SettingsWidget != nullptr) { SettingsWidget->Close(); SettingsWidget->RemoveFromParent(); SettingsWidget = nullptr; }
+    const bool bAbandonHomeOptions = SettingsWidget && SettingsWidget->IsHomeOptionsOpen();
+    if (SettingsWidget != nullptr) { SettingsWidget->OnHomeOptionsClosed().RemoveAll(this); SettingsWidget->Close(); SettingsWidget->RemoveFromParent(); SettingsWidget = nullptr; }
     LocalController = nullptr;
+    if (bAbandonHomeOptions && GetLocalPlayer())
+        if (UKalmalaHomeSubsystem* Home = GetLocalPlayer()->GetSubsystem<UKalmalaHomeSubsystem>()) Home->AbandonOptions();
 }
 
 void UKalmalaSettingsSubsystem::BindLocalInput(APlayerController* InLocalController)
@@ -378,6 +383,31 @@ void UKalmalaSettingsSubsystem::BindLocalInput(APlayerController* InLocalControl
     Binding.bConsumeInput = true;
     BoundInputComponent = InLocalController->InputComponent;
     UKalmalaSettingsWidget::ApplySavedInputBindings(InLocalController);
+}
+
+bool UKalmalaSettingsSubsystem::OpenOptionsFromHome(APlayerController* Controller)
+{
+    if (!Controller || !Controller->IsLocalController() || !Controller->IsA<AKalmalaMenuPlayerController>()
+        || !GetWorld() || !GetLocalPlayer() || GetLocalPlayer()->GetPlayerController(GetWorld()) != Controller) return false;
+    if (LocalController != Controller) ReleaseController();
+    LocalController = Controller;
+    if (SettingsWidget && SettingsWidget->IsMenuOpen()) return false;
+    if (!SettingsWidget)
+    {
+        SettingsWidget = CreateWidget<UKalmalaSettingsWidget>(Controller, UKalmalaSettingsWidget::StaticClass());
+        if (!SettingsWidget) return false;
+        if (!SettingsWidget->AddToPlayerScreen(200)) { SettingsWidget = nullptr; return false; }
+    }
+    SettingsWidget->OnHomeOptionsClosed().RemoveAll(this);
+    SettingsWidget->OnHomeOptionsClosed().AddUObject(this, &ThisClass::HandleHomeOptionsClosed);
+    SettingsWidget->OpenOptionsFromHome(Controller);
+    return SettingsWidget->IsMenuOpen();
+}
+
+void UKalmalaSettingsSubsystem::HandleHomeOptionsClosed()
+{
+    if (ULocalPlayer* Player = GetLocalPlayer())
+        if (UKalmalaHomeSubsystem* Home = Player->GetSubsystem<UKalmalaHomeSubsystem>()) Home->ReturnFromOptions();
 }
 
 void UKalmalaSettingsSubsystem::HandleSettingsMenu()

@@ -30,11 +30,13 @@ public:
     static int32 ClampRenderDistanceMeters(int32 Meters);
     int32 GetRenderDistanceMeters() const { return RenderDistanceMeters; }
     void SetRenderDistanceMeters(int32 Meters);
+    bool OpenOptionsFromHome(APlayerController* Controller);
 
 private:
     void BindLocalInput(APlayerController* InLocalController);
     void ReleaseController();
     void HandleSettingsMenu();
+    void HandleHomeOptionsClosed();
     void BindRenderDistanceWorld(UWorld* World);
     void ClearRenderDistanceWorld();
     void HandleRenderDistanceActorSpawned(AActor* Actor);

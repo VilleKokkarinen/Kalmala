@@ -21,6 +21,8 @@ enum class EKalmalaAudioCategory : uint8
     InteractionCombat
 };
 
+DECLARE_MULTICAST_DELEGATE(FKalmalaHomeOptionsClosed);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FKalmalaControlBindingClicked, FName, ControlName, bool, bGamepad,
     bool, bAxisPairSide, bool, bPositiveAxisSide, bool, bAlternateKeyboardBinding);
 
@@ -66,8 +68,12 @@ class KALMALAUI_API UKalmalaSettingsWidget : public UUserWidget
 
 public:
     void Open(APlayerController* InOwningPlayer);
+    void OpenOptionsFromHome(APlayerController* InOwningPlayer);
     void Close();
+    void BackOrClose();
+    FKalmalaHomeOptionsClosed& OnHomeOptionsClosed() { return HomeOptionsClosed; }
     bool IsMenuOpen() const { return bMenuOpen; }
+    bool IsHomeOptionsOpen() const { return bMenuOpen && bHomeOptionsCaller; }
 #if !UE_BUILD_SHIPPING
     /** Opens a requested local tab for the development-only settings acceptance probe. */
     void OpenForVerification(APlayerController* InOwningPlayer, int32 TabIndex);
@@ -135,6 +141,7 @@ public:
 protected:
     virtual void NativeOnInitialized() override;
     virtual void NativeTick(const FGeometry& Geometry, float DeltaTime) override;
+    virtual FReply NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 
 private:
     UFUNCTION()
@@ -167,6 +174,8 @@ private:
 
     UFUNCTION()
     void HandleOptionsClicked();
+    UFUNCTION()
+    void HandleOptionsBack();
     UFUNCTION()
     void HandleQuitClicked();
     UFUNCTION()
@@ -313,6 +322,9 @@ private:
     TArray<FIntPoint> ResolutionChoices;
     // Retained by the owner-local widget across ordinary close/reopen only.
     int32 LastOptionsTabIndex = 0;
+    FKalmalaHomeOptionsClosed HomeOptionsClosed;
+    bool bHomeOptionsCaller = false;
+    bool bShowingOptions = false;
     bool bMenuOpen = false;
     bool bOptionsOpeningAnimationActive = false;
     float OptionsOpeningElapsed = 0.0f;
