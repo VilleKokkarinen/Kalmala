@@ -23481,3 +23481,24 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Impact/authority:** Instructions are clearer; no gameplay/networking changes.
 - **Remaining scope:** Implement the existing queue in order. Deer upper-leg
   follow-up remains next; SM01 is the first start-menu increment afterward.
+
+## Run 2026-10-29 — Deer leg attachment follow-up
+
+- **Selected increment:** Join the Deer's upper legs to its belly and chest.
+- **Work completed:** Raised and extended each upper leg and moved its root
+  inward, overlapping the torso while retaining the knee and hoof joins.
+  Updated the creature description and completed the visual cleanup queue.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp`,
+  `docs/creature-catalogues.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** A narrow coordinate check found an interior overlap between each
+  upper leg and its torso and knee; `git diff --check` passed. No build, render,
+  or automated test suite was run.
+- **Full verification:** Deferred; this is post-roadmap visual work, not a
+  milestone-final verification run.
+- **Observable impact:** The Deer's four upper legs extend into its belly and
+  chest instead of ending below the body.
+- **Networking/authority:** Presentation geometry only; gameplay and network
+  authority are unchanged.
+- **Known limitations:** No fresh four-view render was produced in this run.
+- **Next eligible task:** SM01, expose existing world and session information
+  through the read-only world-descriptor adapter.

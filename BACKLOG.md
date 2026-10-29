@@ -8,7 +8,7 @@
     and support results; combat outcomes stay outside the queue.
   - [x] Use imported item/status textures for every notice instead of vector
     glyphs; hide an unavailable texture instead of drawing a vector fallback.
-- [ ] Four-view creature visual cleanup, one species per increment.
+- [x] Four-view creature visual cleanup, one species per increment.
   - [x] Boar: replace detached spike legs with connected rounded limbs and
     clarify the snout, eyes, ears, and short bristle ridge.
   - [x] Badger: join the narrow head and legs to its low body and make the
@@ -32,7 +32,7 @@
     with continuous tapered body meshes.
   - [x] Polar Bear follow-up: extend upper legs into the belly and torso.
   - [x] Horned Goat follow-up: join upper legs to the torso.
-  - [ ] Deer follow-up: join upper legs to the belly and chest.
+  - [x] Deer follow-up: join upper legs to the belly and chest.
 
 - [ ] Pre-game start menu — implement [docs/startmenu.md](docs/startmenu.md).
   - **Instructions for every run:**

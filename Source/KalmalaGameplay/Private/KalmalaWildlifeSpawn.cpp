@@ -4037,7 +4037,8 @@ void AKalmalaWildlifeSpawn::BuildArchetypePresentation()
             {
                 const float KneeX = HipX + (HipX < 0.0f ? 7.0f : 5.0f);
                 const float LegY = Side * 27.0f;
-                AddEllipsoid(FVector(HipX, LegY, -5), FVector(13, 12, 27), DeerLeg);
+                // Bring each upper leg inside the torso while retaining the lower-leg joins.
+                AddEllipsoid(FVector(KneeX, Side * 24.0f, 9), FVector(15, 14, 40), DeerLeg);
                 AddEllipsoid(FVector(KneeX, LegY, -24), FVector(9, 8, 17), DeerLeg);
                 AddEllipsoid(FVector(KneeX + 3.0f, LegY, -42), FVector(7, 7, 20), DeerLeg);
                 AddEllipsoid(FVector(KneeX + 8.0f, LegY, -59), FVector(10, 9, 8), DeerHoof);
