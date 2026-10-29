@@ -45,7 +45,7 @@
   - [x] **SM01 — Expose existing world and session information.**
     - **Implement:** Map world enumeration, creation, travel, authentication and logout APIs to the plan. Add a read-only world-descriptor adapter.
     - **Complete when:** Narrow adapter checks confirm supported metadata is returned accurately and unsupported metadata is explicitly identified.
-  - [ ] **SM02 — Add the menu flow coordinator.**
+  - [x] **SM02 — Add the menu flow coordinator.**
     - **Implement:** Add isolated front-end states and a request token for each launch/connection attempt. Keep the default startup map unchanged.
     - **Complete when:** Duplicate submissions and callbacks from canceled or superseded requests cannot start travel or change the active screen.
   - [ ] **SM03 — Isolate the menu from gameplay.**

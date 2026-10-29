@@ -23532,3 +23532,34 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   The adapter describes a candidate/current configuration, not a saved-world list.
 - **Next eligible task:** SM02, add the isolated menu flow coordinator and
   request tokens.
+
+## Run 2026-10-29 — SM02 menu flow coordinator
+
+- **Selected increment:** Add isolated front-end states and request tokens for
+  launch and connection attempts without changing startup.
+- **Work completed:** Added a local-player-owned, initially inactive flow with
+  guarded navigation, one active request, monotonic tokens, cancellation and
+  token-checked completion. Travel dispatch commits before the callback and
+  rejects repeated or reentrant dispatch; teardown invalidates requests.
+  Documented the weak-owner and token-gated callback integration contract.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaMenuFlow.h`,
+  `Source/KalmalaUI/Private/KalmalaMenuFlow.cpp`,
+  `Source/KalmalaUI/Public/KalmalaMenuFlowSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaMenuFlowSubsystem.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaMenuFlowTest.cpp`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Compiled and ran the actual flow and its focused test using MSVC
+  with stubbed Unreal types and automation assertions; duplicate submissions,
+  cancellation, stale callbacks, retry, reentrancy, teardown and separate flow
+  state passed. The initial standalone harness omitted the test compile define;
+  the corrected harness and a rerun after the final header change passed.
+  `git diff --check` passed. No Unreal build or editor automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance.
+- **Observable impact:** Future menu code has a guarded state and dispatch gate;
+  normal startup and existing gameplay UI are unchanged.
+- **Networking/authority:** Local presentation coordination only; no travel,
+  server, authentication, save or gameplay authority behavior was added.
+- **Known limitations:** No menu screens or actual travel are wired yet. Future
+  async callbacks must use a weak owner and the token-gated methods, not bypass
+  the coordinator. Navigation policy is left to the later screen integrations.
+- **Next eligible task:** SM03, isolate the menu context from gameplay.

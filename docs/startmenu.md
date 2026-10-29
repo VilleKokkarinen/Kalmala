@@ -278,6 +278,25 @@ It reads and writes no save slots and makes no claim that a world exists.
   session creation/teardown adapter or verified four-player enforcement was found.
   Launch, hosting and return remain work for their respective later children.
 
+## SM02 coordinator contract
+
+`UKalmalaMenuFlowSubsystem` owns an initially inactive flow per local player;
+it creates no widgets and does not change startup. Explicit activation opens Home.
+Navigation is blocked during an attempt. Launch begins only from World details,
+and connection only from Join. One nonzero, monotonically increasing token owns
+an attempt. Cancel or failure restores its originating screen, and a later attempt
+gets a different token. Travel dispatch is a one-shot token-checked callback; the
+flow commits before calling it, so duplicate or reentrant dispatch fails. Once
+travel starts, cancel is refused. Success requires committed travel, and stale
+success/failure callbacks cannot change state. Token exhaustion fails closed;
+shutdown invalidates the attempt without resetting the counter.
+
+Later async integrations must capture a weak pointer to the original subsystem,
+not a flow reference or a replacement owner. They must dispatch travel through
+`TryCommitTravel` and apply callback results through the token-checked completion
+methods, never through direct navigation. This scaffold does not initiate travel,
+validate world choices, or wire UI; those remain in later children.
+
 ## Ordered delivery and acceptance
 
 The backlog's SM01-SM15 children implement only the initial delivery described
