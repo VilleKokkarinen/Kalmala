@@ -1,9 +1,31 @@
 #include "KalmalaWorldGenerationGameState.h"
 
+#include "Engine/World.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 #include "KalmalaRegionalGeneration.h"
+#include "KalmalaM7PersistenceContract.h"
+
+namespace
+{
+    bool TryParseUnsignedDecimalOption(const TCHAR* Text, uint64& OutValue)
+    {
+        OutValue = 0;
+        if (Text == nullptr || *Text == TEXT('\0')) return false;
+
+        uint64 Parsed = 0;
+        for (const TCHAR* Character = Text; *Character != TEXT('\0'); ++Character)
+        {
+            if (*Character < TEXT('0') || *Character > TEXT('9')) return false;
+            const uint64 Digit = static_cast<uint64>(*Character - TEXT('0'));
+            if (Parsed > (MAX_uint64 - Digit) / 10ull) return false;
+            Parsed = Parsed * 10ull + Digit;
+        }
+        OutValue = Parsed;
+        return true;
+    }
+}
 
 AKalmalaWorldGenerationGameState::AKalmalaWorldGenerationGameState()
 {
@@ -16,6 +38,29 @@ void AKalmalaWorldGenerationGameState::PostInitializeComponents()
 
     if (!HasAuthority())
     {
+        return;
+    }
+
+    const FURL& TravelUrl = GetWorld()->URL;
+    const TCHAR* SoloLaunchOption = TravelUrl.GetOption(TEXT("KalmalaSoloLaunch="), nullptr);
+    const TCHAR* SoloSeedOption = TravelUrl.GetOption(TEXT("KalmalaSoloSeed="), nullptr);
+    const TCHAR* SoloRevisionOption = TravelUrl.GetOption(TEXT("KalmalaSoloRevision="), nullptr);
+    const bool bHasSoloLaunchOption = SoloLaunchOption != nullptr
+        || SoloSeedOption != nullptr || SoloRevisionOption != nullptr;
+    if (bHasSoloLaunchOption)
+    {
+        uint64 Seed = 0;
+        uint64 Revision = 0;
+        const bool bValidSoloOptions = GetWorld()->GetNetMode() == NM_Standalone
+            && SoloLaunchOption != nullptr && FCString::Stricmp(SoloLaunchOption, TEXT("1")) == 0
+            && TryParseUnsignedDecimalOption(SoloSeedOption, Seed)
+            && TryParseUnsignedDecimalOption(SoloRevisionOption, Revision)
+            && Revision <= static_cast<uint64>(MAX_int32)
+            && Revision == static_cast<uint64>(FKalmalaM7SaveIdentity::ForWorld(Seed).GeneratorRevision);
+        if (!bValidSoloOptions || !SelectWorldSeedFromServer(Seed))
+        {
+            UE_LOG(LogTemp, Error, TEXT("Rejected invalid or stale server-owned solo launch identity options."));
+        }
         return;
     }
 

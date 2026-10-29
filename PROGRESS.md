@@ -24087,3 +24087,42 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   for SM09 and later launch work. Rendered UI and runtime RPC behavior remain
   unverified.
 - **Next eligible task:** SM09 — Connect solo play.
+
+## Run 2026-10-29 — SM09 Connect solo play
+
+- **Selected increment:** Route Play solo from World details through a
+  server-revalidated, one-shot standalone launch.
+- **Work completed:** Added Play solo to World details. A server-accepted
+  unlisted seed now opens details without writing a save; listed-world
+  selection and confirmed exact reuse reach the same launch action. The menu
+  GameMode re-enumerates server-local save slots and checks the selected seed
+  against the current revision immediately before travel. It starts the
+  configured prototype gameplay map only from a local standalone controller,
+  without creating or advertising an online session. The server passes the
+  seed and revision as constructed URL options; the gameplay GameState checks
+  the decimal values and current revision, then applies the seed through its
+  server-only selector before the identity replicates. The menu flow token,
+  disabled button and server launch latch prevent repeated submissions.
+- **Files changed:** `BACKLOG.md`, `Source/KalmalaGameplay/Public/KalmalaMenuContext.h`,
+  `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp`,
+  `docs/startmenu.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Reviewed the seed/revision validation, world-details
+  transitions, request-token gate, server authority checks and standalone
+  travel path; `git diff --check` passed. No build, test or automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** A new seed can now start a fresh standalone world,
+  and an existing listed world can launch after the server confirms the same
+  seed/revision. Seed checking itself remains read-only.
+- **Networking/authority:** The menu launch runs only on the authoritative
+  local standalone controller. The server revalidates its own save listing;
+  gameplay receives the server-selected identity. No online session is created.
+- **Known limitations:** Loading failures, cancellation, timeout and return
+  to Home remain for SM12/SM14. Runtime UI and travel behavior are unverified;
+  normal startup remains unchanged until SM14.
+- **Next eligible task:** SM10 — Connect co-op hosting.

@@ -72,7 +72,7 @@
     - [x] Connect New world to a validated server-owned world lifecycle API.
     - **Implement:** Use the existing seed and world-lifecycle API. Validate the full runtime seed range and handle duplicate seed/revision identities.
     - **Complete when:** Invalid seeds are rejected and duplicate identities select the existing world only after confirmation, without overwriting it.
-  - [ ] **SM09 — Connect solo play.**
+  - [x] **SM09 — Connect solo play.**
     - **Implement:** Route Play solo through the validated launch adapter and protect against repeated submissions.
     - **Complete when:** Server-owned setup receives the selected seed/revision and starts one unadvertised solo session.
   - [ ] **SM10 — Connect co-op hosting.**

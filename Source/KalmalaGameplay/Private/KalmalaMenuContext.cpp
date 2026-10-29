@@ -1,6 +1,8 @@
 #include "KalmalaMenuContext.h"
 
 #include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 #include "KalmalaM7PersistenceContract.h"
 
 void AKalmalaMenuPlayerController::SpawnDefaultHUD() {}
@@ -113,6 +115,32 @@ bool AKalmalaMenuGameMode::TrySelectWorldSeedFromServer(const uint64 Seed, const
     bHasPendingWorldSeedSelection = true;
     PendingWorldSeed = Seed;
     bPendingWorldSeedIsExisting = OutDecision == EKalmalaWorldSeedReuseDecision::ConfirmExisting;
+    return true;
+}
+
+bool AKalmalaMenuGameMode::TryStartSoloFromServer(APlayerController* RequestingController,
+    const uint64 Seed, const bool bConfirmedExisting)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || World == nullptr || World->GetNetMode() != NM_Standalone
+        || bSoloLaunchInProgress || !IsValid(RequestingController)
+        || !RequestingController->IsA<AKalmalaMenuPlayerController>()
+        || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
+        || !RequestingController->IsLocalController()) return false;
+
+    EKalmalaLocalWorldSaveListingAvailability Availability = EKalmalaLocalWorldSaveListingAvailability::Unsupported;
+    EKalmalaWorldSeedReuseDecision Decision = EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview;
+    if (!TrySelectWorldSeedFromServer(Seed, bConfirmedExisting, Availability, Decision)) return false;
+
+    const int32 GeneratorRevision = FKalmalaM7SaveIdentity::ForWorld(PendingWorldSeed).GeneratorRevision;
+    if (GeneratorRevision <= 0) return false;
+
+    const FString LaunchOptions = FString::Printf(
+        TEXT("KalmalaSoloLaunch=1?KalmalaSoloSeed=%llu?KalmalaSoloRevision=%d"),
+        PendingWorldSeed, GeneratorRevision);
+    bSoloLaunchInProgress = true;
+    UGameplayStatics::OpenLevel(RequestingController,
+        FName(TEXT("/Game/Kalmala/Maps/Prototype/L_Prototype")), true, LaunchOptions);
     return true;
 }
 

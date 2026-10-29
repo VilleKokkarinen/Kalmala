@@ -47,6 +47,9 @@ public:
     bool TrySelectWorldSeedFromServer(uint64 Seed, bool bConfirmedExisting,
         EKalmalaLocalWorldSaveListingAvailability& OutAvailability,
         EKalmalaWorldSeedReuseDecision& OutDecision);
+    /** Revalidates the selected identity and starts one local, unadvertised solo world. */
+    bool TryStartSoloFromServer(class APlayerController* RequestingController,
+        uint64 Seed, bool bConfirmedExisting);
     bool HasPendingWorldSeedSelection() const { return bHasPendingWorldSeedSelection; }
     uint64 GetPendingWorldSeed() const { return PendingWorldSeed; }
     bool IsPendingWorldSeedExisting() const { return bPendingWorldSeedIsExisting; }
@@ -59,4 +62,5 @@ private:
     bool bHasPendingWorldSeedSelection = false;
     uint64 PendingWorldSeed = 0;
     bool bPendingWorldSeedIsExisting = false;
+    bool bSoloLaunchInProgress = false;
 };

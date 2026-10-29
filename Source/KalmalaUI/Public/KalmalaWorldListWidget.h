@@ -16,6 +16,7 @@ class UVerticalBox;
 class UKalmalaThemedButton;
 DECLARE_MULTICAST_DELEGATE(FKalmalaWorldListBack);
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaWorldListSelection, uint64);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FKalmalaWorldListSoloPlay, uint64, bool);
 DECLARE_MULTICAST_DELEGATE(FKalmalaWorldListNewWorld);
 DECLARE_MULTICAST_DELEGATE(FKalmalaWorldListReturnToWorlds);
 
@@ -31,6 +32,7 @@ public:
         EKalmalaLocalWorldSaveListingAvailability Availability, EKalmalaWorldSeedReuseDecision Decision);
     FKalmalaWorldListBack& OnBackRequested() { return BackRequested; }
     FKalmalaWorldListSelection& OnWorldSelected() { return WorldSelected; }
+    FKalmalaWorldListSoloPlay& OnSoloPlayRequested() { return SoloPlayRequested; }
     FKalmalaWorldListNewWorld& OnNewWorldRequested() { return NewWorldRequested; }
     FKalmalaWorldListReturnToWorlds& OnReturnToWorldsRequested() { return ReturnToWorldsRequested; }
     void FocusBack();
@@ -40,6 +42,8 @@ public:
     bool ShowNewWorldSeedEntry();
     bool ShowWorldDetails(uint64 Seed);
     void ShowWorldList();
+    void SetSoloPlayEnabled(bool bEnabled);
+    void ShowSoloPlayFailure();
 
 protected:
     virtual void NativeOnInitialized() override;
@@ -66,6 +70,7 @@ private:
     UFUNCTION() void HandleReuseCancelled();
     UFUNCTION() void HandleWorldSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
     UFUNCTION() void HandleViewDetails();
+    UFUNCTION() void HandleSoloPlay();
     void FocusWidget(UWidget* Widget);
     const FKalmalaLocalWorldSaveRecord* FindWorld(uint64 Seed) const;
     FString DescribeWorld(const FKalmalaLocalWorldSaveRecord& Record) const;
@@ -83,11 +88,13 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> NewWorldButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> SeedCheckButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> DetailsButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> PlaySoloButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> BackButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> ReuseConfirmButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> ReuseCancelButton;
     FKalmalaWorldListBack BackRequested;
     FKalmalaWorldListSelection WorldSelected;
+    FKalmalaWorldListSoloPlay SoloPlayRequested;
     FKalmalaWorldListNewWorld NewWorldRequested;
     FKalmalaWorldListReturnToWorlds ReturnToWorldsRequested;
     TArray<FKalmalaLocalWorldSaveRecord> WorldRecords;
@@ -98,6 +105,7 @@ private:
     uint64 PendingWorldSeedRequestToken = 0;
     uint64 PendingWorldSeedRequestSeed = 0;
     bool bHasSelectedWorld = false;
+    bool bSelectedSeedIsNew = false;
     bool bShowingNewWorldSeedEntry = false;
     bool bShowingDetails = false;
     bool bShowingReuseConfirmation = false;

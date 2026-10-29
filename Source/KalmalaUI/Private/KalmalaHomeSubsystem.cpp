@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "KalmalaHomeWidget.h"
 #include "KalmalaMenuContext.h"
+#include "KalmalaMenuFlow.h"
 #include "KalmalaMenuFlowSubsystem.h"
 #include "KalmalaPlayerStepWidget.h"
 #include "KalmalaSettingsSubsystem.h"
@@ -40,6 +41,7 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
             }
             WorldList->OnBackRequested().AddUObject(this, &ThisClass::HandleWorldListBack);
             WorldList->OnWorldSelected().AddUObject(this, &ThisClass::HandleWorldSelected);
+            WorldList->OnSoloPlayRequested().AddUObject(this, &ThisClass::HandleSoloPlayRequested);
             WorldList->OnNewWorldRequested().AddUObject(this, &ThisClass::HandleNewWorldRequested);
             WorldList->OnReturnToWorldsRequested().AddUObject(this, &ThisClass::HandleReturnToWorldsRequested);
             if (Flow.GetScreen() == EKalmalaMenuScreen::NewWorld && !WorldList->ShowNewWorldSeedEntry())
@@ -203,12 +205,47 @@ void UKalmalaHomeSubsystem::HandleWorldSelected(const uint64 Seed)
     WorldList->FocusPrimary();
 }
 
+void UKalmalaHomeSubsystem::HandleSoloPlayRequested(const uint64 Seed, const bool bConfirmedExisting)
+{
+    if (!WorldList || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator) return;
+
+    FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
+    uint64 LaunchToken = 0;
+    if (!Flow.TryBegin(EKalmalaMenuRequest::Launch, LaunchToken)) return;
+    WorldList->SetSoloPlayEnabled(false);
+
+    AKalmalaMenuPlayerController* MenuController = Cast<AKalmalaMenuPlayerController>(HomeController);
+    AKalmalaMenuGameMode* MenuGameMode = GetWorld()->GetAuthGameMode<AKalmalaMenuGameMode>();
+    bool bStartedSolo = false;
+    const bool bCommitted = Flow.TryCommitTravel(LaunchToken, [&]()
+    {
+        if (MenuController && MenuGameMode)
+        {
+            bStartedSolo = MenuGameMode->TryStartSoloFromServer(
+                MenuController, Seed, bConfirmedExisting);
+        }
+    });
+
+    if (!bCommitted || !bStartedSolo)
+    {
+        Flow.CompleteFailure(LaunchToken);
+        WorldList->ShowSoloPlayFailure();
+        return;
+    }
+
+    Flow.CompleteSuccess(LaunchToken);
+}
+
 void UKalmalaHomeSubsystem::ReleaseWorldList()
 {
     if (WorldList)
     {
         WorldList->OnBackRequested().RemoveAll(this);
         WorldList->OnWorldSelected().RemoveAll(this);
+        WorldList->OnSoloPlayRequested().RemoveAll(this);
         WorldList->OnNewWorldRequested().RemoveAll(this);
         WorldList->OnReturnToWorldsRequested().RemoveAll(this);
         WorldList->RemoveFromParent();

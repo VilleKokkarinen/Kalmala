@@ -84,7 +84,7 @@ const TCHAR* UKalmalaWorldListWidget::SeedCheckResultMessage(
     switch (Decision)
     {
     case EKalmalaWorldSeedReuseDecision::NoKnownRecord:
-        return TEXT("No recognized save slot lists this seed. New world creation is unavailable; nothing was created.");
+        return TEXT("No recognized save slot lists this seed. You can start a fresh world with Play solo.");
     case EKalmalaWorldSeedReuseDecision::ConfirmExisting:
         return TEXT("A matching current-revision record is listed, but its confirmation could not be opened. No save was changed.");
     case EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview:
@@ -140,6 +140,7 @@ void UKalmalaWorldListWidget::BuildWorldList()
     bShowingReuseConfirmation = false;
     PendingReuseSeed = 0;
     bHasSelectedWorld = false;
+    bSelectedSeedIsNew = false;
     SelectedSeed = 0;
     Content->ClearChildren();
     WorldPicker = nullptr;
@@ -149,6 +150,7 @@ void UKalmalaWorldListWidget::BuildWorldList()
     NewWorldButton = nullptr;
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
+    PlaySoloButton = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -221,8 +223,8 @@ void UKalmalaWorldListWidget::BuildWorldList()
 
     CreationStatus = WidgetTree->ConstructWidget<UTextBlock>();
     const TCHAR* CreationMessage = ListingAvailability == EKalmalaLocalWorldSaveListingAvailability::Supported
-        ? TEXT("World creation is not available yet. New world lets you check for a listed seed and revision to reuse.")
-        : TEXT("World creation is unavailable, and local saves cannot be listed to check a seed safely.");
+        ? TEXT("New world checks a seed with the server. An unlisted seed can start when you choose Play solo; checking a seed does not write a save.")
+        : TEXT("World launch is unavailable because local saves cannot be listed to validate a seed safely.");
     CreationStatus->SetText(FText::FromString(CreationMessage));
     CreationStatus->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(CreationStatus)->SetPadding(FMargin(0, 0, 0, 16));
@@ -255,6 +257,7 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
     NewWorldButton = nullptr;
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
+    PlaySoloButton = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -266,8 +269,8 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
 
     Message = WidgetTree->ConstructWidget<UTextBlock>();
     Message->SetText(FText::FromString(TEXT(
-        "Enter a decimal seed to check it with the server. Reusing an exact current-revision match requires confirmation. "
-        "Matching slot names do not prove a complete world. Fresh-world creation is unavailable; no save will be created or changed.")));
+        "Enter a decimal seed to check it with the server. An unlisted seed opens details for Play solo; an exact current-revision match requires confirmation. "
+        "Matching slot names do not prove a complete world. Checking a seed does not write a save.")));
     Message->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(Message)->SetPadding(FMargin(0, 0, 0, 16));
 
@@ -289,7 +292,7 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
     Content->AddChildToVerticalBox(SeedInput)->SetPadding(FMargin(0, 0, 0, 10));
 
     CreationStatus = WidgetTree->ConstructWidget<UTextBlock>();
-    CreationStatus->SetText(FText::FromString(TEXT("Check a decimal seed with the server. Reuse opens read-only details after confirmation.")));
+    CreationStatus->SetText(FText::FromString(TEXT("Check a decimal seed with the server. No save changes are made while checking.")));
     CreationStatus->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(CreationStatus)->SetPadding(FMargin(0, 0, 0, 12));
 
@@ -317,7 +320,7 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
 {
     if (!WidgetTree || !Content) return;
     const FKalmalaLocalWorldSaveRecord* Record = FindWorld(SelectedSeed);
-    if (!Record) return;
+    if (!Record && !bSelectedSeedIsNew) return;
     bShowingDetails = true;
     bShowingNewWorldSeedEntry = false;
     Content->ClearChildren();
@@ -329,6 +332,7 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
     NewWorldButton = nullptr;
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
+    PlaySoloButton = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -339,9 +343,35 @@ void UKalmalaWorldListWidget::BuildWorldDetails()
     Content->AddChildToVerticalBox(Title)->SetPadding(FMargin(0, 0, 0, 16));
 
     DetailsText = WidgetTree->ConstructWidget<UTextBlock>();
-    DetailsText->SetText(FText::FromString(DescribeWorld(*Record)));
+    if (Record)
+    {
+        DetailsText->SetText(FText::FromString(DescribeWorld(*Record)));
+    }
+    else
+    {
+        FKalmalaWorldGenerationConfig Config;
+        Config.WorldSeed = SelectedSeed;
+        const FKalmalaWorldDescriptor Descriptor = FKalmalaWorldDescriptorAdapter::Describe(Config);
+        DetailsText->SetText(FText::FromString(FString::Printf(
+            TEXT("Seed: %llu\nGenerator revision: %d\nStatus: No recognized save was listed when this seed was checked. The server will recheck it before Play solo. Fresh world data starts only after launch."),
+            SelectedSeed, Descriptor.CurrentIdentityRevision)));
+    }
     DetailsText->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(DetailsText)->SetPadding(FMargin(0, 0, 0, 16));
+
+    Message = WidgetTree->ConstructWidget<UTextBlock>();
+    Message->SetAutoWrapText(true);
+    Message->SetVisibility(ESlateVisibility::Collapsed);
+    Content->AddChildToVerticalBox(Message)->SetPadding(FMargin(0, 0, 0, 12));
+
+    PlaySoloButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
+    UTextBlock* PlaySoloLabel = WidgetTree->ConstructWidget<UTextBlock>();
+    PlaySoloLabel->SetText(FText::FromString(TEXT("Play solo")));
+    PlaySoloLabel->SetAutoWrapText(true);
+    PlaySoloLabel->SetJustification(ETextJustify::Center);
+    PlaySoloButton->SetContent(PlaySoloLabel);
+    PlaySoloButton->OnClicked.AddDynamic(this, &ThisClass::HandleSoloPlay);
+    Content->AddChildToVerticalBox(PlaySoloButton)->SetPadding(FMargin(0, 0, 0, 8));
 
     BackButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
     UTextBlock* BackLabel = WidgetTree->ConstructWidget<UTextBlock>();
@@ -368,6 +398,7 @@ void UKalmalaWorldListWidget::BuildWorldReuseConfirmation()
     NewWorldButton = nullptr;
     SeedCheckButton = nullptr;
     DetailsButton = nullptr;
+    PlaySoloButton = nullptr;
     BackButton = nullptr;
     ReuseConfirmButton = nullptr;
     ReuseCancelButton = nullptr;
@@ -441,7 +472,7 @@ void UKalmalaWorldListWidget::RefreshTheme()
     }
     UKalmalaThemedButton* Buttons[] =
     {
-        NewWorldButton.Get(), SeedCheckButton.Get(), DetailsButton.Get(), BackButton.Get(),
+        NewWorldButton.Get(), SeedCheckButton.Get(), DetailsButton.Get(), PlaySoloButton.Get(), BackButton.Get(),
         ReuseConfirmButton.Get(), ReuseCancelButton.Get()
     };
     for (UKalmalaThemedButton* Button : Buttons)
@@ -516,7 +547,7 @@ void UKalmalaWorldListWidget::FocusPrimary()
 {
     if (bShowingReuseConfirmation) FocusWidget(ReuseCancelButton);
     else if (bShowingNewWorldSeedEntry) FocusWidget(SeedInput);
-    else if (bShowingDetails) FocusBack();
+    else if (bShowingDetails) FocusWidget(PlaySoloButton ? static_cast<UWidget*>(PlaySoloButton.Get()) : BackButton.Get());
     else if (WorldPicker) FocusWidget(WorldPicker);
     else FocusBack();
 }
@@ -524,13 +555,15 @@ void UKalmalaWorldListWidget::FocusPrimary()
 bool UKalmalaWorldListWidget::ShowWorldDetails(const uint64 Seed)
 {
     CancelPendingWorldSeedSelectionRequest();
+    const bool bAcceptedNewSeed = bSelectedSeedIsNew && SelectedSeed == Seed;
     RefreshWorldRecords();
-    if (!FindWorld(Seed)) return false;
+    if (!FindWorld(Seed) && !bAcceptedNewSeed) return false;
     bShowingReuseConfirmation = false;
     bShowingNewWorldSeedEntry = false;
     PendingReuseSeed = 0;
     SelectedSeed = Seed;
     bHasSelectedWorld = true;
+    bSelectedSeedIsNew = bAcceptedNewSeed;
     BuildWorldDetails();
     return bShowingDetails;
 }
@@ -583,6 +616,7 @@ bool UKalmalaWorldListWidget::ShowNewWorldSeedEntry()
     if (!WidgetTree || !Content || ListingAvailability != EKalmalaLocalWorldSaveListingAvailability::Supported)
         return false;
     CancelPendingWorldSeedSelectionRequest();
+    bSelectedSeedIsNew = false;
     bShowingNewWorldSeedEntry = true;
     bShowingReuseConfirmation = false;
     PendingReuseSeed = 0;
@@ -655,6 +689,7 @@ void UKalmalaWorldListWidget::HandleServerWorldSeedSelectionResult(const uint64 
         {
             bShowingReuseConfirmation = false;
             PendingReuseSeed = 0;
+            bSelectedSeedIsNew = false;
             if (WorldSelected.IsBound()) WorldSelected.Broadcast(Seed);
             else ShowWorldDetails(Seed);
             return;
@@ -677,10 +712,13 @@ void UKalmalaWorldListWidget::HandleServerWorldSeedSelectionResult(const uint64 
     if (bAccepted && Availability == EKalmalaLocalWorldSaveListingAvailability::Supported
         && Decision == EKalmalaWorldSeedReuseDecision::NoKnownRecord)
     {
-        if (CreationStatus)
-            CreationStatus->SetText(FText::FromString(TEXT(
-                "The server accepted this seed for a new world. World creation is not connected yet; nothing was created.")));
-        FocusWidget(SeedInput);
+        bShowingReuseConfirmation = false;
+        PendingReuseSeed = 0;
+        SelectedSeed = Seed;
+        bHasSelectedWorld = true;
+        bSelectedSeedIsNew = true;
+        if (WorldSelected.IsBound()) WorldSelected.Broadcast(Seed);
+        else ShowWorldDetails(Seed);
         return;
     }
 
@@ -704,6 +742,7 @@ void UKalmalaWorldListWidget::HandleWorldSelectionChanged(FString SelectedItem, 
         return Candidate.GetDisplayLabel() == SelectedItem;
     });
     bHasSelectedWorld = Record != nullptr;
+    bSelectedSeedIsNew = false;
     if (Record) SelectedSeed = Record->Seed;
     if (DetailsButton) DetailsButton->SetIsEnabled(bHasSelectedWorld);
 }
@@ -711,6 +750,29 @@ void UKalmalaWorldListWidget::HandleWorldSelectionChanged(FString SelectedItem, 
 void UKalmalaWorldListWidget::HandleViewDetails()
 {
     if (bHasSelectedWorld && FindWorld(SelectedSeed)) WorldSelected.Broadcast(SelectedSeed);
+}
+
+void UKalmalaWorldListWidget::HandleSoloPlay()
+{
+    if (!bShowingDetails || !bHasSelectedWorld || !PlaySoloButton || !PlaySoloButton->GetIsEnabled()) return;
+    SoloPlayRequested.Broadcast(SelectedSeed, !bSelectedSeedIsNew);
+}
+
+void UKalmalaWorldListWidget::SetSoloPlayEnabled(const bool bEnabled)
+{
+    if (PlaySoloButton) PlaySoloButton->SetIsEnabled(bEnabled);
+}
+
+void UKalmalaWorldListWidget::ShowSoloPlayFailure()
+{
+    if (Message)
+    {
+        Message->SetText(FText::FromString(TEXT(
+            "The server could not validate this world for solo play. No travel started and no save was changed.")));
+        Message->SetVisibility(ESlateVisibility::Visible);
+    }
+    SetSoloPlayEnabled(true);
+    FocusPrimary();
 }
 
 void UKalmalaWorldListWidget::HandleNewWorldRequested()

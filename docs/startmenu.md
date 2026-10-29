@@ -167,8 +167,11 @@ rewriting saves while enumerating. Sort by existing last-played timestamp descen
 when available, then label ascending; missing timestamps sort last. Show an empty
 state with New world. Selecting a row never starts it automatically.
 
-World details offers Play solo, Host co-op and Back. Solo creates no advertised
-session. Hosting uses the existing listen-server path, capped at four players.
+World details offers Play solo, Host co-op and Back. Play solo revalidates the
+selected seed and revision on the server, then opens the configured gameplay map
+as a standalone world without creating or advertising an online session. A
+front-end request token and server launch latch reject repeated submissions.
+Hosting uses the existing listen-server path, capped at four players.
 Explain that the session ends when its host exits. Only display password, discovery
 or visibility options if an existing backend enforces them end to end; otherwise
 show address-based joining with a clear connection explanation. Do not store or
@@ -182,15 +185,20 @@ against the runtime type, disallow trailing garbage and never silently wrap.
 No free-form seed hashing or new metadata save file. Duplicate seed/revision
 identities select the existing world after confirmation rather than overwrite it.
 Do not claim multiple independently named copies of the same seed are supported.
-The current runtime has no fresh-seed helper or validated creation lifecycle.
+The current runtime has no fresh-seed helper; an explicit decimal seed is the
+input to the validated launch lifecycle.
 The New world entry strictly parses an explicit decimal seed, then sends the
 typed uint64 and the user's confirmation through the menu controller to the
 server. The first request may accept an unlisted seed as the pending new-world
-selection, but creation remains unavailable. For an exact listed current-revision
+selection. An accepted unlisted seed opens read-only details; checking it does
+not create or change a save. Choosing Play solo re-enumerates server-local
+slots and accepts it only if it remains unlisted. For an exact listed current-revision
 identity, the server asks the UI to confirm; the confirmation sends a second
 request that re-enumerates server-local slots. Only an accepted exact match opens
 read-only details. Missing or uncertain matches explain why reuse is unavailable.
-No seed check creates, loads, overwrites or writes a save.
+Existing rows are also revalidated by the server when Play solo is selected.
+No seed check loads, overwrites or writes a save; a fresh world begins only
+after the user starts Play solo.
 
 World rules initially displays the existing supported configuration read-only.
 There are no new difficulty multipliers, free-material building or cheat presets.
@@ -279,8 +287,17 @@ GameMode memory; this gate does not load, create, overwrite, save or travel. The
 menu controller routes remote requests through reliable server/client RPCs and
 correlates replies with the UI request token. Only the server-local menu
 controller may select a world seed; other clients cannot change the host's
-selection. The New world screen now uses this request path. New-seed creation
-and gameplay travel remain unavailable.
+selection. The New world screen uses this request path. When Play solo is
+selected, the server repeats the save-listing decision for the exact seed and
+confirmation state. It starts only from a standalone menu world, targets the
+configured prototype gameplay map, and passes the server-selected seed and
+current generator revision through constructed travel options. The gameplay
+GameState consumes complete decimal solo options only for standalone startup,
+checks the revision, and applies the accepted seed before gameplay begins so it
+replicates as the world identity. With no menu launch marker, the existing
+command-line seed behavior remains. This path does not create or advertise an
+OnlineSubsystem session; world generation starts only as gameplay begins, and
+saves follow existing gameplay persistence behavior.
 
 Returning from play waits for existing logout/save completion, tears down the
 session through its owner and returns to Home with gameplay HUD removed. On
@@ -304,14 +321,18 @@ is checked only for the current generator revision. The inspection loads known
 component saves but never writes them; it does not prove a complete or launchable
 world and does not change overall saved-world compatibility from unknown.
 
-- **Enumeration and creation:** no project world registry or validated menu
-  creation API exists. SM07 uses the platform save-name API when supported and
-  recognizes only exact world-scoped slot prefixes. A seed found in those names
-  is a candidate with saved components, not proof of a complete or compatible
-  world. Independent save owners use different slot identities.
+- **Enumeration and creation:** there is no project world registry. SM07 uses
+  the platform save-name API when supported and recognizes only exact
+  world-scoped slot prefixes. A seed found in those names is a candidate with
+  saved components, not proof of a complete or compatible world. Independent
+  save owners use different slot identities. SM09 starts new generated worlds
+  only through its server-revalidated standalone launch path.
 - **Seed and travel:** `AKalmalaWorldGenerationGameState::PostInitializeComponents`
   selects its default or the process `WorldSeed=` on the authority and replicates
-  it. There is no project menu travel API or runtime seed selection here.
+  it. A standalone menu launch uses `AKalmalaMenuGameMode::TryStartSoloFromServer`
+  to revalidate the selected identity and open the configured prototype map with
+  the current seed and generator revision. The gameplay GameState validates those
+  server-built options before selecting and replicating the seed.
 - **Authentication:** the GameMode's private `GetAuthenticatedPlayerIdentity`
   reads the PlayerState network ID for server save ownership; it is not a friendly
   menu label or a client-selectable identity. Missing identity remains unavailable.
@@ -336,8 +357,9 @@ shutdown invalidates the attempt without resetting the counter.
 Later async integrations must capture a weak pointer to the original subsystem,
 not a flow reference or a replacement owner. They must dispatch travel through
 `TryCommitTravel` and apply callback results through the token-checked completion
-methods, never through direct navigation. This scaffold does not initiate travel,
-validate world choices, or wire UI; those remain in later children.
+methods, never through direct navigation. The flow coordinator does not validate
+world choices; SM09 supplies its standalone server adapter, while connection
+validation and remote client travel remain in later children.
 
 ## SM03 menu context
 
@@ -421,10 +443,12 @@ complete world or overall compatibility, which remain unknown. Current generator
 revision is labeled as current, not as a value read from the save. World rules
 are unavailable because no saved-world rules source exists. New world sends its
 strictly parsed seed to the server-owned selection gate; exact reuse requires a
-second, revalidated confirmation. New-world creation remains disabled until its
-launch lifecycle is implemented. Back from details returns to the same selection;
-Back from the list restores the player step and Continue focus. Save payloads may
-be read for component checks, but no save is rewritten.
+second, revalidated confirmation. An accepted unlisted seed opens details without
+writing a save. Play solo revalidates either that new seed or the selected listed
+world, then starts standalone gameplay. Back from details returns to the world
+list; Back from the list restores the player step and Continue focus. Save payloads
+may be read for component checks, but no save is rewritten while checking or
+before travel begins.
 
 ## Ordered delivery and acceptance
 
