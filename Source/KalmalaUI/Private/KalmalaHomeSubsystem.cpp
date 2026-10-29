@@ -184,6 +184,11 @@ void UKalmalaHomeSubsystem::Tick(float)
         Release();
         return;
     }
+    if (Flow.GetScreen() == EKalmalaMenuScreen::Gameplay && !Flow.ReturnFromGameplay())
+    {
+        Release();
+        return;
+    }
     if (Flow.GetScreen() == EKalmalaMenuScreen::Inactive) Flow.Activate();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Options && HomeWidget && HomeController == Controller) return;
     if (Flow.GetScreen() == EKalmalaMenuScreen::Join

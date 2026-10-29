@@ -307,10 +307,14 @@ marker, the existing command-line seed behavior remains. Neither launch path
 creates or advertises an OnlineSubsystem session; world generation starts only
 as gameplay begins, and saves follow existing gameplay persistence behavior.
 
-Returning from play waits for existing logout/save completion, tears down the
-session through its owner and returns to Home with gameplay HUD removed. On
-shutdown/failure release widgets, delegates, timers and pending request tokens.
-Never overwrite unrelated main-checkout changes during implementation handoffs.
+Solo return saves the local player's existing server-owned state synchronously
+before opening the dedicated Home map. If persistence fails, the pause menu stays
+open in gameplay and allows a retry. The persistent local menu flow returns to
+Home only after the menu controller is active in that map. Networked client and
+listen-host returns still wait for logout/save completion and session teardown
+through their owner. On shutdown/failure release widgets, delegates, timers and
+pending request tokens. Never overwrite unrelated main-checkout changes during
+implementation handoffs.
 
 ## SM01 runtime mapping
 

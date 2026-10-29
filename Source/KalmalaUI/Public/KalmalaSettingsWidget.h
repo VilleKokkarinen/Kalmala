@@ -179,6 +179,8 @@ private:
     UFUNCTION()
     void HandleQuitClicked();
     UFUNCTION()
+    void HandleReturnToHomeClicked();
+    UFUNCTION()
     void HandleGraphicsClicked();
     UFUNCTION()
     void HandleKeyboardAndMouseClicked();
@@ -236,6 +238,10 @@ private:
 
     UPROPERTY(Transient)
     TObjectPtr<class UVerticalBox> ContentBox;
+    UPROPERTY(Transient)
+    TObjectPtr<UButton> ReturnToHomeButton;
+    UPROPERTY(Transient)
+    TObjectPtr<UTextBlock> ReturnToHomeStatus;
     UPROPERTY(Transient)
     TObjectPtr<UComboBoxString> ResolutionDropdown;
     UPROPERTY(Transient)

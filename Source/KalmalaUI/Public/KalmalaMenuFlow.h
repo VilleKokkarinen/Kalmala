@@ -29,6 +29,7 @@ public:
     bool TryCommitTravel(uint64 Token, TFunctionRef<void()> StartTravel);
     bool CompleteSuccess(uint64 Token);
     bool CompleteFailure(uint64 Token);
+    bool ReturnFromGameplay();
     // Called during owner teardown; never resets the token counter.
     void Shutdown();
 

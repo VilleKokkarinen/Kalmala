@@ -142,6 +142,7 @@ public:
     bool PersistPlayerStateFromServer(class AKalmalaCharacter* Character,
         const FString& AdditionalDiscoveryId = FString(), const FString& AdditionalLearnedEffectId = FString(),
         const FString& AdditionalM9ClaimId = FString());
+    bool TryReturnToHomeFromSolo(class APlayerController* RequestingController);
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
     static FString GetMirelingBossScrollId(uint64 WorldSeed);
@@ -565,6 +566,7 @@ private:
     TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;
     TArray<TWeakObjectPtr<APlayerController>> PendingOceanTravelRestores;
     bool bOceanTravelPersistenceWritable = false;
+    bool bSoloReturnToHomeInProgress = false;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGameV2> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;

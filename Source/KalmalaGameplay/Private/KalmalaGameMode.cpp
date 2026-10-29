@@ -9581,6 +9581,23 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     return true;
 }
 
+bool AKalmalaGameMode::TryReturnToHomeFromSolo(APlayerController* RequestingController)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || World == nullptr || World->GetNetMode() != NM_Standalone
+        || bSoloReturnToHomeInProgress || !IsValid(RequestingController)
+        || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
+        || !RequestingController->IsLocalController()) return false;
+
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(RequestingController->GetPawn());
+    if (!IsValid(Character) || Character->GetWorld() != World || !Character->HasAuthority()
+        || Character->GetController() != RequestingController || !PersistPlayerStateFromServer(Character)) return false;
+
+    bSoloReturnToHomeInProgress = true;
+    UGameplayStatics::OpenLevel(RequestingController, FName(TEXT("/Game/Kalmala/Maps/Menu/L_Menu")), true);
+    return true;
+}
+
 void AKalmalaGameMode::LoadOceanTravelWorldSave()
 {
     bOceanTravelPersistenceWritable = HasAuthority() && WorldGenerationConfig.IsValid();

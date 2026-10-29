@@ -24433,3 +24433,47 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** This increment adds a map asset and compile-only naming/include fixes. It adds no network behavior, gameplay authority changes or save access.
 - **Known limitations:** Home is not yet the default startup map and return travel is not implemented. Unreal emitted the existing DDC and Ocean Skiff startup warnings noted above.
 - **Next eligible task:** SM14.2 — return from solo gameplay after a successful save.
+
+## Run 2026-10-29 — SM14.2 solo return after persistence
+
+- **Selected increment:** Add the solo gameplay return action and restore Home
+  flow after travelling to the dedicated menu map.
+- **Work completed:** The gameplay pause menu now offers Return to Home only in
+  standalone gameplay. The authoritative GameMode validates its local player
+  and character, synchronously persists the existing authenticated player
+  record, and opens `L_Menu` only after persistence succeeds. A failed save
+  leaves the pause menu open with a retry message; a successful request disables
+  the action during travel. The persistent local menu flow transitions from
+  Gameplay to Home after the menu controller becomes active. Added the menu map
+  to the packaged cook list and updated the start-menu return contract.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Config/DefaultGame.ini`,
+  `docs/startmenu.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Private/KalmalaMenuFlow.cpp`,
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaMenuFlow.h`, and
+  `Source/KalmalaUI/Public/KalmalaSettingsWidget.h`.
+- **Backlog state:** SM14.2 is checked after source review and the lightweight
+  whitespace check. SM14 remains unchecked; networked return, round-trip
+  cleanup, startup routing and SM15 acceptance remain outstanding.
+- **Lightweight checks:** `git diff --check` passed. Source inspection confirms
+  the standalone/authority/controller guards, persistence before travel, the
+  failure path retaining gameplay, cook registration of the exact Home map,
+  and the post-travel Gameplay-to-Home transition. The pre-existing catalogue,
+  icon and shortcut edits remain untouched. No build, test suite or automation
+  was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** A solo player can return from the gameplay pause menu
+  to one Home presentation after the existing player save succeeds. Save
+  failure keeps the player in the world and permits a retry.
+- **Networking/authority:** This action is exposed only in standalone gameplay.
+  The authoritative GameMode validates the local controller and pawn before
+  calling the existing server persistence API; networked client and host return
+  paths remain for SM14.3.
+- **Known limitations:** Save failure/success behavior, packaged travel, and
+  repeated round trips have not been exercised in Unreal; those checks remain
+  for SM15. Existing player-save scope is unchanged.
+- **Next eligible task:** SM14.3 — return networked players through the session
+  owner.

@@ -1,4 +1,7 @@
 #include "KalmalaSettingsWidget.h"
+
+#include "Engine/World.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaUITheme.h"
 
 #include "Blueprint/WidgetTree.h"
@@ -1639,10 +1642,22 @@ void UKalmalaSettingsWidget::ShowMainMenu()
 {
     bShowingOptions = false;
     OptionsTabButtons.Reset();
+    ReturnToHomeButton = nullptr;
+    ReturnToHomeStatus = nullptr;
     ApplyHomeMenuPalette();
     ContentBox->ClearChildren();
     UButton* Options = AddButton(ContentBox, FText::FromString(TEXT("Options")), TEXT("OptionsButton"));
     Options->OnClicked.AddDynamic(this, &ThisClass::HandleOptionsClicked);
+    APlayerController* Controller = GetOwningPlayer();
+    UWorld* World = Controller ? Controller->GetWorld() : nullptr;
+    if (World && World->GetNetMode() == NM_Standalone
+        && World->GetAuthGameMode<AKalmalaGameMode>() != nullptr)
+    {
+        ReturnToHomeButton = AddButton(ContentBox, FText::FromString(TEXT("Return to Home")), TEXT("ReturnToHomeButton"));
+        ReturnToHomeButton->OnClicked.AddDynamic(this, &ThisClass::HandleReturnToHomeClicked);
+        ReturnToHomeStatus = AddLabel(ContentBox, FText::GetEmpty(), 16.0f);
+        ReturnToHomeStatus->SetVisibility(ESlateVisibility::Collapsed);
+    }
     UButton* Quit = AddButton(ContentBox, FText::FromString(TEXT("Quit")), TEXT("QuitButton"));
     Quit->OnClicked.AddDynamic(this, &ThisClass::HandleQuitClicked);
     Options->SetUserFocus(GetOwningPlayer());
@@ -2579,6 +2594,24 @@ void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTi
     }
 }
 void UKalmalaSettingsWidget::HandleQuitClicked() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); }
+void UKalmalaSettingsWidget::HandleReturnToHomeClicked()
+{
+    APlayerController* Controller = GetOwningPlayer();
+    UWorld* World = Controller ? Controller->GetWorld() : nullptr;
+    AKalmalaGameMode* GameMode = World ? World->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    if (GameMode && GameMode->TryReturnToHomeFromSolo(Controller))
+    {
+        if (ReturnToHomeButton) ReturnToHomeButton->SetIsEnabled(false);
+        return;
+    }
+
+    if (ReturnToHomeStatus)
+    {
+        ReturnToHomeStatus->SetText(FText::FromString(
+            TEXT("Could not save player state. You are still in this world; try again.")));
+        ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
+    }
+}
 void UKalmalaSettingsWidget::HandleGraphicsClicked() { ShowGraphicsTab(); }
 void UKalmalaSettingsWidget::HandleKeyboardAndMouseClicked() { ShowKeyboardAndMouseTab(); }
 void UKalmalaSettingsWidget::HandleControllerClicked() { ShowControllerTab(); }

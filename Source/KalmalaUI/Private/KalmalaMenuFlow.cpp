@@ -94,6 +94,13 @@ bool FKalmalaMenuFlow::CompleteFailure(const uint64 Token)
     return true;
 }
 
+bool FKalmalaMenuFlow::ReturnFromGameplay()
+{
+    if (Screen != EKalmalaMenuScreen::Gameplay || Phase != EPhase::None) return false;
+    Screen = EKalmalaMenuScreen::Home;
+    return true;
+}
+
 void FKalmalaMenuFlow::Shutdown()
 {
     ClearRequest();

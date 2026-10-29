@@ -93,7 +93,7 @@
     - [x] **SM14.1 — Author the dedicated Home map.**
       - **Implement:** Create an empty `/Game/Kalmala/Maps/Menu/L_Menu` map with `AKalmalaMenuGameMode`; keep packaged startup routing unchanged until return is connected.
       - **Complete when:** The saved map loads with the menu GameMode and no gameplay actors.
-    - [ ] **SM14.2 — Return from solo gameplay after a successful save.**
+    - [x] **SM14.2 — Return from solo gameplay after a successful save.**
       - **Implement:** Add a gameplay return action that persists the local player's state on the authoritative GameMode before travelling to Home; re-enter Home flow after travel.
       - **Complete when:** Failed persistence keeps the player in gameplay, and successful persistence returns to one active Home screen.
     - [ ] **SM14.3 — Return networked players through the session owner.**
