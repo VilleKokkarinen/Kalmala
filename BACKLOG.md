@@ -90,6 +90,21 @@
   - [ ] **SM14 — Enable normal startup and return from play.**
     - **Implement:** Wait for save completion, tear down the owned session and return to Home. Route normal packaged startup into Home.
     - **Complete when:** Explicit server/gameplay startup overrides still work and repeated play/Home round trips leave no duplicate HUD, delegates or input handlers.
+    - [x] **SM14.1 — Author the dedicated Home map.**
+      - **Implement:** Create an empty `/Game/Kalmala/Maps/Menu/L_Menu` map with `AKalmalaMenuGameMode`; keep packaged startup routing unchanged until return is connected.
+      - **Complete when:** The saved map loads with the menu GameMode and no gameplay actors.
+    - [ ] **SM14.2 — Return from solo gameplay after a successful save.**
+      - **Implement:** Add a gameplay return action that persists the local player's state on the authoritative GameMode before travelling to Home; re-enter Home flow after travel.
+      - **Complete when:** Failed persistence keeps the player in gameplay, and successful persistence returns to one active Home screen.
+    - [ ] **SM14.3 — Return networked players through the session owner.**
+      - **Implement:** Validate each client's return request and complete server persistence before the client leaves; when the listen host leaves, persist players and tear down the owned session.
+      - **Complete when:** Clients arrive in local Home after accepted departure, and a host departure ends its listen session without bypassing logout saves.
+    - [ ] **SM14.4 — Clean up repeated gameplay/Home round trips.**
+      - **Implement:** Release stale gameplay HUD, menu widgets, delegates, timers, request tokens and input bindings as travel changes contexts.
+      - **Complete when:** Repeated solo and listen-host round trips recreate one Home presentation and one input/delegate owner per local player.
+    - [ ] **SM14.5 — Route normal packaged startup to Home.**
+      - **Implement:** Use the dedicated menu map as the packaged default while preserving the editor startup map and explicit gameplay/server map and GameMode overrides.
+      - **Complete when:** A packaged launch opens Home and explicit gameplay/server startup still opens the requested gameplay context.
   - [ ] **SM15 — Verify and finalize the complete menu.**
     - **Run:** The integrated acceptance in docs/startmenu.md and applicable builds, automation and packaged-session checks in docs/07-development-setup.md.
     - **Cover:** Fresh launch, world creation/selection, solo return/restart, listen host/client, dedicated join, failures/cancel, save safety, focus and text scaling.

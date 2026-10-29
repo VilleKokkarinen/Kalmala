@@ -42,7 +42,8 @@ void UKalmalaPlayerStepWidget::NativeOnInitialized()
     ScrollSlot->SetOffsets(FMargin(32));
     Column = WidgetTree->ConstructWidget<USizeBox>();
     Column->SetWidthOverride(420.0f);
-    if (UScrollBoxSlot* Slot = Cast<UScrollBoxSlot>(Scroll->AddChild(Column))) Slot->SetHorizontalAlignment(HAlign_Left);
+    if (UScrollBoxSlot* ScrollColumnSlot = Cast<UScrollBoxSlot>(Scroll->AddChild(Column)))
+        ScrollColumnSlot->SetHorizontalAlignment(HAlign_Left);
     UVerticalBox* Content = WidgetTree->ConstructWidget<UVerticalBox>();
     Column->SetContent(Content);
     Title = WidgetTree->ConstructWidget<UTextBlock>();

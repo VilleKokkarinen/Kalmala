@@ -362,9 +362,10 @@ void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
     const float FontSize = Theme.MakeFont(Theme.BodySize, false, UKalmalaSettingsWidget::GetTextScalePercent()).Size;
     const float PanelHeight = Queue.GetRows().Num() * (FontSize * 2 + 28) + Theme.PaddingY * 2;
     FVector2D Position = UKalmalaMinimapWidget::GetDefaultNotificationQueueViewportPosition();
-    if (const ULocalPlayer* LocalPlayer = GetLocalPlayer())
+    if (const ULocalPlayer* QueueLocalPlayer = GetLocalPlayer())
     {
-        if (const UKalmalaMinimapSubsystem* MinimapSubsystem = LocalPlayer->GetSubsystem<UKalmalaMinimapSubsystem>())
+        if (const UKalmalaMinimapSubsystem* MinimapSubsystem =
+            QueueLocalPlayer->GetSubsystem<UKalmalaMinimapSubsystem>())
         {
             if (const UKalmalaMinimapWidget* MinimapWidget = MinimapSubsystem->GetMinimapWidget())
                 Position = MinimapWidget->GetNotificationQueueViewportPosition();

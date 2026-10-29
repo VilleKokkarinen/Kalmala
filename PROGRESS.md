@@ -24405,3 +24405,31 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** Packaged shutdown, keyboard/controller focus movement
   and full menu integration remain unverified until SM15.
 - **Next eligible task:** SM14 — Enable normal startup and return from play.
+
+## Run 2026-10-29 — SM14.1 blocked by stale editor module
+
+- **Selected increment:** Author the dedicated empty Home map.
+- **Work attempted:** Added `Scripts/Create-MenuMap.py` to create or validate `/Game/Kalmala/Maps/Menu/L_Menu` with `AKalmalaMenuGameMode` and no actors. Its Python syntax check passed. The Unreal Python run could not create the map because the available `UnrealEditor-KalmalaGameplay.dll` does not contain `/Script/KalmalaGameplay.KalmalaMenuGameMode`; the source class is newer than that binary. A rebuild in an isolated project copy planned 219 actions, so it was stopped before compiling to preserve the rule that full builds wait for milestone-final verification.
+- **Files changed:** `BACKLOG.md` (SM14 split into ordered children; no child checked), `Scripts/Create-MenuMap.py`, and this progress entry.
+- **Lightweight checks:** Python syntax check passed. Unreal authoring attempt failed before creating an asset because the required reflected class is absent. No build, test suite, or automation completed.
+- **Full verification:** Deferred; this is not milestone-final verification.
+- **Observable impact:** No map or runtime behavior changed. The authoring script is ready to run once an editor build contains the menu GameMode.
+- **Networking/authority:** No networking, gameplay authority, or save behavior changed.
+- **Known limitation/blocker:** SM14.1 requires the menu GameMode to be available to the editor. The checked-in editor module is stale, and refreshing it currently expands to a full 219-action build, which is deferred until milestone-final verification.
+- **Next eligible task:** Resume SM14.1 after a usable editor module containing `AKalmalaMenuGameMode` is available; create and reload the map, verify the mode and empty actor list, then continue with SM14.2.
+
+## Run 2026-10-29 — SM14.1 dedicated Home map
+
+- **Selected increment:** Author the dedicated empty `/Game/Kalmala/Maps/Menu/L_Menu` map.
+- **Work completed:** Built the editor in an isolated mirror after the user authorized an early build exception. Created and saved `L_Menu` with `AKalmalaMenuGameMode`, reloaded it, and validated that it contains no level actors. The map asset was copied into the main checkout and its SHA-256 matched the validated mirror asset. `Config/DefaultEngine.ini` still points normal startup to `L_Prototype`. The map-authoring helper now uses `LevelEditorSubsystem` and `UnrealEditorSubsystem`; the plan records the map while retaining Prototype startup until later SM14 steps.
+- **Editor API cleanup:** The first creation run exposed deprecation warnings for `EditorLevelLibrary.new_level` and `get_editor_world`. Updated the helper to the recommended editor subsystems, confirmed their level creation APIs with a focused mirror probe, and reran saved-map validation successfully. The temporary probe map was removed from the mirror.
+- **Build repairs:** The first 57-action editor build exposed seven `UWidget::Slot`/local-variable shadowing errors across the current menu source and incomplete `ASpectatorPawn`/`AHUD` types in the menu-context automation source. Renamed the seven locals and added direct engine includes. Two incremental rebuild attempts exposed the remaining errors in sequence; the final 7-action `KalmalaEditor Win64 Development` rebuild passed. These repairs do not change behavior.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`, `Content/Kalmala/Maps/Menu/L_Menu.umap`, `Scripts/Create-MenuMap.py`, `Source/KalmalaGameplay/Private/Tests/KalmalaMenuContextTest.cpp`, `Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp`, `Source/KalmalaUI/Private/KalmalaPlayerStepWidget.cpp`, `Source/KalmalaUI/Private/KalmalaSaveInformationWidget.cpp`, `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`, `Source/KalmalaUI/Private/KalmalaCreditsWidget.cpp`, `Source/KalmalaUI/Private/KalmalaExitConfirmationWidget.cpp`, and `Source/KalmalaUI/Private/KalmalaJoinAddressWidget.cpp`.
+- **Backlog state:** SM14.1 is checked because the saved map reloaded with the expected GameMode and empty actor list. SM14 and the overall menu parent remain unchecked.
+- **Lightweight checks:** The authoring script reported successful creation and reload; Unreal Map Check reported zero errors and zero warnings. A focused editor-subsystem probe succeeded. The refreshed script reloaded and validated the saved map with zero errors; Unreal also logged existing Zen DDC unavailability and an invalid material index on the Ocean Skiff default object. `git diff --check` and the Windows path-length checks passed. No test suite or packaged-session acceptance was run.
+- **Build record:** User-authorized early isolated-mirror command: `Build.bat KalmalaEditor Win64 Development -Project=E:\dev\Kalmala\_tmp_km14\Kalmala.uproject -WaitMutex -NoHotReload -NoHotReloadFromIDE -MaxParallelActions=4 -DisableAdaptiveUnity`. The initial attempt failed on the menu compile errors listed above; after the repairs, the final incremental rebuild succeeded in seven actions. Main-checkout `Binaries`, `Intermediate`, `Saved`, and `DerivedDataCache` were not modified.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not milestone-final verification. Full menu, multiplayer, focus/layout and packaged startup checks remain outstanding.
+- **Observable impact:** A dedicated empty Home map now selects the menu GameMode and is ready for SM14 return travel. Default packaged/editor startup behavior remains on Prototype for this increment.
+- **Networking/authority:** This increment adds a map asset and compile-only naming/include fixes. It adds no network behavior, gameplay authority changes or save access.
+- **Known limitations:** Home is not yet the default startup map and return travel is not implemented. Unreal emitted the existing DDC and Ocean Skiff startup warnings noted above.
+- **Next eligible task:** SM14.2 — return from solo gameplay after a successful save.

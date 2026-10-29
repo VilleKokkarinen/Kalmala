@@ -408,10 +408,12 @@ and weather owners recognize the menu controller before doing their gameplay
 work and release existing presentation and input bindings on entry. Settings
 remains available for the shared Options work.
 
-This native context is not yet a startup map or a wired menu. A future dedicated
-empty menu world must explicitly select this mode and its controller; normal
-startup still uses the prototype gameplay map. SM15 must verify live menu/game
-round trips, widget cleanup and recreation, and settings input ownership.
+This native context is not yet wired as the startup map or a complete menu. The
+dedicated empty `/Game/Kalmala/Maps/Menu/L_Menu` world now selects this mode and
+its controller; normal startup still uses the prototype gameplay map until the
+SM14 return and packaged-startup steps are complete. SM15 must verify live
+menu/game round trips, widget cleanup and recreation, and settings input
+ownership.
 
 ## SM04 Home presentation
 
