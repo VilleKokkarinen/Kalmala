@@ -68,6 +68,7 @@
 #include "KalmalaOceanDiscoveryDisembarkPeerTest.h"
 
 #include "Engine/World.h"
+#include "Engine/Engine.h"
 #include "TimerManager.h"
 #include "EngineUtils.h"
 #include "Components/BoxComponent.h"
@@ -9621,6 +9622,84 @@ bool AKalmalaGameMode::TryReturnNetworkClientToHomeFromServer(
     return true;
 }
 
+bool AKalmalaGameMode::TryReturnListenHostToHome(APlayerController* RequestingController)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || World == nullptr || World->GetNetMode() != NM_ListenServer
+        || bListenHostReturnInProgress || !IsValid(RequestingController)
+        || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
+        || !RequestingController->IsLocalController()) return false;
+
+    AKalmalaCharacter* HostCharacter = Cast<AKalmalaCharacter>(RequestingController->GetPawn());
+    if (!IsValid(HostCharacter) || HostCharacter->GetWorld() != World || !HostCharacter->HasAuthority()
+        || HostCharacter->GetController() != RequestingController) return false;
+
+    TArray<APlayerController*> RemoteControllers;
+    bool bFoundRequestingController = false;
+    for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
+    {
+        APlayerController* PlayerController = *Iterator;
+        if (!IsValid(PlayerController) || PlayerController->GetWorld() != World) return false;
+
+        AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PlayerController->GetPawn());
+        if (!IsValid(Character) || Character->GetWorld() != World || !Character->HasAuthority()
+            || Character->GetController() != PlayerController) return false;
+
+        bFoundRequestingController |= PlayerController == RequestingController;
+        if (!PlayerController->IsLocalController())
+        {
+            if (PlayerController->GetNetConnection() == nullptr) return false;
+            RemoteControllers.Add(PlayerController);
+        }
+
+        if (!PersistPlayerStateFromServer(Character)) return false;
+    }
+    if (!bFoundRequestingController) return false;
+
+    bListenHostReturnInProgress = true;
+    ListenHostReturningController = RequestingController;
+    PendingListenHostReturnClients.Reset();
+    for (APlayerController* RemoteController : RemoteControllers)
+        PendingListenHostReturnClients.Add(TWeakObjectPtr<APlayerController>(RemoteController));
+
+    for (APlayerController* RemoteController : RemoteControllers)
+    {
+        if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(RemoteController->GetPawn()))
+            Character->ClientReturnToHomeResult(true);
+    }
+
+    if (PendingListenHostReturnClients.IsEmpty())
+    {
+        World->GetTimerManager().SetTimerForNextTick(
+            FTimerDelegate::CreateUObject(this, &AKalmalaGameMode::CompleteListenHostReturn));
+    }
+    return true;
+}
+
+void AKalmalaGameMode::CompleteListenHostReturn()
+{
+    UWorld* World = GetWorld();
+    APlayerController* HostController = ListenHostReturningController.Get();
+    if (!HasAuthority() || World == nullptr || !bListenHostReturnInProgress
+        || !PendingListenHostReturnClients.IsEmpty() || !IsValid(HostController)
+        || HostController->GetWorld() != World || !HostController->IsLocalController()) return;
+
+    if (World->GetNetDriver() != nullptr && GEngine != nullptr)
+        GEngine->DestroyNamedNetDriver(World, NAME_GameNetDriver);
+
+    if (World->GetNetDriver() != nullptr)
+    {
+        World->GetTimerManager().SetTimerForNextTick(
+            FTimerDelegate::CreateUObject(this, &AKalmalaGameMode::CompleteListenHostReturn));
+        return;
+    }
+
+    PendingListenHostReturnClients.Reset();
+    ListenHostReturningController.Reset();
+    bListenHostReturnInProgress = false;
+    UGameplayStatics::OpenLevel(HostController, FName(TEXT("/Game/Kalmala/Maps/Menu/L_Menu")), true);
+}
+
 void AKalmalaGameMode::LoadOceanTravelWorldSave()
 {
     bOceanTravelPersistenceWritable = HasAuthority() && WorldGenerationConfig.IsValid();
@@ -10704,14 +10783,28 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
 
 void AKalmalaGameMode::Logout(AController* Exiting)
 {
+    bool bCompleteListenHostReturn = false;
     if (HasAuthority() && Exiting != nullptr)
     {
         if (APlayerController* PlayerController = Cast<APlayerController>(Exiting))
+        {
             PendingNetworkHomeReturns.Remove(TWeakObjectPtr<APlayerController>(PlayerController));
+            bCompleteListenHostReturn = bListenHostReturnInProgress
+                && PendingListenHostReturnClients.Remove(TWeakObjectPtr<APlayerController>(PlayerController)) > 0
+                && PendingListenHostReturnClients.IsEmpty();
+        }
         if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(Exiting->GetPawn()))
             PersistPlayerStateFromServer(Character);
     }
     Super::Logout(Exiting);
+    if (bCompleteListenHostReturn)
+    {
+        if (UWorld* World = GetWorld())
+        {
+            World->GetTimerManager().SetTimerForNextTick(
+                FTimerDelegate::CreateUObject(this, &AKalmalaGameMode::CompleteListenHostReturn));
+        }
+    }
 }
 
 void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)

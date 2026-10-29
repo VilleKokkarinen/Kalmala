@@ -314,7 +314,10 @@ Home only after the menu controller is active in that map. A network client asks
 the server through its owning character; the server validates that character and
 controller, saves the existing authenticated player record, and only then sends
 the client to local Home. A rejected save leaves the client connected and able to
-retry. Listen-host session teardown remains a separate return path. On
+retry. The listen host saves every active player's existing record before
+requesting remote clients to return locally. It waits for their disconnects,
+retains the existing logout saves, closes its listen net driver, and then opens
+Home locally. A failed initial save leaves the session active and retryable. On
 shutdown/failure release widgets, delegates, timers and pending request tokens.
 Never overwrite unrelated main-checkout changes during implementation handoffs.
 

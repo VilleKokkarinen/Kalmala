@@ -1664,9 +1664,13 @@ void UKalmalaSettingsWidget::ShowMainMenu()
     Options->OnClicked.AddDynamic(this, &ThisClass::HandleOptionsClicked);
     APlayerController* Controller = GetOwningPlayer();
     UWorld* World = Controller ? Controller->GetWorld() : nullptr;
-    if (World && ((World->GetNetMode() == NM_Standalone
-            && World->GetAuthGameMode<AKalmalaGameMode>() != nullptr)
-        || World->GetNetMode() == NM_Client))
+    const bool bCanReturnFromStandalone = World && World->GetNetMode() == NM_Standalone
+        && World->GetAuthGameMode<AKalmalaGameMode>() != nullptr;
+    const bool bCanReturnFromListenHost = World && World->GetNetMode() == NM_ListenServer
+        && Controller != nullptr && Controller->IsLocalController()
+        && World->GetAuthGameMode<AKalmalaGameMode>() != nullptr;
+    if (bCanReturnFromStandalone || bCanReturnFromListenHost
+        || (World && World->GetNetMode() == NM_Client))
     {
         ReturnToHomeButton = AddButton(ContentBox, FText::FromString(TEXT("Return to Home")), TEXT("ReturnToHomeButton"));
         ReturnToHomeButton->OnClicked.AddDynamic(this, &ThisClass::HandleReturnToHomeClicked);
@@ -2632,6 +2636,30 @@ void UKalmalaSettingsWidget::HandleReturnToHomeClicked()
             Character->RequestReturnToHome();
             return;
         }
+    }
+
+    if (World && World->GetNetMode() == NM_ListenServer)
+    {
+        AKalmalaGameMode* GameMode = World->GetAuthGameMode<AKalmalaGameMode>();
+        if (GameMode && GameMode->TryReturnListenHostToHome(Controller))
+        {
+            if (ReturnToHomeButton) ReturnToHomeButton->SetIsEnabled(false);
+            if (ReturnToHomeStatus)
+            {
+                ReturnToHomeStatus->SetText(FText::FromString(
+                    TEXT("Returning players to Home and ending this session...")));
+                ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
+            }
+            return;
+        }
+
+        if (ReturnToHomeStatus)
+        {
+            ReturnToHomeStatus->SetText(FText::FromString(
+                TEXT("Could not save every player's state. This session is still active; try again.")));
+            ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
+        }
+        return;
     }
 
     AKalmalaGameMode* GameMode = World ? World->GetAuthGameMode<AKalmalaGameMode>() : nullptr;

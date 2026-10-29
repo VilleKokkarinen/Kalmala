@@ -145,6 +145,7 @@ public:
     bool TryReturnToHomeFromSolo(class APlayerController* RequestingController);
     bool TryReturnNetworkClientToHomeFromServer(class APlayerController* RequestingController,
         class AKalmalaCharacter* Character);
+    bool TryReturnListenHostToHome(class APlayerController* RequestingController);
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
     static FString GetMirelingBossScrollId(uint64 WorldSeed);
@@ -541,6 +542,7 @@ private:
     void TryCaptureBiomeBaselineView(class APlayerController* LocalController);
     void SpawnOceanTravelTestFixture();
     void LoadOceanTravelWorldSave();
+    void CompleteListenHostReturn();
     void RestorePersistedOceanSkiff();
     void RestoreOceanTravelForPlayer(class APlayerController* PlayerController);
     void LoadOceanDiscoveryLedger(class AKalmalaCharacter* Interactor);
@@ -568,8 +570,11 @@ private:
     TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;
     TArray<TWeakObjectPtr<APlayerController>> PendingOceanTravelRestores;
     TSet<TWeakObjectPtr<APlayerController>> PendingNetworkHomeReturns;
+    TSet<TWeakObjectPtr<APlayerController>> PendingListenHostReturnClients;
+    TWeakObjectPtr<APlayerController> ListenHostReturningController;
     bool bOceanTravelPersistenceWritable = false;
     bool bSoloReturnToHomeInProgress = false;
+    bool bListenHostReturnInProgress = false;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGameV2> ConstructionSaveGame;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaStorageSaveGame> StorageSaveGame;
     FVector2D TerrainPatchOrigin = FVector2D::ZeroVector;

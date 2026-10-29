@@ -24519,3 +24519,47 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   packaged startup and integrated acceptance remain outstanding.
 - **Next eligible task:** SM14.3.2 — return the listen host through session
   teardown.
+
+## Run 2026-10-29 — SM14.3.2 listen-host return through session teardown
+
+- **Selected increment:** Save every active player's existing state, return
+  remote clients to local Home, and close the listen host's session before its
+  local Home travel.
+- **Work completed:** The listen host now sees Return to Home in the gameplay
+  pause menu. The authoritative GameMode validates the local host and every
+  active player controller/pawn, then synchronously persists each existing
+  player record. A failed save leaves all clients in the active session and
+  keeps the action retryable. After all saves succeed, the server sends each
+  remote owner the existing successful Home-return RPC and waits for their
+  logout callbacks. The existing logout save still runs before `Super::Logout`.
+  Once all remote clients have left, the GameMode destroys the listen
+  `NAME_GameNetDriver` and opens Home for the host; with no remote clients it
+  schedules that same teardown on the next tick.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, and
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`.
+- **Backlog state:** SM14.3.2 and its parent SM14.3 are checked after source
+  inspection and the lightweight whitespace check. SM14 remains unchecked;
+  repeated-round-trip cleanup, packaged startup and final acceptance remain.
+- **Lightweight checks:** `git diff --check` passed. Source inspection confirmed
+  all player saves precede client return RPCs, the host waits until each remote
+  controller logs out before destroying the listen driver, host travel is queued
+  only after that driver is gone, and the existing logout persistence still
+  precedes `Super::Logout`. The installed UE 5.8 source confirms the named-driver
+  teardown and next-tick timer APIs. No build, test suite or Unreal runtime
+  automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** The listen host can return all connected players to
+  local Home after server persistence, then relinquish the listen session and
+  enter Home itself. An initial save failure leaves the session intact.
+- **Networking/authority:** Player enumeration, persistence, client return
+  notifications and listen-driver teardown remain server-controlled. Remote
+  players open Home only through their owning client RPC after the server has
+  saved the full active roster.
+- **Known limitations:** Host/client success, failure and disconnect behavior
+  have not been exercised in Unreal. The host waits for all requested remote
+  clients to disconnect before travel; network/runtime handling remains for
+  SM15 acceptance.
+- **Next eligible task:** SM14.4 — clean up repeated gameplay/Home round trips.
