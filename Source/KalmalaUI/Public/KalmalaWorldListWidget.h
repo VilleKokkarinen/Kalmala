@@ -35,6 +35,7 @@ public:
     FKalmalaWorldListReturnToWorlds& OnReturnToWorldsRequested() { return ReturnToWorldsRequested; }
     void FocusBack();
     void FocusPrimary();
+    /** Opens consent after the server reports an exact current-revision candidate. */
     bool BeginWorldReuseConfirmation(uint64 Seed);
     bool ShowNewWorldSeedEntry();
     bool ShowWorldDetails(uint64 Seed);
@@ -42,6 +43,7 @@ public:
 
 protected:
     virtual void NativeOnInitialized() override;
+    virtual void NativeDestruct() override;
     virtual void NativeTick(const FGeometry& Geometry, float DeltaTime) override;
     virtual FReply NativeOnKeyDown(const FGeometry& Geometry, const FKeyEvent& Event) override;
 
@@ -52,7 +54,10 @@ private:
     void BuildWorldReuseConfirmation();
     void RefreshTheme();
     void RefreshWorldRecords();
-    bool HasExactCurrentReuseCandidate(uint64 Seed) const;
+    void RequestServerWorldSeedSelection(uint64 Seed, bool bConfirmedExisting);
+    void CancelPendingWorldSeedSelectionRequest();
+    void HandleServerWorldSeedSelectionResult(uint64 RequestToken, uint64 Seed, bool bAccepted,
+        EKalmalaLocalWorldSaveListingAvailability Availability, EKalmalaWorldSeedReuseDecision Decision);
     UFUNCTION() void HandleBack();
     UFUNCTION() void HandleNewWorldRequested();
     UFUNCTION() void HandleSeedCheck();
@@ -89,10 +94,15 @@ private:
     EKalmalaLocalWorldSaveListingAvailability ListingAvailability = EKalmalaLocalWorldSaveListingAvailability::Unsupported;
     uint64 SelectedSeed = 0;
     uint64 PendingReuseSeed = 0;
+    uint64 NextWorldSeedRequestToken = 1;
+    uint64 PendingWorldSeedRequestToken = 0;
+    uint64 PendingWorldSeedRequestSeed = 0;
     bool bHasSelectedWorld = false;
     bool bShowingNewWorldSeedEntry = false;
     bool bShowingDetails = false;
     bool bShowingReuseConfirmation = false;
+    bool bPendingWorldSeedRequestIsConfirmation = false;
+    bool bAwaitingWorldSeedRequest = false;
     int32 LastTextScale = -1;
     int32 LastContrast = -2;
     bool bLastReducedMotion = false;

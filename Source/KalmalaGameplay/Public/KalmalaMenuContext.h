@@ -5,14 +5,35 @@
 #include "KalmalaLocalWorldSaveListing.h"
 #include "KalmalaMenuContext.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_FiveParams(FKalmalaMenuWorldSeedSelectionResult,
+    uint64, uint64, bool, EKalmalaLocalWorldSaveListingAvailability, EKalmalaWorldSeedReuseDecision);
+
 /** Identifies the dedicated local menu context to persistent local-player systems. */
 UCLASS()
 class KALMALAGAMEPLAY_API AKalmalaMenuPlayerController : public APlayerController
 {
     GENERATED_BODY()
+public:
+    void RequestWorldSeedSelection(uint64 Seed, bool bConfirmedExisting, uint64 RequestToken);
+    FKalmalaMenuWorldSeedSelectionResult& OnWorldSeedSelectionResult() { return WorldSeedSelectionResult; }
+
 protected:
     virtual void SpawnDefaultHUD() override;
     virtual ASpectatorPawn* SpawnSpectatorPawn() override;
+
+private:
+    UFUNCTION(Server, Reliable)
+    void ServerRequestWorldSeedSelection(uint64 Seed, bool bConfirmedExisting, uint64 RequestToken);
+
+    UFUNCTION(Client, Reliable)
+    void ClientWorldSeedSelectionResult(uint64 Seed, uint64 RequestToken, bool bAccepted,
+        uint8 Availability, uint8 Decision);
+
+    void ProcessWorldSeedSelectionRequest(uint64 Seed, bool bConfirmedExisting, uint64 RequestToken);
+    void PublishWorldSeedSelectionResult(uint64 Seed, uint64 RequestToken, bool bAccepted,
+        EKalmalaLocalWorldSaveListingAvailability Availability, EKalmalaWorldSeedReuseDecision Decision);
+
+    FKalmalaMenuWorldSeedSelectionResult WorldSeedSelectionResult;
 };
 
 /** Lightweight front-end mode. It never starts the gameplay world or spawns a player pawn. */

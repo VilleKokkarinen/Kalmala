@@ -183,11 +183,14 @@ No free-form seed hashing or new metadata save file. Duplicate seed/revision
 identities select the existing world after confirmation rather than overwrite it.
 Do not claim multiple independently named copies of the same seed are supported.
 The current runtime has no fresh-seed helper or validated creation lifecycle.
-Until lifecycle integration exists, the New world entry accepts an explicit
-decimal seed only to check for an exact listed current-revision identity. It
-opens the existing read-only details after confirmation; missing or uncertain
-matches explain why reuse is unavailable. The seed check does not create or write
-a save, and fresh-world creation remains disabled.
+The New world entry strictly parses an explicit decimal seed, then sends the
+typed uint64 and the user's confirmation through the menu controller to the
+server. The first request may accept an unlisted seed as the pending new-world
+selection, but creation remains unavailable. For an exact listed current-revision
+identity, the server asks the UI to confirm; the confirmation sends a second
+request that re-enumerates server-local slots. Only an accepted exact match opens
+read-only details. Missing or uncertain matches explain why reuse is unavailable.
+No seed check creates, loads, overwrites or writes a save.
 
 World rules initially displays the existing supported configuration read-only.
 There are no new difficulty multipliers, free-material building or cheat presets.
@@ -273,8 +276,11 @@ conflicting revisions fail closed. Rejected authoritative requests leave no
 pending selection.
 The accepted seed and whether it reuses an existing identity remain in menu
 GameMode memory; this gate does not load, create, overwrite, save or travel. The
-New world UI and network request do not call it yet, so world creation remains
-unavailable.
+menu controller routes remote requests through reliable server/client RPCs and
+correlates replies with the UI request token. Only the server-local menu
+controller may select a world seed; other clients cannot change the host's
+selection. The New world screen now uses this request path. New-seed creation
+and gameplay travel remain unavailable.
 
 Returning from play waits for existing logout/save completion, tears down the
 session through its owner and returns to Home with gameplay HUD removed. On
@@ -413,11 +419,12 @@ accepted, rejected, or absent under its existing identity rules; ocean travel is
 checked against the current revision slot only. These checks do not establish a
 complete world or overall compatibility, which remain unknown. Current generator
 revision is labeled as current, not as a value read from the save. World rules
-are unavailable because no saved-world rules source exists. New world can check
-an explicit seed only when save-name enumeration is supported; creation remains
-disabled until its validated lifecycle path exists. Back from details returns to
-the same selection; Back from the list restores the player step and Continue
-focus. Save payloads may be read for component checks, but no save is rewritten.
+are unavailable because no saved-world rules source exists. New world sends its
+strictly parsed seed to the server-owned selection gate; exact reuse requires a
+second, revalidated confirmation. New-world creation remains disabled until its
+launch lifecycle is implemented. Back from details returns to the same selection;
+Back from the list restores the player step and Continue focus. Save payloads may
+be read for component checks, but no save is rewritten.
 
 ## Ordered delivery and acceptance
 

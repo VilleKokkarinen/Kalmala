@@ -24046,3 +24046,44 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   World creation, loading, travel and end-to-end confirmation remain incomplete.
 - **Next eligible task:** Continue SM08 by connecting the seed-entry and
   confirmation flow to this validated server request.
+
+## Run 2026-10-29 — SM08 New world server request
+
+- **Selected increment:** Connect seed entry and exact-reuse confirmation to
+  the server-owned world seed selection gate.
+- **Work completed:** Added reliable server/client selection RPCs to the menu
+  player controller. The server accepts selection only from its local menu
+  controller and calls the existing GameMode gate against server-local save
+  slots. The UI now sends only its strictly parsed uint64 seed, confirmation
+  choice and a request token; it ignores stale replies, requests confirmation
+  only when the server reports an exact current-revision identity, then
+  revalidates on confirmation before opening read-only details. Unlisted seeds
+  can be retained as pending selections, while world creation remains
+  unavailable. The SM08 implementation criteria are satisfied, so the SM08
+  child and parent were checked; the overall menu parent remains unchecked
+  until SM15 acceptance.
+- **Files changed:** `BACKLOG.md`,
+  `Source/KalmalaGameplay/Public/KalmalaMenuContext.h`,
+  `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp`,
+  `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `docs/startmenu.md`, and `PROGRESS.md`.
+- **Checks:** Focused source assertions and `git diff --check` passed. No Unreal
+  build or automation test was run. Full UI/network verification is deferred
+  to SM15 integrated acceptance. Changed paths are below the Windows path
+  limit.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** The New world flow no longer decides duplicate reuse
+  from its local listing. The server re-enumerates its own recognized slots;
+  confirmed exact reuse opens existing read-only details, and no save is
+  overwritten.
+- **Networking/authority:** Requests use reliable controller RPCs with a
+  request token for stale-response rejection. The server does not accept
+  client-reported slot records and only its local menu controller can select
+  a world seed. No save writes or travel were added.
+- **Known limitations:** Selecting an unlisted seed only records a pending
+  server selection. World creation/loading/travel is not wired yet and remains
+  for SM09 and later launch work. Rendered UI and runtime RPC behavior remain
+  unverified.
+- **Next eligible task:** SM09 — Connect solo play.

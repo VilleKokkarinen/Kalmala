@@ -17,6 +17,7 @@
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateTypes.h"
 #include "KalmalaHomeWidget.h"
+#include "KalmalaMenuContext.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaUITheme.h"
@@ -57,7 +58,7 @@ const TCHAR* UKalmalaWorldListWidget::EmptyOrUnavailableMessage(const EKalmalaWo
 FString UKalmalaWorldListWidget::ReuseConfirmationMessage(const uint64 Seed, const int32 GeneratorRevision)
 {
     return FString::Printf(
-        TEXT("A recognized ocean-travel slot name lists world seed %llu at generator revision %d. "
+        TEXT("The server found a recognized ocean-travel slot name for world seed %llu at generator revision %d. "
              "The save contents have not been validated. This opens details only and will not change saves."),
         Seed, GeneratorRevision);
 }
@@ -78,7 +79,7 @@ const TCHAR* UKalmalaWorldListWidget::SeedCheckResultMessage(
     }
 
     if (Availability == EKalmalaLocalWorldSaveListingAvailability::Unsupported)
-        return TEXT("Local world-save listing is unsupported, so this seed cannot be checked safely.");
+        return TEXT("The server could not check this seed safely. World listing may be unavailable or this request may not be authorized.");
 
     switch (Decision)
     {
@@ -95,6 +96,8 @@ const TCHAR* UKalmalaWorldListWidget::SeedCheckResultMessage(
 void UKalmalaWorldListWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
+    if (AKalmalaMenuPlayerController* Controller = Cast<AKalmalaMenuPlayerController>(GetOwningPlayer()))
+        Controller->OnWorldSeedSelectionResult().AddUObject(this, &ThisClass::HandleServerWorldSeedSelectionResult);
     if (!WidgetTree || WidgetTree->RootWidget) return;
     UCanvasPanel* Canvas = WidgetTree->ConstructWidget<UCanvasPanel>();
     WidgetTree->RootWidget = Canvas;
@@ -114,6 +117,14 @@ void UKalmalaWorldListWidget::NativeOnInitialized()
 
     RefreshWorldRecords();
     BuildWorldList();
+}
+
+void UKalmalaWorldListWidget::NativeDestruct()
+{
+    CancelPendingWorldSeedSelectionRequest();
+    if (AKalmalaMenuPlayerController* Controller = Cast<AKalmalaMenuPlayerController>(GetOwningPlayer()))
+        Controller->OnWorldSeedSelectionResult().RemoveAll(this);
+    Super::NativeDestruct();
 }
 
 void UKalmalaWorldListWidget::RefreshWorldRecords()
@@ -255,8 +266,8 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
 
     Message = WidgetTree->ConstructWidget<UTextBlock>();
     Message->SetText(FText::FromString(TEXT(
-        "Enter a decimal seed to check for a listed current generator revision. Matching slot names do not prove a complete world. "
-        "Fresh-world creation is unavailable; this screen will not create or change saves.")));
+        "Enter a decimal seed to check it with the server. Reusing an exact current-revision match requires confirmation. "
+        "Matching slot names do not prove a complete world. Fresh-world creation is unavailable; no save will be created or changed.")));
     Message->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(Message)->SetPadding(FMargin(0, 0, 0, 16));
 
@@ -278,13 +289,13 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
     Content->AddChildToVerticalBox(SeedInput)->SetPadding(FMargin(0, 0, 0, 10));
 
     CreationStatus = WidgetTree->ConstructWidget<UTextBlock>();
-    CreationStatus->SetText(FText::FromString(TEXT("Only an exact listed match can be opened after confirmation.")));
+    CreationStatus->SetText(FText::FromString(TEXT("Check a decimal seed with the server. Reuse opens read-only details after confirmation.")));
     CreationStatus->SetAutoWrapText(true);
     Content->AddChildToVerticalBox(CreationStatus)->SetPadding(FMargin(0, 0, 0, 12));
 
     SeedCheckButton = WidgetTree->ConstructWidget<UKalmalaThemedButton>();
     UTextBlock* CheckLabel = WidgetTree->ConstructWidget<UTextBlock>();
-    CheckLabel->SetText(FText::FromString(TEXT("Check existing seed")));
+    CheckLabel->SetText(FText::FromString(TEXT("Check seed")));
     CheckLabel->SetAutoWrapText(true);
     CheckLabel->SetJustification(ETextJustify::Center);
     SeedCheckButton->SetContent(CheckLabel);
@@ -512,6 +523,8 @@ void UKalmalaWorldListWidget::FocusPrimary()
 
 bool UKalmalaWorldListWidget::ShowWorldDetails(const uint64 Seed)
 {
+    CancelPendingWorldSeedSelectionRequest();
+    RefreshWorldRecords();
     if (!FindWorld(Seed)) return false;
     bShowingReuseConfirmation = false;
     bShowingNewWorldSeedEntry = false;
@@ -522,22 +535,13 @@ bool UKalmalaWorldListWidget::ShowWorldDetails(const uint64 Seed)
     return bShowingDetails;
 }
 
-bool UKalmalaWorldListWidget::HasExactCurrentReuseCandidate(const uint64 Seed) const
-{
-    FKalmalaWorldGenerationConfig Config;
-    Config.WorldSeed = Seed;
-    const FKalmalaWorldDescriptor Descriptor = FKalmalaWorldDescriptorAdapter::Describe(Config);
-    return Descriptor.IdentityRevisionAvailability == EKalmalaWorldMetadataAvailability::Available
-        && FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
-            ListingAvailability, WorldRecords, Seed, Descriptor.CurrentIdentityRevision)
-            == EKalmalaWorldSeedReuseDecision::ConfirmExisting;
-}
-
 bool UKalmalaWorldListWidget::BeginWorldReuseConfirmation(const uint64 Seed)
 {
     if (!WidgetTree || !Content || bShowingDetails || bShowingReuseConfirmation) return false;
-    RefreshWorldRecords();
-    if (!HasExactCurrentReuseCandidate(Seed)) return false;
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = Seed;
+    const FKalmalaWorldDescriptor Descriptor = FKalmalaWorldDescriptorAdapter::Describe(Config);
+    if (Descriptor.IdentityRevisionAvailability != EKalmalaWorldMetadataAvailability::Available) return false;
 
     PendingReuseSeed = Seed;
     bShowingNewWorldSeedEntry = false;
@@ -549,22 +553,14 @@ bool UKalmalaWorldListWidget::BeginWorldReuseConfirmation(const uint64 Seed)
 
 void UKalmalaWorldListWidget::HandleReuseConfirmed()
 {
-    if (!bShowingReuseConfirmation) return;
-    RefreshWorldRecords();
-    if (!HasExactCurrentReuseCandidate(PendingReuseSeed))
-    {
-        HandleReuseCancelled();
-        return;
-    }
-
-    const uint64 Seed = PendingReuseSeed;
-    if (WorldSelected.IsBound()) WorldSelected.Broadcast(Seed);
-    else ShowWorldDetails(Seed);
+    if (!bShowingReuseConfirmation || bAwaitingWorldSeedRequest) return;
+    RequestServerWorldSeedSelection(PendingReuseSeed, true);
 }
 
 void UKalmalaWorldListWidget::HandleReuseCancelled()
 {
     if (!bShowingReuseConfirmation) return;
+    CancelPendingWorldSeedSelectionRequest();
     bShowingReuseConfirmation = false;
     PendingReuseSeed = 0;
     if (ReturnToWorldsRequested.IsBound()) ReturnToWorldsRequested.Broadcast();
@@ -577,6 +573,7 @@ void UKalmalaWorldListWidget::HandleReuseCancelled()
 
 void UKalmalaWorldListWidget::ShowWorldList()
 {
+    CancelPendingWorldSeedSelectionRequest();
     RefreshWorldRecords();
     BuildWorldList();
 }
@@ -585,11 +582,118 @@ bool UKalmalaWorldListWidget::ShowNewWorldSeedEntry()
 {
     if (!WidgetTree || !Content || ListingAvailability != EKalmalaLocalWorldSaveListingAvailability::Supported)
         return false;
+    CancelPendingWorldSeedSelectionRequest();
     bShowingNewWorldSeedEntry = true;
     bShowingReuseConfirmation = false;
     PendingReuseSeed = 0;
     BuildNewWorldSeedEntry();
     return SeedInput != nullptr;
+}
+
+void UKalmalaWorldListWidget::RequestServerWorldSeedSelection(const uint64 Seed, const bool bConfirmedExisting)
+{
+    if (bAwaitingWorldSeedRequest) return;
+
+    AKalmalaMenuPlayerController* Controller = Cast<AKalmalaMenuPlayerController>(GetOwningPlayer());
+    if (!Controller)
+    {
+        const FText Unavailable = FText::FromString(TEXT("The server world-selection service is unavailable. No save was changed."));
+        if (CreationStatus) CreationStatus->SetText(Unavailable);
+        else if (Message) Message->SetText(Unavailable);
+        return;
+    }
+    if (NextWorldSeedRequestToken == 0)
+    {
+        const FText Exhausted = FText::FromString(TEXT("This menu can no longer check seeds. Return to Home and reopen it."));
+        if (CreationStatus) CreationStatus->SetText(Exhausted);
+        else if (Message) Message->SetText(Exhausted);
+        return;
+    }
+
+    const uint64 RequestToken = NextWorldSeedRequestToken;
+    NextWorldSeedRequestToken = RequestToken == MAX_uint64 ? 0 : RequestToken + 1;
+    PendingWorldSeedRequestToken = RequestToken;
+    PendingWorldSeedRequestSeed = Seed;
+    bPendingWorldSeedRequestIsConfirmation = bConfirmedExisting;
+    bAwaitingWorldSeedRequest = true;
+
+    if (SeedCheckButton) SeedCheckButton->SetIsEnabled(false);
+    if (ReuseConfirmButton) ReuseConfirmButton->SetIsEnabled(false);
+    const FText Checking = FText::FromString(bConfirmedExisting
+        ? TEXT("Rechecking the existing world with the server...")
+        : TEXT("Checking this seed with the server..."));
+    if (CreationStatus) CreationStatus->SetText(Checking);
+    else if (Message) Message->SetText(Checking);
+
+    Controller->RequestWorldSeedSelection(Seed, bConfirmedExisting, RequestToken);
+}
+
+void UKalmalaWorldListWidget::CancelPendingWorldSeedSelectionRequest()
+{
+    bAwaitingWorldSeedRequest = false;
+    PendingWorldSeedRequestToken = 0;
+    PendingWorldSeedRequestSeed = 0;
+    bPendingWorldSeedRequestIsConfirmation = false;
+    if (SeedCheckButton) SeedCheckButton->SetIsEnabled(true);
+    if (ReuseConfirmButton) ReuseConfirmButton->SetIsEnabled(true);
+}
+
+void UKalmalaWorldListWidget::HandleServerWorldSeedSelectionResult(const uint64 RequestToken,
+    const uint64 Seed, const bool bAccepted, const EKalmalaLocalWorldSaveListingAvailability Availability,
+    const EKalmalaWorldSeedReuseDecision Decision)
+{
+    if (!bAwaitingWorldSeedRequest || RequestToken != PendingWorldSeedRequestToken
+        || Seed != PendingWorldSeedRequestSeed) return;
+
+    const bool bWasConfirmation = bPendingWorldSeedRequestIsConfirmation;
+    CancelPendingWorldSeedSelectionRequest();
+
+    if (bWasConfirmation)
+    {
+        if (bAccepted && Availability == EKalmalaLocalWorldSaveListingAvailability::Supported
+            && Decision == EKalmalaWorldSeedReuseDecision::ConfirmExisting)
+        {
+            bShowingReuseConfirmation = false;
+            PendingReuseSeed = 0;
+            if (WorldSelected.IsBound()) WorldSelected.Broadcast(Seed);
+            else ShowWorldDetails(Seed);
+            return;
+        }
+
+        bShowingReuseConfirmation = false;
+        PendingReuseSeed = 0;
+        bShowingNewWorldSeedEntry = true;
+        BuildNewWorldSeedEntry();
+        if (SeedInput) SeedInput->SetText(FText::FromString(FString::Printf(TEXT("%llu"), Seed)));
+        if (CreationStatus)
+        {
+            CreationStatus->SetText(FText::FromString(SeedCheckResultMessage(
+                EKalmalaWorldSeedParseResult::Success, Availability, Decision)));
+        }
+        FocusWidget(SeedInput);
+        return;
+    }
+
+    if (bAccepted && Availability == EKalmalaLocalWorldSaveListingAvailability::Supported
+        && Decision == EKalmalaWorldSeedReuseDecision::NoKnownRecord)
+    {
+        if (CreationStatus)
+            CreationStatus->SetText(FText::FromString(TEXT(
+                "The server accepted this seed for a new world. World creation is not connected yet; nothing was created.")));
+        FocusWidget(SeedInput);
+        return;
+    }
+
+    if (!bAccepted && Availability == EKalmalaLocalWorldSaveListingAvailability::Supported
+        && Decision == EKalmalaWorldSeedReuseDecision::ConfirmExisting
+        && BeginWorldReuseConfirmation(Seed)) return;
+
+    if (CreationStatus)
+    {
+        CreationStatus->SetText(FText::FromString(SeedCheckResultMessage(
+            EKalmalaWorldSeedParseResult::Success, Availability, Decision)));
+    }
+    FocusWidget(SeedInput);
 }
 
 void UKalmalaWorldListWidget::HandleWorldSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
@@ -617,7 +721,7 @@ void UKalmalaWorldListWidget::HandleNewWorldRequested()
 
 void UKalmalaWorldListWidget::HandleSeedCheck()
 {
-    if (!bShowingNewWorldSeedEntry || !SeedInput || !CreationStatus) return;
+    if (!bShowingNewWorldSeedEntry || !SeedInput || !CreationStatus || bAwaitingWorldSeedRequest) return;
     const auto ShowStatus = [this](const TCHAR* Text)
     {
         CreationStatus->SetText(FText::FromString(Text));
@@ -634,26 +738,7 @@ void UKalmalaWorldListWidget::HandleSeedCheck()
         return;
     }
 
-    RefreshWorldRecords();
-    FKalmalaWorldGenerationConfig Config;
-    Config.WorldSeed = Seed;
-    const FKalmalaWorldDescriptor Descriptor = FKalmalaWorldDescriptorAdapter::Describe(Config);
-    if (Descriptor.IdentityRevisionAvailability != EKalmalaWorldMetadataAvailability::Available)
-    {
-        ShowStatus(TEXT("The current generator revision is unavailable, so this seed cannot be checked safely."));
-        return;
-    }
-
-    EKalmalaWorldSeedReuseDecision Decision = FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
-        ListingAvailability, WorldRecords, Seed, Descriptor.CurrentIdentityRevision);
-    if (Decision == EKalmalaWorldSeedReuseDecision::ConfirmExisting)
-    {
-        if (BeginWorldReuseConfirmation(Seed)) return;
-        Decision = FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
-            ListingAvailability, WorldRecords, Seed, Descriptor.CurrentIdentityRevision);
-    }
-
-    ShowStatus(SeedCheckResultMessage(ParseResult, ListingAvailability, Decision));
+    RequestServerWorldSeedSelection(Seed, false);
 }
 
 void UKalmalaWorldListWidget::HandleSeedTextCommitted(const FText& Text, const ETextCommit::Type CommitMethod)
@@ -671,6 +756,7 @@ void UKalmalaWorldListWidget::HandleBack()
     }
     if (bShowingNewWorldSeedEntry)
     {
+        CancelPendingWorldSeedSelectionRequest();
         if (ReturnToWorldsRequested.IsBound()) ReturnToWorldsRequested.Broadcast();
         else
         {

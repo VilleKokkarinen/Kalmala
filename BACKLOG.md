@@ -63,13 +63,13 @@
   - [x] **SM07 — Add world selection and details.**
     - **Implement:** Bind Your worlds and World details to validated descriptors. Add empty/unsupported states, planned sorting and read-only world rules.
     - **Complete when:** Selecting a world shows its accurate identity/status without launching it or rewriting saves.
-  - [ ] **SM08 — Connect New world.**
+  - [x] **SM08 — Connect New world.**
     - [x] Add strict decimal seed parsing for the full runtime `uint64` range; reject empty, non-decimal, trailing text, and overflow without wraparound.
     - [x] Classify listed ocean-save revisions against the current generator revision through the read-only adapter; retain unknown and conflicting states without claiming payload compatibility.
     - [x] Classify duplicate seed/revision outcomes; require confirmation only for an exact match and hold uncertain existing seeds for review.
     - [x] Add a themed confirmation panel that opens only for an exact listed seed/revision match; Cancel returns to the world list and Confirm revalidates the match.
     - [x] Connect New world seed entry to the confirmation; after confirmation open existing details without writing a save.
-    - [ ] Connect New world to a validated server-owned world lifecycle API.
+    - [x] Connect New world to a validated server-owned world lifecycle API.
     - **Implement:** Use the existing seed and world-lifecycle API. Validate the full runtime seed range and handle duplicate seed/revision identities.
     - **Complete when:** Invalid seeds are rejected and duplicate identities select the existing world only after confirmation, without overwriting it.
   - [ ] **SM09 — Connect solo play.**
