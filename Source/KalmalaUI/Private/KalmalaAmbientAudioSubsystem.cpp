@@ -1,4 +1,5 @@
 #include "KalmalaAmbientAudioSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Components/AudioComponent.h"
 #include "EngineUtils.h"
@@ -128,13 +129,20 @@ void UKalmalaAmbientAudioSubsystem::Tick(float DeltaTime)
 {
     UWorld* World = GetWorld();
     ULocalPlayer* LocalPlayer = GetLocalPlayer();
-    InteractionCueCooldownRemaining = FMath::Max(0.0f, InteractionCueCooldownRemaining - DeltaTime);
     if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr)
     {
         StopAmbientAudio();
         return;
     }
 
+    APlayerController* ContextController = LocalPlayer->GetPlayerController(World);
+    if (ContextController && ContextController->IsA<AKalmalaMenuPlayerController>())
+    {
+        StopAmbientAudio();
+        return;
+    }
+
+    InteractionCueCooldownRemaining = FMath::Max(0.0f, InteractionCueCooldownRemaining - DeltaTime);
     if ((AmbientAudio != nullptr && (!IsValid(AmbientAudio.Get()) || AmbientAudio->GetWorld() != World))
         || (WaterAmbientAudio != nullptr && (!IsValid(WaterAmbientAudio.Get()) || WaterAmbientAudio->GetWorld() != World))
         || (FireAmbientAudio != nullptr && (!IsValid(FireAmbientAudio.Get()) || FireAmbientAudio->GetWorld() != World))

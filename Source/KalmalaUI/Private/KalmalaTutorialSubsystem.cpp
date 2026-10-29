@@ -1,4 +1,5 @@
 #include "KalmalaTutorialSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Blueprint/WidgetTree.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -139,9 +140,10 @@ void UKalmalaTutorialSubsystem::Tick(const float DeltaTime)
 {
     UWorld* World = GetWorld();
     ULocalPlayer* Player = GetLocalPlayer();
-    if (World == nullptr || !World->IsGameWorld() || Player == nullptr) return;
+    if (World == nullptr || !World->IsGameWorld() || Player == nullptr) { ReleaseController(); return; }
 
     APlayerController* Controller = Player->GetPlayerController(World);
+    if (Controller && Controller->IsA<AKalmalaMenuPlayerController>()) { ReleaseController(); return; }
     if (Controller != LocalController)
     {
         ReleaseController();

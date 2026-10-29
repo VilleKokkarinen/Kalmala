@@ -1,4 +1,5 @@
 #include "KalmalaInventoryMenuSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Components/InputComponent.h"
 #include "Engine/LocalPlayer.h"
@@ -24,9 +25,10 @@
 
 void UKalmalaInventoryMenuSubsystem::Tick(float DeltaTime)
 {
-    if (GetLocalPlayer() == nullptr || GetWorld() == nullptr || !GetWorld()->IsGameWorld()) return;
+    if (GetLocalPlayer() == nullptr || GetWorld() == nullptr || !GetWorld()->IsGameWorld()) { ReleaseController(); return; }
 
     APlayerController* FoundController = GetLocalPlayer()->GetPlayerController(GetWorld());
+    if (FoundController && FoundController->IsA<AKalmalaMenuPlayerController>()) { ReleaseController(); return; }
     if (LocalController != FoundController) ReleaseController();
     if (FoundController == nullptr || !FoundController->IsLocalController()) return;
 

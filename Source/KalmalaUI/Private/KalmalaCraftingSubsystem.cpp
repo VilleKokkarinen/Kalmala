@@ -1,4 +1,5 @@
 #include "KalmalaCraftingSubsystem.h"
+#include "KalmalaMenuContext.h"
 #include "KalmalaCombatComponent.h"
 #include "Rendering/DrawElements.h"
 #include "Components/CanvasPanel.h"
@@ -5474,8 +5475,10 @@ FReply UKalmalaCraftingWidget::NativeOnPreviewKeyDown(const FGeometry& G,const F
 
 void UKalmalaCraftingSubsystem::Tick(float DeltaTime)
 {
-    if(!GetWorld() || !GetWorld()->IsGameWorld() || !GetLocalPlayer()) return;
-    auto* PC=GetLocalPlayer()->GetPlayerController(GetWorld()); if(Controller!=PC) Release();
+    if(!GetWorld() || !GetWorld()->IsGameWorld() || !GetLocalPlayer()) { Release(); return; }
+    auto* PC=GetLocalPlayer()->GetPlayerController(GetWorld());
+    if (PC && PC->IsA<AKalmalaMenuPlayerController>()) { Release(); return; }
+    if(Controller!=PC) Release();
     if(!PC || !PC->IsLocalController()) return; Controller=PC;
     if (!BowCrosshair)
     {

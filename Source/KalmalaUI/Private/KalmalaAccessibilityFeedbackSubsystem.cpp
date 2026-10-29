@@ -1,4 +1,5 @@
 #include "KalmalaAccessibilityFeedbackSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/WidgetTree.h"
@@ -65,9 +66,20 @@ FString UKalmalaAccessibilityFeedbackSubsystem::BuildFeedbackText(APawn* Pawn) c
 
 void UKalmalaAccessibilityFeedbackSubsystem::Tick(float DeltaTime)
 {
-    if (!GetWorld() || !GetWorld()->IsGameWorld() || !GetLocalPlayer()) return;
+    if (!GetWorld() || !GetWorld()->IsGameWorld() || !GetLocalPlayer())
+    {
+        ReleaseWidget();
+        Controller = nullptr;
+        return;
+    }
 
     APlayerController* FoundController = GetLocalPlayer()->GetPlayerController(GetWorld());
+    if (FoundController && FoundController->IsA<AKalmalaMenuPlayerController>())
+    {
+        ReleaseWidget();
+        Controller = nullptr;
+        return;
+    }
     if (Controller.Get() != FoundController)
     {
         ReleaseWidget();

@@ -1,4 +1,5 @@
 #include "KalmalaSupportSelectionSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaCharacter.h"
@@ -263,8 +264,19 @@ void UKalmalaSupportSelectionSubsystem::Tick(float DeltaTime)
 {
     UWorld* World = GetWorld();
     ULocalPlayer* LocalPlayer = GetLocalPlayer();
-    if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr) return;
+    if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr)
+    {
+        ReleaseWidget();
+        Controller = nullptr;
+        return;
+    }
     APlayerController* FoundController = LocalPlayer->GetPlayerController(World);
+    if (FoundController && FoundController->IsA<AKalmalaMenuPlayerController>())
+    {
+        ReleaseWidget();
+        Controller = nullptr;
+        return;
+    }
     if (Controller.Get() != FoundController)
     {
         ReleaseWidget();

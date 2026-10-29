@@ -48,7 +48,7 @@
   - [x] **SM02 — Add the menu flow coordinator.**
     - **Implement:** Add isolated front-end states and a request token for each launch/connection attempt. Keep the default startup map unchanged.
     - **Complete when:** Duplicate submissions and callbacks from canceled or superseded requests cannot start travel or change the active screen.
-  - [ ] **SM03 — Isolate the menu from gameplay.**
+  - [x] **SM03 — Isolate the menu from gameplay.**
     - **Implement:** Add a lightweight menu context. Prevent gameplay HUD and player-pawn creation in that context.
     - **Complete when:** The menu context has no gameplay HUD/pawn and the existing gameplay context still creates them normally.
   - [ ] **SM04 — Build the Home screen.**

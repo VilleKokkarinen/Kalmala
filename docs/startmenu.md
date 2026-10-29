@@ -297,6 +297,22 @@ not a flow reference or a replacement owner. They must dispatch travel through
 methods, never through direct navigation. This scaffold does not initiate travel,
 validate world choices, or wire UI; those remain in later children.
 
+## SM03 menu context
+
+`AKalmalaMenuGameMode` is an isolated `AGameModeBase` with the distinct
+`AKalmalaMenuPlayerController`, no default or spectator pawn and no HUD class.
+Its start, restart and default-spawn paths decline player pawn creation; the
+controller declines fallback spectator and default HUD spawning. It does not
+run `AKalmalaGameMode` world generation. Gameplay UI, tutorial, ambient audio
+and weather owners recognize the menu controller before doing their gameplay
+work and release existing presentation and input bindings on entry. Settings
+remains available for the shared Options work.
+
+This native context is not yet a startup map or a wired menu. A future dedicated
+empty menu world must explicitly select this mode and its controller; normal
+startup still uses the prototype gameplay map. SM15 must verify live menu/game
+round trips, widget cleanup and recreation, and settings input ownership.
+
 ## Ordered delivery and acceptance
 
 The backlog's SM01-SM15 children implement only the initial delivery described

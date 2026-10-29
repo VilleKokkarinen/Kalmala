@@ -1,4 +1,5 @@
 #include "KalmalaSurvivalStatusSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
@@ -26,9 +27,20 @@ void UKalmalaSurvivalStatusSubsystem::Tick(float DeltaTime)
 {
     UWorld* World = GetWorld();
     ULocalPlayer* LocalPlayer = GetLocalPlayer();
-    if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr) return;
+    if (World == nullptr || !World->IsGameWorld() || LocalPlayer == nullptr)
+    {
+        ReleaseController();
+        LocalController = nullptr;
+        return;
+    }
 
     APlayerController* FoundController = LocalPlayer->GetPlayerController(World);
+    if (FoundController && FoundController->IsA<AKalmalaMenuPlayerController>())
+    {
+        ReleaseController();
+        LocalController = nullptr;
+        return;
+    }
     if (LocalController.Get() != FoundController)
     {
         ReleaseController();

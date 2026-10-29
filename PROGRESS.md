@@ -23563,3 +23563,34 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   async callbacks must use a weak owner and the token-gated methods, not bypass
   the coordinator. Navigation policy is left to the later screen integrations.
 - **Next eligible task:** SM03, isolate the menu context from gameplay.
+
+## Run 2026-10-29 — SM03 isolated menu context
+
+- **Selected increment:** Add a lightweight menu context without gameplay HUD
+  or player pawn while preserving the existing gameplay context.
+- **Work completed:** Added a separate native menu GameMode and controller that
+  decline player/spectator pawn and default HUD creation. Gameplay UI, tutorial,
+  ambient audio and weather subsystems recognize the menu controller and release
+  existing presentation and input bindings before doing gameplay work. Added a
+  focused Unreal defaults/spawn-path test and documented the context contract.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaMenuContext.h`,
+  `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaMenuContextTest.cpp`,
+  the AccessibilityFeedback, AmbientAudio, Crafting, InventoryMenu, Minimap,
+  Notification, SupportSelection, SurvivalStatus, Tutorial, WeatherActivity
+  and WorldMap subsystem implementations under `Source/KalmalaUI/Private/`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Compiled and ran the actual menu context with MSVC and stubbed
+  Unreal types, checking defaults and the default pawn spawn paths; passed.
+  Inspected UE 5.8 spawn and HUD overrides, gameplay mode defaults and all 11
+  subsystem guards before their gameplay work; checked the startup map and
+  `git diff --check`. No Unreal build, editor or live-world test was run.
+- **Full verification:** Deferred to SM15 integrated acceptance.
+- **Observable impact:** The dedicated menu context has no gameplay pawn or HUD;
+  the configured startup and gameplay GameMode remain unchanged.
+- **Networking/authority:** Local presentation gating and separate menu mode
+  only; gameplay server authority, replication and save behavior are unchanged.
+- **Known limitations:** No menu map or startup routing is wired yet. Live
+  menu/game round trips, HUD recreation and shared settings input remain to be
+  verified in SM15; the authored Unreal automation test was not run here.
+- **Next eligible task:** SM04, build the Home screen.

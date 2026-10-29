@@ -1,4 +1,5 @@
 #include "KalmalaMinimapSubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Components/InputComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -12,10 +13,16 @@ void UKalmalaMinimapSubsystem::Tick(float DeltaTime)
 {
     if (GetLocalPlayer() == nullptr || GetWorld() == nullptr || !GetWorld()->IsGameWorld())
     {
+        ReleaseController();
         return;
     }
 
     APlayerController* FoundLocalController = GetLocalPlayer()->GetPlayerController(GetWorld());
+    if (FoundLocalController && FoundLocalController->IsA<AKalmalaMenuPlayerController>())
+    {
+        ReleaseController();
+        return;
+    }
     if (LocalController != FoundLocalController)
     {
         ReleaseController();

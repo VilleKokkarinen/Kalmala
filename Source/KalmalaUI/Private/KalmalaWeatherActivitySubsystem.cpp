@@ -1,4 +1,5 @@
 #include "KalmalaWeatherActivitySubsystem.h"
+#include "KalmalaMenuContext.h"
 
 #include "Engine/LocalPlayer.h"
 #include "Engine/ExponentialHeightFog.h"
@@ -33,6 +34,14 @@ void UKalmalaWeatherActivitySubsystem::Tick(const float DeltaTime)
 {
     // The survival subsystem owns the single top-right weather/status parent.
     ReleaseController();
+    UWorld* World = GetWorld();
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    APlayerController* ContextController = World && LocalPlayer ? LocalPlayer->GetPlayerController(World) : nullptr;
+    if (ContextController && ContextController->IsA<AKalmalaMenuPlayerController>())
+    {
+        DestroyMountainWeatherFog();
+        return;
+    }
     UpdateMountainWeatherFog(DeltaTime);
     UpdateWeatherMaterialResponse(DeltaTime);
 }

@@ -1,4 +1,5 @@
 #include "KalmalaNotificationSubsystem.h"
+#include "KalmalaMenuContext.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaItemCatalogue.h"
@@ -159,8 +160,24 @@ void UKalmalaNotificationWidget::SetNotices(const TArray<FKalmalaSkillNotice>& N
 
 void UKalmalaNotificationSubsystem::Tick(float DeltaTime)
 {
-    if (!GetWorld() || !GetWorld()->IsGameWorld() || !GetLocalPlayer()) return;
-    auto* Controller = GetLocalPlayer()->GetPlayerController(GetWorld());
+    UWorld* World = GetWorld();
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    APlayerController* Controller = World && LocalPlayer ? LocalPlayer->GetPlayerController(World) : nullptr;
+    if (!World || !World->IsGameWorld() || !LocalPlayer
+        || (Controller && Controller->IsA<AKalmalaMenuPlayerController>()))
+    {
+        if (Widget) Widget->RemoveFromParent();
+        Widget = nullptr;
+        Queue.Reset(); OwnerPawn.Reset(); bOwnerBaselineAudited = false;
+#if !UE_BUILD_SHIPPING
+        bReviewFixtureInitialized = false;
+        bReviewSettingsApplied = false;
+        ReviewCaptureStage = 0;
+        ReviewCaptureElapsed = 0.0f;
+        ReviewCaptureBasePath.Reset();
+#endif
+        return;
+    }
     APawn* Pawn = Controller && Controller->IsLocalController() ? Controller->GetPawn() : nullptr;
     if (OwnerPawn.Get() != Pawn)
     {
