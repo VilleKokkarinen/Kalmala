@@ -60,7 +60,7 @@
   - [x] **SM06 — Show the current player.**
     - **Implement:** Add the read-only current-player step, Continue/Back actions and authentication-failure explanation.
     - **Complete when:** Friendly labels reveal no authentication keys and cannot select or override saved-player ownership.
-  - [ ] **SM07 — Add world selection and details.**
+  - [x] **SM07 — Add world selection and details.**
     - **Implement:** Bind Your worlds and World details to validated descriptors. Add empty/unsupported states, planned sorting and read-only world rules.
     - **Complete when:** Selecting a world shows its accurate identity/status without launching it or rewriting saves.
   - [ ] **SM08 — Connect New world.**

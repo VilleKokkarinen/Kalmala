@@ -23720,3 +23720,49 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   rules. Live UI behavior remains unverified. SM07 is incomplete.
 - **Next eligible task:** Continue SM07 with validated selection and details;
   do not advance to SM08 while this task remains unchecked.
+
+## Run 2026-10-29 — SM07 local world list and details
+
+- **Selected increment:** Bind Your worlds and World details to validated,
+  read-only world-seed descriptors; add supported-empty and unsupported states,
+  planned label sorting, and truthful rules availability.
+- **Work completed:** Added platform save-name enumeration filtered to the exact
+  population, construction, storage, and ocean-travel world slot formats.
+  Canonical uint64 seeds and ocean revision suffixes are parsed with overflow
+  checks; player-scoped and unrelated saves are ignored. The menu groups entries
+  by seed, sorts seed labels ascending, supports selection/details/back flow, and
+  labels data completeness, compatibility, stored revision, and world rules
+  accurately when the existing slot metadata cannot establish them. Empty and
+  unsupported listing outcomes are distinct. New world stays disabled for SM08.
+  No save payload is loaded or rewritten and no travel starts.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaLocalWorldSaveListing.h`,
+  `Source/KalmalaUI/Private/KalmalaLocalWorldSaveListing.cpp`,
+  `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldListTest.cpp`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** `git diff --check` passed. Focused PowerShell source checks passed
+  for exact slot filters, no save read/write calls, unknown status/rule labels,
+  menu details/back navigation, and documented limitations. Inspected the UE
+  5.8 platform save API and its default file implementation. Authored parser
+  automation coverage for zero/max seeds, revision parsing, overflow, malformed
+  names, and player-slot rejection; it was not run. No Unreal build or editor
+  automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Supported platforms can present seed entries found in
+  recognized local world save names and open a read-only details screen. Platforms
+  that cannot enumerate names report the unsupported state. Selecting an entry
+  does not start a session or alter a save.
+- **Networking/authority:** Owner-local front-end only. Save-name lookup uses
+  local user index 0 to match existing local save calls. No gameplay server,
+  authentication, replication, or authority behavior changed.
+- **Known limitations:** Slot names are evidence of component slots only; this
+  increment does not validate payloads or prove a complete/compatible saved
+  world. Worlds without recognized world-scoped save data cannot be listed.
+  Display names, last-played times, and saved world rules are not exposed by the
+  current records. Rendered focus and full UI behavior remain unverified.
+- **Next eligible task:** SM08, connect New world through the existing validated
+  seed and lifecycle APIs.

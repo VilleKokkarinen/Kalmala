@@ -31,6 +31,7 @@ private:
     void HandlePlayerBack();
     void HandlePlayerContinue();
     void HandleWorldListBack();
+    void HandleWorldSelected(uint64 Seed);
     void ReleasePlayerStep();
     void ReleaseWorldList();
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;

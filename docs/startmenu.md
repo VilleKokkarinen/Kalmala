@@ -265,8 +265,10 @@ and enumeration as unavailable. Unsupported enumeration is not an empty list.
 It reads and writes no save slots and makes no claim that a world exists.
 
 - **Enumeration and creation:** no project world registry or validated menu
-  creation API exists. Independent save owners use different slot identities;
-  a filename or one valid component cannot establish a complete world.
+  creation API exists. SM07 uses the platform save-name API when supported and
+  recognizes only exact world-scoped slot prefixes. A seed found in those names
+  is a candidate with saved components, not proof of a complete or compatible
+  world. Independent save owners use different slot identities.
 - **Seed and travel:** `AKalmalaWorldGenerationGameState::PostInitializeComponents`
   selects its default or the process `WorldSeed=` on the authority and replicates
   it. There is no project menu travel API or runtime seed selection here.
@@ -355,15 +357,29 @@ Home and its Play focus.
 The pre-game context cannot diagnose a later server authentication rejection;
 that connection-stage error remains for SM12.
 
-## SM07 world-list entry (in progress)
+## SM07 world list and details
 
-Continue from the player step opens a read-only Your worlds screen. The existing
-adapter reports enumeration unsupported, so the screen explicitly says listing
-is not supported; it does not claim that the saved-world list is empty. New world
-is disabled with an explanation. Back restores the player step and Continue focus.
-No save, selection or travel operation occurs. Validated enumeration, populated
-and truly empty states, sorting, world details and read-only rules remain in SM07;
-the task is not complete until a selectable validated record can be displayed.
+Continue from the player step opens a read-only Your worlds screen. It requests
+known save names through Unreal's platform save system and recognizes only
+`KalmalaPopulationDeltas_<seed>`, `KalmalaConstruction_<seed>`,
+`KalmalaStorage_<seed>`, and `KalmalaOceanTravelWorld_<seed>_<revision>`.
+Names must contain canonical decimal uint64 seeds; ocean revision text must be
+a non-negative int32. Player-scoped and unrelated slots are ignored. If the
+platform reports that name enumeration is unsupported, the UI says so. If it
+succeeds with no recognized world-scoped slots, the UI reports no recognized
+world data and does not imply that worlds without saved changes were disproved.
+
+The screen aggregates known component slot names by seed and sorts seed-based
+labels ascending because the existing world saves supply no display name or
+last-played timestamp. Selecting an entry opens World details; it never starts
+travel. Details show the seed, component slot names, and any generator revision
+present in an ocean-travel slot name. Slot names do not validate payloads,
+complete-world existence, or compatibility; those statuses remain unknown.
+Current generator revision is labeled as current, not as a value read from the
+save. World rules are reported unavailable because no saved-world rules source
+exists. New world remains disabled until SM08 supplies its validated lifecycle
+path. Back from details returns to the same selection; Back from the list
+restores the player step and Continue focus. No save is loaded or rewritten.
 
 ## Ordered delivery and acceptance
 
