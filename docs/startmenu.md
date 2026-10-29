@@ -422,7 +422,9 @@ dedicated empty `/Game/Kalmala/Maps/Menu/L_Menu` world now selects this mode and
 its controller; normal startup still uses the prototype gameplay map until the
 SM14 return and packaged-startup steps are complete. SM15 must verify live
 menu/game round trips, widget cleanup and recreation, and settings input
-ownership.
+ownership. The weather presentation owner clears local fog and material-response
+state when the menu controller becomes active so a later gameplay world does not
+inherit the previous world's visual response.
 
 ## SM04 Home presentation
 

@@ -24563,3 +24563,36 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   clients to disconnect before travel; network/runtime handling remains for
   SM15 acceptance.
 - **Next eligible task:** SM14.4 — clean up repeated gameplay/Home round trips.
+
+## Run 2026-10-29 — SM14.4.1 weather presentation reset
+
+- **Selected increment:** Clear transient regional weather presentation when
+  the dedicated menu controller becomes active.
+- **Work completed:** The local weather activity owner now destroys its
+  temporary mountain fog and resets its cached precipitation response and the
+  current world's weather material parameter on Home entry. Deinitialization
+  uses the same reset helper. SM14.4 was split into ordered cleanup children;
+  only SM14.4.1 is checked.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaUI/Public/KalmalaWeatherActivitySubsystem.h`, and
+  `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp`.
+- **Backlog state:** SM14.4.1 is checked after focused source review and the
+  whitespace check. SM14.4 remains unchecked; gameplay HUD/input ownership and
+  Home callback cleanup are still outstanding.
+- **Lightweight checks:** `git diff --check` passed. Source inspection
+  confirmed the menu-controller path clears the fog actor, its target/current
+  coverage and probe timer, plus the cached and material-collection
+  precipitation response. No build, test suite, or Unreal runtime automation
+  was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Weather response cached by the local player subsystem
+  is cleared on Home entry, so a later gameplay world does not begin by fading
+  from the preceding world's precipitation state.
+- **Networking/authority:** This is local cosmetic presentation state; it
+  changes no replicated state or server authority.
+- **Known limitations:** The travel path and material appearance were not
+  exercised in Unreal. Runtime and packaged round-trip verification remain for
+  SM15.
+- **Next eligible task:** SM14.4.2 — reconcile gameplay HUD and input owners
+  across controller changes.

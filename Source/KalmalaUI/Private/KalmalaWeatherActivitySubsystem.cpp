@@ -40,6 +40,7 @@ void UKalmalaWeatherActivitySubsystem::Tick(const float DeltaTime)
     if (ContextController && ContextController->IsA<AKalmalaMenuPlayerController>())
     {
         DestroyMountainWeatherFog();
+        ResetWeatherMaterialResponse(World);
         return;
     }
     UpdateMountainWeatherFog(DeltaTime);
@@ -213,6 +214,18 @@ void UKalmalaWeatherActivitySubsystem::DestroyMountainWeatherFog()
     MountainWeatherFogProbeTimeRemaining = 0.0f;
 }
 
+void UKalmalaWeatherActivitySubsystem::ResetWeatherMaterialResponse(UWorld* World)
+{
+    CurrentWeatherMaterialResponse = 0.0f;
+    if (World == nullptr || WeatherMaterialCollection == nullptr) return;
+
+    if (UMaterialParameterCollectionInstance* Parameters =
+        World->GetParameterCollectionInstance(WeatherMaterialCollection))
+    {
+        Parameters->SetScalarParameterValue(WeatherMaterialPrecipitationParameter, 0.0f);
+    }
+}
+
 void UKalmalaWeatherActivitySubsystem::ReleaseController()
 {
     if (WeatherWidget != nullptr) WeatherWidget->RemoveFromParent();
@@ -223,16 +236,7 @@ void UKalmalaWeatherActivitySubsystem::Deinitialize()
 {
     ReleaseController();
     DestroyMountainWeatherFog();
-    UWorld* World = GetWorld();
-    if (World != nullptr && WeatherMaterialCollection != nullptr)
-    {
-        if (UMaterialParameterCollectionInstance* Parameters =
-            World->GetParameterCollectionInstance(WeatherMaterialCollection))
-        {
-            Parameters->SetScalarParameterValue(WeatherMaterialPrecipitationParameter, 0.0f);
-        }
-    }
-    CurrentWeatherMaterialResponse = 0.0f;
+    ResetWeatherMaterialResponse(GetWorld());
     LocalController = nullptr;
     Super::Deinitialize();
 }

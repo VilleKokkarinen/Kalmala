@@ -7,6 +7,7 @@
 
 class APlayerController;
 class AExponentialHeightFog;
+class UWorld;
 class UMaterialParameterCollection;
 class UKalmalaWeatherActivityWidget;
 
@@ -30,6 +31,7 @@ private:
     void ReleaseController();
     void UpdateMountainWeatherFog(float DeltaTime);
     void UpdateWeatherMaterialResponse(float DeltaTime);
+    void ResetWeatherMaterialResponse(UWorld* World);
     void DestroyMountainWeatherFog();
 
     UPROPERTY(Transient)
