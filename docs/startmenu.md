@@ -252,6 +252,13 @@ reward state, owner identity, damage or item data as authority. No gameplay Save
 schema changes or migrations. UI selection is memory-only, cleared on process
 restart; existing options retain their current restart behavior. No new MRU file.
 
+`AKalmalaWorldGenerationGameState::SelectWorldSeedFromServer` provides a low-level
+server-only, one-shot seed override before gameplay begins. It accepts the typed
+uint64 seed and updates the replicated identity; clients cannot select it. This
+does not enumerate or resolve saved-world identities and is not by itself a world
+creation lifecycle. New world must use a higher-level server request that checks
+duplicate seed/revision records before creation or reuse.
+
 Returning from play waits for existing logout/save completion, tears down the
 session through its owner and returns to Home with gameplay HUD removed. On
 shutdown/failure release widgets, delegates, timers and pending request tokens.

@@ -24,6 +24,17 @@ void AKalmalaWorldGenerationGameState::PostInitializeComponents()
     LogWorldGenerationIdentity(TEXT("Server selected"));
 }
 
+bool AKalmalaWorldGenerationGameState::SelectWorldSeedFromServer(const uint64 Seed)
+{
+    if (!HasAuthority() || HasActorBegunPlay() || bServerWorldSeedSelectionAccepted) return false;
+
+    WorldGenerationConfig.WorldSeed = Seed;
+    bServerWorldSeedSelectionAccepted = true;
+    ForceNetUpdate();
+    LogWorldGenerationIdentity(TEXT("Server accepted requested seed"));
+    return true;
+}
+
 void AKalmalaWorldGenerationGameState::OnRep_WorldGenerationConfig()
 {
     LogWorldGenerationIdentity(TEXT("Client received"));

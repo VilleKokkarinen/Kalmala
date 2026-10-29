@@ -277,7 +277,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | Building | server | replicated building actors; save stable IDs |
 | AI | server | replicate actor state, not decision logic |
 | Element grid | server | replicate sparse changes near relevant players |
-| World identity | server | replicate immutable `WorldSeed` through `GameState` |
+| World identity | server | select or override the `WorldSeed` once before gameplay through the server-only world `GameState` API, then replicate the immutable identity; clients only consume it |
 | Terrain surface | shared seed function | convert Elevation to continuous height and normal for terrain, collision, and server-selected spawns |
 | Terrain activation | server | initialize an invisible 3x3 neighborhood of continuous terrain patches around the generated start, placing every replicated patch actor at its deterministic patch centre; then refresh the bounded union of server-observed player neighborhoods at a one-second interval up to 25 patches, retiring patches outside every player neighborhood so open-ocean travel can continue without increasing streaming density; activation cells never define biome or gameplay boundaries |
 | Terrain rendering | client cosmetic | derive one continuous local mesh from the replicated identity and patch descriptor; mesh geometry is never replicated |

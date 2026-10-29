@@ -26,6 +26,9 @@ public:
     const FKalmalaWeatherState& GetWeatherState() const { return WeatherState; }
     static bool IsWeatherUpdateAllowed(bool bServerAuthority);
 
+    /** Selects a requested seed once on the server before gameplay begins. */
+    bool SelectWorldSeedFromServer(uint64 Seed);
+
     /** Called by the authoritative GameMode after deterministic weather selection. */
     void SetWeatherStateFromServer(const FKalmalaWeatherState& InWeatherState);
 
@@ -35,6 +38,8 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_WeatherState, VisibleAnywhere, Category = "Weather")
     FKalmalaWeatherState WeatherState;
+
+    bool bServerWorldSeedSelectionAccepted = false;
 
     UFUNCTION()
     void OnRep_WorldGenerationConfig();

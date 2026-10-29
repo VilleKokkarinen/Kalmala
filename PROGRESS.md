@@ -23943,3 +23943,36 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   automation remain unverified.
 - **Next eligible task:** SM08, connect New world to a validated server-owned
   world lifecycle API.
+
+## Run 2026-10-29 — SM08 server seed-selection foundation
+
+- **Selected increment:** Add a server-owned, pre-play world-seed selection API
+  as the backend foundation for the remaining SM08 lifecycle integration.
+- **Work completed:** Added a one-shot `GameState` API that accepts a typed
+  `uint64` seed only on authority and before `BeginPlay`, then publishes the
+  selected identity through the existing replication path. The low-level API
+  does not enumerate saves or decide whether an existing identity may be
+  reused. SM08 remains incomplete and its backlog checkbox was left unchanged.
+- **Files changed:**
+  `Source/KalmalaWorld/Public/KalmalaWorldGenerationGameState.h`,
+  `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp`,
+  `docs/02-technical-architecture.md`, `docs/startmenu.md`, and `PROGRESS.md`.
+- **Checks:** Focused PowerShell source assertions passed for the authority,
+  pre-play and one-shot gates, replicated identity update, and documentation of
+  the remaining duplicate-resolution requirement. `git diff --check` passed
+  with the existing CRLF normalization warning. Windows path checks passed
+  (longest changed absolute path: 78 characters). No Unreal build or automation
+  test was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Server code now has a narrow API to select any
+  supported `uint64` world seed before gameplay begins. The current New world
+  UI does not call it; fresh-world creation remains unavailable.
+- **Networking/authority:** The method rejects non-authority calls, calls after
+  gameplay begins, and repeat overrides. Accepted values update the existing
+  replicated GameState identity. No client RPC, save write, or travel was added.
+- **Known limitations:** No GameMode or menu caller connects this API to the
+  seed-entry/confirmation flow yet. Server-side duplicate/revision resolution
+  and confirmed reuse are also still required before the lifecycle is safe.
+- **Next eligible task:** Continue SM08 by connecting New world to a validated
+  server-owned world lifecycle request with duplicate revalidation.
