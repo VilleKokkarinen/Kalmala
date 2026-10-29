@@ -14,6 +14,11 @@ FKalmalaWorldDescriptor FKalmalaWorldDescriptorAdapter::Describe(const FKalmalaW
     return Result;
 }
 
+FKalmalaWorldSaveInspection FKalmalaWorldDescriptorAdapter::InspectKnownSeed(const uint64 Seed)
+{
+    return FKalmalaWorldSaveInspector::Inspect(Seed);
+}
+
 EKalmalaWorldMetadataAvailability FKalmalaWorldDescriptorAdapter::WorldEnumerationAvailability()
 {
     return EKalmalaWorldMetadataAvailability::Unavailable;

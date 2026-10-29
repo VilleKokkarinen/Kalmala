@@ -31,6 +31,8 @@ private:
     void HandlePlayerBack();
     void HandlePlayerContinue();
     void HandleWorldListBack();
+    void HandleNewWorldRequested();
+    void HandleReturnToWorldsRequested();
     void HandleWorldSelected(uint64 Seed);
     void ReleasePlayerStep();
     void ReleaseWorldList();

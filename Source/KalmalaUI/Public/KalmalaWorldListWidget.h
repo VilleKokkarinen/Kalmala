@@ -2,8 +2,10 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Components/ComboBoxString.h"
+#include "Components/EditableTextBox.h"
 #include "KalmalaWorldDescriptor.h"
 #include "KalmalaLocalWorldSaveListing.h"
+#include "KalmalaWorldSeedParser.h"
 #include "KalmalaWorldListWidget.generated.h"
 
 class UBorder;
@@ -14,6 +16,8 @@ class UVerticalBox;
 class UKalmalaThemedButton;
 DECLARE_MULTICAST_DELEGATE(FKalmalaWorldListBack);
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaWorldListSelection, uint64);
+DECLARE_MULTICAST_DELEGATE(FKalmalaWorldListNewWorld);
+DECLARE_MULTICAST_DELEGATE(FKalmalaWorldListReturnToWorlds);
 
 /** Read-only world-list entry point backed by filtered platform save names. */
 UCLASS()
@@ -23,11 +27,16 @@ class KALMALAUI_API UKalmalaWorldListWidget : public UUserWidget
 public:
     static const TCHAR* EmptyOrUnavailableMessage(EKalmalaWorldMetadataAvailability Availability);
     static FString ReuseConfirmationMessage(uint64 Seed, int32 GeneratorRevision);
+    static const TCHAR* SeedCheckResultMessage(EKalmalaWorldSeedParseResult ParseResult,
+        EKalmalaLocalWorldSaveListingAvailability Availability, EKalmalaWorldSeedReuseDecision Decision);
     FKalmalaWorldListBack& OnBackRequested() { return BackRequested; }
     FKalmalaWorldListSelection& OnWorldSelected() { return WorldSelected; }
+    FKalmalaWorldListNewWorld& OnNewWorldRequested() { return NewWorldRequested; }
+    FKalmalaWorldListReturnToWorlds& OnReturnToWorldsRequested() { return ReturnToWorldsRequested; }
     void FocusBack();
     void FocusPrimary();
     bool BeginWorldReuseConfirmation(uint64 Seed);
+    bool ShowNewWorldSeedEntry();
     bool ShowWorldDetails(uint64 Seed);
     void ShowWorldList();
 
@@ -38,12 +47,16 @@ protected:
 
 private:
     void BuildWorldList();
+    void BuildNewWorldSeedEntry();
     void BuildWorldDetails();
     void BuildWorldReuseConfirmation();
     void RefreshTheme();
     void RefreshWorldRecords();
     bool HasExactCurrentReuseCandidate(uint64 Seed) const;
     UFUNCTION() void HandleBack();
+    UFUNCTION() void HandleNewWorldRequested();
+    UFUNCTION() void HandleSeedCheck();
+    UFUNCTION() void HandleSeedTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
     UFUNCTION() void HandleReuseConfirmed();
     UFUNCTION() void HandleReuseCancelled();
     UFUNCTION() void HandleWorldSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
@@ -56,22 +69,28 @@ private:
     UPROPERTY(Transient) TObjectPtr<USizeBox> Column;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> Title;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> Message;
+    UPROPERTY(Transient) TObjectPtr<UTextBlock> SeedInputLabel;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> CreationStatus;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> DetailsText;
     UPROPERTY(Transient) TObjectPtr<UVerticalBox> Content;
     UPROPERTY(Transient) TObjectPtr<UComboBoxString> WorldPicker;
+    UPROPERTY(Transient) TObjectPtr<UEditableTextBox> SeedInput;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> NewWorldButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> SeedCheckButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> DetailsButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> BackButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> ReuseConfirmButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> ReuseCancelButton;
     FKalmalaWorldListBack BackRequested;
     FKalmalaWorldListSelection WorldSelected;
+    FKalmalaWorldListNewWorld NewWorldRequested;
+    FKalmalaWorldListReturnToWorlds ReturnToWorldsRequested;
     TArray<FKalmalaLocalWorldSaveRecord> WorldRecords;
     EKalmalaLocalWorldSaveListingAvailability ListingAvailability = EKalmalaLocalWorldSaveListingAvailability::Unsupported;
     uint64 SelectedSeed = 0;
     uint64 PendingReuseSeed = 0;
     bool bHasSelectedWorld = false;
+    bool bShowingNewWorldSeedEntry = false;
     bool bShowingDetails = false;
     bool bShowingReuseConfirmation = false;
     int32 LastTextScale = -1;

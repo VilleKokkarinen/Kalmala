@@ -23895,3 +23895,51 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   payload compatibility. No validated creation lifecycle API exists.
 - **Next eligible task:** SM08, connect the New world seed-entry flow to this
   confirmation and open existing details after confirmation.
+
+## Run 2026-10-29 — SM08 New world seed entry
+
+- **Selected increment:** Connect New world seed entry to exact-duplicate
+  confirmation and open the existing details after acceptance without saving.
+- **Work completed:** When local save-name enumeration is supported, New world
+  opens a themed numeric seed field. The existing strict uint64 parser feeds the
+  reuse resolver; empty, invalid, overflow, unsupported, unknown and uncertain
+  outcomes explain why no reuse or creation occurred. Only an exact listed
+  current-revision match opens confirmation. Enter submits the check, Cancel and
+  Back return to Your worlds, and confirmation revalidates before the menu flow
+  opens World details. Fresh-world creation stays unavailable. The existing
+  user-authored save inspector and descriptor edits were included with the
+  user's authorization; details now show accepted, rejected or absent component
+  checks while overall world compatibility remains unknown.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldListTest.cpp`,
+  `Source/KalmalaUI/Public/KalmalaWorldDescriptor.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldDescriptor.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaWorldSaveInspector.h`,
+  `Source/KalmalaGameplay/Private/KalmalaWorldSaveInspector.cpp`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Focused source assertions passed for seed parsing and resolution,
+  supported-enumeration gating, Enter submission, confirmation revalidation,
+  menu-flow routing, and read-only component inspection. `git diff --check`
+  passed for the changed paths; Git reported CRLF-to-LF normalization warnings.
+  Windows path checks passed (longest run-owned path: 75 characters). The
+  authored automation coverage and Unreal build were not run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Players on platforms with supported save-name listing
+  can enter a seed and reuse an exact current-revision identity only after
+  confirmation. Details report per-component checks. No save is created,
+  overwritten, or traveled to by this flow.
+- **Networking/authority:** Local-player UI reads fixed world-scoped slots for
+  user index 0. No gameplay authority, replication, server setup, or save-write
+  behavior changed.
+- **Known limitations:** The runtime has no fresh-seed helper, so entry starts
+  blank and requires an explicit decimal seed. New-world creation remains
+  unavailable until the validated server-owned lifecycle API is integrated.
+  Slot-name and component checks do not prove a complete or compatible world;
+  ocean payload checks cover only the current revision slot. Rendered UI and
+  automation remain unverified.
+- **Next eligible task:** SM08, connect New world to a validated server-owned
+  world lifecycle API.

@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaWorldListWidget.h"
+#include "KalmalaWorldSaveInspector.h"
 #include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaWorldListAvailabilityTest, "Kalmala.UI.WorldList.Availability",
@@ -20,6 +21,48 @@ bool FKalmalaWorldListAvailabilityTest::RunTest(const FString& Parameters)
         ReusePrompt.Contains(TEXT("42")) && ReusePrompt.Contains(TEXT("revision 7")));
     TestTrue(TEXT("Reuse confirmation identifies evidence limits and the read-only result"),
         ReusePrompt.Contains(TEXT("not been validated")) && ReusePrompt.Contains(TEXT("will not change saves")));
+    TestTrue(TEXT("Empty seed input requests a decimal seed"),
+        FString(UKalmalaWorldListWidget::SeedCheckResultMessage(
+            EKalmalaWorldSeedParseResult::Empty, EKalmalaLocalWorldSaveListingAvailability::Supported,
+            EKalmalaWorldSeedReuseDecision::NoKnownRecord)).Contains(TEXT("Enter a decimal")));
+    TestTrue(TEXT("Invalid seed input explains the numeric restriction"),
+        FString(UKalmalaWorldListWidget::SeedCheckResultMessage(
+            EKalmalaWorldSeedParseResult::InvalidCharacter, EKalmalaLocalWorldSaveListingAvailability::Supported,
+            EKalmalaWorldSeedReuseDecision::NoKnownRecord)).Contains(TEXT("decimal digits only")));
+    TestTrue(TEXT("Out-of-range seed input is rejected without implying wraparound"),
+        FString(UKalmalaWorldListWidget::SeedCheckResultMessage(
+            EKalmalaWorldSeedParseResult::OutOfRange, EKalmalaLocalWorldSaveListingAvailability::Supported,
+            EKalmalaWorldSeedReuseDecision::NoKnownRecord)).Contains(TEXT("supported uint64 range")));
+    TestTrue(TEXT("A listed seed with uncertain revision evidence is held for review"),
+        FString(UKalmalaWorldListWidget::SeedCheckResultMessage(
+            EKalmalaWorldSeedParseResult::Success, EKalmalaLocalWorldSaveListingAvailability::Supported,
+            EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview)).Contains(TEXT("cannot be reused automatically")));
+    TestTrue(TEXT("A missing seed cannot silently create a new world"),
+        FString(UKalmalaWorldListWidget::SeedCheckResultMessage(
+            EKalmalaWorldSeedParseResult::Success, EKalmalaLocalWorldSaveListingAvailability::Supported,
+            EKalmalaWorldSeedReuseDecision::NoKnownRecord)).Contains(TEXT("nothing was created")));
+    TestTrue(TEXT("Unsupported listing fails closed"),
+        FString(UKalmalaWorldListWidget::SeedCheckResultMessage(
+            EKalmalaWorldSeedParseResult::Success, EKalmalaLocalWorldSaveListingAvailability::Unsupported,
+            EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview)).Contains(TEXT("cannot be checked safely")));
+
+    FKalmalaWorldSaveInputs MissingInputs;
+    const FKalmalaWorldSaveInspection MissingInspection = FKalmalaWorldSaveInspector::Evaluate(42, MissingInputs);
+    TestTrue(TEXT("Missing save components remain explicitly absent"),
+        MissingInspection.Population == EKalmalaWorldSaveComponentStatus::Absent
+        && MissingInspection.Construction == EKalmalaWorldSaveComponentStatus::Absent
+        && MissingInspection.Storage == EKalmalaWorldSaveComponentStatus::Absent
+        && MissingInspection.Ocean == EKalmalaWorldSaveComponentStatus::Absent);
+    MissingInputs.bPopulationExists = true;
+    MissingInputs.bConstructionExists = true;
+    MissingInputs.bStorageExists = true;
+    MissingInputs.bOceanExists = true;
+    const FKalmalaWorldSaveInspection RejectedInspection = FKalmalaWorldSaveInspector::Evaluate(42, MissingInputs);
+    TestTrue(TEXT("Existing but unloadable component data fails closed"),
+        RejectedInspection.Population == EKalmalaWorldSaveComponentStatus::Rejected
+        && RejectedInspection.Construction == EKalmalaWorldSaveComponentStatus::Rejected
+        && RejectedInspection.Storage == EKalmalaWorldSaveComponentStatus::Rejected
+        && RejectedInspection.Ocean == EKalmalaWorldSaveComponentStatus::Rejected);
     return true;
 }
 

@@ -182,9 +182,12 @@ against the runtime type, disallow trailing garbage and never silently wrap.
 No free-form seed hashing or new metadata save file. Duplicate seed/revision
 identities select the existing world after confirmation rather than overwrite it.
 Do not claim multiple independently named copies of the same seed are supported.
-Only create through an existing validated world lifecycle; if no safe enumeration
-or creation API exists, implement a read-only adapter first and keep the affected
-action disabled until its narrow integration child supplies it.
+The current runtime has no fresh-seed helper or validated creation lifecycle.
+Until lifecycle integration exists, the New world entry accepts an explicit
+decimal seed only to check for an exact listed current-revision identity. It
+opens the existing read-only details after confirmation; missing or uncertain
+matches explain why reuse is unavailable. The seed check does not create or write
+a save, and fresh-world creation remains disabled.
 
 World rules initially displays the existing supported configuration read-only.
 There are no new difficulty multipliers, free-material building or cheat presets.
@@ -262,7 +265,14 @@ used by `FKalmalaM7SaveIdentity::ForWorld`. That revision is a candidate identit
 not a revision read from a saved record. The adapter reports saved-world existence
 and compatibility as unknown, and stored revision, display name, last-played time
 and enumeration as unavailable. Unsupported enumeration is not an empty list.
-It reads and writes no save slots and makes no claim that a world exists.
+`Describe` reads and writes no save slots and makes no claim that a world exists.
+
+`FKalmalaWorldDescriptorAdapter::InspectKnownSeed` delegates to the read-only
+world-save inspector for the fixed world-scoped slots. It reports each component
+as accepted, rejected, or absent under its existing identity check. Ocean travel
+is checked only for the current generator revision. The inspection loads known
+component saves but never writes them; it does not prove a complete or launchable
+world and does not change overall saved-world compatibility from unknown.
 
 - **Enumeration and creation:** no project world registry or validated menu
   creation API exists. SM07 uses the platform save-name API when supported and
@@ -373,13 +383,17 @@ The screen aggregates known component slot names by seed and sorts seed-based
 labels ascending because the existing world saves supply no display name or
 last-played timestamp. Selecting an entry opens World details; it never starts
 travel. Details show the seed, component slot names, and any generator revision
-present in an ocean-travel slot name. Slot names do not validate payloads,
-complete-world existence, or compatibility; those statuses remain unknown.
-Current generator revision is labeled as current, not as a value read from the
-save. World rules are reported unavailable because no saved-world rules source
-exists. New world remains disabled until SM08 supplies its validated lifecycle
-path. Back from details returns to the same selection; Back from the list
-restores the player step and Continue focus. No save is loaded or rewritten.
+present in an ocean-travel slot name. Opening details performs read-only checks
+of the existing world-scoped component payloads. Each component is labeled
+accepted, rejected, or absent under its existing identity rules; ocean travel is
+checked against the current revision slot only. These checks do not establish a
+complete world or overall compatibility, which remain unknown. Current generator
+revision is labeled as current, not as a value read from the save. World rules
+are unavailable because no saved-world rules source exists. New world can check
+an explicit seed only when save-name enumeration is supported; creation remains
+disabled until its validated lifecycle path exists. Back from details returns to
+the same selection; Back from the list restores the player step and Continue
+focus. Save payloads may be read for component checks, but no save is rewritten.
 
 ## Ordered delivery and acceptance
 
