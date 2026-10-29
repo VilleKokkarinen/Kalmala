@@ -350,10 +350,20 @@ credentials and cannot choose a save owner. It checks only whether the menu
 PlayerState has an available ID to explain a missing identity; availability is
 not a claim of successful server authentication. Saved-player restoration still
 requires the server's existing authenticated ownership checks. Continue exposes
-a local event for the later world-selection integration and otherwise explains
-that world selection is unavailable. Back restores Home and its Play focus.
+a local event and now opens the world-list entry described below. Back restores
+Home and its Play focus.
 The pre-game context cannot diagnose a later server authentication rejection;
 that connection-stage error remains for SM12.
+
+## SM07 world-list entry (in progress)
+
+Continue from the player step opens a read-only Your worlds screen. The existing
+adapter reports enumeration unsupported, so the screen explicitly says listing
+is not supported; it does not claim that the saved-world list is empty. New world
+is disabled with an explanation. Back restores the player step and Continue focus.
+No save, selection or travel operation occurs. Validated enumeration, populated
+and truly empty states, sorting, world details and read-only rules remain in SM07;
+the task is not complete until a selectable validated record can be displayed.
 
 ## Ordered delivery and acceptance
 

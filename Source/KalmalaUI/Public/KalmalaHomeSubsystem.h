@@ -7,6 +7,7 @@
 class APlayerController;
 class UKalmalaHomeWidget;
 class UKalmalaPlayerStepWidget;
+class UKalmalaWorldListWidget;
 enum class EKalmalaHomeAction : uint8;
 
 /** Shows Home only for the dedicated menu controller and active Home state. */
@@ -28,8 +29,12 @@ private:
     void Release();
     void HandleHomeAction(EKalmalaHomeAction Action);
     void HandlePlayerBack();
+    void HandlePlayerContinue();
+    void HandleWorldListBack();
     void ReleasePlayerStep();
+    void ReleaseWorldList();
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaPlayerStepWidget> PlayerStep;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaWorldListWidget> WorldList;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;
 };

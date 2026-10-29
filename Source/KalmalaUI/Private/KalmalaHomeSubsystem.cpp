@@ -7,6 +7,7 @@
 #include "KalmalaMenuFlowSubsystem.h"
 #include "KalmalaPlayerStepWidget.h"
 #include "KalmalaSettingsSubsystem.h"
+#include "KalmalaWorldListWidget.h"
 
 void UKalmalaHomeSubsystem::Tick(float DeltaTime)
 {
@@ -24,6 +25,23 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Inactive) Flow.Activate();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Options && HomeWidget && HomeController == Controller) return;
+    if (Flow.GetScreen() == EKalmalaMenuScreen::Worlds && HomeWidget && PlayerStep && HomeController == Controller)
+    {
+        if (!WorldList)
+        {
+            WorldList = CreateWidget<UKalmalaWorldListWidget>(Controller, UKalmalaWorldListWidget::StaticClass());
+            if (!WorldList || !WorldList->AddToPlayerScreen(200))
+            {
+                WorldList = nullptr;
+                HandleWorldListBack();
+                return;
+            }
+            WorldList->OnBackRequested().AddUObject(this, &ThisClass::HandleWorldListBack);
+            WorldList->FocusBack();
+        }
+        return;
+    }
+    ReleaseWorldList();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Player && HomeWidget && HomeController == Controller)
     {
         if (!PlayerStep)
@@ -37,6 +55,7 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
                 return;
             }
             PlayerStep->OnBackRequested().AddUObject(this, &ThisClass::HandlePlayerBack);
+            PlayerStep->OnContinueRequested().AddUObject(this, &ThisClass::HandlePlayerContinue);
             PlayerStep->FocusContinue();
         }
         return;
@@ -90,6 +109,34 @@ void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
     }
 }
 
+void UKalmalaHomeSubsystem::HandlePlayerContinue()
+{
+    if (!PlayerStep || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Player
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Worlds)) return;
+    PlayerStep->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UKalmalaHomeSubsystem::HandleWorldListBack()
+{
+    if (!PlayerStep || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Worlds
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Player)) return;
+    ReleaseWorldList();
+    PlayerStep->SetVisibility(ESlateVisibility::Visible);
+    PlayerStep->FocusContinue();
+}
+
+void UKalmalaHomeSubsystem::ReleaseWorldList()
+{
+    if (WorldList) { WorldList->OnBackRequested().RemoveAll(this); WorldList->RemoveFromParent(); }
+    WorldList = nullptr;
+}
+
 void UKalmalaHomeSubsystem::HandlePlayerBack()
 {
     if (!HomeWidget || !HomeController || !GetLocalPlayer() || !GetWorld()
@@ -104,7 +151,7 @@ void UKalmalaHomeSubsystem::HandlePlayerBack()
 
 void UKalmalaHomeSubsystem::ReleasePlayerStep()
 {
-    if (PlayerStep) { PlayerStep->OnBackRequested().RemoveAll(this); PlayerStep->RemoveFromParent(); }
+    if (PlayerStep) { PlayerStep->OnBackRequested().RemoveAll(this); PlayerStep->OnContinueRequested().RemoveAll(this); PlayerStep->RemoveFromParent(); }
     PlayerStep = nullptr;
 }
 
@@ -134,7 +181,9 @@ void UKalmalaHomeSubsystem::Release()
     if (HomeWidget && GetLocalPlayer())
         if (UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>())
             if (Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Options
-                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Player) Coordinator->GetFlow().Shutdown();
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Player
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Worlds) Coordinator->GetFlow().Shutdown();
+    ReleaseWorldList();
     ReleasePlayerStep();
     if (HomeWidget) { HomeWidget->OnActionRequested().RemoveAll(this); HomeWidget->RemoveFromParent(); }
     HomeWidget = nullptr;

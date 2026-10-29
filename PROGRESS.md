@@ -23691,3 +23691,32 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   Server rejection messaging belongs to SM12; live focus and authentication
   transitions remain unverified in Unreal.
 - **Next eligible task:** SM07, world selection and details.
+
+## Run 2026-10-29 — SM07 world-list unsupported state
+
+- **Selected increment:** Begin SM07 with the read-only world-list entry and
+  truthful unsupported state. SM07 remains unchecked.
+- **Work completed:** Player Continue opens a themed Your worlds screen that
+  reads the existing enumeration-availability adapter. It reports unsupported
+  listing rather than claiming an empty list, disables New world with an
+  explanation, and returns to the player step with Continue focus on Back.
+  Teardown releases the view and callbacks. Added availability message coverage.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaWorldListWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldListTest.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `docs/startmenu.md`, and `PROGRESS.md`. `BACKLOG.md` is unchanged.
+- **Checks:** Source checks inspected adapter status, disabled creation,
+  navigation, focus return, callback teardown and absence of save/travel calls.
+  `git diff --check` passed. The authored Unreal test, build and editor were not
+  run. Full verification remains deferred to SM15 integrated acceptance.
+- **Observable impact:** Players can reach a truthful unsupported world-list
+  state in the isolated menu context and return without modifying saves.
+- **Networking/authority:** Owner-local UI only; no world, save, server or
+  network authority changes.
+- **Known limitations:** The project has no validated world registry; this run
+  does not provide selectable records, true empty state, sorting, details or
+  rules. Live UI behavior remains unverified. SM07 is incomplete.
+- **Next eligible task:** Continue SM07 with validated selection and details;
+  do not advance to SM08 while this task remains unchecked.
