@@ -16,6 +16,15 @@ enum class EKalmalaLocalWorldSaveListingAvailability : uint8
     Unsupported
 };
 
+/** Generator-revision evidence from recognized save names; it says nothing about save payload compatibility. */
+enum class EKalmalaNamedSaveRevisionStatus : uint8
+{
+    Unknown,
+    Current,
+    Different,
+    Conflicting
+};
+
 /** A seed recovered from a recognized world-scoped save slot name. */
 struct KALMALAUI_API FKalmalaLocalWorldSaveRecord
 {
@@ -29,6 +38,7 @@ struct KALMALAUI_API FKalmalaLocalWorldSaveRecord
     int32 StoredGeneratorRevision = 0;
 
     FString GetDisplayLabel() const;
+    EKalmalaNamedSaveRevisionStatus GetNamedSaveRevisionStatus(int32 CurrentRevision) const;
 };
 
 /** Read-only enumeration of known world-owned slots; it does not load or mutate saves. */

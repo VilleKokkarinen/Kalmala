@@ -59,6 +59,16 @@ FString FKalmalaLocalWorldSaveRecord::GetDisplayLabel() const
     return FString::Printf(TEXT("World seed %llu"), Seed);
 }
 
+EKalmalaNamedSaveRevisionStatus FKalmalaLocalWorldSaveRecord::GetNamedSaveRevisionStatus(
+    const int32 CurrentRevision) const
+{
+    if (bHasConflictingGeneratorRevisions) return EKalmalaNamedSaveRevisionStatus::Conflicting;
+    if (!bHasStoredGeneratorRevision) return EKalmalaNamedSaveRevisionStatus::Unknown;
+    return StoredGeneratorRevision == CurrentRevision
+        ? EKalmalaNamedSaveRevisionStatus::Current
+        : EKalmalaNamedSaveRevisionStatus::Different;
+}
+
 bool FKalmalaLocalWorldSaveListing::ParseSlotName(const FString& SlotName,
     EKalmalaLocalWorldSaveKind& OutKind, uint64& OutSeed,
     bool& bOutHasGeneratorRevision, int32& OutGeneratorRevision)

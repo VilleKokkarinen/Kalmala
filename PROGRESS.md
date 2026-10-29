@@ -23797,3 +23797,35 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Next eligible task:** SM08, add a read-only adapter for inspecting known
   current-revision world records; keep creation disabled until safe lifecycle
   handling is available.
+
+## Run 2026-10-29 — SM08 listed revision status
+
+- **Selected increment:** Extend the committed read-only world-save listing to
+  classify any listed ocean-save generator revision against the active revision.
+- **Work completed:** Added a revision status query with explicit current,
+  different, unknown and conflicting outcomes. The status is based on recognized
+  save names only and does not claim payload compatibility. Added focused
+  automation coverage for each outcome and marked this SM08 child complete.
+  New world remains disabled while lifecycle handling is unavailable.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaLocalWorldSaveListing.h`,
+  `Source/KalmalaUI/Private/KalmalaLocalWorldSaveListing.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldListTest.cpp`, `BACKLOG.md`, and
+  `PROGRESS.md`.
+- **Checks:** `git diff --check` and focused whitespace/path checks passed.
+  Reviewed that records without revision evidence remain unknown and conflicting
+  names cannot be reported as current. The Unreal automation test and build were
+  not run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Code consuming listed world records can distinguish
+  current, other, missing and conflicting revision-name evidence without
+  reading or changing saves. No menu action or travel behavior is enabled.
+- **Networking/authority:** Owner-local save-name metadata only; no seed-setting,
+  gameplay authority, replication or save-write behavior changed.
+- **Known limitations:** Name evidence cannot establish payload validity or
+  complete-world compatibility. The read-only inspector edits already present
+  in the checkout remain unstaged and untouched. No validated world-creation
+  lifecycle API exists.
+- **Next eligible task:** SM08, require explicit confirmation before selecting
+  an existing world for a duplicate seed/revision identity, without overwriting
+  it.

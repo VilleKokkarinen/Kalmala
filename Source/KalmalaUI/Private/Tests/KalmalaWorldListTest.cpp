@@ -43,6 +43,20 @@ bool FKalmalaWorldSaveSlotNameTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Ocean slot revision is marked present"), bHasRevision);
     TestEqual(TEXT("Ocean slot revision is preserved"), Revision, 7);
 
+    FKalmalaLocalWorldSaveRecord RevisionRecord;
+    TestTrue(TEXT("A recognized slot without revision evidence remains unknown"),
+        RevisionRecord.GetNamedSaveRevisionStatus(7) == EKalmalaNamedSaveRevisionStatus::Unknown);
+    RevisionRecord.bHasStoredGeneratorRevision = true;
+    RevisionRecord.StoredGeneratorRevision = 7;
+    TestTrue(TEXT("A listed current revision is identified"),
+        RevisionRecord.GetNamedSaveRevisionStatus(7) == EKalmalaNamedSaveRevisionStatus::Current);
+    TestTrue(TEXT("A listed different revision is not called current"),
+        RevisionRecord.GetNamedSaveRevisionStatus(8) == EKalmalaNamedSaveRevisionStatus::Different);
+    RevisionRecord.bHasStoredGeneratorRevision = false;
+    RevisionRecord.bHasConflictingGeneratorRevisions = true;
+    TestTrue(TEXT("Conflicting listed revisions remain explicit"),
+        RevisionRecord.GetNamedSaveRevisionStatus(7) == EKalmalaNamedSaveRevisionStatus::Conflicting);
+
     TestFalse(TEXT("Trailing seed text is rejected"),
         FKalmalaLocalWorldSaveListing::ParseSlotName(TEXT("KalmalaConstruction_42x"), Kind, Seed, bHasRevision, Revision));
     TestFalse(TEXT("Seed overflow is rejected"),
