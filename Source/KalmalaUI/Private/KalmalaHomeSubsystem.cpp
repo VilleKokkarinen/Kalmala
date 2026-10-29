@@ -5,6 +5,7 @@
 #include "KalmalaHomeWidget.h"
 #include "KalmalaMenuContext.h"
 #include "KalmalaMenuFlowSubsystem.h"
+#include "KalmalaPlayerStepWidget.h"
 #include "KalmalaSettingsSubsystem.h"
 
 void UKalmalaHomeSubsystem::Tick(float DeltaTime)
@@ -23,6 +24,24 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Inactive) Flow.Activate();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Options && HomeWidget && HomeController == Controller) return;
+    if (Flow.GetScreen() == EKalmalaMenuScreen::Player && HomeWidget && HomeController == Controller)
+    {
+        if (!PlayerStep)
+        {
+            PlayerStep = CreateWidget<UKalmalaPlayerStepWidget>(Controller, UKalmalaPlayerStepWidget::StaticClass());
+            if (!PlayerStep || !PlayerStep->AddToPlayerScreen(190))
+            {
+                PlayerStep = nullptr;
+                HandlePlayerBack();
+                if (HomeWidget) HomeWidget->ShowUnavailable();
+                return;
+            }
+            PlayerStep->OnBackRequested().AddUObject(this, &ThisClass::HandlePlayerBack);
+            PlayerStep->FocusContinue();
+        }
+        return;
+    }
+    ReleasePlayerStep();
     if (Flow.GetScreen() != EKalmalaMenuScreen::Home) { Release(); return; }
     if (HomeController != Controller) Release();
     if (!HomeWidget)
@@ -44,6 +63,14 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
 void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
 {
     if (!HomeWidget || !HomeController || !GetLocalPlayer()) return;
+    if (Action == EKalmalaHomeAction::Play)
+    {
+        UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+        if (Coordinator && Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Player))
+            HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
+        else HomeWidget->ShowUnavailable();
+        return;
+    }
     if (Action != EKalmalaHomeAction::Options) { HomeWidget->ShowUnavailable(); return; }
     UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
     UKalmalaSettingsSubsystem* Settings = GetLocalPlayer()->GetSubsystem<UKalmalaSettingsSubsystem>();
@@ -61,6 +88,24 @@ void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
         HomeWidget->FocusOptions();
         HomeWidget->ShowUnavailable();
     }
+}
+
+void UKalmalaHomeSubsystem::HandlePlayerBack()
+{
+    if (!HomeWidget || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Player
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Home)) return;
+    ReleasePlayerStep();
+    HomeWidget->SetVisibility(ESlateVisibility::Visible);
+    HomeWidget->FocusPlay();
+}
+
+void UKalmalaHomeSubsystem::ReleasePlayerStep()
+{
+    if (PlayerStep) { PlayerStep->OnBackRequested().RemoveAll(this); PlayerStep->RemoveFromParent(); }
+    PlayerStep = nullptr;
 }
 
 void UKalmalaHomeSubsystem::ReturnFromOptions()
@@ -88,7 +133,9 @@ void UKalmalaHomeSubsystem::Release()
 {
     if (HomeWidget && GetLocalPlayer())
         if (UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>())
-            if (Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Options) Coordinator->GetFlow().Shutdown();
+            if (Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Options
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Player) Coordinator->GetFlow().Shutdown();
+    ReleasePlayerStep();
     if (HomeWidget) { HomeWidget->OnActionRequested().RemoveAll(this); HomeWidget->RemoveFromParent(); }
     HomeWidget = nullptr;
     HomeController = nullptr;

@@ -57,7 +57,7 @@
   - [x] **SM05 — Connect the existing Options screen.**
     - **Implement:** Reuse the existing Options presenter from Home and gameplay. Retain one settings store and one input owner.
     - **Complete when:** Closing Options returns focus to its caller and settings retain their existing apply/revert behavior.
-  - [ ] **SM06 — Show the current player.**
+  - [x] **SM06 — Show the current player.**
     - **Implement:** Add the read-only current-player step, Continue/Back actions and authentication-failure explanation.
     - **Complete when:** Friendly labels reveal no authentication keys and cannot select or override saved-player ownership.
   - [ ] **SM07 — Add world selection and details.**

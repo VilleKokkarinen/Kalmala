@@ -23659,3 +23659,35 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** Live Slate focus, dropdown Back handling and menu/game
   input transitions are unverified. The menu world and startup remain unwired.
 - **Next eligible task:** SM06, show the current player.
+
+## Run 2026-10-29 — SM06 current-player step
+
+- **Selected increment:** Show the current player read-only with Continue,
+  Back and an explanation of unavailable identity/authentication.
+- **Work completed:** Home Play opens a themed Current player screen with a
+  generic label and an availability-only check of its menu PlayerState ID.
+  Missing identity is explained without treating a local ID as proof of server
+  authentication. Back returns to Home/Play; Continue exposes a local event
+  and reports unavailable until world selection is wired. Teardown clears the
+  player view and menu flow. Added focused privacy/message automation coverage.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaPlayerStepWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaPlayerStepWidget.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaPlayerStepTest.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Source checks verified generic labels, availability-only ID use,
+  missing-identity explanation, unbound Continue behavior, Back/focus and
+  teardown, and absence of save/travel or identity-string operations in the
+  player widget. Inspected UE 5.8 widget/controller APIs; `git diff --check`
+  passed. The authored Unreal test, build and editor were not run.
+- **Full verification:** Deferred to SM15 integrated acceptance.
+- **Observable impact:** Play reaches a player step without exposing a key or
+  offering a save-owner selector; startup remains on the gameplay map.
+- **Networking/authority:** Presentation reads only ID availability and sends
+  no identity or save request. The server remains responsible for authentication
+  and ownership; no save schema or network authority changes.
+- **Known limitations:** Continue cannot show worlds until SM07 is integrated.
+  Server rejection messaging belongs to SM12; live focus and authentication
+  transitions remain unverified in Unreal.
+- **Next eligible task:** SM07, world selection and details.

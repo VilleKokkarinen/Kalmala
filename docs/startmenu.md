@@ -342,6 +342,19 @@ the close callback is removed and the Options flow is abandoned without focusing
 an old controller. Actual focus, control-specific Back handling and round-trip
 input ownership require integrated live verification.
 
+## SM06 current-player step
+
+Home Play opens an owner-local, read-only Current player screen. The label is
+always generic: the menu does not display player names, network identifiers or
+credentials and cannot choose a save owner. It checks only whether the menu
+PlayerState has an available ID to explain a missing identity; availability is
+not a claim of successful server authentication. Saved-player restoration still
+requires the server's existing authenticated ownership checks. Continue exposes
+a local event for the later world-selection integration and otherwise explains
+that world selection is unavailable. Back restores Home and its Play focus.
+The pre-game context cannot diagnose a later server authentication rejection;
+that connection-stage error remains for SM12.
+
 ## Ordered delivery and acceptance
 
 The backlog's SM01-SM15 children implement only the initial delivery described

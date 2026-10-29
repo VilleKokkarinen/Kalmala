@@ -6,6 +6,7 @@
 
 class APlayerController;
 class UKalmalaHomeWidget;
+class UKalmalaPlayerStepWidget;
 enum class EKalmalaHomeAction : uint8;
 
 /** Shows Home only for the dedicated menu controller and active Home state. */
@@ -15,6 +16,7 @@ class KALMALAUI_API UKalmalaHomeSubsystem : public ULocalPlayerSubsystem, public
     GENERATED_BODY()
 public:
     UKalmalaHomeWidget* GetHomeWidget() const { return HomeWidget; }
+    UKalmalaPlayerStepWidget* GetPlayerStep() const { return PlayerStep; }
     void ReturnFromOptions();
     void AbandonOptions();
     virtual void Tick(float DeltaTime) override;
@@ -25,6 +27,9 @@ public:
 private:
     void Release();
     void HandleHomeAction(EKalmalaHomeAction Action);
+    void HandlePlayerBack();
+    void ReleasePlayerStep();
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaPlayerStepWidget> PlayerStep;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;
 };
