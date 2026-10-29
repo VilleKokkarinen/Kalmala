@@ -24668,3 +24668,34 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   single-widget presentation, and travel-failure timing were not exercised in
   Unreal. They remain in SM15 acceptance.
 - **Next eligible task:** SM14.5 — route normal packaged startup to Home.
+
+## Run 2026-10-29 — SM14.5 packaged Home startup
+
+- **Selected increment:** Route normal packaged startup to the dedicated Home
+  map while preserving editor startup and gameplay defaults.
+- **Work completed:** Changed only `GameDefaultMap` to
+  `/Game/Kalmala/Maps/Menu/L_Menu`. `EditorStartupMap` remains
+  `/Game/Kalmala/Maps/Prototype/L_Prototype`, and the global default remains
+  `KalmalaGameMode`; the Home map was already included in `MapsToCook`. Updated
+  the start-menu plan to describe the packaged default and reserve launch and
+  explicit-override validation for SM15.
+- **Files changed:** `Config/DefaultEngine.ini`, `docs/startmenu.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Backlog state:** SM14.5 is checked after focused configuration and asset
+  checks. SM14 and the start-menu parent remain unchecked until SM15 acceptance
+  succeeds.
+- **Lightweight checks:** `git diff --check` passed. Focused PowerShell checks
+  confirmed the packaged default points to Home, the editor startup and global
+  gameplay GameMode remain unchanged, the map is included for cooking, and the
+  map asset exists. No build, package, test suite, or Unreal runtime check was
+  run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** A normal packaged launch now resolves to the Home map;
+  editor launch remains on the Prototype map. Explicit gameplay/server map and
+  GameMode overrides were not changed and remain to be verified at runtime.
+- **Networking/authority:** Startup map selection only; gameplay authority and
+  server-side validation are unchanged.
+- **Known limitations:** Packaged launch, explicit gameplay/server overrides,
+  and repeated play/Home round trips were not exercised. They remain in SM15.
+- **Next eligible task:** SM15 — verify and finalize the complete menu.

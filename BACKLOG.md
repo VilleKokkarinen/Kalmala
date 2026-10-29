@@ -117,7 +117,7 @@
       - [x] **SM14.4.3 — Rebuild Home presentation and retire stale menu callbacks after travel.**
         - **Implement:** Release old Home widgets, delegates and request watchers/tokens on outbound travel, then recreate one Home flow for the returning menu controller.
         - **Complete when:** Repeated solo and listen-host returns produce one Home presentation and callbacks from prior worlds cannot affect the new flow.
-    - [ ] **SM14.5 — Route normal packaged startup to Home.**
+    - [x] **SM14.5 — Route normal packaged startup to Home.**
       - **Implement:** Use the dedicated menu map as the packaged default while preserving the editor startup map and explicit gameplay/server map and GameMode overrides.
       - **Complete when:** A packaged launch opens Home and explicit gameplay/server startup still opens the requested gameplay context.
   - [ ] **SM15 — Verify and finalize the complete menu.**
