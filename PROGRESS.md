@@ -24168,3 +24168,46 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   task, SM11. Runtime multiplayer, rendered layout and session teardown remain
   unverified or incomplete for SM15/SM14.
 - **Next eligible task:** SM11 — Connect joining by address.
+
+## Run 2026-10-29 — SM11 Connect joining by address
+
+- **Selected increment:** Add structured IPv4/DNS endpoint parsing and route a
+  valid endpoint through client travel from the menu.
+- **Work completed:** Added Join by address from the Current player step and a
+  dedicated address-entry screen. The parser trims outer whitespace, limits
+  input to 253 characters, accepts strict dotted-decimal IPv4 or ASCII DNS
+  hostnames with an optional decimal port, and uses Unreal's configured URL
+  default port when omitted. It rejects malformed hosts/ports, internal
+  whitespace and control characters, URL/path/travel-option syntax, IPv6 and
+  unsupported forms with explicit feedback. Only normalized `host:port` reaches
+  `ClientTravel` with absolute travel. Valid submissions use the existing
+  Connect request token and disable repeat submission; malformed input leaves
+  the text available for correction. SM11 is checked; the menu parent remains
+  unchecked until SM15 acceptance.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaUI/Public/KalmalaServerAddressParser.h`,
+  `Source/KalmalaUI/Private/KalmalaServerAddressParser.cpp`,
+  `Source/KalmalaUI/Public/KalmalaJoinAddressWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaJoinAddressWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaPlayerStepWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaPlayerStepWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`, and
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`.
+- **Lightweight checks:** Reviewed endpoint parsing, port bounds/default,
+  forbidden URL and travel-option characters, normalized travel construction,
+  focus restoration and request-token gating. `git diff --check` and stale
+  symbol/reference inspection passed. No build, test or automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** A player can enter a supported host address and start
+  a direct connection from the pre-game menu. The active engine URL port is
+  used when the input omits one.
+- **Networking/authority:** The client performs local format validation and
+  initiates `ClientTravel`; gameplay and authentication remain under the
+  destination server's existing authority rules. No address input can append
+  map names or URL travel options.
+- **Known limitations:** DNS resolution and connection outcomes are asynchronous
+  engine events; timeout, cancel, failure recovery and retry behavior remain for
+  SM12. IPv6 and join codes are unsupported. The runtime connection path and
+  rendered screen remain unverified for SM15.
+- **Next eligible task:** SM12 — Handle loading, cancellation and failures.

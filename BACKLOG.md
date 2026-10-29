@@ -78,7 +78,7 @@
   - [x] **SM10 — Connect co-op hosting.**
     - **Implement:** Use the existing listen-server backend with a four-player cap and explain that the session ends when the host leaves.
     - **Complete when:** Address/visibility information is truthful and password/discovery controls appear only when enforced by the backend.
-  - [ ] **SM11 — Connect joining by address.**
+  - [x] **SM11 — Connect joining by address.**
     - **Implement:** Add the plan's structured address parser and route accepted endpoints through validated client travel.
     - **Complete when:** Supported address/port forms work and malformed inputs, unsupported forms and travel-option injection are rejected.
   - [ ] **SM12 — Handle loading, cancellation and failures.**

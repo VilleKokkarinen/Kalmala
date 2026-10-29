@@ -1,8 +1,11 @@
 #include "KalmalaHomeSubsystem.h"
 
 #include "Engine/LocalPlayer.h"
+#include "Engine/EngineBaseTypes.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaHomeWidget.h"
+#include "KalmalaJoinAddressWidget.h"
+#include "KalmalaServerAddressParser.h"
 #include "KalmalaMenuContext.h"
 #include "KalmalaMenuFlow.h"
 #include "KalmalaMenuFlowSubsystem.h"
@@ -26,6 +29,29 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Inactive) Flow.Activate();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Options && HomeWidget && HomeController == Controller) return;
+    if (Flow.GetScreen() == EKalmalaMenuScreen::Join
+        && HomeWidget && PlayerStep && HomeController == Controller)
+    {
+        ReleaseWorldList();
+        if (!JoinAddressWidget)
+        {
+            JoinAddressWidget = CreateWidget<UKalmalaJoinAddressWidget>(Controller,
+                UKalmalaJoinAddressWidget::StaticClass());
+            if (!JoinAddressWidget || !JoinAddressWidget->AddToPlayerScreen(200))
+            {
+                JoinAddressWidget = nullptr;
+                Flow.Navigate(EKalmalaMenuScreen::Player);
+                PlayerStep->SetVisibility(ESlateVisibility::Visible);
+                PlayerStep->FocusContinue();
+                return;
+            }
+            JoinAddressWidget->OnBackRequested().AddUObject(this, &ThisClass::HandleJoinBackRequested);
+            JoinAddressWidget->OnJoinRequested().AddUObject(this, &ThisClass::HandleJoinAddressRequested);
+            JoinAddressWidget->FocusAddress();
+        }
+        return;
+    }
+    ReleaseJoinAddressWidget();
     if ((Flow.GetScreen() == EKalmalaMenuScreen::Worlds || Flow.GetScreen() == EKalmalaMenuScreen::NewWorld
         || Flow.GetScreen() == EKalmalaMenuScreen::WorldDetails)
         && HomeWidget && PlayerStep && HomeController == Controller)
@@ -69,6 +95,7 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
             }
             PlayerStep->OnBackRequested().AddUObject(this, &ThisClass::HandlePlayerBack);
             PlayerStep->OnContinueRequested().AddUObject(this, &ThisClass::HandlePlayerContinue);
+            PlayerStep->OnJoinRequested().AddUObject(this, &ThisClass::HandlePlayerJoinRequested);
             PlayerStep->FocusContinue();
         }
         return;
@@ -130,6 +157,81 @@ void UKalmalaHomeSubsystem::HandlePlayerContinue()
     if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Player
         || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Worlds)) return;
     PlayerStep->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UKalmalaHomeSubsystem::HandlePlayerJoinRequested()
+{
+    if (!PlayerStep || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Player
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Join)) return;
+    PlayerStep->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void UKalmalaHomeSubsystem::HandleJoinBackRequested()
+{
+    if (!JoinAddressWidget || !PlayerStep || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Join
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Player)) return;
+    ReleaseJoinAddressWidget();
+    PlayerStep->SetVisibility(ESlateVisibility::Visible);
+    PlayerStep->FocusContinue();
+}
+
+void UKalmalaHomeSubsystem::HandleJoinAddressRequested(FString Address)
+{
+    if (!JoinAddressWidget || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::Join) return;
+
+    FKalmalaServerEndpoint Endpoint;
+    const EKalmalaServerAddressParseResult ParseResult = FKalmalaServerAddressParser::Parse(
+        Address, FURL::UrlConfig.DefaultPort, Endpoint);
+    if (ParseResult != EKalmalaServerAddressParseResult::Success)
+    {
+        JoinAddressWidget->ShowMessage(FText::FromString(FKalmalaServerAddressParser::ErrorMessage(ParseResult)));
+        JoinAddressWidget->FocusAddress();
+        return;
+    }
+
+    const FString TravelAddress = Endpoint.ToTravelAddress();
+    if (TravelAddress.IsEmpty())
+    {
+        JoinAddressWidget->ShowMessage(FText::FromString(TEXT("The address could not be used. Check it and try again.")));
+        JoinAddressWidget->FocusAddress();
+        return;
+    }
+
+    FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
+    uint64 ConnectionToken = 0;
+    if (!Flow.TryBegin(EKalmalaMenuRequest::Connect, ConnectionToken)) return;
+    JoinAddressWidget->SetJoinEnabled(false);
+
+    AKalmalaMenuPlayerController* MenuController = Cast<AKalmalaMenuPlayerController>(HomeController);
+    bool bTravelStarted = false;
+    const bool bCommitted = Flow.TryCommitTravel(ConnectionToken, [&]()
+    {
+        if (MenuController && MenuController->IsLocalController() && MenuController->GetWorld() == GetWorld())
+        {
+            MenuController->ClientTravel(TravelAddress, TRAVEL_Absolute);
+            bTravelStarted = true;
+        }
+    });
+
+    if (!bCommitted || !bTravelStarted)
+    {
+        Flow.CompleteFailure(ConnectionToken);
+        JoinAddressWidget->SetJoinEnabled(true);
+        JoinAddressWidget->ShowMessage(FText::FromString(TEXT("The address could not be used. Check it and try again.")));
+        JoinAddressWidget->FocusAddress();
+        return;
+    }
+
+    Flow.CompleteSuccess(ConnectionToken);
 }
 
 void UKalmalaHomeSubsystem::HandleWorldListBack()
@@ -281,8 +383,25 @@ void UKalmalaHomeSubsystem::HandlePlayerBack()
 
 void UKalmalaHomeSubsystem::ReleasePlayerStep()
 {
-    if (PlayerStep) { PlayerStep->OnBackRequested().RemoveAll(this); PlayerStep->OnContinueRequested().RemoveAll(this); PlayerStep->RemoveFromParent(); }
+    if (PlayerStep)
+    {
+        PlayerStep->OnBackRequested().RemoveAll(this);
+        PlayerStep->OnContinueRequested().RemoveAll(this);
+        PlayerStep->OnJoinRequested().RemoveAll(this);
+        PlayerStep->RemoveFromParent();
+    }
     PlayerStep = nullptr;
+}
+
+void UKalmalaHomeSubsystem::ReleaseJoinAddressWidget()
+{
+    if (JoinAddressWidget)
+    {
+        JoinAddressWidget->OnBackRequested().RemoveAll(this);
+        JoinAddressWidget->OnJoinRequested().RemoveAll(this);
+        JoinAddressWidget->RemoveFromParent();
+    }
+    JoinAddressWidget = nullptr;
 }
 
 void UKalmalaHomeSubsystem::ReturnFromOptions()
@@ -312,9 +431,11 @@ void UKalmalaHomeSubsystem::Release()
         if (UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>())
             if (Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Options
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Player
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Join
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Worlds
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::WorldDetails) Coordinator->GetFlow().Shutdown();
     ReleaseWorldList();
+    ReleaseJoinAddressWidget();
     ReleasePlayerStep();
     if (HomeWidget) { HomeWidget->OnActionRequested().RemoveAll(this); HomeWidget->RemoveFromParent(); }
     HomeWidget = nullptr;

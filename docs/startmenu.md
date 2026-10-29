@@ -147,10 +147,12 @@ transitions. Do not change existing settings ranges or defaults.
 ### Player step
 
 Play shows the current authenticated player identity as a read-only display label,
-with Continue and Back. This occupies the structural role of character selection
-without inventing portable character saves. Never print internal authentication
-keys. If the existing runtime cannot supply a friendly name, display "Current
-player". No name entry, inventory transfer or appearance promise in this delivery.
+with Continue, Join by address and Back. Continue opens world selection; Join by
+address opens the direct-connection form. This occupies the structural role of
+character selection without inventing portable character saves. Never print
+internal authentication keys. If the existing runtime cannot supply a friendly
+name, display "Current player". No name entry, inventory transfer or appearance
+promise in this delivery.
 Unavailable authentication disables affected saved-player restoration with an
 explanation; do not manufacture an owner ID to make the screen work.
 
@@ -194,14 +196,15 @@ The New world entry strictly parses an explicit decimal seed, then sends the
 typed uint64 and the user's confirmation through the menu controller to the
 server. The first request may accept an unlisted seed as the pending new-world
 selection. An accepted unlisted seed opens read-only details; checking it does
-not create or change a save. Choosing Play solo re-enumerates server-local
-slots and accepts it only if it remains unlisted. For an exact listed current-revision
-identity, the server asks the UI to confirm; the confirmation sends a second
-request that re-enumerates server-local slots. Only an accepted exact match opens
+not create or change a save. Choosing Play solo or Host co-op re-enumerates
+server-local slots and accepts it only if it remains unlisted. For an exact
+listed current-revision identity, the server asks the UI to confirm; the
+confirmation sends a second request that re-enumerates server-local slots. Only
+an accepted exact match opens
 read-only details. Missing or uncertain matches explain why reuse is unavailable.
-Existing rows are also revalidated by the server when Play solo is selected.
+Existing rows are also revalidated by the server before either launch action.
 No seed check loads, overwrites or writes a save; a fresh world begins only
-after the user starts Play solo.
+after the user starts Play solo or Host co-op.
 
 World rules initially displays the existing supported configuration read-only.
 There are no new difficulty multipliers, free-material building or cheat presets.
@@ -211,7 +214,8 @@ Future editable rules need explicit server validation and persistence ownership.
 
 Join accepts an address through a structured parser, never a command or raw travel
 option string. Initial supported syntax: IPv4 or DNS hostname with optional decimal
-port 1-65535 inclusive; omitted port uses the existing configured gameplay port.
+port 1-65535 inclusive; omitted port uses `FURL::UrlConfig.DefaultPort` (the
+current engine default is `[URL] Port=7777`).
 Trim outer whitespace; reject internal whitespace, path separators, URL schemes,
 travel-option separators and control characters. Maximum input: 253 characters
 including port. IPv6 and join codes remain unsupported with an explicit message.
@@ -290,17 +294,18 @@ GameMode memory; this gate does not load, create, overwrite, save or travel. The
 menu controller routes remote requests through reliable server/client RPCs and
 correlates replies with the UI request token. Only the server-local menu
 controller may select a world seed; other clients cannot change the host's
-selection. The New world screen uses this request path. When Play solo is
-selected, the server repeats the save-listing decision for the exact seed and
-confirmation state. It starts only from a standalone menu world, targets the
-configured prototype gameplay map, and passes the server-selected seed and
-current generator revision through constructed travel options. The gameplay
-GameState consumes complete decimal solo options only for standalone startup,
-checks the revision, and applies the accepted seed before gameplay begins so it
-replicates as the world identity. With no menu launch marker, the existing
-command-line seed behavior remains. This path does not create or advertise an
-OnlineSubsystem session; world generation starts only as gameplay begins, and
-saves follow existing gameplay persistence behavior.
+selection. The New world screen uses this request path. When Play solo or Host
+co-op is selected, the server repeats the save-listing decision for the exact
+seed and confirmation state. It starts only from a standalone menu world,
+targets the configured prototype gameplay map, and passes the server-selected
+seed and current generator revision through constructed travel options. Host
+co-op additionally sets the engine `listen` option. The gameplay GameState
+consumes complete decimal menu-launch options only when the launch kind matches
+the network mode, checks the revision, and applies the accepted seed before
+gameplay begins so it replicates as the world identity. With no menu launch
+marker, the existing command-line seed behavior remains. Neither launch path
+creates or advertises an OnlineSubsystem session; world generation starts only
+as gameplay begins, and saves follow existing gameplay persistence behavior.
 
 Returning from play waits for existing logout/save completion, tears down the
 session through its owner and returns to Home with gameplay HUD removed. On
@@ -328,8 +333,8 @@ world and does not change overall saved-world compatibility from unknown.
   the platform save-name API when supported and recognizes only exact
   world-scoped slot prefixes. A seed found in those names is a candidate with
   saved components, not proof of a complete or compatible world. Independent
-  save owners use different slot identities. SM09 starts new generated worlds
-  only through its server-revalidated standalone launch path.
+  save owners use different slot identities. SM09/SM10 start generated worlds
+  only through their server-revalidated launch paths.
 - **Seed and travel:** `AKalmalaWorldGenerationGameState::PostInitializeComponents`
   selects its default or the process `WorldSeed=` on the authority and replicates
   it. A standalone menu launch uses `AKalmalaMenuGameMode::TryStartSoloFromServer`
@@ -348,6 +353,13 @@ world and does not change overall saved-world compatibility from unknown.
   host-address display exists; the host shares a reachable address and configured
   port directly, and leaving ends the listen session. Session teardown and return
   to Home remain later work.
+- **Address joining:** The Current player step opens Join by address. Its parser
+  accepts only strict dotted-decimal IPv4 or ASCII DNS hostnames with an optional
+  decimal port, then builds a host-and-port-only travel address. An omitted port
+  uses `FURL::UrlConfig.DefaultPort`. The local menu controller uses `ClientTravel`
+  with absolute travel; input cannot add a map, URL scheme or travel options. IPv6
+  and join codes are rejected. DNS resolution, timeout, cancellation and
+  connection-failure recovery remain SM12 work.
 
 ## SM02 coordinator contract
 
@@ -453,8 +465,9 @@ are unavailable because no saved-world rules source exists. New world sends its
 strictly parsed seed to the server-owned selection gate; exact reuse requires a
 second, revalidated confirmation. An accepted unlisted seed opens details without
 writing a save. Play solo revalidates either that new seed or the selected listed
-world, then starts standalone gameplay. Back from details returns to the world
-list; Back from the list restores the player step and Continue focus. Save payloads
+world before standalone play; Host co-op repeats the same check before listen
+hosting. Back from details returns to the world list; Back from the list restores
+the player step and Continue focus. Save payloads
 may be read for component checks, but no save is rewritten while checking or
 before travel begins.
 

@@ -68,8 +68,10 @@ void UKalmalaPlayerStepWidget::NativeOnInitialized()
         return Button;
     };
     ContinueButton = AddAction(TEXT("Continue"));
+    JoinButton = AddAction(TEXT("Join by address"));
     BackButton = AddAction(TEXT("Back"));
     ContinueButton->OnClicked.AddDynamic(this, &ThisClass::HandleContinue);
+    JoinButton->OnClicked.AddDynamic(this, &ThisClass::HandleJoin);
     BackButton->OnClicked.AddDynamic(this, &ThisClass::HandleBack);
     Unavailable = WidgetTree->ConstructWidget<UTextBlock>();
     Unavailable->SetText(FText::FromString(TEXT("World selection is not available yet.")));
@@ -109,7 +111,7 @@ void UKalmalaPlayerStepWidget::RefreshTheme()
     if (Title) Theme.ApplyText(*Title, Theme.EmphasisSize + 12, true, LastTextScale, LastContrast);
     if (IdentityStatus) Theme.ApplyText(*IdentityStatus, Theme.BodySize + 3, false, LastTextScale, LastContrast);
     if (Unavailable) Theme.ApplyText(*Unavailable, Theme.BodySize, false, LastTextScale, LastContrast);
-    UKalmalaThemedButton* Buttons[] = {ContinueButton.Get(), BackButton.Get()};
+    UKalmalaThemedButton* Buttons[] = {ContinueButton.Get(), JoinButton.Get(), BackButton.Get()};
     for (UKalmalaThemedButton* Button : Buttons)
     {
         if (!Button) continue;
@@ -147,3 +149,4 @@ void UKalmalaPlayerStepWidget::HandleContinue()
     if (ContinueRequested.IsBound()) ContinueRequested.Broadcast();
     else if (Unavailable) Unavailable->SetVisibility(ESlateVisibility::Visible);
 }
+void UKalmalaPlayerStepWidget::HandleJoin() { JoinRequested.Broadcast(); }

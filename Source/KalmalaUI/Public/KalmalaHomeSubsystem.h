@@ -6,6 +6,7 @@
 
 class APlayerController;
 class UKalmalaHomeWidget;
+class UKalmalaJoinAddressWidget;
 class UKalmalaPlayerStepWidget;
 class UKalmalaWorldListWidget;
 enum class EKalmalaHomeAction : uint8;
@@ -30,6 +31,9 @@ private:
     void HandleHomeAction(EKalmalaHomeAction Action);
     void HandlePlayerBack();
     void HandlePlayerContinue();
+    void HandlePlayerJoinRequested();
+    void HandleJoinBackRequested();
+    void HandleJoinAddressRequested(FString Address);
     void HandleWorldListBack();
     void HandleNewWorldRequested();
     void HandleReturnToWorldsRequested();
@@ -38,8 +42,10 @@ private:
     void HandleHostCoopRequested(uint64 Seed, bool bConfirmedExisting);
     void HandleWorldLaunchRequested(uint64 Seed, bool bConfirmedExisting, bool bListenHost);
     void ReleasePlayerStep();
+    void ReleaseJoinAddressWidget();
     void ReleaseWorldList();
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaJoinAddressWidget> JoinAddressWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaPlayerStepWidget> PlayerStep;
     UPROPERTY(Transient) TObjectPtr<UKalmalaWorldListWidget> WorldList;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;

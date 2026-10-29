@@ -21,6 +21,7 @@ public:
     static const TCHAR* IdentityMessage(bool bIdentityAvailable);
     FKalmalaPlayerStepAction& OnBackRequested() { return BackRequested; }
     FKalmalaPlayerStepAction& OnContinueRequested() { return ContinueRequested; }
+    FKalmalaPlayerStepAction& OnJoinRequested() { return JoinRequested; }
     void FocusContinue();
 
 protected:
@@ -32,6 +33,7 @@ private:
     void RefreshTheme();
     UFUNCTION() void HandleBack();
     UFUNCTION() void HandleContinue();
+    UFUNCTION() void HandleJoin();
     UPROPERTY(Transient) TObjectPtr<UBorder> Backdrop;
     UPROPERTY(Transient) TObjectPtr<UScrollBox> Scroll;
     UPROPERTY(Transient) TObjectPtr<USizeBox> Column;
@@ -39,9 +41,11 @@ private:
     UPROPERTY(Transient) TObjectPtr<UTextBlock> IdentityStatus;
     UPROPERTY(Transient) TObjectPtr<UTextBlock> Unavailable;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> ContinueButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> JoinButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> BackButton;
     FKalmalaPlayerStepAction BackRequested;
     FKalmalaPlayerStepAction ContinueRequested;
+    FKalmalaPlayerStepAction JoinRequested;
     int32 LastTextScale = -1;
     int32 LastContrast = -2;
     bool bLastReducedMotion = false;
