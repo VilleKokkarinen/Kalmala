@@ -23976,3 +23976,38 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   and confirmed reuse are also still required before the lifecycle is safe.
 - **Next eligible task:** Continue SM08 by connecting New world to a validated
   server-owned world lifecycle request with duplicate revalidation.
+
+## Run 2026-10-29 — SM08 shared save-listing contract
+
+- **Selected increment:** Move the read-only recognized world-save listing and
+  duplicate-revision resolver into the shared world module for authoritative
+  lifecycle use.
+- **Work completed:** Moved the listing header and implementation from
+  `KalmalaUI` to `KalmalaWorld` and changed their export annotations. UI keeps
+  the same public include and behavior; Gameplay already depends on KalmalaWorld
+  and can now rerun the exact slot parser and reuse resolver against its own
+  save system. No server caller has been added yet, so SM08 remains incomplete
+  and its backlog checkbox was left unchanged.
+- **Files changed:**
+  `Source/KalmalaUI/Public/KalmalaLocalWorldSaveListing.h` moved to
+  `Source/KalmalaWorld/Public/KalmalaLocalWorldSaveListing.h`,
+  `Source/KalmalaUI/Private/KalmalaLocalWorldSaveListing.cpp` moved to
+  `Source/KalmalaWorld/Private/KalmalaLocalWorldSaveListing.cpp`,
+  `docs/startmenu.md`, and `PROGRESS.md`.
+- **Checks:** Focused source assertions passed for the shared exports, retained
+  slot enumeration/revision resolution, and UI references/dependencies.
+  `git diff --cached --check` passed. Move-path checks passed (maximum moved
+  path: 75 characters). No Unreal build or automation test was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** No menu behavior changed. Server-side lifecycle code
+  can now share the same slot recognition and duplicate decision rules rather
+  than depending on client-reported records.
+- **Networking/authority:** The listing remains read-only and reads the
+  invoking process's local save system. No RPC, authority, gameplay state, or
+  save-write behavior changed.
+- **Known limitations:** The server lifecycle path does not yet invoke this
+  shared resolver, and the menu does not yet submit its seed selection to that
+  path. Duplicate confirmation is currently enforced by the UI only.
+- **Next eligible task:** Continue SM08 by adding the server-side request that
+  reruns this resolver and accepts only a new seed or a confirmed exact match.

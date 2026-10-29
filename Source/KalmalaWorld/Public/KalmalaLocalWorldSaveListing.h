@@ -34,7 +34,7 @@ enum class EKalmalaWorldSeedReuseDecision : uint8
 };
 
 /** A seed recovered from a recognized world-scoped save slot name. */
-struct KALMALAUI_API FKalmalaLocalWorldSaveRecord
+struct KALMALAWORLD_API FKalmalaLocalWorldSaveRecord
 {
     uint64 Seed = 0;
     bool bHasPopulation = false;
@@ -50,7 +50,7 @@ struct KALMALAUI_API FKalmalaLocalWorldSaveRecord
 };
 
 /** Read-only enumeration of known world-owned slots; it does not load or mutate saves. */
-class KALMALAUI_API FKalmalaLocalWorldSaveListing
+class KALMALAWORLD_API FKalmalaLocalWorldSaveListing
 {
 public:
     static EKalmalaLocalWorldSaveListingAvailability Enumerate(TArray<FKalmalaLocalWorldSaveRecord>& OutRecords);

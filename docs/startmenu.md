@@ -259,6 +259,10 @@ does not enumerate or resolve saved-world identities and is not by itself a worl
 creation lifecycle. New world must use a higher-level server request that checks
 duplicate seed/revision records before creation or reuse.
 
+The recognized save-slot listing and duplicate-revision resolver live in the
+shared `KalmalaWorld` module. A server lifecycle request must enumerate its own
+save system and rerun this resolver; it must not trust records supplied by UI.
+
 Returning from play waits for existing logout/save completion, tears down the
 session through its owner and returns to Home with gameplay HUD removed. On
 shutdown/failure release widgets, delegates, timers and pending request tokens.
