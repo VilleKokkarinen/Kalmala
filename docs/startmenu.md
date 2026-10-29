@@ -1,8 +1,8 @@
 # Start menu research and implementation plan
 
-Planning date: 2026-10-29. Status: research and proposed implementation contract;
-no runtime feature is implemented by this document. This request authorizes this
-new documentation file and backlog planning, not gameplay or save-schema changes.
+Planning date: 2026-10-29. Status: implementation contract; SM01 provides a
+read-only descriptor, while the front-end flow is not yet active. No gameplay
+save-schema changes are part of this plan.
 
 ## Valheim reference: evidence and currency
 
@@ -253,6 +253,30 @@ Returning from play waits for existing logout/save completion, tears down the
 session through its owner and returns to Home with gameplay HUD removed. On
 shutdown/failure release widgets, delegates, timers and pending request tokens.
 Never overwrite unrelated main-checkout changes during implementation handoffs.
+
+## SM01 runtime mapping
+
+`FKalmalaWorldDescriptorAdapter` describes an explicitly supplied
+`FKalmalaWorldGenerationConfig`: its full uint64 seed and the current revision
+used by `FKalmalaM7SaveIdentity::ForWorld`. That revision is a candidate identity,
+not a revision read from a saved record. The adapter reports saved-world existence
+and compatibility as unknown, and stored revision, display name, last-played time
+and enumeration as unavailable. Unsupported enumeration is not an empty list.
+It reads and writes no save slots and makes no claim that a world exists.
+
+- **Enumeration and creation:** no project world registry or validated menu
+  creation API exists. Independent save owners use different slot identities;
+  a filename or one valid component cannot establish a complete world.
+- **Seed and travel:** `AKalmalaWorldGenerationGameState::PostInitializeComponents`
+  selects its default or the process `WorldSeed=` on the authority and replicates
+  it. There is no project menu travel API or runtime seed selection here.
+- **Authentication:** the GameMode's private `GetAuthenticatedPlayerIdentity`
+  reads the PlayerState network ID for server save ownership; it is not a friendly
+  menu label or a client-selectable identity. Missing identity remains unavailable.
+- **Logout and sessions:** `AKalmalaGameMode::Logout` calls server player-state
+  persistence before engine logout, but exposes no completion callback. No project
+  session creation/teardown adapter or verified four-player enforcement was found.
+  Launch, hosting and return remain work for their respective later children.
 
 ## Ordered delivery and acceptance
 

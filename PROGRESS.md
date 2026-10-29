@@ -23502,3 +23502,33 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** No fresh four-view render was produced in this run.
 - **Next eligible task:** SM01, expose existing world and session information
   through the read-only world-descriptor adapter.
+
+## Run 2026-10-29 — SM01 world descriptor and runtime mapping
+
+- **Selected increment:** Expose existing world and session information through
+  a read-only world descriptor and map the existing lifecycle APIs.
+- **Work completed:** Added a descriptor for a supplied world configuration,
+  preserving the uint64 seed and current M7 identity revision. It identifies
+  unsupported enumeration and metadata and leaves save existence and
+  compatibility unknown. Documented actual seed, authentication, logout,
+  travel and session boundaries; added focused Unreal automation coverage.
+- **Files changed:** `Source/KalmalaUI/Public/KalmalaWorldDescriptor.h`,
+  `Source/KalmalaUI/Private/KalmalaWorldDescriptor.cpp`,
+  `Source/KalmalaUI/Private/Tests/KalmalaWorldDescriptorTest.cpp`,
+  `docs/startmenu.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Checks:** Compiled and ran the actual adapter with a small standalone MSVC
+  harness and stubbed Unreal types/identity, covering zero, default and maximum
+  seed plus availability states; passed. An initial harness failed to compile
+  due to its initializer-list include; the corrected array-based harness passed.
+  Inspected source mapping and `git diff --check` passed. The Unreal automation
+  test was authored but not run; no Unreal build or editor was run.
+- **Full verification:** Deferred to SM15 integrated acceptance.
+- **Observable impact:** Later menu work can distinguish known configuration
+  values from unavailable or unverified saved-world metadata. Startup is unchanged.
+- **Networking/authority:** Read-only local presentation data; no save mutation,
+  client authority, session creation, authentication or travel behavior changed.
+- **Known limitations:** No complete world registry, verified compatibility,
+  persisted name/time, menu launch API or surfaced logout completion exists.
+  The adapter describes a candidate/current configuration, not a saved-world list.
+- **Next eligible task:** SM02, add the isolated menu flow coordinator and
+  request tokens.

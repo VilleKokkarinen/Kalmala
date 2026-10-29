@@ -42,7 +42,7 @@
     - Perform lightweight checks, update backlog/progress, commit only run-owned changes, then stop.
     - Keep normal startup unchanged until SM14. Add no new services, portable character saves or gameplay save schemas.
     - Leave the parent unchecked until SM15 acceptance succeeds.
-  - [ ] **SM01 — Expose existing world and session information.**
+  - [x] **SM01 — Expose existing world and session information.**
     - **Implement:** Map world enumeration, creation, travel, authentication and logout APIs to the plan. Add a read-only world-descriptor adapter.
     - **Complete when:** Narrow adapter checks confirm supported metadata is returned accurately and unsupported metadata is explicitly identified.
   - [ ] **SM02 — Add the menu flow coordinator.**
