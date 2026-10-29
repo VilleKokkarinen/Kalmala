@@ -263,6 +263,19 @@ The recognized save-slot listing and duplicate-revision resolver live in the
 shared `KalmalaWorld` module. A server lifecycle request must enumerate its own
 save system and rerun this resolver; it must not trust records supplied by UI.
 
+`AKalmalaMenuGameMode::TrySelectWorldSeedFromServer` is the server-side selection
+gate. Each authoritative request clears the previous pending selection, then
+enumerates server-local slots and resolves the typed uint64 seed against the
+current generator revision. It accepts an unlisted seed only without an existing-
+world confirmation, and accepts an exact current-revision match only with that
+confirmation. Unsupported listing, stale confirmation, and unknown, different or
+conflicting revisions fail closed. Rejected authoritative requests leave no
+pending selection.
+The accepted seed and whether it reuses an existing identity remain in menu
+GameMode memory; this gate does not load, create, overwrite, save or travel. The
+New world UI and network request do not call it yet, so world creation remains
+unavailable.
+
 Returning from play waits for existing logout/save completion, tears down the
 session through its owner and returns to Home with gameplay HUD removed. On
 shutdown/failure release widgets, delegates, timers and pending request tokens.

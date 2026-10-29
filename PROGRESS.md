@@ -24011,3 +24011,38 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   path. Duplicate confirmation is currently enforced by the UI only.
 - **Next eligible task:** Continue SM08 by adding the server-side request that
   reruns this resolver and accepts only a new seed or a confirmed exact match.
+
+## Run 2026-10-29 — SM08 server-side seed validation
+
+- **Selected increment:** Add the server-owned selection gate that rechecks
+  duplicate identities before accepting a New world seed.
+- **Work completed:** Added `AKalmalaMenuGameMode::TrySelectWorldSeedFromServer`.
+  An authoritative request enumerates server-local save slots and resolves the
+  typed uint64 seed against the current generator revision. It accepts an
+  unlisted seed without confirmation or an exact current-revision match only
+  with confirmation; unsupported listing, uncertain revisions, and stale or
+  mismatched confirmation fail closed. Each authoritative request clears any
+  previous pending selection before validation, and a successful selection is
+  retained in server GameMode memory. SM08 remains incomplete; no backlog task
+  was checked.
+- **Files changed:**
+  `Source/KalmalaGameplay/Public/KalmalaMenuContext.h`,
+  `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp`,
+  `docs/startmenu.md`, and `PROGRESS.md`.
+- **Checks:** Focused source assertions and `git diff --check` passed. No Unreal
+  build or automation test was run. Windows path checks passed (longest changed
+  absolute path: 68 characters).
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** The server now has a fail-closed API for accepting a
+  new-world seed or explicitly confirmed exact reuse. No save is loaded,
+  created, overwritten or traveled to by this API.
+- **Networking/authority:** The gate requires an authoritative non-client world
+  and derives identity evidence from the server's own save listing. There is no
+  client RPC or UI caller yet; clients cannot choose a slot or supply save
+  records through this method.
+- **Known limitations:** The menu UI does not submit this request, and a later
+  launch integration must transfer the pending selection into world setup.
+  World creation, loading, travel and end-to-end confirmation remain incomplete.
+- **Next eligible task:** Continue SM08 by connecting the seed-entry and
+  confirmation flow to this validated server request.
