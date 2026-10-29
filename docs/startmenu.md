@@ -1,0 +1,274 @@
+# Start menu research and implementation plan
+
+Planning date: 2026-10-29. Status: research and proposed implementation contract;
+no runtime feature is implemented by this document. This request authorizes this
+new documentation file and backlog planning, not gameplay or save-schema changes.
+
+## Valheim reference: evidence and currency
+
+The latest release found on the official news index is **1.0.21, 28 October 2026**.
+Its notes explicitly mention main-menu character/world naming fixes, an Xbox
+Start Game failure, removal of an Xbox startup controller-association screen,
+and a credits overlay repair. Thus older launch videos are not sufficient to
+establish current platform-specific startup behavior.
+[Official patch 1.0.21](https://www.valheimgame.com/news/patch-1-0-21/).
+
+This is desk research, not an observation of a running retail client. The
+following inventory combines official support documentation with Jotunn's
+first-hand generated English string inventory, explicitly generated from
+**1.0.7**, rather than claiming that inventory is 1.0.21 UI verification.
+Strings confirm available concepts, not exact placement, visibility or order.
+[Jotunn generated localization](https://valheim-modding.github.io/Jotunn/data/localization/translations/English.html).
+
+### Reference screen inventory
+
+| Branch | Documented controls/concepts | Evidence |
+| --- | --- | --- |
+| Title | Play entry, settings, credits, exit; changelog/community/feedback utilities | Generated strings; arrangement needs current capture |
+| Character | Selection, creation, customization; name, skin, hair and beard choices | Generated strings |
+| World | Existing-world selection, creation, name and seed | Generated strings |
+| Hosting | Server toggle, community visibility, password and crossplay | Strings and official server guide |
+| Joining | Friends, favorites, filtering, server addition, address or invite-code entry | Strings; official crossplay FAQ confirms code path |
+| Rules | World-specific modifier screen with presets and individual controls | Official server guide and strings |
+| Save management | Character/world categories, backup expansion and restoration, local/cloud movement and storage warnings | Generated strings |
+| Transition | Generation, loading, connection and retry/error states | Generated strings |
+
+Structural reconstruction (the arrows express a flow, not verified current
+pixel positions): title -> character -> local-world or join branch -> loading
+-> play. Creation and save management are side branches. Settings and credits
+return to their caller. Invites still require character selection. Startup
+splash/account/permission prompts depend on platform and cannot be assumed to
+appear every time. Current exact settings tab order, every slider, splash order,
+background composition and controller focus require a 1.0.21 retail capture;
+they are not established by this research.
+
+Valheim separates selecting who plays from selecting where they play. Its
+hosting backend also matters: the official guide distinguishes Steam networking
+and crossplay, public listing and private address access. The FAQ documents
+Join Game -> Add server for a shared code, obtained by the host in the pause
+menu. These are reference capabilities, not Kalmala service commitments.
+[Official crossplay FAQ](https://www.valheimgame.com/support/crossplay-faq/),
+[Official server guide](https://www.valheimgame.com/support/a-guide-to-dedicated-servers/).
+
+The official guide lists seven rule presets and controls for combat, death,
+resources, raids and portals, plus world toggles. The useful design lesson is
+that host-owned rules belong with world configuration, separate from personal
+presentation settings. Kalmala must expose only rules it actually implements.
+[Official server guide](https://www.valheimgame.com/support/a-guide-to-dedicated-servers/).
+
+### What the reference accomplishes
+
+- A short primary path coexists with deeper configuration branches.
+- Separate world and character records explain independent save operations.
+- World ownership determines whether the player configures rules or joins them.
+- Empty lists lead to creation, while populated lists support repeat sessions.
+- Destructive operations and storage failures receive dedicated interaction states.
+
+Kalmala should adopt this information architecture using its own wording,
+artwork and existing theme. Do not copy reference assets, layout measurements,
+ornamentation, lore, audio, source or customization designs.
+
+## Kalmala baseline and boundaries
+
+Read alongside [brief](00-project-brief.md), [design](01-game-design.md),
+[architecture](02-technical-architecture.md), [roadmap](04-roadmap.md),
+[decisions](05-decision-log.md) and [verification](07-development-setup.md).
+
+Current source facts inspected for this plan:
+
+- `Config/DefaultEngine.ini` boots `L_Prototype` with `KalmalaGameMode`.
+  A dedicated pre-game front end is therefore new work, not a renamed title panel.
+- `UKalmalaSettingsWidget::ShowMainMenu` currently offers Options and Quit.
+  Options already has Controls, Controller, Graphics, Audio and Accessibility.
+  Reuse its option presenters, preference storage, focus and theme behavior.
+- Gameplay save slots derive from seed, revision and/or authenticated owner.
+  `KalmalaGameMode::GetAuthenticatedPlayerIdentity` resolves the network identity;
+  a menu character name cannot replace it or select another player's saved state.
+- Windows PC and the existing solo/listen/dedicated 1-4-player model remain the
+  target. No matchmaking, account provider, crossplay, cloud storage or paid service
+  is selected here. Session UI is not evidence those capabilities already exist.
+
+The initial delivery is a complete front end for the supported session model.
+Full Valheim-style independent portable characters, appearance editing, backup
+restoration, cloud transfers and difficulty presets are expansion candidates.
+They are explicitly outside the implementation queue below because they require
+new persistence, content or service contracts. Keep their design branches here;
+do not present inert controls as working features. In particular, no new
+character-save namespace or arbitrary player identity override is authorized.
+
+## Proposed Kalmala flow
+
+```mermaid
+flowchart TD
+    Boot[Launch] --> Home[Home]
+    Home --> Play[Play: current player]
+    Home --> Options[Options]
+    Home --> Saves[Save information]
+    Home --> Credits[Credits]
+    Home --> Exit[Exit confirmation]
+    Play --> Worlds[Your worlds]
+    Play --> Join[Join by address]
+    Worlds --> Create[New world]
+    Worlds --> Detail[World details]
+    Detail --> Solo[Play solo]
+    Detail --> Host[Host co-op]
+    Create --> Detail
+    Solo --> Load[Preparing world]
+    Host --> Load
+    Join --> Connect[Connecting]
+    Load --> Game[Play]
+    Connect --> Game
+    Game --> Home
+```
+
+### Home and presentation
+
+Home actions, in order: Play, Options, Save information, Credits, Exit.
+Initial focus is Play. Display the build version in a quiet footer. No automatic
+network requests, advertising/news feed or mandatory account sign-in on launch.
+Existing explicit command-line gameplay/dedicated-server launches bypass Home.
+Normal packaged client launches use Home only after the complete path passes
+acceptance; editor startup remains a development workflow.
+
+Reuse the existing Kalmala menu palette, textures and typography. Keep a quiet
+background based on existing original assets; do not select a new visual identity.
+A static background is sufficient initially. No live terrain generation, wildlife,
+player pawn or gameplay timers run behind Home. Missing decorative art collapses
+without blocking navigation. New art is a separate approved asset task.
+
+Implementation defaults selected for this plan: 32 logical-unit outer safe margin,
+48 minimum action height, 8 gap, 420-wide home action column, and a scrollable
+content area for long lists. Use the existing DPI/text scaling and contrast settings;
+validate 1280x720 and 1920x1080 at default and maximum supported text scale.
+Focus must remain visible, including without color. Avoid compulsory animation;
+respect the existing reduced-motion preference if available, otherwise use static
+transitions. Do not change existing settings ranges or defaults.
+
+### Player step
+
+Play shows the current authenticated player identity as a read-only display label,
+with Continue and Back. This occupies the structural role of character selection
+without inventing portable character saves. Never print internal authentication
+keys. If the existing runtime cannot supply a friendly name, display "Current
+player". No name entry, inventory transfer or appearance promise in this delivery.
+Unavailable authentication disables affected saved-player restoration with an
+explanation; do not manufacture an owner ID to make the screen work.
+
+Future character creation would add a list, original preview, create/edit/remove
+and character persistence. It requires its own approved identity and save contract
+before implementation; no current child silently enables it.
+
+### Worlds and launch
+
+Your worlds shows supported local records: display name when supplied by existing
+metadata, otherwise a seed-based label, seed, generator revision and compatibility
+status. Read through existing owners; no recursive arbitrary file browser and no
+rewriting saves while enumerating. Sort by existing last-played timestamp descending
+when available, then label ascending; missing timestamps sort last. Show an empty
+state with New world. Selecting a row never starts it automatically.
+
+World details offers Play solo, Host co-op and Back. Solo creates no advertised
+session. Hosting uses the existing listen-server path, capped at four players.
+Explain that the session ends when its host exits. Only display password, discovery
+or visibility options if an existing backend enforces them end to end; otherwise
+show address-based joining with a clear connection explanation. Do not store or
+log passwords. Dedicated-server clients use Join; the menu does not spawn an
+unmanaged background dedicated-server process.
+
+New world accepts the existing world-seed type and active generator revision.
+Default to a fresh valid seed from the existing generator's seed helper; expose
+only a numeric seed if that is all the runtime supports. Validate the full range
+against the runtime type, disallow trailing garbage and never silently wrap.
+No free-form seed hashing or new metadata save file. Duplicate seed/revision
+identities select the existing world after confirmation rather than overwrite it.
+Do not claim multiple independently named copies of the same seed are supported.
+Only create through an existing validated world lifecycle; if no safe enumeration
+or creation API exists, implement a read-only adapter first and keep the affected
+action disabled until its narrow integration child supplies it.
+
+World rules initially displays the existing supported configuration read-only.
+There are no new difficulty multipliers, free-material building or cheat presets.
+Future editable rules need explicit server validation and persistence ownership.
+
+### Joining and failures
+
+Join accepts an address through a structured parser, never a command or raw travel
+option string. Initial supported syntax: IPv4 or DNS hostname with optional decimal
+port 1-65535 inclusive; omitted port uses the existing configured gameplay port.
+Trim outer whitespace; reject internal whitespace, path separators, URL schemes,
+travel-option separators and control characters. Maximum input: 253 characters
+including port. IPv6 and join codes remain unsupported with an explicit message.
+DNS resolution is a connection-stage result, not a synchronous UI operation.
+
+One connection/launch request at a time. Use one monotonically increasing request
+token so late callbacks from canceled requests cannot travel or update the screen.
+Disable repeated submit immediately. Connecting has Cancel; timeout after 30
+seconds returns to Join with address preserved. World generation/loading uses
+engine events and elapsed time rather than fake percentages; warn after 60
+seconds but do not abort an active save/load mid-write. Back becomes unavailable
+once irreversible engine travel begins, with that state explained. Failure returns
+to the originating panel; Retry is always an explicit action, never an automatic loop.
+
+Errors distinguish malformed address, unreachable host, full session, incompatible
+build, rejected authentication, unsupported/corrupt save and travel failure when
+the backend supplies that reason; otherwise show a neutral connection failure.
+No guessed diagnosis. Reject incompatible development saves without rewriting or
+migrating them. Never mutate a good save to recover from an unsuccessful launch.
+
+### Options, save information, credits and exit
+
+Options is the existing five-tab settings view, accessible before gameplay and
+from the existing in-game modal. Keep existing apply/revert behavior and restore
+focus to the caller. Refactor the Options/Quit home panel into a reusable options
+entry; there must not be two competing Escape handlers or preference stores.
+
+Save information is initially read-only: supported world/player records, identity
+match and compatibility/load status. State clearly which gameplay facts persist;
+ordinary inventory/equipment restoration must not be promised beyond existing
+contracts. No Delete, Rename, Restore or Cloud buttons until their data-owner
+operations are separately approved and implemented. Do not expose absolute private
+filesystem paths. This deliberate scope differs from Valheim's save manager.
+
+Credits uses existing project attribution only, scrollable with Back; absent credits
+content gets a truthful project label rather than invented contributors. Exit opens
+a confirmation with Cancel focused. Escape cancels, Enter activates the focused
+choice, and affirmative Exit requests the standard engine shutdown.
+
+## Integration and lifecycle
+
+Use a local-player/GameInstance-owned front-end coordinator and a dedicated
+non-gameplay menu world or equivalent lightweight startup context. Keep menu state
+out of `KalmalaGameMode` gameplay ticks. Reuse CommonUI input ownership and theme.
+Gameplay HUD subsystems must explicitly decline creation in the front-end context;
+closing a settings panel must not release gameplay input into a menu background.
+
+Adapters expose current world descriptors and existing validated launch paths.
+The server derives world identity and validates ownership/configuration as today;
+client UI checks are convenience only. Never accept a client's selected save slot,
+reward state, owner identity, damage or item data as authority. No gameplay SaveGame
+schema changes or migrations. UI selection is memory-only, cleared on process
+restart; existing options retain their current restart behavior. No new MRU file.
+
+Returning from play waits for existing logout/save completion, tears down the
+session through its owner and returns to Home with gameplay HUD removed. On
+shutdown/failure release widgets, delegates, timers and pending request tokens.
+Never overwrite unrelated main-checkout changes during implementation handoffs.
+
+## Ordered delivery and acceptance
+
+The backlog's SM01-SM15 children implement only the initial delivery described
+above. Each run completes the first unchecked unblocked child, splitting further
+before implementation if necessary. Runtime boot activation stays last, so partial
+screens cannot strand normal players. Source mapping verifies exact adapter APIs
+before wiring; it may not invent persistence support.
+
+Normal children use inspection and narrow checks. Final acceptance covers fresh
+launch, empty/existing world lists, solo start/return/restart, listen-host plus client
+join and disconnect, dedicated join, invalid/full/incompatible connections, cancel
+and stale callbacks, failed load without save mutation, keyboard/controller focus,
+text scaling, shared settings persistence and absence of gameplay HUD in Home.
+Run applicable builds, UI/authority automation and packaged session verification
+from `docs/07-development-setup.md` for this integrated feature; record commands,
+results and repairs. A standalone menu render is presentation evidence only.
+Keep the parent unchecked until required final verification succeeds; no existing
+roadmap milestone is reopened or declared complete by this planning change.

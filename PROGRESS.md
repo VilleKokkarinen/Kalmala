@@ -23446,3 +23446,26 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   support result has no selected-effect identity and therefore uses the Hearth
   Shield status texture.
 - **Next eligible task:** Join the Deer’s upper legs to its belly and chest.
+
+## Run 2026-10-29 — Start menu research and backlog plan
+
+- **Scope:** User-requested planning only; no backlog implementation increment.
+- **Work completed:** Researched official Valheim 1.0.21 notes, crossplay/server
+  support and version-labelled generated menu strings; documented evidence
+  limits, menu branches and an original Kalmala front-end contract. Added ordered
+  SM01-SM15 implementation children after the existing creature cleanup queue.
+- **Files changed:** `docs/startmenu.md`, `BACKLOG.md`, `PROGRESS.md`.
+- **Checks:** Inspected current startup configuration, settings home/options,
+  authenticated save ownership and queue order; reviewed source links, task IDs,
+  whitespace and path lengths. No game launch, build or runtime tests performed.
+- **Full verification:** Deferred to implementation and integrated acceptance;
+  this is not milestone-final verification. Retail Valheim UI was not observed.
+- **Observable impact:** Future runs have a sourced menu plan and ordered tasks;
+  gameplay behavior remains unchanged.
+- **Networking/authority:** Plan retains server-owned identity, world setup and
+  existing solo/listen/dedicated model; no online provider is selected.
+- **Limitations:** Exact current Valheim visual layout/settings inventory needs
+  retail capture. Independent character saves, customization, writable save
+  management, cloud/crossplay and new world modifiers require separate contracts.
+- **Next eligible task:** Existing Deer upper-leg follow-up remains first.
+  First start-menu task afterward is SM01's read-only world/lifecycle adapter.
