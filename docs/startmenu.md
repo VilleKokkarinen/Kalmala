@@ -358,8 +358,14 @@ world and does not change overall saved-world compatibility from unknown.
   decimal port, then builds a host-and-port-only travel address. An omitted port
   uses `FURL::UrlConfig.DefaultPort`. The local menu controller uses `ClientTravel`
   with absolute travel; input cannot add a map, URL scheme or travel options. IPv6
-  and join codes are rejected. DNS resolution, timeout, cancellation and
-  connection-failure recovery remain SM12 work.
+  and join codes are rejected. Connecting disables address edits and repeat
+  submission while keeping Cancel available. A monotonic 30-second deadline
+  cancels the pending engine connection, restores Join with the typed address,
+  and reports timeout. Network and travel failure callbacks are scoped to the
+  originating world and request token; they restore Join, preserve the address,
+  clear engine-scheduled fallback travel, and show a backend reason when one is
+  supplied. Retry is an explicit new submission. World-generation/loading
+  feedback and recovery remain SM12 work.
 
 ## SM02 coordinator contract
 
@@ -369,10 +375,13 @@ Navigation is blocked during an attempt. Launch begins only from World details,
 and connection only from Join. One nonzero, monotonically increasing token owns
 an attempt. Cancel or failure restores its originating screen, and a later attempt
 gets a different token. Travel dispatch is a one-shot token-checked callback; the
-flow commits before calling it, so duplicate or reentrant dispatch fails. Once
-travel starts, cancel is refused. Success requires committed travel, and stale
-success/failure callbacks cannot change state. Token exhaustion fails closed;
-shutdown invalidates the attempt without resetting the counter.
+flow commits before calling it, so duplicate or reentrant dispatch fails. A
+committed launch cannot be canceled. A committed address connection remains
+cancellable until the remote client world becomes active; cancellation closes
+the pending net game and clears its scheduled travel URL. Success requires
+committed travel, and stale success/failure callbacks cannot change state. Token
+exhaustion fails closed; shutdown invalidates the attempt without resetting the
+counter.
 
 Later async integrations must capture a weak pointer to the original subsystem,
 not a flow reference or a replacement owner. They must dispatch travel through

@@ -24,6 +24,7 @@ public:
     bool Navigate(EKalmalaMenuScreen Destination);
     bool TryBegin(EKalmalaMenuRequest Request, uint64& OutToken);
     bool Cancel(uint64 Token);
+    bool CancelConnect(uint64 Token);
     // Validates and marks travel committed before invoking StartTravel, including under reentrancy.
     bool TryCommitTravel(uint64 Token, TFunctionRef<void()> StartTravel);
     bool CompleteSuccess(uint64 Token);
@@ -38,6 +39,7 @@ private:
 
     EKalmalaMenuScreen Screen = EKalmalaMenuScreen::Inactive;
     EKalmalaMenuScreen Origin = EKalmalaMenuScreen::Inactive;
+    EKalmalaMenuRequest ActiveRequest = EKalmalaMenuRequest::Launch;
     EPhase Phase = EPhase::None;
     uint64 LastToken = 0;
     uint64 ActiveToken = 0;

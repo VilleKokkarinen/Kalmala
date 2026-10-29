@@ -33,7 +33,13 @@ private:
     void HandlePlayerContinue();
     void HandlePlayerJoinRequested();
     void HandleJoinBackRequested();
+    void HandleJoinCancelRequested();
     void HandleJoinAddressRequested(FString Address);
+    void StartWatchingConnection(uint64 Token);
+    void StopWatchingConnection();
+    void FinishConnectionFailure(uint64 Token, const FText& Message);
+    void CancelConnectionAttempt(const FText& Message);
+    void ClearScheduledConnectionTravel(UWorld* OriginWorld);
     void HandleWorldListBack();
     void HandleNewWorldRequested();
     void HandleReturnToWorldsRequested();
@@ -49,4 +55,9 @@ private:
     UPROPERTY(Transient) TObjectPtr<UKalmalaPlayerStepWidget> PlayerStep;
     UPROPERTY(Transient) TObjectPtr<UKalmalaWorldListWidget> WorldList;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;
+    TWeakObjectPtr<UWorld> ConnectionOriginWorld;
+    FDelegateHandle NetworkFailureHandle;
+    FDelegateHandle TravelFailureHandle;
+    uint64 ActiveConnectToken = 0;
+    double ConnectionStartedAtSeconds = 0.0;
 };

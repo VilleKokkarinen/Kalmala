@@ -1,7 +1,10 @@
 #include "KalmalaHomeSubsystem.h"
 
 #include "Engine/LocalPlayer.h"
+#include "Engine/Engine.h"
 #include "Engine/EngineBaseTypes.h"
+#include "Engine/NetDriver.h"
+#include "HAL/PlatformTime.h"
 #include "GameFramework/PlayerController.h"
 #include "KalmalaHomeWidget.h"
 #include "KalmalaJoinAddressWidget.h"
@@ -13,20 +16,95 @@
 #include "KalmalaSettingsSubsystem.h"
 #include "KalmalaWorldListWidget.h"
 
-void UKalmalaHomeSubsystem::Tick(float DeltaTime)
+namespace
+{
+    constexpr double JoinConnectionTimeoutSeconds = 30.0;
+
+    FText BackendFailureOrFallback(const FString& BackendMessage, const TCHAR* Fallback)
+    {
+        FString Message = BackendMessage;
+        Message.TrimStartAndEndInline();
+        if (Message.IsEmpty()) return FText::FromString(Fallback);
+        if (Message.Len() > 180) Message.LeftInline(180, EAllowShrinking::No);
+        return FText::FromString(Message);
+    }
+
+    FText JoinNetworkFailureMessage(const ENetworkFailure::Type FailureType, const FString& ErrorString)
+    {
+        switch (FailureType)
+        {
+        case ENetworkFailure::ConnectionTimeout:
+            return FText::FromString(TEXT("Connection timed out. Check the address and try again."));
+        case ENetworkFailure::OutdatedClient:
+        case ENetworkFailure::OutdatedServer:
+            return FText::FromString(TEXT("This game version is not compatible with the host."));
+        case ENetworkFailure::FailureReceived:
+        case ENetworkFailure::PendingConnectionFailure:
+            return BackendFailureOrFallback(ErrorString, TEXT("Could not connect to that host. Try again."));
+        case ENetworkFailure::ConnectionLost:
+            return FText::FromString(TEXT("The connection to the host was lost. Try again."));
+        default:
+            return FText::FromString(TEXT("The connection failed. Check the address and try again."));
+        }
+    }
+
+    FText JoinTravelFailureMessage(const ETravelFailure::Type FailureType)
+    {
+        switch (FailureType)
+        {
+        case ETravelFailure::PackageMissing:
+        case ETravelFailure::PackageVersion:
+        case ETravelFailure::NoDownload:
+            return FText::FromString(TEXT("The host's game content is not compatible."));
+        default:
+            return FText::FromString(TEXT("Could not load the host's world. Check compatibility and try again."));
+        }
+    }
+}
+
+void UKalmalaHomeSubsystem::Tick(float)
 {
     UWorld* World = GetWorld();
     ULocalPlayer* LocalPlayer = GetLocalPlayer();
-    if (!World || !World->IsGameWorld() || !LocalPlayer) { Release(); return; }
-    APlayerController* Controller = LocalPlayer->GetPlayerController(World);
+    if (!LocalPlayer) { Release(); return; }
+    UKalmalaMenuFlowSubsystem* Coordinator = LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator) { Release(); return; }
+    FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
+    APlayerController* Controller = World ? LocalPlayer->GetPlayerController(World) : nullptr;
+    if (Flow.GetScreen() == EKalmalaMenuScreen::Connecting && ActiveConnectToken != 0)
+    {
+        if (World && World != ConnectionOriginWorld.Get() && Controller && Controller->IsLocalController()
+            && World->GetNetMode() == NM_Client)
+        {
+            const uint64 CompletedToken = ActiveConnectToken;
+            if (Flow.CompleteSuccess(CompletedToken))
+            {
+                StopWatchingConnection();
+                ActiveConnectToken = 0;
+                ConnectionOriginWorld.Reset();
+                ConnectionStartedAtSeconds = 0.0;
+                Release();
+                return;
+            }
+        }
+
+        if (FPlatformTime::Seconds() - ConnectionStartedAtSeconds >= JoinConnectionTimeoutSeconds)
+        {
+            CancelConnectionAttempt(FText::FromString(TEXT("Connection timed out. Check the address and try again.")));
+            return;
+        }
+        if (Flow.GetScreen() == EKalmalaMenuScreen::Connecting)
+        {
+            if (JoinAddressWidget) JoinAddressWidget->SetConnecting(true);
+            return;
+        }
+    }
+    if (!World || !World->IsGameWorld()) { Release(); return; }
     if (!Controller || !Controller->IsLocalController() || !Controller->IsA<AKalmalaMenuPlayerController>())
     {
         Release();
         return;
     }
-    UKalmalaMenuFlowSubsystem* Coordinator = LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>();
-    if (!Coordinator) { Release(); return; }
-    FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Inactive) Flow.Activate();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Options && HomeWidget && HomeController == Controller) return;
     if (Flow.GetScreen() == EKalmalaMenuScreen::Join
@@ -46,6 +124,7 @@ void UKalmalaHomeSubsystem::Tick(float DeltaTime)
                 return;
             }
             JoinAddressWidget->OnBackRequested().AddUObject(this, &ThisClass::HandleJoinBackRequested);
+            JoinAddressWidget->OnCancelRequested().AddUObject(this, &ThisClass::HandleJoinCancelRequested);
             JoinAddressWidget->OnJoinRequested().AddUObject(this, &ThisClass::HandleJoinAddressRequested);
             JoinAddressWidget->FocusAddress();
         }
@@ -181,6 +260,104 @@ void UKalmalaHomeSubsystem::HandleJoinBackRequested()
     PlayerStep->FocusContinue();
 }
 
+void UKalmalaHomeSubsystem::HandleJoinCancelRequested()
+{
+    CancelConnectionAttempt(FText::FromString(TEXT("Connection cancelled.")));
+}
+
+void UKalmalaHomeSubsystem::StartWatchingConnection(const uint64 Token)
+{
+    StopWatchingConnection();
+    if (!GEngine) return;
+
+    NetworkFailureHandle = GEngine->OnNetworkFailure().AddWeakLambda(this,
+        [this, Token](UWorld* FailedWorld, UNetDriver* NetDriver,
+            const ENetworkFailure::Type FailureType, const FString& ErrorString)
+        {
+            if (ActiveConnectToken != Token) return;
+            const bool bOriginWorldFailure = FailedWorld && FailedWorld == ConnectionOriginWorld.Get();
+            const bool bPendingConnectionFailure = FailedWorld == nullptr && NetDriver != nullptr;
+            if (!bOriginWorldFailure && !bPendingConnectionFailure) return;
+            FinishConnectionFailure(Token, JoinNetworkFailureMessage(FailureType, ErrorString));
+        });
+
+    TravelFailureHandle = GEngine->OnTravelFailure().AddWeakLambda(this,
+        [this, Token](UWorld* FailedWorld, const ETravelFailure::Type FailureType, const FString&)
+        {
+            if (ActiveConnectToken != Token || !FailedWorld) return;
+            UWorld* OriginWorld = ConnectionOriginWorld.Get();
+            if (FailedWorld != OriginWorld && FailedWorld != GetWorld()) return;
+            ClearScheduledConnectionTravel(FailedWorld);
+            FinishConnectionFailure(Token, JoinTravelFailureMessage(FailureType));
+        });
+}
+
+void UKalmalaHomeSubsystem::StopWatchingConnection()
+{
+    if (GEngine)
+    {
+        if (NetworkFailureHandle.IsValid()) GEngine->OnNetworkFailure().Remove(NetworkFailureHandle);
+        if (TravelFailureHandle.IsValid()) GEngine->OnTravelFailure().Remove(TravelFailureHandle);
+    }
+    NetworkFailureHandle.Reset();
+    TravelFailureHandle.Reset();
+}
+
+void UKalmalaHomeSubsystem::ClearScheduledConnectionTravel(UWorld* OriginWorld)
+{
+    if (!GEngine || !OriginWorld) return;
+    if (FWorldContext* Context = GEngine->GetWorldContextFromWorld(OriginWorld))
+    {
+        // Engine failure handlers may queue a default-map or ?closed travel before this listener runs.
+        Context->TravelURL.Reset();
+        Context->TravelType = TRAVEL_Absolute;
+    }
+}
+
+void UKalmalaHomeSubsystem::FinishConnectionFailure(const uint64 Token, const FText& Message)
+{
+    if (Token == 0 || ActiveConnectToken != Token) return;
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    UKalmalaMenuFlowSubsystem* Coordinator = LocalPlayer
+        ? LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>() : nullptr;
+    const bool bRestoredOrigin = Coordinator && Coordinator->GetFlow().CompleteFailure(Token);
+    UWorld* OriginWorld = ConnectionOriginWorld.Get();
+    StopWatchingConnection();
+    ActiveConnectToken = 0;
+    ConnectionOriginWorld.Reset();
+    ConnectionStartedAtSeconds = 0.0;
+    if (GEngine && OriginWorld) GEngine->CancelPending(OriginWorld);
+    ClearScheduledConnectionTravel(OriginWorld);
+    if (!bRestoredOrigin || !JoinAddressWidget) return;
+
+    JoinAddressWidget->SetConnecting(false);
+    JoinAddressWidget->ShowMessage(Message);
+    JoinAddressWidget->FocusAddress();
+}
+
+void UKalmalaHomeSubsystem::CancelConnectionAttempt(const FText& Message)
+{
+    const uint64 Token = ActiveConnectToken;
+    if (Token == 0) return;
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+    UKalmalaMenuFlowSubsystem* Coordinator = LocalPlayer
+        ? LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>() : nullptr;
+    if (!Coordinator || !Coordinator->GetFlow().CancelConnect(Token)) return;
+
+    UWorld* OriginWorld = ConnectionOriginWorld.Get();
+    StopWatchingConnection();
+    ActiveConnectToken = 0;
+    ConnectionOriginWorld.Reset();
+    ConnectionStartedAtSeconds = 0.0;
+    if (GEngine && OriginWorld) GEngine->CancelPending(OriginWorld);
+    ClearScheduledConnectionTravel(OriginWorld);
+    if (!JoinAddressWidget) return;
+
+    JoinAddressWidget->SetConnecting(false);
+    JoinAddressWidget->ShowMessage(Message);
+    JoinAddressWidget->FocusAddress();
+}
+
 void UKalmalaHomeSubsystem::HandleJoinAddressRequested(FString Address)
 {
     if (!JoinAddressWidget || !HomeController || !GetLocalPlayer() || !GetWorld()
@@ -209,7 +386,12 @@ void UKalmalaHomeSubsystem::HandleJoinAddressRequested(FString Address)
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     uint64 ConnectionToken = 0;
     if (!Flow.TryBegin(EKalmalaMenuRequest::Connect, ConnectionToken)) return;
-    JoinAddressWidget->SetJoinEnabled(false);
+    ActiveConnectToken = ConnectionToken;
+    ConnectionOriginWorld = GetWorld();
+    ConnectionStartedAtSeconds = FPlatformTime::Seconds();
+    JoinAddressWidget->SetConnecting(true);
+    JoinAddressWidget->FocusCancel();
+    StartWatchingConnection(ConnectionToken);
 
     AKalmalaMenuPlayerController* MenuController = Cast<AKalmalaMenuPlayerController>(HomeController);
     bool bTravelStarted = false;
@@ -224,14 +406,9 @@ void UKalmalaHomeSubsystem::HandleJoinAddressRequested(FString Address)
 
     if (!bCommitted || !bTravelStarted)
     {
-        Flow.CompleteFailure(ConnectionToken);
-        JoinAddressWidget->SetJoinEnabled(true);
-        JoinAddressWidget->ShowMessage(FText::FromString(TEXT("The address could not be used. Check it and try again.")));
-        JoinAddressWidget->FocusAddress();
-        return;
+        FinishConnectionFailure(ConnectionToken,
+            FText::FromString(TEXT("The address could not be used. Check it and try again.")));
     }
-
-    Flow.CompleteSuccess(ConnectionToken);
 }
 
 void UKalmalaHomeSubsystem::HandleWorldListBack()
@@ -398,6 +575,7 @@ void UKalmalaHomeSubsystem::ReleaseJoinAddressWidget()
     if (JoinAddressWidget)
     {
         JoinAddressWidget->OnBackRequested().RemoveAll(this);
+        JoinAddressWidget->OnCancelRequested().RemoveAll(this);
         JoinAddressWidget->OnJoinRequested().RemoveAll(this);
         JoinAddressWidget->RemoveFromParent();
     }
@@ -427,6 +605,19 @@ void UKalmalaHomeSubsystem::AbandonOptions()
 
 void UKalmalaHomeSubsystem::Release()
 {
+    if (ActiveConnectToken != 0)
+    {
+        if (ULocalPlayer* Player = GetLocalPlayer())
+            if (UKalmalaMenuFlowSubsystem* Coordinator = Player->GetSubsystem<UKalmalaMenuFlowSubsystem>())
+                Coordinator->GetFlow().CancelConnect(ActiveConnectToken);
+        UWorld* OriginWorld = ConnectionOriginWorld.Get();
+        StopWatchingConnection();
+        ActiveConnectToken = 0;
+        ConnectionOriginWorld.Reset();
+        ConnectionStartedAtSeconds = 0.0;
+        if (GEngine && OriginWorld) GEngine->CancelPending(OriginWorld);
+        ClearScheduledConnectionTravel(OriginWorld);
+    }
     if (HomeWidget && GetLocalPlayer())
         if (UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>())
             if (Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Options

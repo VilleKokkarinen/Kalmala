@@ -11,6 +11,7 @@ class UTextBlock;
 class UKalmalaThemedButton;
 
 DECLARE_MULTICAST_DELEGATE(FKalmalaJoinAddressBack);
+DECLARE_MULTICAST_DELEGATE(FKalmalaJoinAddressCancel);
 DECLARE_MULTICAST_DELEGATE_OneParam(FKalmalaJoinAddressRequested, FString);
 
 /** Local direct-address entry; travel is dispatched only after structured validation. */
@@ -20,8 +21,11 @@ class KALMALAUI_API UKalmalaJoinAddressWidget : public UUserWidget
     GENERATED_BODY()
 public:
     FKalmalaJoinAddressBack& OnBackRequested() { return BackRequested; }
+    FKalmalaJoinAddressCancel& OnCancelRequested() { return CancelRequested; }
     FKalmalaJoinAddressRequested& OnJoinRequested() { return JoinRequested; }
     void FocusAddress();
+    void FocusCancel();
+    void SetConnecting(bool bConnecting);
     void SetJoinEnabled(bool bEnabled);
     void ShowMessage(const FText& Text);
 
@@ -33,6 +37,7 @@ protected:
 private:
     void RefreshTheme();
     UFUNCTION() void HandleBack();
+    UFUNCTION() void HandleCancel();
     UFUNCTION() void HandleJoin();
     UFUNCTION() void HandleAddressCommitted(const FText& Text, ETextCommit::Type CommitMethod);
 
@@ -45,9 +50,12 @@ private:
     UPROPERTY(Transient) TObjectPtr<UEditableTextBox> AddressInput;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> JoinButton;
     UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> BackButton;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaThemedButton> CancelButton;
     FKalmalaJoinAddressBack BackRequested;
+    FKalmalaJoinAddressCancel CancelRequested;
     FKalmalaJoinAddressRequested JoinRequested;
     int32 LastTextScale = -1;
     int32 LastContrast = -2;
     bool bLastReducedMotion = false;
+    bool bIsConnecting = false;
 };

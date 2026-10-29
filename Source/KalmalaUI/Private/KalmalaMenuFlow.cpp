@@ -33,6 +33,7 @@ bool FKalmalaMenuFlow::TryBegin(const EKalmalaMenuRequest Request, uint64& OutTo
         || (Request == EKalmalaMenuRequest::Connect && Screen != EKalmalaMenuScreen::Join)
         || (Request != EKalmalaMenuRequest::Launch && Request != EKalmalaMenuRequest::Connect)) return false;
     Origin = Screen;
+    ActiveRequest = Request;
     Screen = Request == EKalmalaMenuRequest::Launch ? EKalmalaMenuScreen::PreparingWorld : EKalmalaMenuScreen::Connecting;
     ActiveToken = ++LastToken;
     Phase = EPhase::Pending;
@@ -49,12 +50,21 @@ void FKalmalaMenuFlow::ClearRequest()
 {
     ActiveToken = 0;
     Origin = EKalmalaMenuScreen::Inactive;
+    ActiveRequest = EKalmalaMenuRequest::Launch;
     Phase = EPhase::None;
 }
 
 bool FKalmalaMenuFlow::Cancel(const uint64 Token)
 {
     if (!Matches(Token) || Phase != EPhase::Pending) return false;
+    Screen = Origin;
+    ClearRequest();
+    return true;
+}
+
+bool FKalmalaMenuFlow::CancelConnect(const uint64 Token)
+{
+    if (!Matches(Token) || ActiveRequest != EKalmalaMenuRequest::Connect || Phase != EPhase::Traveling) return false;
     Screen = Origin;
     ClearRequest();
     return true;

@@ -77,8 +77,11 @@ void UKalmalaJoinAddressWidget::NativeOnInitialized()
 
     JoinButton = AddAction(TEXT("Join"));
     BackButton = AddAction(TEXT("Back to player"));
+    CancelButton = AddAction(TEXT("Cancel connection"));
+    CancelButton->SetVisibility(ESlateVisibility::Collapsed);
     JoinButton->OnClicked.AddDynamic(this, &ThisClass::HandleJoin);
     BackButton->OnClicked.AddDynamic(this, &ThisClass::HandleBack);
+    CancelButton->OnClicked.AddDynamic(this, &ThisClass::HandleCancel);
 
     Message = WidgetTree->ConstructWidget<UTextBlock>();
     Message->SetAutoWrapText(true);
@@ -117,7 +120,7 @@ void UKalmalaJoinAddressWidget::RefreshTheme()
         AddressInput->SetWidgetStyle(InputStyle);
     }
 
-    UKalmalaThemedButton* Buttons[] = {JoinButton.Get(), BackButton.Get()};
+    UKalmalaThemedButton* Buttons[] = {JoinButton.Get(), BackButton.Get(), CancelButton.Get()};
     for (UKalmalaThemedButton* Button : Buttons)
     {
         if (!Button) continue;
@@ -139,9 +142,31 @@ void UKalmalaJoinAddressWidget::FocusAddress()
     AddressInput->SetKeyboardFocus();
 }
 
+void UKalmalaJoinAddressWidget::FocusCancel()
+{
+    if (!CancelButton || !GetOwningPlayer()) return;
+    APlayerController* Controller = GetOwningPlayer();
+    Controller->SetShowMouseCursor(true);
+    FInputModeUIOnly InputMode;
+    InputMode.SetWidgetToFocus(CancelButton->TakeWidget());
+    Controller->SetInputMode(InputMode);
+    CancelButton->SetUserFocus(Controller);
+    CancelButton->SetKeyboardFocus();
+}
+
+void UKalmalaJoinAddressWidget::SetConnecting(const bool bConnecting)
+{
+    bIsConnecting = bConnecting;
+    if (AddressInput) AddressInput->SetIsEnabled(!bConnecting);
+    if (JoinButton) JoinButton->SetIsEnabled(!bConnecting);
+    if (BackButton) BackButton->SetVisibility(bConnecting ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+    if (CancelButton) CancelButton->SetVisibility(bConnecting ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+    ShowMessage(bConnecting ? FText::FromString(TEXT("Connecting...")) : FText::GetEmpty());
+}
+
 void UKalmalaJoinAddressWidget::SetJoinEnabled(const bool bEnabled)
 {
-    if (JoinButton) JoinButton->SetIsEnabled(bEnabled);
+    if (JoinButton) JoinButton->SetIsEnabled(bEnabled && !bIsConnecting);
 }
 
 void UKalmalaJoinAddressWidget::ShowMessage(const FText& Text)
@@ -155,7 +180,8 @@ FReply UKalmalaJoinAddressWidget::NativeOnKeyDown(const FGeometry& Geometry, con
 {
     if (!Event.IsRepeat() && (Event.GetKey() == EKeys::Escape || Event.GetKey() == EKeys::Gamepad_FaceButton_Right))
     {
-        HandleBack();
+        if (bIsConnecting) HandleCancel();
+        else HandleBack();
         return FReply::Handled();
     }
     return Super::NativeOnKeyDown(Geometry, Event);
@@ -163,12 +189,17 @@ FReply UKalmalaJoinAddressWidget::NativeOnKeyDown(const FGeometry& Geometry, con
 
 void UKalmalaJoinAddressWidget::HandleBack()
 {
-    BackRequested.Broadcast();
+    if (!bIsConnecting) BackRequested.Broadcast();
+}
+
+void UKalmalaJoinAddressWidget::HandleCancel()
+{
+    if (bIsConnecting) CancelRequested.Broadcast();
 }
 
 void UKalmalaJoinAddressWidget::HandleJoin()
 {
-    if (!JoinButton || !JoinButton->GetIsEnabled() || !AddressInput) return;
+    if (bIsConnecting || !JoinButton || !JoinButton->GetIsEnabled() || !AddressInput) return;
     JoinRequested.Broadcast(AddressInput->GetText().ToString());
 }
 

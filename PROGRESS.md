@@ -24211,3 +24211,44 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   SM12. IPv6 and join codes are unsupported. The runtime connection path and
   rendered screen remain unverified for SM15.
 - **Next eligible task:** SM12 — Handle loading, cancellation and failures.
+
+## Run 2026-10-29 — SM12 Address connection cancellation and recovery
+
+- **Selected increment:** Keep direct-address joins cancellable while the
+  engine's pending client connection is active, and restore Join after a
+  timeout or reported connection/travel failure.
+- **Work completed:** Added a Connect-specific cancellation path after travel
+  dispatch while preserving the existing non-cancelable committed launch
+  behavior. Join now shows a Connecting state, disables address editing and
+  repeat submission, focuses Cancel, and accepts Cancel or Escape. A monotonic
+  30-second deadline closes the pending net game and clears the scheduled
+  client travel. Network/travel callbacks use weak subsystem bindings and the
+  originating request token/world; failures restore the same Join form and
+  typed address, show a backend reason when supplied, and require an explicit
+  retry. Successful connection is recorded after a local client world becomes
+  active. SM12 remains unchecked because launch preparation/loading warning
+  and recovery are still outstanding.
+- **Files changed:** `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaUI/Public/KalmalaMenuFlow.h`,
+  `Source/KalmalaUI/Private/KalmalaMenuFlow.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaJoinAddressWidget.h`, and
+  `Source/KalmalaUI/Private/KalmalaJoinAddressWidget.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the existing
+  request-token state transitions and Unreal 5.8's pending-connection,
+  cancellation and failure-delegate behavior, including the engine's scheduled
+  fallback travel. No build, test or automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Address joining now reports an active connection
+  attempt, can be canceled or timed out without leaving Join, and preserves the
+  entered address after failure for a deliberate retry.
+- **Networking/authority:** This adds client-side connection lifecycle UI and
+  cancels only the local pending net game. It does not change gameplay authority
+  or mutate saves; the destination server remains authoritative after travel.
+- **Known limitations:** The 60-second world-generation/loading warning and
+  launch travel failure recovery remain for SM12. Full multiplayer and rendered
+  UI behavior remain unverified for SM15.
+- **Next eligible task:** SM12 — continue launch preparation/loading feedback
+  and failure recovery; the parent remains incomplete.
