@@ -25,6 +25,7 @@ public:
     // Call after adding the widget to the owning player's screen.
     void FocusPlay();
     void FocusOptions();
+    void FocusSaveInformation();
     // A subscriber may report an action whose later branch is not wired yet.
     void ShowUnavailable();
 

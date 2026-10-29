@@ -6,13 +6,16 @@
 #include "Engine/NetDriver.h"
 #include "HAL/PlatformTime.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
 #include "KalmalaHomeWidget.h"
 #include "KalmalaJoinAddressWidget.h"
+#include "KalmalaLocalWorldSaveListing.h"
 #include "KalmalaServerAddressParser.h"
 #include "KalmalaMenuContext.h"
 #include "KalmalaMenuFlow.h"
 #include "KalmalaMenuFlowSubsystem.h"
 #include "KalmalaPlayerStepWidget.h"
+#include "KalmalaSaveInformationWidget.h"
 #include "KalmalaSettingsSubsystem.h"
 #include "KalmalaWorldListWidget.h"
 
@@ -66,6 +69,44 @@ namespace
     {
         return BackendFailureOrFallback(BackendMessage,
             TEXT("Could not load the selected world. Return to details and try again."));
+    }
+
+    FText MakeSaveInformationText(const bool bLocalIdentityAvailable)
+    {
+        TArray<FKalmalaLocalWorldSaveRecord> WorldRecords;
+        const EKalmalaLocalWorldSaveListingAvailability ListingAvailability =
+            FKalmalaLocalWorldSaveListing::Enumerate(WorldRecords);
+        FString WorldSummary;
+        if (ListingAvailability == EKalmalaLocalWorldSaveListingAvailability::Unsupported)
+        {
+            WorldSummary = TEXT("World records: Local save-slot listing is not supported on this platform.");
+        }
+        else if (WorldRecords.IsEmpty())
+        {
+            WorldSummary = TEXT("World records: No recognized world-scoped save slots were found. Worlds without saved changes may not appear.");
+        }
+        else
+        {
+            WorldSummary = FString::Printf(
+                TEXT("World records: %d recognized seed group(s) are available locally. This does not establish a complete or compatible world."),
+                WorldRecords.Num());
+        }
+
+        const TCHAR* IdentitySummary = bLocalIdentityAvailable
+            ? TEXT("Player identity: Available to the local menu, but not authenticated or matched to a player save here.")
+            : TEXT("Player identity: Unavailable in this menu. Player saves require server-authenticated ownership.");
+        TArray<FString> Lines;
+        Lines.Add(WorldSummary);
+        Lines.Add(TEXT(""));
+        Lines.Add(TEXT("World component status: Not loaded or validated on this screen. Open a seed under Play > Your worlds > World details for read-only accepted, rejected, or absent component checks. Those checks do not prove full-world compatibility."));
+        Lines.Add(TEXT(""));
+        Lines.Add(IdentitySummary);
+        Lines.Add(TEXT("Player save match/load status: Not checked in Home. The gameplay server verifies the exact world and authenticated player identity when accessing an existing player save. No player identifier or save path is shown."));
+        Lines.Add(TEXT(""));
+        Lines.Add(TEXT("Current persistence scope: World-scoped records hold sparse population changes, construction, storage, and ocean travel data; they are not complete world snapshots. Authenticated player records hold discoveries, learned effects, exploration claims, bounded carried tools, and the existing ocean-travel vessel/seat association. Full ordinary inventory, equipped wearables, and skill XP restoration are not promised here."));
+        Lines.Add(TEXT(""));
+        Lines.Add(TEXT("World save listing reads recognized slot names only; no save contents are loaded or changed."));
+        return FText::FromString(FString::Join(Lines, TEXT("\n")));
     }
 }
 
@@ -195,6 +236,30 @@ void UKalmalaHomeSubsystem::Tick(float)
         return;
     }
     ReleaseWorldList();
+    if (Flow.GetScreen() == EKalmalaMenuScreen::SaveInformation && HomeWidget && HomeController == Controller)
+    {
+        if (!SaveInformationWidget)
+        {
+            SaveInformationWidget = CreateWidget<UKalmalaSaveInformationWidget>(Controller,
+                UKalmalaSaveInformationWidget::StaticClass());
+            if (!SaveInformationWidget || !SaveInformationWidget->AddToPlayerScreen(190))
+            {
+                SaveInformationWidget = nullptr;
+                Flow.Navigate(EKalmalaMenuScreen::Home);
+                HomeWidget->SetVisibility(ESlateVisibility::Visible);
+                HomeWidget->FocusSaveInformation();
+                HomeWidget->ShowUnavailable();
+                return;
+            }
+            SaveInformationWidget->OnBackRequested().AddUObject(this, &ThisClass::HandleSaveInformationBack);
+            const APlayerState* PlayerState = Controller->GetPlayerState<APlayerState>();
+            SaveInformationWidget->SetInformation(MakeSaveInformationText(
+                PlayerState && PlayerState->GetUniqueId().IsValid()));
+            SaveInformationWidget->FocusBack();
+        }
+        return;
+    }
+    ReleaseSaveInformationWidget();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Player && HomeWidget && HomeController == Controller)
     {
         if (!PlayerStep)
@@ -244,6 +309,14 @@ void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
         else HomeWidget->ShowUnavailable();
         return;
     }
+    if (Action == EKalmalaHomeAction::SaveInformation)
+    {
+        UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+        if (Coordinator && Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::SaveInformation))
+            HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
+        else HomeWidget->ShowUnavailable();
+        return;
+    }
     if (Action != EKalmalaHomeAction::Options) { HomeWidget->ShowUnavailable(); return; }
     UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
     UKalmalaSettingsSubsystem* Settings = GetLocalPlayer()->GetSubsystem<UKalmalaSettingsSubsystem>();
@@ -261,6 +334,18 @@ void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
         HomeWidget->FocusOptions();
         HomeWidget->ShowUnavailable();
     }
+}
+
+void UKalmalaHomeSubsystem::HandleSaveInformationBack()
+{
+    if (!SaveInformationWidget || !HomeWidget || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::SaveInformation
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Home)) return;
+    ReleaseSaveInformationWidget();
+    HomeWidget->SetVisibility(ESlateVisibility::Visible);
+    HomeWidget->FocusSaveInformation();
 }
 
 void UKalmalaHomeSubsystem::HandlePlayerContinue()
@@ -669,6 +754,16 @@ void UKalmalaHomeSubsystem::ReleaseJoinAddressWidget()
     JoinAddressWidget = nullptr;
 }
 
+void UKalmalaHomeSubsystem::ReleaseSaveInformationWidget()
+{
+    if (SaveInformationWidget)
+    {
+        SaveInformationWidget->OnBackRequested().RemoveAll(this);
+        SaveInformationWidget->RemoveFromParent();
+    }
+    SaveInformationWidget = nullptr;
+}
+
 void UKalmalaHomeSubsystem::ReturnFromOptions()
 {
     ULocalPlayer* Player = GetLocalPlayer();
@@ -723,9 +818,11 @@ void UKalmalaHomeSubsystem::Release()
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Player
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Join
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Worlds
-                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::WorldDetails) Coordinator->GetFlow().Shutdown();
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::WorldDetails
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::SaveInformation) Coordinator->GetFlow().Shutdown();
     ReleaseWorldList();
     ReleaseJoinAddressWidget();
+    ReleaseSaveInformationWidget();
     ReleasePlayerStep();
     if (HomeWidget) { HomeWidget->OnActionRequested().RemoveAll(this); HomeWidget->RemoveFromParent(); }
     HomeWidget = nullptr;

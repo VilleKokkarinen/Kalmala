@@ -24291,3 +24291,46 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   for SM15 runtime verification; the 60-second warning intentionally never
   aborts active travel.
 - **Next eligible task:** SM13 — Add the remaining Home branches.
+
+## Run 2026-10-29 — SM13 Read-only Save Information
+
+- **Selected increment:** Wire the Home Save information action to a
+  read-only summary of the persistence and identity checks supported today.
+- **Work completed:** Added a scrollable Save information screen that reports
+  the local count of recognized world-scoped seed groups, distinguishes
+  unsupported listing from no recognized records, and states when component
+  compatibility is not checked from Home. It reports only local identity
+  availability without exposing the identifier, explains that the gameplay
+  server checks exact world and authenticated player identity for player-save
+  access, and summarizes current world/player persistence without promising
+  general inventory, wearable or skill-XP restoration. Back and Escape return
+  to Home with focus on Save information. The page lists slot names only and
+  does not load or mutate save contents. SM13 remains incomplete; Credits and
+  Exit confirmation are still outstanding.
+- **Files changed:** `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaUI/Public/KalmalaHomeWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaSaveInformationWidget.h`, and
+  `Source/KalmalaUI/Private/KalmalaSaveInformationWidget.cpp`.
+- **Lightweight checks:** `git diff --check` and stale-symbol/reference
+  inspection passed. Reviewed the summary against the world slot listing,
+  read-only world inspector and authenticated player save owner. No build, test
+  or automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification.
+- **Observable impact:** Save information now distinguishes listed world slot
+  names, unverified payload status and server-owned player-save checks while
+  stating current persistence limits.
+- **Networking/authority:** The menu reads only local save names and local
+  identity availability. It does not show credentials, load player saves, or
+  change data; the gameplay server remains authoritative for owner matching and
+  save access.
+- **Known limitations:** World payload statuses are available through the
+  existing World details screen, not this summary. Player-save match/load is
+  intentionally unknown until the gameplay server checks the authenticated
+  owner. Rendered focus/layout remain for SM15; Credits and Exit are not yet
+  implemented.
+- **Next eligible task:** Continue SM13 with the existing project Credits
+  branch; then implement Exit confirmation.

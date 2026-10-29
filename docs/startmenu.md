@@ -418,15 +418,16 @@ round trips, widget cleanup and recreation, and settings input ownership.
 The local-player Home owner mounts `UKalmalaHomeWidget` only for the dedicated
 menu controller and Home flow state, then requests focus for Play. Its ordered
 Play, Options, Save information, Credits and Exit actions emit a local event;
-without a listener they report that the option is not available yet. Later
-branches must bind each newly mounted widget and report unavailable actions until
-implemented. A build-version footer uses `FApp::GetBuildVersion`, with a truthful
-empty-value fallback. Theme, text scale, contrast and reduced-motion preferences
-come from the existing settings and theme. A 32-unit safe area contains a bounded
-420-unit action column with 48-unit minimum rows, 8-unit gaps and a scrollable
-region for content overflow. Normal startup is unchanged; no menu world is wired.
-Actual viewport focus, measured layout and both resolution/text-scale render
-cases remain part of integrated acceptance.
+without a listener they report that the option is not available yet. Save
+information is now bound to a read-only screen; Credits and Exit remain
+unavailable until their branches are wired. A build-version footer uses
+`FApp::GetBuildVersion`, with a truthful empty-value fallback. Theme, text scale,
+contrast and reduced-motion preferences come from the existing settings and
+theme. A 32-unit safe area contains a bounded 420-unit action column with 48-unit
+minimum rows, 8-unit gaps and a scrollable region for content overflow. Normal
+startup is unchanged; no menu world is wired. Actual viewport focus, measured
+layout and both resolution/text-scale render cases remain part of integrated
+acceptance.
 
 ## SM05 shared Options entry
 
@@ -486,6 +487,21 @@ hosting. Back from details returns to the world list; Back from the list restore
 the player step and Continue focus. Save payloads
 may be read for component checks, but no save is rewritten while checking or
 before travel begins.
+
+## SM13 Save information branch
+
+Home's Save information screen lists the number of locally recognized
+world-scoped seed groups without loading their payloads. Unsupported listing and
+no recognized slots are reported separately; no slots does not prove a world
+without saved changes is absent. The page reports only whether a local menu
+PlayerState identity is available and never displays that identity. It states
+that player-save matching and compatibility/load checks are not performed in
+Home: world component payloads can be checked read-only in World details, while
+the gameplay server validates the exact world and authenticated player identity
+when it accesses a player save. The page summarizes the current supported world
+and player persistence fields and explicitly avoids promising full inventory,
+wearable or skill-XP restoration. Back returns focus to the Home Save
+information action. Listing slot names does not load or modify save contents.
 
 ## Ordered delivery and acceptance
 
