@@ -6,6 +6,7 @@
 
 class APlayerController;
 class UKalmalaCreditsWidget;
+class UKalmalaExitConfirmationWidget;
 class UKalmalaHomeWidget;
 class UKalmalaJoinAddressWidget;
 class UKalmalaPlayerStepWidget;
@@ -39,6 +40,8 @@ private:
     void HandleJoinAddressRequested(FString Address);
     void HandleSaveInformationBack();
     void HandleCreditsBack();
+    void HandleExitConfirmationCancel();
+    void HandleExitConfirmed();
     void StartWatchingConnection(uint64 Token);
     void StopWatchingConnection();
     void FinishConnectionFailure(uint64 Token, const FText& Message);
@@ -58,12 +61,14 @@ private:
     void ReleaseJoinAddressWidget();
     void ReleaseSaveInformationWidget();
     void ReleaseCreditsWidget();
+    void ReleaseExitConfirmationWidget();
     void ReleaseWorldList();
     UPROPERTY(Transient) TObjectPtr<UKalmalaHomeWidget> HomeWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaJoinAddressWidget> JoinAddressWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaPlayerStepWidget> PlayerStep;
     UPROPERTY(Transient) TObjectPtr<UKalmalaSaveInformationWidget> SaveInformationWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaCreditsWidget> CreditsWidget;
+    UPROPERTY(Transient) TObjectPtr<UKalmalaExitConfirmationWidget> ExitConfirmationWidget;
     UPROPERTY(Transient) TObjectPtr<UKalmalaWorldListWidget> WorldList;
     UPROPERTY(Transient) TObjectPtr<APlayerController> HomeController;
     TWeakObjectPtr<UWorld> ConnectionOriginWorld;

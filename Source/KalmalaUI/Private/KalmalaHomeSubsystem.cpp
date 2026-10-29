@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerState.h"
 #include "KalmalaHomeWidget.h"
 #include "KalmalaCreditsWidget.h"
+#include "KalmalaExitConfirmationWidget.h"
 #include "KalmalaJoinAddressWidget.h"
 #include "KalmalaLocalWorldSaveListing.h"
 #include "KalmalaServerAddressParser.h"
@@ -19,6 +20,7 @@
 #include "KalmalaSaveInformationWidget.h"
 #include "KalmalaSettingsSubsystem.h"
 #include "KalmalaWorldListWidget.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 namespace
 {
@@ -281,6 +283,29 @@ void UKalmalaHomeSubsystem::Tick(float)
         return;
     }
     ReleaseCreditsWidget();
+    if (Flow.GetScreen() == EKalmalaMenuScreen::ExitConfirmation && HomeWidget && HomeController == Controller)
+    {
+        if (!ExitConfirmationWidget)
+        {
+            ExitConfirmationWidget = CreateWidget<UKalmalaExitConfirmationWidget>(Controller,
+                UKalmalaExitConfirmationWidget::StaticClass());
+            if (!ExitConfirmationWidget || !ExitConfirmationWidget->AddToPlayerScreen(190))
+            {
+                ExitConfirmationWidget = nullptr;
+                Flow.Navigate(EKalmalaMenuScreen::Home);
+                HomeWidget->SetVisibility(ESlateVisibility::Visible);
+                HomeWidget->FocusExit();
+                HomeWidget->ShowUnavailable();
+                return;
+            }
+            ExitConfirmationWidget->OnCancelRequested().AddUObject(this,
+                &ThisClass::HandleExitConfirmationCancel);
+            ExitConfirmationWidget->OnExitAccepted().AddUObject(this, &ThisClass::HandleExitConfirmed);
+            ExitConfirmationWidget->FocusCancel();
+        }
+        return;
+    }
+    ReleaseExitConfirmationWidget();
     if (Flow.GetScreen() == EKalmalaMenuScreen::Player && HomeWidget && HomeController == Controller)
     {
         if (!PlayerStep)
@@ -346,6 +371,14 @@ void UKalmalaHomeSubsystem::HandleHomeAction(const EKalmalaHomeAction Action)
         else HomeWidget->ShowUnavailable();
         return;
     }
+    if (Action == EKalmalaHomeAction::Exit)
+    {
+        UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+        if (Coordinator && Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::ExitConfirmation))
+            HomeWidget->SetVisibility(ESlateVisibility::Collapsed);
+        else HomeWidget->ShowUnavailable();
+        return;
+    }
     if (Action != EKalmalaHomeAction::Options) { HomeWidget->ShowUnavailable(); return; }
     UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
     UKalmalaSettingsSubsystem* Settings = GetLocalPlayer()->GetSubsystem<UKalmalaSettingsSubsystem>();
@@ -387,6 +420,27 @@ void UKalmalaHomeSubsystem::HandleCreditsBack()
     ReleaseCreditsWidget();
     HomeWidget->SetVisibility(ESlateVisibility::Visible);
     HomeWidget->FocusCredits();
+}
+
+void UKalmalaHomeSubsystem::HandleExitConfirmationCancel()
+{
+    if (!ExitConfirmationWidget || !HomeWidget || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::ExitConfirmation
+        || !Coordinator->GetFlow().Navigate(EKalmalaMenuScreen::Home)) return;
+    ReleaseExitConfirmationWidget();
+    HomeWidget->SetVisibility(ESlateVisibility::Visible);
+    HomeWidget->FocusExit();
+}
+
+void UKalmalaHomeSubsystem::HandleExitConfirmed()
+{
+    if (!ExitConfirmationWidget || !HomeWidget || !HomeController || !GetLocalPlayer() || !GetWorld()
+        || GetLocalPlayer()->GetPlayerController(GetWorld()) != HomeController) return;
+    UKalmalaMenuFlowSubsystem* Coordinator = GetLocalPlayer()->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+    if (!Coordinator || Coordinator->GetFlow().GetScreen() != EKalmalaMenuScreen::ExitConfirmation) return;
+    UKismetSystemLibrary::QuitGame(this, HomeController, EQuitPreference::Quit, false);
 }
 
 void UKalmalaHomeSubsystem::HandlePlayerContinue()
@@ -815,6 +869,17 @@ void UKalmalaHomeSubsystem::ReleaseCreditsWidget()
     CreditsWidget = nullptr;
 }
 
+void UKalmalaHomeSubsystem::ReleaseExitConfirmationWidget()
+{
+    if (ExitConfirmationWidget)
+    {
+        ExitConfirmationWidget->OnCancelRequested().RemoveAll(this);
+        ExitConfirmationWidget->OnExitAccepted().RemoveAll(this);
+        ExitConfirmationWidget->RemoveFromParent();
+    }
+    ExitConfirmationWidget = nullptr;
+}
+
 void UKalmalaHomeSubsystem::ReturnFromOptions()
 {
     ULocalPlayer* Player = GetLocalPlayer();
@@ -871,11 +936,13 @@ void UKalmalaHomeSubsystem::Release()
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Worlds
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::WorldDetails
                 || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::SaveInformation
-                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Credits) Coordinator->GetFlow().Shutdown();
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::Credits
+                || Coordinator->GetFlow().GetScreen() == EKalmalaMenuScreen::ExitConfirmation) Coordinator->GetFlow().Shutdown();
     ReleaseWorldList();
     ReleaseJoinAddressWidget();
     ReleaseSaveInformationWidget();
     ReleaseCreditsWidget();
+    ReleaseExitConfirmationWidget();
     ReleasePlayerStep();
     if (HomeWidget) { HomeWidget->OnActionRequested().RemoveAll(this); HomeWidget->RemoveFromParent(); }
     HomeWidget = nullptr;

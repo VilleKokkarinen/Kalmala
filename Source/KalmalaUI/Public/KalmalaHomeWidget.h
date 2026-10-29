@@ -27,6 +27,7 @@ public:
     void FocusOptions();
     void FocusSaveInformation();
     void FocusCredits();
+    void FocusExit();
     // A subscriber may report an action whose later branch is not wired yet.
     void ShowUnavailable();
 

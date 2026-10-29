@@ -419,8 +419,8 @@ The local-player Home owner mounts `UKalmalaHomeWidget` only for the dedicated
 menu controller and Home flow state, then requests focus for Play. Its ordered
 Play, Options, Save information, Credits and Exit actions emit a local event;
 without a listener they report that the option is not available yet. Save
-information and Credits are now bound to read-only screens; Exit remains
-unavailable until its confirmation is wired. Credits shows the project label
+information and Credits are now bound to read-only screens. Exit opens a
+confirmation with Cancel focused first. Credits shows the project label
 `Kalmala` and states when no additional project credits are available in this
 build; it adds no unverified contributor or license claims. A build-version
 footer uses `FApp::GetBuildVersion`, with a truthful empty-value fallback. Theme, text scale,
@@ -512,7 +512,16 @@ Repository attribution contains no additional authored project credits, so the
 screen identifies the project as `Kalmala` and says no additional project
 credits are available in this build. It does not invent contributors or
 third-party licenses. Back, Escape, or gamepad Back returns to Home with focus
-on the Credits action. Exit confirmation remains for the next SM13 increment.
+on the Credits action.
+
+## SM13 Exit confirmation branch
+
+The Home Exit action opens a themed local confirmation with Cancel listed
+before Exit. The confirmation uses UI-only input and initially focuses Cancel.
+Escape or gamepad Back cancels and returns to Home with focus on the Exit
+action. Enter and gamepad accept activate the currently focused choice. Cancel
+returns without requesting shutdown; Exit calls Unreal's standard `QuitGame`
+path with the Quit preference. This confirmation does not access or mutate saves.
 
 ## Ordered delivery and acceptance
 

@@ -24370,3 +24370,38 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   confirmation is not implemented yet.
 - **Next eligible task:** Continue SM13 by implementing Exit confirmation,
   initially focusing Cancel.
+
+## Run 2026-10-29 — SM13 Exit confirmation
+
+- **Selected increment:** Connect the Home Exit action to a confirmation that
+  defaults to Cancel.
+- **Work completed:** Added a themed local confirmation with Cancel and Exit
+  choices. Enter/gamepad accept activates the focused choice; Escape/gamepad
+  Back cancels. Cancel returns to Home with Exit focused. Confirmed Exit calls
+  Unreal's standard `QuitGame` path. The menu flow and widget delegates are
+  released during cancellation and subsystem teardown. After checking the
+  existing Save information wording and both return-focus paths, SM13's
+  implementation criteria are satisfied and its task is checked.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/startmenu.md`,
+  `Source/KalmalaUI/Public/KalmalaExitConfirmationWidget.h`,
+  `Source/KalmalaUI/Private/KalmalaExitConfirmationWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeSubsystem.h`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Public/KalmalaHomeWidget.h`, and
+  `Source/KalmalaUI/Private/KalmalaHomeWidget.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Focused source checks
+  confirmed Home routing, Cancel-first creation and focus, focused-choice
+  acceptance, Escape/gamepad cancellation, Home Exit focus restoration, and
+  the standard quit call. Changed absolute paths are below `MAX_PATH`. No
+  build, test suite or automation was run.
+- **Full verification:** Deferred to SM15 integrated acceptance; this was not
+  milestone-final verification. The overall start-menu backlog parent remains
+  unchecked until SM15 succeeds.
+- **Observable impact:** Selecting Exit now asks for confirmation; the safe
+  Cancel choice starts focused, while the affirmative choice requests normal
+  engine shutdown.
+- **Networking/authority:** Local menu UI and process shutdown only; no network
+  request, gameplay state or save data is changed.
+- **Known limitations:** Packaged shutdown, keyboard/controller focus movement
+  and full menu integration remain unverified until SM15.
+- **Next eligible task:** SM14 — Enable normal startup and return from play.

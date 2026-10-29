@@ -84,7 +84,7 @@
   - [x] **SM12 — Handle loading, cancellation and failures.**
     - **Implement:** Add loading states, connection timeout/cancel, stale-callback protection and return to the originating panel on failure.
     - **Complete when:** The plan's timing rules hold; retry preserves input, canceled requests cannot travel and failed attempts do not mutate saves.
-  - [ ] **SM13 — Add the remaining Home branches.**
+  - [x] **SM13 — Add the remaining Home branches.**
     - **Implement:** Add read-only Save information, existing project credits and Exit confirmation.
     - **Complete when:** Save status wording matches actual persistence support, Back restores focus and Exit confirmation initially focuses Cancel.
   - [ ] **SM14 — Enable normal startup and return from play.**
