@@ -24970,3 +24970,36 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Next eligible task:** CR02 — Review project structure and Core; first
   batch `CR02-001` covers `Automation_Kalmala.slnx`, `Kalmala.slnx`, and
   `Kalmala.uproject`.
+
+## Run 2026-10-30 — CR02 batch 001
+
+- **Selected increment:** First bounded batch of CR02, project and solution
+  descriptors: `Automation_Kalmala.slnx`, `Kalmala.slnx`, and `Kalmala.uproject`.
+- **Ownership:** Thread inventory showed no other active Kalmala run for this
+  checkout. Reviewed at HEAD `ebcd01d1f7a9921c9308905a7d63eaeb12148b9c`; all three
+  SHA-256 values matched the CR01 baseline. The 22 pre-existing local edits were
+  preserved. No implementation or backlog task was staged or changed.
+- **Work completed:** Reviewed the descriptor fields, module registrations,
+  generated solution references, target/configuration mappings, and the
+  current project-file recovery guidance. Recorded CR02-001 as reviewed with
+  no confirmed actionable finding. Findings ledger records no open question
+  for this batch. CR02 remains unchecked because its later batches are pending.
+- **Files changed:** `Temporary/Review/coverage.md`,
+  `Temporary/Review/findings.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `.uproject` JSON and both `.slnx` XML files parsed.
+  All 53 Automation solution references and 59 game solution references
+  existed; all three local generated game-project references existed. The game
+  solution contains the documented `DebugGame Editor | Win64` mapping. All six
+  manifest modules have matching source directories and `.Build.cs` files.
+  The selected solution paths are below the 260-character limit.
+- **Full verification:** Deferred. No project-file regeneration, Unreal build,
+  test suite, Editor launch, or runtime validation was run.
+- **Observable impact:** Three descriptor files now have a traceable review
+  result tied to their baseline hashes; no product behavior changed.
+- **Networking/authority:** No gameplay, networking, persistence, or server
+  authority behavior changed.
+- **Known limitations / remaining scope:** Target rule implementation, Core
+  shared types, module dependencies and APIs remain in later CR02 batches.
+  Generated solutions may need review again after authorized regeneration.
+- **Next eligible task:** Continue CR02 with batch `CR02-002` — review the
+  project target rules.

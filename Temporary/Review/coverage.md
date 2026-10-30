@@ -5,7 +5,16 @@
 - **Tracked project files:** 1437 (all enumerated below); **authored non-ignored untracked files:** 0; **relevant ignored source assets:** 0.
 - **Review assignments:** CR04 is a cross-cutting source-code pass layered over each file's primary CR02–CR16 domain. Batch sizes are capped at 12 source/code files, 8 Content files, and 10 CR16 files. Each batch is an independent 10–20 minute review unit plus a lightweight check; batch status is pending until evidence is recorded.
 - **Working-tree baseline:** 22 changed tracked files, no untracked files, and no staged changes. Local edits are preserved and recorded by path/status/hash below.
-- **Review status:** Every included file and assignment is pending. CR01 created the inventory only; no implementation file has been reviewed and no clean-review conclusion is implied.
+- **Review status:** CR02-001 is reviewed with no confirmed actionable finding; all other assignments remain pending. No code batch or overall project review is claimed clean.
+
+## Reviewed batch results
+
+### CR02-001 — Project and solution descriptors
+
+- **Reviewed revision:** `ebcd01d1f7a9921c9308905a7d63eaeb12148b9c`; all three file SHA-256 values still match the CR01 baseline.
+- **Evidence:** `Automation_Kalmala.slnx` parses as XML with 53 existing references. `Kalmala.slnx` parses with 59 existing references, including three present generated local references, and maps `DebugGame Editor | Win64` to `DebugGame_Editor`. `Kalmala.uproject` parses as JSON; its six declared modules each have a source directory and matching `.Build.cs` file. The engine association is 5.8, matching the project and development-setup context.
+- **Result:** No confirmed actionable finding in this batch. The generated solution references and retained server configuration align with the documented project-file recovery guidance and installed-engine limits.
+- **Limits:** No project-file regeneration, Unreal build, editor launch, or runtime validation was run.
 
 ## Pre-existing local changes
 
@@ -56,7 +65,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 
 | Batch | Review child | File scope | Files | Status | Review focus |
 | --- | --- | --- | ---: | --- | --- |
-| `CR02-001` | CR02 | `` | 3 | pending | Project structure, Core, targets, descriptors and public module contracts |
+| `CR02-001` | CR02 | `` | 3 | reviewed | Project structure, Core, targets, descriptors and public module contracts |
 | `CR02-002` | CR02 | `Source` | 2 | pending | Project structure, Core, targets, descriptors and public module contracts |
 | `CR02-003` | CR02 | `Source/KalmalaCore` | 1 | pending | Project structure, Core, targets, descriptors and public module contracts |
 | `CR02-004` | CR02 | `Source/KalmalaCore/Private` | 1 | pending | Project structure, Core, targets, descriptors and public module contracts |
@@ -340,7 +349,7 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `.gitignore` | CR15 | Tracked project file | `5e1a7d3c0bcf36f5977109e2a223e77df217d265af09a0bd36d1168c2e0b0466` | `CR15:CR15-001=pending` | pending — assigned for review; all listed batches remain open |
 | `.vsconfig` | CR15 | Tracked project file | `648ab0b64404b95df7e7df8bf94a89d51d968221332d24f3f839e6c4f1d6e8af` | `CR15:CR15-001=pending` | pending — assigned for review; all listed batches remain open |
 | `AGENTS.md` | CR16 | Tracked project file | `c43025e42f37a86c4307559564001cd6df75f6d75a66b54266dc28c10fcb4e49` | `CR16:CR16-001=pending` | pending — assigned for review; all listed batches remain open |
-| `Automation_Kalmala.slnx` | CR02 | Tracked project file | `a31daf92c73473b1f828d63be2a3037cf11e5db66b5b93ab431e0ee307e31659` | `CR02:CR02-001=pending` | pending — assigned for review; all listed batches remain open |
+| `Automation_Kalmala.slnx` | CR02 | Tracked project file | `a31daf92c73473b1f828d63be2a3037cf11e5db66b5b93ab431e0ee307e31659` | `CR02:CR02-001=reviewed@ebcd01d1` | reviewed at ebcd01d1; see CR02-001 result |
 | `BACKLOG.md` | CR16 | Tracked project file | `b38d12d91914a8c0ee77ffe3f977d963e66bba8fb36c14b03c0b203966cd12e8` | `CR16:CR16-001=pending` | pending — assigned for review; all listed batches remain open |
 | `Config/DefaultEngine.ini` | CR15 | Tracked project file | `6a52984e197087a662cb7098faf8587076dcb2ef6040710d6ee74454e8825742` | `CR15:CR15-002=pending` | pending — assigned for review; all listed batches remain open |
 | `Config/DefaultGame.ini` | CR15 | Tracked project file | `aaa97136cebb773cfa4653876bb2f8a894b7d7c85ee98b7197c5c60158bb23d7` | `CR15:CR15-002=pending` | pending — assigned for review; all listed batches remain open |
@@ -1008,8 +1017,8 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `docs/README.md` | CR16 | Tracked project file | `4218a1b0d4e5ab55f6e275392a1b63a62b2df308411c9bd358203566af105d83` | `CR16:CR16-003=pending` | pending — assigned for review; all listed batches remain open |
 | `docs/startmenu.md` | CR16 | Tracked project file | `07f50a7ae5b4969e08e6916afcfe6102cfebeba5ae5ed3675b6f81aa0ccdc3e0` | `CR16:CR16-003=pending` | pending — assigned for review; all listed batches remain open |
 | `docs/valheim-like-lighting-plan.md` | CR16 | Tracked project file | `e8d8c62a045c6505e2b2e552fadf749a14a0e12c91a7ff04906e4aadaf86d6c9` | `CR16:CR16-003=pending` | pending — assigned for review; all listed batches remain open |
-| `Kalmala.slnx` | CR02 | Tracked project file | `f96d5b4f2d3fba6e3ef93feac2e17c599e7f3b3e73f1c701a7cd8b0c28cbecf3` | `CR02:CR02-001=pending` | pending — assigned for review; all listed batches remain open |
-| `Kalmala.uproject` | CR02 | Tracked project file | `53816aaa4e85a67a5d7573b9679747e11809ea6778011647aa8d6d8000e52409` | `CR02:CR02-001=pending` | pending — assigned for review; all listed batches remain open |
+| `Kalmala.slnx` | CR02 | Tracked project file | `f96d5b4f2d3fba6e3ef93feac2e17c599e7f3b3e73f1c701a7cd8b0c28cbecf3` | `CR02:CR02-001=reviewed@ebcd01d1` | reviewed at ebcd01d1; see CR02-001 result |
+| `Kalmala.uproject` | CR02 | Tracked project file | `53816aaa4e85a67a5d7573b9679747e11809ea6778011647aa8d6d8000e52409` | `CR02:CR02-001=reviewed@ebcd01d1` | reviewed at ebcd01d1; see CR02-001 result |
 | `Plugins/VisualStudioTools/.gitignore` | CR15 | Tracked project-local plugin integration; provenance review pending | `cc230a857918371db889102ec1fa1bea2cf8f8d9976efa29cd6b2e7fab965b78` | `CR15:CR15-003=pending` | pending — assigned for review; all listed batches remain open |
 | `Plugins/VisualStudioTools/azure-pipelines/compliance.yml` | CR15 | Tracked project-local plugin integration; provenance review pending | `8fae8dbf1f03b9cb1c4537ef4a3c96970b98b18e766168766bc22c1b28d5b663` | `CR15:CR15-004=pending` | pending — assigned for review; all listed batches remain open |
 | `Plugins/VisualStudioTools/azure-pipelines/release.yml` | CR15 | Tracked project-local plugin integration; provenance review pending | `62ecd8b4a3e4bb162cd9fbfc014b2f7b669e727dba1ad652e4bd04034585c951` | `CR15:CR15-004=pending` | pending — assigned for review; all listed batches remain open |
