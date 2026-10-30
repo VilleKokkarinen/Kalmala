@@ -2,6 +2,16 @@
 
 ## Active queue
 
+- [x] Targeted world-save and Escape-menu repair (2026-10-30; user-requested
+  outside the project-wide review queue).
+  - [x] Write a fresh population record on world entry so untouched worlds are
+    discoverable by the existing local-world list.
+  - [x] Add solo/host Save world and Save and log out actions; save current
+    world components and player state before host/solo logout, retaining the
+    session on save failure. Clients retain server-mediated player logout.
+  - Lightweight presentation checks passed; Unreal build and live
+    create/save/logout/reopen acceptance remain deferred. Review tasks unchanged.
+
 - [ ] Project-wide code review — review every project-owned file and integration.
   - **Goal:** Produce a complete, traceable review of the current project against
     AGENTS.md and the brief, design, architecture, roadmap and decision log.

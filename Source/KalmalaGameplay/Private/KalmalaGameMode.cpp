@@ -661,6 +661,9 @@ void AKalmalaGameMode::LoadPopulationSave()
     }
     PopulationSaveGame = NewObject<UKalmalaWorldPopulationSaveGame>(this);
     PopulationSaveGame->InitializeForWorld(WorldGenerationConfig);
+    // Persist even an untouched world so it appears in the local world list.
+    if (!UGameplayStatics::SaveGameToSlot(PopulationSaveGame, Slot, 0))
+        UE_LOG(LogTemp, Error, TEXT("Could not save the new world record; retry Save world before logging out."));
 }
 
 void AKalmalaGameMode::SpawnOceanTravelTestFixture()
@@ -9582,6 +9585,35 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     return true;
 }
 
+bool AKalmalaGameMode::TrySaveWorldFromLocalHost(APlayerController* RequestingController)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !World || (World->GetNetMode() != NM_Standalone
+        && World->GetNetMode() != NM_ListenServer) || !IsValid(RequestingController)
+        || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
+        || !RequestingController->IsLocalController() || bSoloReturnToHomeInProgress
+        || bListenHostReturnInProgress) return false;
+
+    if (!PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || !ConstructionSaveGame || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)
+        || !StorageSaveGame
+        || !StorageSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    bool bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
+        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    bSaved &= UGameplayStatics::SaveGameToSlot(ConstructionSaveGame,
+        KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0);
+    bSaved &= UGameplayStatics::SaveGameToSlot(StorageSaveGame,
+        UKalmalaStorageSaveGame::MakeSlotName(WorldGenerationConfig), 0);
+    for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
+    {
+        APlayerController* Player = It->Get();
+        AKalmalaCharacter* Character = Player ? Cast<AKalmalaCharacter>(Player->GetPawn()) : nullptr;
+        bSaved &= IsValid(Character) && PersistPlayerStateFromServer(Character);
+    }
+    return bSaved;
+}
+
 bool AKalmalaGameMode::TryReturnToHomeFromSolo(APlayerController* RequestingController)
 {
     UWorld* World = GetWorld();
@@ -9594,6 +9626,7 @@ bool AKalmalaGameMode::TryReturnToHomeFromSolo(APlayerController* RequestingCont
     if (!IsValid(Character) || Character->GetWorld() != World || !Character->HasAuthority()
         || Character->GetController() != RequestingController || !PersistPlayerStateFromServer(Character)) return false;
 
+    if (!TrySaveWorldFromLocalHost(RequestingController)) return false;
     bSoloReturnToHomeInProgress = true;
     UGameplayStatics::OpenLevel(RequestingController, FName(TEXT("/Game/Kalmala/Maps/Menu/L_Menu")), true);
     return true;
@@ -9654,7 +9687,7 @@ bool AKalmalaGameMode::TryReturnListenHostToHome(APlayerController* RequestingCo
 
         if (!PersistPlayerStateFromServer(Character)) return false;
     }
-    if (!bFoundRequestingController) return false;
+    if (!bFoundRequestingController || !TrySaveWorldFromLocalHost(RequestingController)) return false;
 
     bListenHostReturnInProgress = true;
     ListenHostReturningController = RequestingController;

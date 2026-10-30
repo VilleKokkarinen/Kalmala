@@ -1,5 +1,17 @@
 # Start menu research and implementation plan
 
+## World saving and gameplay Escape actions — 2026-10-30
+
+Fresh world entry writes the existing population save slot so an untouched world
+appears in Your worlds. The gameplay Escape menu offers Save world to solo and
+listen hosts, plus Save and log out to return Home. Host/solo logout saves the
+loaded population, construction, storage and player state first; failure retains
+the session. These component writes are separate checkpoints, not one atomic
+transaction. Clients use the existing server-mediated player save/logout path;
+they cannot save or shut down the host world. Ocean state retains its existing
+event-driven persistence. This repair changes no save schema. Build and live
+create/save/logout/reopen confirmation remain pending.
+
 Planning date: 2026-10-29. Status: implementation contract; SM01 provides a
 read-only descriptor, while the front-end flow is not yet active. No gameplay
 save-schema changes are part of this plan.

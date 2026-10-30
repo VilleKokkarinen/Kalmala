@@ -870,20 +870,23 @@ bool UKalmalaSettingsWidget::IsHomeMenuSurfaceTransparentForVerification() const
 bool UKalmalaSettingsWidget::HasOnlyHomeMenuOptionsForVerification() const
 {
     if (ContentBox == nullptr) return false;
-    const int32 ExpectedChildren = ReturnToHomeButton != nullptr ? 4 : 2;
+    const bool bHasSave = ContentBox->GetChildrenCount() > 1
+        && ContentBox->GetChildAt(1)->GetFName() == TEXT("SaveWorldButton");
+    const int32 ReturnIndex = bHasSave ? 2 : 1;
+    const int32 ExpectedChildren = ReturnToHomeButton != nullptr ? ReturnIndex + 3 : 2;
     if (ContentBox->GetChildrenCount() != ExpectedChildren) return false;
 
     const UWidget* Options = ContentBox->GetChildAt(0);
     if (Options == nullptr || Options->GetFName() != TEXT("OptionsButton") || !Cast<UButton>(Options)) return false;
 
-    const int32 QuitIndex = ReturnToHomeButton != nullptr ? 3 : 1;
+    const int32 QuitIndex = ReturnToHomeButton != nullptr ? ReturnIndex + 2 : 1;
     if (ReturnToHomeButton != nullptr)
     {
-        const UWidget* ReturnButton = ContentBox->GetChildAt(1);
+        const UWidget* ReturnButton = ContentBox->GetChildAt(ReturnIndex);
         if (ReturnButton != ReturnToHomeButton.Get()
             || ReturnButton->GetFName() != TEXT("ReturnToHomeButton")
             || !Cast<UButton>(ReturnButton)
-            || ContentBox->GetChildAt(2) != ReturnToHomeStatus.Get()) return false;
+            || ContentBox->GetChildAt(ReturnIndex + 1) != ReturnToHomeStatus.Get()) return false;
     }
 
     const UWidget* Quit = ContentBox->GetChildAt(QuitIndex);
@@ -1682,10 +1685,15 @@ void UKalmalaSettingsWidget::ShowMainMenu()
     const bool bCanReturnFromListenHost = World && World->GetNetMode() == NM_ListenServer
         && Controller != nullptr && Controller->IsLocalController()
         && World->GetAuthGameMode<AKalmalaGameMode>() != nullptr;
+    if (bCanReturnFromStandalone || bCanReturnFromListenHost)
+    {
+        UButton* Save = AddButton(ContentBox, FText::FromString(TEXT("Save world")), TEXT("SaveWorldButton"));
+        Save->OnClicked.AddDynamic(this, &ThisClass::HandleSaveWorldClicked);
+    }
     if (bCanReturnFromStandalone || bCanReturnFromListenHost
         || (World && World->GetNetMode() == NM_Client))
     {
-        ReturnToHomeButton = AddButton(ContentBox, FText::FromString(TEXT("Return to Home")), TEXT("ReturnToHomeButton"));
+        ReturnToHomeButton = AddButton(ContentBox, FText::FromString(TEXT("Save and log out")), TEXT("ReturnToHomeButton"));
         ReturnToHomeButton->OnClicked.AddDynamic(this, &ThisClass::HandleReturnToHomeClicked);
         ReturnToHomeStatus = AddLabel(ContentBox, FText::GetEmpty(), 16.0f);
         ReturnToHomeStatus->SetVisibility(ESlateVisibility::Collapsed);
@@ -2626,6 +2634,20 @@ void UKalmalaSettingsWidget::NativeTick(const FGeometry& Geometry, float DeltaTi
     }
 }
 void UKalmalaSettingsWidget::HandleQuitClicked() { UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, false); }
+void UKalmalaSettingsWidget::HandleSaveWorldClicked()
+{
+    APlayerController* Controller = GetOwningPlayer();
+    UWorld* World = Controller ? Controller->GetWorld() : nullptr;
+    AKalmalaGameMode* GameMode = World ? World->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    const bool bSaved = GameMode && GameMode->TrySaveWorldFromLocalHost(Controller);
+    if (ReturnToHomeStatus)
+    {
+        ReturnToHomeStatus->SetText(FText::FromString(bSaved
+            ? TEXT("World saved.") : TEXT("Save failed. Some data may have saved; stay in this world and retry.")));
+        ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
 void UKalmalaSettingsWidget::HandleReturnToHomeClicked()
 {
     APlayerController* Controller = GetOwningPlayer();
@@ -2685,7 +2707,7 @@ void UKalmalaSettingsWidget::HandleReturnToHomeClicked()
     if (ReturnToHomeStatus)
     {
         ReturnToHomeStatus->SetText(FText::FromString(
-            TEXT("Could not save player state. You are still in this world; try again.")));
+            TEXT("Could not save world or player state. You are still in this world; try again.")));
         ReturnToHomeStatus->SetVisibility(ESlateVisibility::Visible);
     }
 }

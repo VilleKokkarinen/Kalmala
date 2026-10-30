@@ -180,6 +180,8 @@ private:
     void HandleQuitClicked();
     UFUNCTION()
     void HandleReturnToHomeClicked();
+    UFUNCTION()
+    void HandleSaveWorldClicked();
     void HandleNetworkReturnResult(bool bSaved);
     void UnbindPendingReturnCharacter();
     UFUNCTION()

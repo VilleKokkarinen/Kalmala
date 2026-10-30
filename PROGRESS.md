@@ -1,3 +1,29 @@
+## Targeted new-world saving and Escape actions — 2026-10-30
+
+- **Work completed:** User-requested repair outside CR01–CR19. World entry now
+  writes a new population slot even with no mutations. Escape exposes Save world
+  for solo/listen hosts and labels the existing Home return Save and log out.
+  Host/solo logout requires world-component and connected-player writes first.
+  Save failures retain the session; the manual action reports possible partial
+  writes. Invalid/incompatible component objects remain unwritable.
+- **Files changed:** Gameplay GameMode .cpp/.h, UI SettingsWidget .cpp/.h,
+  docs/startmenu.md, BACKLOG.md and PROGRESS.md. Existing local edits preserved.
+- **Lightweight checks:** MenuInputCopy.ps1 and PresentationOwnership.ps1 passed;
+  inspected save-slot/listing integration, host authority and error paths;
+  git diff --check passed for run-owned changes.
+- **Full verification:** Deferred; no Unreal build, editor launch or live
+  create/save/logout/reopen test run. This is not milestone-final verification.
+- **Observable impact:** After rebuilding, untouched worlds should appear in
+  Your worlds; hosts can explicitly save and return Home through Escape.
+- **Networking/authority:** No new client RPC or client-selected slot. Manual
+  world saving requires an authoritative local solo/listen controller; network
+  clients keep the existing server-validated player-state logout path.
+- **Limits:** Existing persistence schemas and event-driven ocean saving retained.
+  Writes across components are not atomic; failure may leave partial successful
+  checkpoints, but logout is withheld. No new world registry or save migration.
+- **Next eligible task:** CR01; runtime confirmation of this targeted repair
+  remains deferred to a rebuilt create/save/logout/reopen session.
+
 ## Review-only boundary and remediation queue — 2026-10-30
 
 - **Work completed:** Planning only. CR01–CR19 explicitly prohibit implementation

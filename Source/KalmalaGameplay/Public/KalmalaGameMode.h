@@ -142,6 +142,7 @@ public:
     bool PersistPlayerStateFromServer(class AKalmalaCharacter* Character,
         const FString& AdditionalDiscoveryId = FString(), const FString& AdditionalLearnedEffectId = FString(),
         const FString& AdditionalM9ClaimId = FString());
+    bool TrySaveWorldFromLocalHost(class APlayerController* RequestingController);
     bool TryReturnToHomeFromSolo(class APlayerController* RequestingController);
     bool TryReturnNetworkClientToHomeFromServer(class APlayerController* RequestingController,
         class AKalmalaCharacter* Character);
