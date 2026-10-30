@@ -62,6 +62,14 @@
 - **Finding:** RF01 (P3), stale rain-timer map entries across character lifetimes; see confirmed findings and queued remediation. No repair performed.
 - **Checks / limits:** Whole-file baseline hash and exact next function boundary passed. Searched every rain-map reference and inspected Logout as cleanup context. No runtime memory measurement, build, UBT, tests or peer validation. Other helper and caller review assignments remain pending; no end-to-end exposure balance claim.
 
+### CR03-001b-03 — GameMode BeginPlay (lines 520–646)
+
+- **Reviewed revision:** `b8b3bbf11d224b5eaf6c93b3896f6e9b0f452530`; whole-file SHA-256 `9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325` matches baseline including preserved local edits. Complete BeginPlay reviewed; next function LoadPopulationSave begins at line 647.
+- **Evidence:** Super precedes authority and missing generation-state guards. Server world config is copied before ocean/weather/population initialization. Construction distinguishes missing saves from failed reads before TryBuildWriteCandidate, whose current-class/world matching and duplicate-candidate branches were inspected as context. Storage rejects failed casts/world mismatch and creates a fresh instance only for absent slots. Neither rejection branch writes the rejected save. Save pointers are retained by transient UPROPERTY fields.
+- **Startup ordering:** Server creates a seed-derived PlayerStart; only successful spawn enters terrain activation, test-fixture call, construction/skiff restoration and existing-controller placement. Inspected fixture Shipping exclusion/command-line gate, construction null guard and placement authority/start guards as context. Weather/schema fixtures in this function are Shipping-excluded. Compared with architecture server ownership, unreleased save rejection policy, and startmenu's separate world checkpoints contract.
+- **Result:** No new confirmed actionable defect in this function. RF01 remains open. Called loaders, restoration bodies, config lifecycle, spawn-failure recovery and reconnect fixtures retain later review scope; this result does not certify those paths or atomic save behavior.
+- **Lightweight checks / limits:** Baseline hash, next function boundary, authority-before-load, failed-read candidate gate and terrain-before-player-placement assertions passed. No UBT/build/regeneration, tests, editor or runtime validation.
+
 ## Pre-existing local changes
 
 | Status | Path |
@@ -118,7 +126,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001a` | CR03 | `GameMode.cpp:1–240` | 1 partial | reviewed | Opening helpers; see range evidence |
 | `CR03-001b-01` | CR03 | `GameMode.cpp:241–398` | 1 partial | reviewed | Route helper and grid update |
 | `CR03-001b-02` | CR03 | `GameMode.cpp:399–519` | 1 partial | reviewed | Exposure/defaults; RF01 queued |
-| `CR03-001b-03` | CR03 | `GameMode.cpp:520–12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-03` | CR03 | `GameMode.cpp:520–646` | 1 partial | reviewed | BeginPlay initialization |
+| `CR03-001b-04` | CR03 | `GameMode.cpp:647–12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1255,7 +1264,7 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp` | CR16 | Tracked project file | `67e46e9bfc3fe0b782ec594db72c640b24bb5eefa6e753593d77dde9d3b8f4b8` | `CR16:CR16-020=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp` | CR13 | Tracked project file | `0fc80af73bd6ec748d3d62f4646d8ecb2c30fb72c0491269527019ee97da4c67` | `CR13:CR13-098=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.h` | CR13 | Tracked project file | `a3550567a6ca2fe544a96b6dfef9f5b1f5a1a954ac3d44f72763d64d5e4f5343` | `CR13:CR13-098=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
-| `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` | CR03 | Tracked project file | `9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325` | `CR03:CR03-001a=reviewed; CR03:CR03-001b-01=reviewed; CR03:CR03-001b-02=reviewed; CR03:CR03-001b-03=pending; CR04:CR04-010=pending` | partial — lines 1–519 reviewed; RF01; remaining GameMode and CR04 pending |
+| `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` | CR03 | Tracked project file | `9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325` | `CR03:CR03-001a=reviewed; CR03:CR03-001b-01=reviewed; CR03:CR03-001b-02=reviewed; CR03:CR03-001b-03=reviewed; CR03:CR03-001b-04=pending; CR04:CR04-010=pending` | partial — lines 1–646 reviewed; RF01; remaining GameMode and CR04 pending |
 | `Source/KalmalaGameplay/Private/KalmalaGameplayModule.cpp` | CR03 | Tracked project file | `eaa39949aa8640a81ac711beee537f63f8e249cfb6be1783a19c2177c71d6cc3` | `CR03:CR03-001c=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGardenPlotVerification.cpp` | CR16 | Tracked project file | `c99c438c8adc0b1842b782943267706302bccd17cfde90731545fac8083fd2fb` | `CR16:CR16-020=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGemstoneNode.cpp` | CR06 | Tracked project file | `179f7989c2b517125680c239b6c13476ad1008350b7d1c477bf6448d35a732d2` | `CR06:CR06-001=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |

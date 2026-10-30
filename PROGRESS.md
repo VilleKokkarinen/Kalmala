@@ -25063,3 +25063,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Full verification:** Deferred; no build, UBT, tests, runtime/peer validation or memory measurement. Not milestone-final verification.
 - **Impact / authority:** Review queues a bounded lifecycle cleanup; gameplay, network authority and saves unchanged. Existing backlog deletions preserved unstaged.
 - **Limitations / next:** RF01 is blocked behind CR19 and is not repaired. Remaining GameMode and cross-cutting CR04 stay pending. Next CR03-001b-03: subdivide/review BeginPlay from line 520.
+
+## Run 2026-10-30 — CR03 BeginPlay review
+
+- **Selected increment:** CR03-001b-03, complete GameMode BeginPlay lines 520–646 at HEAD `b8b3bbf11d224b5eaf6c93b3896f6e9b0f452530`. Baseline hash unchanged; subdivided remaining range before review.
+- **Ownership:** Thread inventory found no other active checkout owner; preserved 22 existing modified paths. Index initially empty.
+- **Work / files:** Reviewed authority/world-state gating, construction/storage initialization and generated-start activation order. Updated Temporary/Review/coverage.md and findings.md plus this PROGRESS.md entry. No new confirmed finding; RF01 remains queued. BACKLOG.md unchanged because CR03 remains incomplete.
+- **Checks:** Baseline hash, exact boundary, authority-before-load, failed-read guard and terrain-before-placement assertions passed. Inspected candidate builder and fixture/restore/placement entry guards and transient save references as context. Whitespace, staged scope and MAX_PATH checks performed before commit.
+- **Full verification:** Deferred; no build, UBT, regeneration, tests, editor or runtime validation. Not milestone-final verification.
+- **Impact / authority:** Review coverage reaches line 646; no gameplay, networking, saves or authority behavior changed.
+- **Limitations / next:** Called loaders/restoration and config/reconnect bodies remain pending. No atomic-save or startup/runtime success claim. Next CR03-001b-04: subdivide/review LoadPopulationSave from line 647.
