@@ -24699,3 +24699,76 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations:** Packaged launch, explicit gameplay/server overrides,
   and repeated play/Home round trips were not exercised. They remain in SM15.
 - **Next eligible task:** SM15 — verify and finalize the complete menu.
+
+## Run 2026-10-30 — SM15 acceptance and input-focus recheck
+
+- **Ownership:** The Codex thread inventory showed this as the only active
+  Kalmala run for `E:\dev\Kalmala`. This run preserved the existing worktree
+  edits and made no implementation or backlog changes.
+- **Work completed:** The rebuilt Shipping package window was minimized when
+  the reported keyboard input appeared unresponsive. After restoring that
+  window, Tab visibly focused Options, Enter opened Options, and Escape
+  returned Home. The visible flow then reached Current player, Your worlds,
+  and New world; checking seed 418 reported no recognized save and did not
+  write one. Play solo entered Meadows; Escape opened the gameplay menu and
+  Return to Home returned to the Home screen. This confirms the reported
+  no-control observation was caused by the minimized window in this check. The
+  desktop later returned to another app, so no further window input was sent.
+- **Files changed this run:** `PROGRESS.md` only. Existing SM15 implementation
+  edits and pre-existing asset/shortcut edits remain in the worktree and were
+  not staged by this run.
+- **Lightweight checks:** `git diff --check` passed.
+  `Scripts/Tests/Presentation/LocalInputContract.ps1` passed earlier in this
+  acceptance run. `MenuInputCopy.ps1` and `PresentationOwnership.ps1` both
+  passed in this run.
+- **Milestone-final verification:** Attempted; the milestone is **awaiting
+  verification**. `RunUAT.bat BuildCookRun` packaged Win64 Shipping with
+  `-build -cook -stage -package -archive -pak -iostore` from the isolated
+  mirror `C:\km15\fixs\Prod-20261030-114605-ace7be\Source`; it succeeded and
+  produced `C:\km15\fix3\CachedArchive`.
+- **Full automation:** The Editor queue used
+  `-ExecCmds="Automation RunTests Kalmala; Quit"` and
+  `-TestExit="Automation Test Queue Empty"`; 238 tests ran, 236 passed and
+  two failed. The failures were `Kalmala.Gameplay.Presentation.SurfaceWinding`
+  and `Kalmala.World.Regional.ContinuousHeightBlend`, recorded in
+  `C:\km15\fix3\FullQueue\Kalmala.log`. The same failures were present in the
+  prior queue; their wildlife and regional-generation test files are unchanged
+  in this worktree, so no unrelated repairs were made.
+- **Rendered settings checks:**
+  `Scripts/Tests/Presentation/SettingsAccessibility.ps1 -Width 1280 -Height 720
+  -Port 18492` passed (log directory
+  `C:\Users\Ville\AppData\Local\Temp\KalmalaSettingsAccessibility-380a85d572cc47a1ad3a9a296a64fabd`).
+  The 1024x768 run on port 18493 also passed (log directory
+  `C:\Users\Ville\AppData\Local\Temp\KalmalaSettingsAccessibility-82ab7acf69bb4f70bca956a3fcb9b57a`).
+  Both exercised settings focus, Escape, restored input and preference
+  persistence.
+- **Remaining verification:** Dedicated-server join is unavailable with the
+  installed Unreal distribution because its Server target is unsupported. A
+  headless Shipping attempt for the explicit Prototype `-Map` override
+  launched the package process but produced no requested `-abslog`, so it is
+  inconclusive and does not count as passing. Rebuilt-package listen-host and
+  client return/disconnect, connection failure/cancellation, and repeated
+  round-trip cases also remain to be verified.
+- **Impact:** With the rebuilt package foregrounded, Home keyboard focus,
+  Options navigation, solo launch, gameplay Escape and return to Home all
+  responded. The existing controller-change input-mode repair was present in
+  the package. No save schema or gameplay/network authority was changed by this
+  verification run; seed checking was read-only.
+- **Files changed by the prior SM15 worktree edits:** `Config/DefaultGame.ini`,
+  `Scripts/Package-And-Run.ps1`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Scripts/Tests/Presentation/MenuInputCopy.ps1`,
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1`,
+  `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp`,
+  `Source/KalmalaUI/Private/KalmalaJoinAddressWidget.cpp`,
+  `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp`,
+  `Source/KalmalaUI/Private/KalmalaWorldListWidget.cpp`,
+  `Source/KalmalaUI/Public/KalmalaSettingsSubsystem.h`, and
+  `docs/07-development-setup.md`. These remain outside this run's staging scope.
+- **Backlog/final status:** SM15, SM14, and the start-menu parent remain
+  unchecked. Required final acceptance has not succeeded; no milestone
+  completion is claimed.
+- **Next eligible task:** Continue SM15 acceptance: verify the explicit map
+  override and rebuilt-package listen-host/client return and failure paths;
+  run dedicated join with an Unreal installation that supports Server targets;
+  then resolve any feature-related verification failures and rerun the full
+  milestone checks.
