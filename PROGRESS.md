@@ -25053,3 +25053,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Full verification:** Deferred; no build, UBT, tests, runtime or peer validation. Not milestone-final acceptance.
 - **Impact / authority:** Partial-file review coverage now reaches line 398. No gameplay, networking, save or authority behavior changed.
 - **Limitations / next:** Sampled route checks do not prove continuous clearance or runtime performance. Remaining GameMode and helper-specific review assignments stay pending. Next eligible CR03-001b-02: subdivide/review from UpdatePlayerExposure, line 399. Other CR03 and CR04 batches remain open.
+
+## Run 2026-10-30 — CR03 player exposure review
+
+- **Selected increment:** CR03-001b-02, GameMode lines 399–519, exposure update and defaults, at HEAD `d8b9d467b7ba498dbd9c9b54d536bda808c1ad0e`. Baseline hash unchanged.
+- **Ownership:** No other active checkout owner in thread inventory; preserved 22 pre-existing modified paths. Index initially empty.
+- **Work / files:** Recorded review in Temporary/Review/coverage.md and findings.md, added unchecked RF01 to BACKLOG.md, appended this PROGRESS.md entry. Confirmed P3 stale weak-key rain timers: production adds entries but only test fixtures remove them. No code repair. CR03 remains unchecked.
+- **Checks:** Baseline hash and next function boundary assertions passed; repository-wide map reference search and Logout inspection confirmed missing production cleanup. Inspected guarded one-second caller and status/character authority seams. Whitespace, staged scope and MAX_PATH checks performed before commit.
+- **Full verification:** Deferred; no build, UBT, tests, runtime/peer validation or memory measurement. Not milestone-final verification.
+- **Impact / authority:** Review queues a bounded lifecycle cleanup; gameplay, network authority and saves unchanged. Existing backlog deletions preserved unstaged.
+- **Limitations / next:** RF01 is blocked behind CR19 and is not repaired. Remaining GameMode and cross-cutting CR04 stay pending. Next CR03-001b-03: subdivide/review BeginPlay from line 520.
