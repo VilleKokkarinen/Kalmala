@@ -24812,3 +24812,34 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   rebuilt package: check cold-launch mouse/keyboard activation, Options, clicking
   outside the window, alt-tab, and gameplay/Home return, plus the outstanding
   session acceptance cases recorded in the preceding SM15 handoff.
+
+
+## Opening screen and existing menu presentation - 2026-10-30
+
+- **Selected increment:** Explicit user-requested visual refresh using supplied
+  screenshots as high-level references, ahead of the normal SM15 queue.
+- **Ownership:** No other active run in this checkout in the thread inventory.
+  All pre-existing edits preserved; only this run's changes staged.
+- **Work completed:** Original static Slate landscape (ridges, lake, firs and
+  hearth), centered Home title/actions, bounded themed panels on existing
+  player/world/join/save/credits/exit screens, paired Your worlds and Join by
+  address choices. Existing Options, delegates and focus behavior retained.
+- **Files changed:** New KalmalaMenuLandscape.h/.cpp; private sources for
+  KalmalaHomeWidget, KalmalaPlayerStepWidget, KalmalaWorldListWidget,
+  KalmalaJoinAddressWidget, KalmalaSaveInformationWidget, KalmalaCreditsWidget
+  and KalmalaExitConfirmationWidget; BACKLOG.md, PROGRESS.md, docs/startmenu.md.
+- **Lightweight checks:** git diff --check; LocalInputContract.ps1,
+  MenuInputCopy.ps1 and PresentationOwnership.ps1 passed. Inspected installed
+  UE 5.8 Slate signatures, module dependencies, input isolation and retained
+  delegates. No Unreal build, test suite, package or live render was run.
+- **Full verification:** Deferred to SM15; not milestone-final verification.
+- **Observable impact:** Next rebuilt launch uses the scenic title and branch
+  panels. Actual appearance has not been confirmed in Unreal.
+- **Networking/authority:** Local cosmetic presentation only; no RPC, identity,
+  server validation, generation or saved-data schema changes.
+- **Limitations:** Static illustration, no live 3D scene or character preview.
+  No unsupported cloud saves, characters, modifiers or discovery controls.
+  Options retains its existing presenter. Rebuilt input, resolution, enlarged
+  text and high-contrast layout verification remain outstanding.
+- **Next eligible task:** Continue SM15 acceptance, including this visual pass,
+  cold-launch input and the outstanding session/return/failure cases.

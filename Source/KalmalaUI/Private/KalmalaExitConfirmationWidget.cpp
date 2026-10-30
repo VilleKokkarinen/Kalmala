@@ -1,6 +1,7 @@
 #include "KalmalaExitConfirmationWidget.h"
 
 #include "Blueprint/WidgetTree.h"
+#include "KalmalaMenuLandscape.h"
 #include "Components/Border.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
@@ -25,10 +26,13 @@ void UKalmalaExitConfirmationWidget::NativeOnInitialized()
 
     UCanvasPanel* Canvas = WidgetTree->ConstructWidget<UCanvasPanel>();
     WidgetTree->RootWidget = Canvas;
+    UKalmalaMenuLandscape::AddToCanvas(*WidgetTree, *Canvas);
     Backdrop = WidgetTree->ConstructWidget<UBorder>();
     UCanvasPanelSlot* BackdropSlot = Canvas->AddChildToCanvas(Backdrop);
     BackdropSlot->SetAnchors(FAnchors(0, 0, 1, 1));
     BackdropSlot->SetOffsets(FMargin(0));
+
+    UKalmalaMenuLandscape::FitPanel(Backdrop, 1280.f);
 
     Scroll = WidgetTree->ConstructWidget<UScrollBox>();
     UCanvasPanelSlot* ScrollSlot = Canvas->AddChildToCanvas(Scroll);
@@ -75,6 +79,7 @@ void UKalmalaExitConfirmationWidget::NativeOnInitialized()
 void UKalmalaExitConfirmationWidget::NativeTick(const FGeometry& Geometry, const float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
+    UKalmalaMenuLandscape::FitPanel(Backdrop, Geometry.GetLocalSize().X);
     if (Column) Column->SetWidthOverride(UKalmalaHomeWidget::ActionColumnWidth(Geometry.GetLocalSize().X));
     if (LastTextScale != UKalmalaSettingsWidget::GetTextScalePercent()
         || LastContrast != UKalmalaSettingsWidget::GetContrastMode()

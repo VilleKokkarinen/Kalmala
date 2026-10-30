@@ -2,6 +2,12 @@
 
 ## Active queue
 
+- [x] User-requested opening-screen and existing-menu visual refresh (2026-10-30).
+  - Original static northern landscape, centered title/actions, framed existing
+    player/world/join/save/credits/exit branches, and paired world/join choices.
+  - Existing Options and session/save behavior retained. Lightweight checks pass;
+    Unreal compilation and rendered acceptance remain deferred under SM15.
+
 - [x] Repair main-menu startup cursor/input capture and leave visible menu cursors unlocked in windowed mode (2026-10-30).
   - Disable launch capture; initialize the menu controller in UI-only mode with
     a visible cursor and no mouse lock; keep Options clicks from hiding it.

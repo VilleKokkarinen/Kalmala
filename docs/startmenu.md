@@ -560,3 +560,23 @@ from `docs/07-development-setup.md` for this integrated feature; record commands
 results and repairs. A standalone menu render is presentation evidence only.
 Keep the parent unchecked until required final verification succeeds; no existing
 roadmap milestone is reopened or declared complete by this planning change.
+
+
+## Opening-screen presentation refresh — 2026-10-30
+
+The supplied reference screenshots inform the scenic title and focused menu
+hierarchy. Kalmala uses an original static Slate illustration of northern
+ridges, a lake, fir trees and a distant hearth; it is not a playable map or a
+character preview. Home centers its title and existing five actions over this
+scene. Player, world selection/details/new-world, join, save information,
+credits and exit share the scene behind a bounded themed panel. The current
+player step presents Your worlds and Join by address as paired choices.
+Options continues to use its existing presenter and preferences.
+
+No portable character selection, cloud/backup management, server discovery,
+password, or editable world modifiers are implied by the visual references.
+Existing read-only save information and world-rule details retain their actual
+capabilities. The background owns no input, actors, timers, save or network
+state. High-contrast Home uses an opaque backing and action lists remain
+scrollable. Compilation and rendered resolution/text-scale checks remain SM15
+work; this targeted presentation increment does not close that milestone.

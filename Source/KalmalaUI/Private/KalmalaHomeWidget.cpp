@@ -1,6 +1,7 @@
 #include "KalmalaHomeWidget.h"
 
 #include "Blueprint/WidgetTree.h"
+#include "KalmalaMenuLandscape.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/CanvasPanel.h"
@@ -52,6 +53,7 @@ void UKalmalaHomeWidget::NativeOnInitialized()
     if (!WidgetTree || WidgetTree->RootWidget) return;
     UCanvasPanel* Canvas = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass(), TEXT("HomeCanvas"));
     WidgetTree->RootWidget = Canvas;
+    UKalmalaMenuLandscape::AddToCanvas(*WidgetTree, *Canvas);
     Backdrop = WidgetTree->ConstructWidget<UBorder>(UBorder::StaticClass(), TEXT("HomeBackdrop"));
     FKalmalaUITheme::Get().ApplySolidPanel(*Backdrop, UKalmalaSettingsWidget::GetContrastMode());
     UCanvasPanelSlot* BackdropSlot = Canvas->AddChildToCanvas(Backdrop);
@@ -64,10 +66,18 @@ void UKalmalaHomeWidget::NativeOnInitialized()
     ContentSlot->SetOffsets(FMargin(32));
 
     Title = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), TEXT("HomeTitle"));
-    Title->SetText(FText::FromString(TEXT("Kalmala")));
+    Title->SetText(FText::FromString(TEXT("K A L M A L A")));
+    Title->SetJustification(ETextJustify::Center);
+    Title->SetShadowColorAndOpacity(FLinearColor(0, 0, 0, .8f));
+    Title->SetShadowOffset(FVector2D(0, 3));
     Title->SetAutoWrapText(true);
     UVerticalBoxSlot* TitleSlot = Content->AddChildToVerticalBox(Title);
-    TitleSlot->SetPadding(FMargin(0, 0, 0, 16));
+    TitleSlot->SetPadding(FMargin(0, 20, 0, 16));
+
+    USizeBox* ScenicSpace = WidgetTree->ConstructWidget<USizeBox>();
+    FSlateChildSize ScenicSize(ESlateSizeRule::Fill);
+    ScenicSize.Value = .35f;
+    Content->AddChildToVerticalBox(ScenicSpace)->SetSize(ScenicSize);
 
     ActionsScroll = WidgetTree->ConstructWidget<UScrollBox>(UScrollBox::StaticClass(), TEXT("HomeActionsScroll"));
     FKalmalaUITheme::Get().ApplyScroll(*ActionsScroll, UKalmalaSettingsWidget::IsReducedMotionEnabled());
@@ -76,7 +86,7 @@ void UKalmalaHomeWidget::NativeOnInitialized()
     ActionColumn = WidgetTree->ConstructWidget<USizeBox>(USizeBox::StaticClass(), TEXT("HomeActionColumn"));
     ActionColumn->SetWidthOverride(420.0f);
     UScrollBoxSlot* ColumnSlot = Cast<UScrollBoxSlot>(ActionsScroll->AddChild(ActionColumn));
-    if (ColumnSlot) ColumnSlot->SetHorizontalAlignment(HAlign_Left);
+    if (ColumnSlot) ColumnSlot->SetHorizontalAlignment(HAlign_Center);
     UVerticalBox* Rows = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass(), TEXT("HomeActionRows"));
     ActionColumn->SetContent(Rows);
 
@@ -117,6 +127,7 @@ void UKalmalaHomeWidget::NativeOnInitialized()
         : FString::Printf(TEXT("Build %s"), *BuildVersion);
     Footer->SetText(FText::FromString(FooterText));
     Footer->SetAutoWrapText(true);
+    Footer->SetJustification(ETextJustify::Right);
     UVerticalBoxSlot* FooterSlot = Content->AddChildToVerticalBox(Footer);
     FooterSlot->SetPadding(FMargin(0, 16, 0, 0));
     RefreshTheme();
@@ -125,6 +136,7 @@ void UKalmalaHomeWidget::NativeOnInitialized()
 void UKalmalaHomeWidget::NativeTick(const FGeometry& Geometry, float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
+    if (Title) Title->SetVisibility(Geometry.GetLocalSize().Y < 480.f ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
     if (ActionColumn) ActionColumn->SetWidthOverride(ActionColumnWidth(Geometry.GetLocalSize().X));
     if (LastTextScale != UKalmalaSettingsWidget::GetTextScalePercent()
         || LastContrast != UKalmalaSettingsWidget::GetContrastMode()
@@ -137,9 +149,13 @@ void UKalmalaHomeWidget::RefreshTheme()
     LastTextScale = UKalmalaSettingsWidget::GetTextScalePercent();
     LastContrast = UKalmalaSettingsWidget::GetContrastMode();
     bLastReducedMotion = UKalmalaSettingsWidget::IsReducedMotionEnabled();
-    if (Backdrop) Theme.ApplySolidPanel(*Backdrop, LastContrast);
+    if (Backdrop)
+    {
+        Theme.ApplySolidPanel(*Backdrop, LastContrast);
+        Backdrop->SetRenderOpacity(LastContrast > 0 ? 1.f : .12f);
+    }
     if (ActionsScroll) Theme.ApplyScroll(*ActionsScroll, bLastReducedMotion);
-    if (Title) Theme.ApplyText(*Title, Theme.EmphasisSize + 12, true, LastTextScale, LastContrast);
+    if (Title) Theme.ApplyText(*Title, Theme.EmphasisSize + 32, true, LastTextScale, LastContrast);
     if (Footer) Theme.ApplyText(*Footer, Theme.BodySize, false, LastTextScale, LastContrast);
     if (UnavailableMessage) Theme.ApplyText(*UnavailableMessage, Theme.BodySize, false, LastTextScale, LastContrast);
     for (UKalmalaThemedButton* Button : Buttons)

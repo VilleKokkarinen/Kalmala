@@ -1,7 +1,10 @@
 #include "KalmalaPlayerStepWidget.h"
 
 #include "Blueprint/WidgetTree.h"
+#include "KalmalaMenuLandscape.h"
 #include "Components/Border.h"
+#include "Components/HorizontalBox.h"
+#include "Components/HorizontalBoxSlot.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/ScrollBox.h"
@@ -32,10 +35,13 @@ void UKalmalaPlayerStepWidget::NativeOnInitialized()
     if (!WidgetTree || WidgetTree->RootWidget) return;
     UCanvasPanel* Canvas = WidgetTree->ConstructWidget<UCanvasPanel>();
     WidgetTree->RootWidget = Canvas;
+    UKalmalaMenuLandscape::AddToCanvas(*WidgetTree, *Canvas);
     Backdrop = WidgetTree->ConstructWidget<UBorder>();
     UCanvasPanelSlot* BackgroundSlot = Canvas->AddChildToCanvas(Backdrop);
     BackgroundSlot->SetAnchors(FAnchors(0, 0, 1, 1));
     BackgroundSlot->SetOffsets(FMargin(0));
+    UKalmalaMenuLandscape::FitPanel(Backdrop, 1280.f);
+
     Scroll = WidgetTree->ConstructWidget<UScrollBox>();
     UCanvasPanelSlot* ScrollSlot = Canvas->AddChildToCanvas(Scroll);
     ScrollSlot->SetAnchors(FAnchors(0, 0, 1, 1));
@@ -68,8 +74,21 @@ void UKalmalaPlayerStepWidget::NativeOnInitialized()
         Row->SetContent(Button);
         return Button;
     };
-    ContinueButton = AddAction(TEXT("Continue"));
+    ContinueButton = AddAction(TEXT("Your worlds"));
     JoinButton = AddAction(TEXT("Join by address"));
+    // Keep both session destinations visible as peers after the current-player step.
+    UWidget* LocalRow = ContinueButton->GetParent();
+    UWidget* JoinRow = JoinButton->GetParent();
+    LocalRow->RemoveFromParent();
+    JoinRow->RemoveFromParent();
+    UHorizontalBox* SessionChoices = WidgetTree->ConstructWidget<UHorizontalBox>();
+    Content->AddChildToVerticalBox(SessionChoices)->SetPadding(FMargin(0, 8, 0, 16));
+    auto* LocalSlot = SessionChoices->AddChildToHorizontalBox(LocalRow);
+    LocalSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    LocalSlot->SetPadding(FMargin(0, 0, 4, 0));
+    auto* JoinSlot = SessionChoices->AddChildToHorizontalBox(JoinRow);
+    JoinSlot->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+    JoinSlot->SetPadding(FMargin(4, 0, 0, 0));
     BackButton = AddAction(TEXT("Back"));
     ContinueButton->OnClicked.AddDynamic(this, &ThisClass::HandleContinue);
     JoinButton->OnClicked.AddDynamic(this, &ThisClass::HandleJoin);
@@ -85,6 +104,7 @@ void UKalmalaPlayerStepWidget::NativeOnInitialized()
 void UKalmalaPlayerStepWidget::NativeTick(const FGeometry& Geometry, const float DeltaTime)
 {
     Super::NativeTick(Geometry, DeltaTime);
+    UKalmalaMenuLandscape::FitPanel(Backdrop, Geometry.GetLocalSize().X);
     if (Column) Column->SetWidthOverride(UKalmalaHomeWidget::ActionColumnWidth(Geometry.GetLocalSize().X));
     const APlayerController* Controller = GetOwningPlayer();
     const APlayerState* PlayerState = Controller ? Controller->GetPlayerState<APlayerState>() : nullptr;
