@@ -25043,3 +25043,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Full verification:** Deferred; no build, UBT, tests, runtime or peer validation. Not milestone-final verification.
 - **Impact / authority:** Traceable partial-file review only; no gameplay, save, networking or server authority changes.
 - **Limitations / next:** No end-to-end authentication or hash-collision safety claim. Owner matching and persistence callers remain for later inspection. Next eligible work is CR03-001b: subdivide and review the next bounded GameMode range starting at line 241. CR03-001c and CR04 remain pending.
+
+## Run 2026-10-30 — CR03 route helper and interaction grid
+
+- **Selected increment:** CR03-001b-01, GameMode lines 241–398 at HEAD `42180cf4989f35319ffe92b35cf3c2ebb496b495`. Split the remaining oversized range before review; next starts at line 399. Baseline hash matches.
+- **Ownership:** No other active checkout owner in thread inventory. Preserved 22 pre-existing modified paths; index initially empty.
+- **Work / files:** Reviewed complete route-helper namespace and interaction-grid update; recorded evidence in Temporary/Review/coverage.md and findings.md plus this PROGRESS.md entry. No confirmed finding or repair queued. BACKLOG.md unchanged; CR03 remains incomplete.
+- **Checks:** Baseline hash, function boundary and grid authority/deduplication/priority/state-reset assertions passed. Compared priority, cap and expiry with architecture; inspected grid helper constants/moisture and skiff footprint guards. Whitespace and MAX_PATH checks performed before commit.
+- **Full verification:** Deferred; no build, UBT, tests, runtime or peer validation. Not milestone-final acceptance.
+- **Impact / authority:** Partial-file review coverage now reaches line 398. No gameplay, networking, save or authority behavior changed.
+- **Limitations / next:** Sampled route checks do not prove continuous clearance or runtime performance. Remaining GameMode and helper-specific review assignments stay pending. Next eligible CR03-001b-02: subdivide/review from UpdatePlayerExposure, line 399. Other CR03 and CR04 batches remain open.
