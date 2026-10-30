@@ -25033,3 +25033,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Full verification:** Deferred; no build, UBT invocation, regeneration, test suite or runtime validation. CR02 closure means assigned review coverage complete, not milestone-final implementation acceptance.
 - **Observable impact / authority:** Core registration has traceable review evidence; no gameplay, network, persistence or authority behavior changed.
 - **Limitations / next eligible task:** Project review remains open and CR04 cross-cutting assignments remain pending. Next is CR03-001, first session/server review batch. Pre-existing BACKLOG deletions remain unstaged and preserved.
+
+## Run 2026-10-30 — CR03 opening GameMode helpers
+
+- **Selected increment:** Split oversized CR03-001 before review; completed CR03-001a, GameMode lines 1–240 only, at HEAD `e3b42016f211986e48e5c261573af415c4a7d8d9`. Whole-file hash matches baseline including preserved local edits.
+- **Ownership:** Thread inventory found no other active checkout owner. Preserved 22 existing modified paths; index initially empty.
+- **Work / files changed:** Reviewed opening helpers, slot names and network identity resolution. Updated Temporary/Review/coverage.md and findings.md and this PROGRESS.md entry. No confirmed defect; no repair queued. CR03 remains unchecked, so BACKLOG.md is unchanged. Remaining GameMode requires bounded sub-batches; other four files retain pending coverage.
+- **Checks:** Python baseline SHA-256 and identity guard assertions passed; inspected save-slot formats, 128-character identity bound and habitat/identity documentation. Whitespace and changed-path MAX_PATH checks performed before commit.
+- **Full verification:** Deferred; no build, UBT, tests, runtime or peer validation. Not milestone-final verification.
+- **Impact / authority:** Traceable partial-file review only; no gameplay, save, networking or server authority changes.
+- **Limitations / next:** No end-to-end authentication or hash-collision safety claim. Owner matching and persistence callers remain for later inspection. Next eligible work is CR03-001b: subdivide and review the next bounded GameMode range starting at line 241. CR03-001c and CR04 remain pending.
