@@ -9,8 +9,15 @@
     exactly one per run. Split large children into numbered file batches before
     reviewing them (target 10–20 minutes plus a lightweight check per batch).
     Update backlog/progress, commit only run-owned changes, then stop.
-  - **Review defaults chosen for this plan:** Review and findings only; no feature
-    work or broad refactoring. Record actionable defects with severity, file/line
+  - **Review-only boundary (CR01–CR19):** Do not change code, tests, scripts,
+    configuration, catalogues or assets, including small fixes or verification
+    repairs. Only BACKLOG.md, PROGRESS.md and the review evidence ledger/reports
+    may be edited. Inspection tools must not rewrite project files.
+  - **Finding handoff:** Before checking off each review child, add every
+    confirmed actionable finding as an unchecked RF task under the separate
+    Review findings remediation goal below; do not wait until CR18. Link its
+    finding ID and evidence. Never implement a repair during a review run.
+  - **Review defaults chosen for this plan:** Review and findings only. Record actionable defects with severity, file/line
     or asset reference, trigger, impact, evidence and suggested repair. Separate
     confirmed defects from questions. Queue repairs explicitly without treating
     this review as permission for restricted changes. A clean review also needs
@@ -72,16 +79,40 @@
   - [ ] **CR18 — Close coverage and prioritize findings.** Reconcile the ledger
     against the current tree, re-review changed files and eliminate unexplained
     gaps. Give each confirmed finding a concrete unchecked repair task with
-    acceptance criteria and dependencies, or an explicit user disposition.
+    acceptance criteria and dependencies under Review findings remediation, or
+    an explicit user disposition. Confirm earlier children already queued their
+    findings; CR18 reconciles the list rather than delaying the initial handoff.
   - [ ] **CR19 — Complete review acceptance.** Every in-scope file/batch has a
     recorded result, exclusions have reasons, all findings have dispositions,
     and a final report lists reviewed revision/local changes, coverage totals,
     evidence, unresolved defects and limits. Perform lightweight checks per
-    batch; full builds/tests remain deferred unless this is milestone-final,
-    when all applicable verification in docs/07-development-setup.md must pass.
+    batch; full implementation verification belongs to the remediation goal.
+    Any inspection failure becomes a finding, never an in-review code repair.
     Review completion means coverage and triage complete; it does not imply
     unresolved defects are fixed or unperformed runtime checks passed. Leave
     this parent unchecked until these review acceptance criteria are satisfied.
+
+- [ ] Review findings remediation — implement fixes recorded by CR01–CR19.
+  - **Dependency:** Blocked until CR19 review acceptance is complete. Review
+    completion queues work here and never starts a repair in the same run.
+  - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
+    children as findings arise; do not invent defects or placeholder fixes.
+    Each child includes finding/source CR ID, severity, affected files, trigger,
+    evidence, proposed change, dependencies, acceptance criteria and focused
+    validation. Order eligible repairs by severity and dependencies, retaining
+    stable IDs. Record explicitly accepted/deferred findings with reasons.
+  - **Implementation runs:** After review completion, complete the first
+    unchecked, unblocked repair child, exactly one per run. Split oversized
+    repairs before implementation; preserve repository permission boundaries.
+    Perform applicable lightweight checks, update backlog/progress, commit
+    only run-owned changes and stop. No review finding bypasses this queue.
+  - **Final acceptance:** Once every queued repair is implemented or explicitly
+    dispositioned, run the applicable milestone-final verification prescribed
+    by docs/07-development-setup.md; record commands, results and limitations.
+    Repair verification failures within this goal and rerun required checks.
+    Keep this parent unchecked until required verification passes. If review
+    finds no actionable defects, record that evidence and close this goal as
+    having no repairs required, without claiming unperformed checks passed.
 
 - [x] Repair cursor loss when returning from gameplay to Home (2026-10-30).
   - Pause-menu cleanup restores gameplay input only to its original controller

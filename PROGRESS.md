@@ -1,3 +1,18 @@
+## Review-only boundary and remediation queue — 2026-10-30
+
+- **Work completed:** Planning only. CR01–CR19 explicitly prohibit implementation
+  edits, including small fixes and verification repairs. Every review child must
+  queue actionable findings before completion in the separate remediation goal.
+- **Files changed:** BACKLOG.md and PROGRESS.md; prior local edits preserved.
+- **Checks:** Inspected task dependencies, allowed review files, handoff timing,
+  completion criteria and run-owned diff; whitespace check passed.
+- **Full verification:** Deferred; no code, builds or tests changed or run.
+- **Impact / authority:** Review runs produce evidence and backlog tasks only;
+  no gameplay or networking change. Repairs wait until CR19 completes and run
+  as separate increments with applicable verification.
+- **Remaining scope:** Review and remediation have not started.
+- **Next eligible task:** CR01 — establish the baseline and coverage ledger.
+
 ## Project-wide review backlog — 2026-10-30
 
 - **Work completed:** Planning only. Added an unchecked project-wide review goal
