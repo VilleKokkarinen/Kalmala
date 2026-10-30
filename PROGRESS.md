@@ -24933,3 +24933,40 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   verify cursor and clicks after solo and networked Home returns, repeated
   round trips, ordinary pause close and Home Options, then outstanding session
   acceptance. No runtime success is claimed for this repair.
+
+## Run 2026-10-30 — CR01 review baseline
+
+- **Selected increment:** Project-wide code review CR01 — establish the
+  revision, local-change, file-coverage, and review-batch baseline.
+- **Ownership:** Codex thread inventory showed no other active Kalmala run for
+  this checkout. Work stayed in the main checkout at `fc83040078cb02284d7bc0b4ce2f960d873b648a`
+  on `master`. The 22 pre-existing modified tracked files were preserved and
+  recorded; none were staged or included as current-run implementation work.
+- **Work completed:** Added `Temporary/Review/coverage.md` with SHA-256 hashes
+  for all 1,437 tracked files, per-file pending status, existing local-change
+  paths, excluded ignored-output counts/rationales, and 272 bounded review
+  batches for CR02–CR16. All 473 `Source/` files also have CR04 trust-boundary
+  assignments. Added `Temporary/Review/findings.md`; it records that CR01 did
+  not review implementation and makes no clean-review claim. Checked CR01 only.
+- **Files changed by this run:** `Temporary/Review/coverage.md`,
+  `Temporary/Review/findings.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Confirmed 1,437 tracked files, zero authored
+  non-ignored untracked files, 1,427 ignored generated/cache/temp files, and
+  zero relevant ignored source assets. All reviewed path references are below
+  the 260-character limit. Review batches cap at 12 source/code files, 8
+  Content files, and 10 CR16 files. `git diff --check` passed.
+- **Full verification:** Deferred. CR01 is baseline bookkeeping only; no
+  Unreal build, test suite, package, or runtime acceptance was run. Review
+  findings and any implementation verification remain for later eligible
+  review/remediation tasks.
+- **Observable impact:** Future review runs can identify baseline file changes,
+  inspect a bounded batch, and record findings without treating unreviewed
+  files as covered.
+- **Networking/authority:** No gameplay, network, save, or server-authority
+  behavior changed.
+- **Known limitations / remaining scope:** All file batches remain pending;
+  ignored build/cache/temp outputs are excluded by documented selectors. CR01
+  found no defects because it performed no implementation review.
+- **Next eligible task:** CR02 — Review project structure and Core; first
+  batch `CR02-001` covers `Automation_Kalmala.slnx`, `Kalmala.slnx`, and
+  `Kalmala.uproject`.

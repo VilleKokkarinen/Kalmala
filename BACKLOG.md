@@ -37,12 +37,15 @@
     Inspect binary assets through their metadata, references and available
     previews/editor inspection; do not claim textual review of binary content.
     Record third-party/generated exclusions and ownership rationale explicitly.
-  - [ ] **CR01 — Establish the review baseline and coverage ledger.** Record Git
+  - [x] **CR01 — Establish the review baseline and coverage ledger.** Record Git
     revision and existing local changes; enumerate files by domain in a short
     `Temporary/Review/coverage.md` ledger. Give every file a pending/reviewed/
     excluded status and rationale, and create bounded batches for CR02–CR16.
     Store findings in `Temporary/Review/findings.md`; track exact reviewed
     revisions or hashes so later changes can be identified for re-review.
+    Baseline `fc83040078cb02284d7bc0b4ce2f960d873b648a` fingerprints all 1,437
+    tracked files and defines 272 bounded batches; no implementation review or
+    findings are claimed in this baseline increment.
   - [ ] **CR02 — Review project structure and Core.** Check module/target rules,
     project descriptor, shared types, ownership, dependencies and public APIs.
   - [ ] **CR03 — Review session and server code.** Check solo/listen/dedicated
