@@ -2,6 +2,87 @@
 
 ## Active queue
 
+- [ ] Project-wide code review — review every project-owned file and integration.
+  - **Goal:** Produce a complete, traceable review of the current project against
+    AGENTS.md and the brief, design, architecture, roadmap and decision log.
+  - **Run instructions:** Complete the first unchecked, unblocked child in order,
+    exactly one per run. Split large children into numbered file batches before
+    reviewing them (target 10–20 minutes plus a lightweight check per batch).
+    Update backlog/progress, commit only run-owned changes, then stop.
+  - **Review defaults chosen for this plan:** Review and findings only; no feature
+    work or broad refactoring. Record actionable defects with severity, file/line
+    or asset reference, trigger, impact, evidence and suggested repair. Separate
+    confirmed defects from questions. Queue repairs explicitly without treating
+    this review as permission for restricted changes. A clean review also needs
+    a recorded result; an unchecked or unread file is never implicitly covered.
+  - **Coverage:** Include all project-owned tracked files, authored local files
+    and relevant ignored source assets; exclude generated build/cache output.
+    Inspect binary assets through their metadata, references and available
+    previews/editor inspection; do not claim textual review of binary content.
+    Record third-party/generated exclusions and ownership rationale explicitly.
+  - [ ] **CR01 — Establish the review baseline and coverage ledger.** Record Git
+    revision and existing local changes; enumerate files by domain in a short
+    `Temporary/Review/coverage.md` ledger. Give every file a pending/reviewed/
+    excluded status and rationale, and create bounded batches for CR02–CR16.
+    Store findings in `Temporary/Review/findings.md`; track exact reviewed
+    revisions or hashes so later changes can be identified for re-review.
+  - [ ] **CR02 — Review project structure and Core.** Check module/target rules,
+    project descriptor, shared types, ownership, dependencies and public APIs.
+  - [ ] **CR03 — Review session and server code.** Check solo/listen/dedicated
+    lifecycle, identity, joins, disconnects, reconnects and cleanup.
+  - [ ] **CR04 — Review network trust boundaries.** Trace every client request
+    to server validation, ownership, bounds, replay/rate handling and replicated
+    privacy; cover item IDs, targets, quantities, damage and interactions.
+  - [ ] **CR05 — Review player traversal and interaction.** Check input routing,
+    movement, traces, range/line-of-sight gates and state/lifetime transitions.
+  - [ ] **CR06 — Review inventory, equipment and progression.** Check capacities,
+    transactions, crafting, upgrades, rewards and failure/rollback paths.
+  - [ ] **CR07 — Review construction and camp systems.** Check placement,
+    support, storage and direct-material Hammer payment; verify no portable
+    construction items can enter grants, loot, recipes or restored inventory.
+  - [ ] **CR08 — Review survival, combat and support magic.** Check damage,
+    resources, status timing/stacking, death/recovery, authority and design limits.
+  - [ ] **CR09 — Review creatures and population.** Check AI, navigation,
+    abilities, spawning/despawning, caps, loot identity and restart behavior.
+  - [ ] **CR10 — Review world generation and simulation.** Check determinism,
+    seeds, terrain, biomes, water, streaming, weather, exposure and travel bounds.
+  - [ ] **CR11 — Review persistence end to end.** Check ownership, serialization,
+    malformed/incompatible rejection, atomicity, rollback and restart behavior;
+    apply the unreleased no-migration policy and never rewrite user data.
+  - [ ] **CR12 — Review UI and accessibility.** Check Home/gameplay transitions,
+    input/focus/cursor ownership, settings apply/revert, HUD, menus, map, scaling,
+    labels, empty/error states and exposure of private information.
+  - [ ] **CR13 — Review catalogues and authored content.** Check every JSON and
+    manifest reference, recipes/stats/attacks, icon mappings/provenance, maps,
+    materials, meshes, textures, audio and Blueprint wiring against runtime use.
+  - [ ] **CR14 — Review Editor tools and scripts.** Check commandlets, previews,
+    import/export, validators, packaging helpers, argument/path handling,
+    destructive operations, error reporting and Windows path-length limits.
+  - [ ] **CR15 — Review configuration, plugins and automation definitions.**
+    Check config defaults/overrides, authored plugin code and descriptors,
+    dependency assumptions, secrets/logging and build/release definitions.
+    Inspection does not authorize dependency installation or CI/release edits.
+  - [ ] **CR16 — Review tests, documentation and all remaining files.** Check
+    assertions against real contracts, missing regressions, stale commands,
+    acceptance claims and provenance; reconcile every file outside CR02–CR15.
+  - [ ] **CR17 — Review integration and performance risks.** Trace complete
+    gather/craft/build/save/reload, combat/reward and menu/join/reconnect flows;
+    inspect tick/allocation/streaming costs, race/lifetime issues and failure
+    propagation. Cross-reference findings instead of duplicating them.
+  - [ ] **CR18 — Close coverage and prioritize findings.** Reconcile the ledger
+    against the current tree, re-review changed files and eliminate unexplained
+    gaps. Give each confirmed finding a concrete unchecked repair task with
+    acceptance criteria and dependencies, or an explicit user disposition.
+  - [ ] **CR19 — Complete review acceptance.** Every in-scope file/batch has a
+    recorded result, exclusions have reasons, all findings have dispositions,
+    and a final report lists reviewed revision/local changes, coverage totals,
+    evidence, unresolved defects and limits. Perform lightweight checks per
+    batch; full builds/tests remain deferred unless this is milestone-final,
+    when all applicable verification in docs/07-development-setup.md must pass.
+    Review completion means coverage and triage complete; it does not imply
+    unresolved defects are fixed or unperformed runtime checks passed. Leave
+    this parent unchecked until these review acceptance criteria are satisfied.
+
 - [x] Repair cursor loss when returning from gameplay to Home (2026-10-30).
   - Pause-menu cleanup restores gameplay input only to its original controller
     while that controller is still current; never to Home after travel.

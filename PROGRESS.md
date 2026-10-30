@@ -1,3 +1,19 @@
+## Project-wide review backlog — 2026-10-30
+
+- **Work completed:** Planning only. Added an unchecked project-wide review goal
+  with ordered CR01–CR19 tasks, file-level coverage, bounded review batches,
+  findings evidence, repair triage and explicit completion criteria.
+- **Files changed:** BACKLOG.md and PROGRESS.md. Existing local edits preserved.
+- **Lightweight checks:** Reviewed checklist order, scope, completion semantics
+  and documentation references; run-owned staged diff and whitespace checked.
+- **Full verification:** Deferred; no runtime code changed or builds/tests run.
+- **Observable impact:** Agents can review the whole project one batch per run
+  and prove coverage without implying that unresolved defects are fixed.
+- **Networking/authority:** No runtime changes; server trust/privacy review is
+  explicitly queued under CR04 and the domain-specific tasks.
+- **Limitations:** No code review has been performed by this planning task.
+- **Next eligible task:** CR01 — establish baseline and file coverage ledger.
+
 ## Creature preview blank-capture repair — 2026-10-28
 
 - **Selected task:** Fix the creature renderer saving entirely near-black PNGs.
