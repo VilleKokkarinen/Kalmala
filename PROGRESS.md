@@ -25013,3 +25013,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Full verification:** Deferred; no UBT invocation, Unreal build, regeneration, test suite or runtime validation. This is a review batch, not milestone-final acceptance.
 - **Impact / authority:** Two target rules have traceable review results; no gameplay, network, persistence or authority behavior changed.
 - **Limitations / next eligible task:** CR02 remains unchecked. Continue CR02-003, KalmalaCore module rules. Dedicated-server target and cross-cutting CR04 remain pending under their assigned batches.
+
+## Run 2026-10-30 — CR02 batch 003
+
+- **Selected increment:** CR02-003, Core module build rules at HEAD `9bbd3e5f90e440e2426111a32ae48e34e3bd825b`; file hash matches baseline.
+- **Ownership:** Thread inventory shows no other active owner in this checkout. Preserved the 22 pre-existing modified files; index initially empty.
+- **Work / files changed:** Reviewed the complete Core build rule and recorded evidence/status in Temporary/Review/coverage.md and findings.md, plus this PROGRESS.md entry. No confirmed finding or open question. BACKLOG.md remains unchanged because CR02 has another pending batch and its pre-existing edits are preserved.
+- **Lightweight checks:** PowerShell checks passed for module class, constructor, PCH policy and existence of all four engine dependency rules. Inspected project descriptor, inbound Core dependency references and Core file inventory against architecture module boundaries. Diff whitespace and changed-path MAX_PATH checks performed before commit.
+- **Full verification:** Deferred; no Unreal build, UBT invocation, regeneration, test suite or runtime acceptance. This is not milestone-final verification.
+- **Observable impact / authority:** One module rule now has traceable review evidence. No gameplay, networking, persistence or server authority behavior changed.
+- **Limitations / next eligible task:** CR02 and CR04 remain unchecked. Next is CR02-004, Core default module implementation; remaining review and remediation work stays in backlog order.
