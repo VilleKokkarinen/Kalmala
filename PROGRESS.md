@@ -25073,3 +25073,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Full verification:** Deferred; no build, UBT, regeneration, tests, editor or runtime validation. Not milestone-final verification.
 - **Impact / authority:** Review coverage reaches line 646; no gameplay, networking, saves or authority behavior changed.
 - **Limitations / next:** Called loaders/restoration and config/reconnect bodies remain pending. No atomic-save or startup/runtime success claim. Next CR03-001b-04: subdivide/review LoadPopulationSave from line 647.
+
+## Run 2026-10-30 — CR03 population load and construction persistence
+
+- **Selected increment:** CR03-001b-04, GameMode lines 647–744 at HEAD `647565982f8f13b031ae3b26b6e4d89cf339cb6d`; subdivided remaining range before review. Baseline hash unchanged.
+- **Ownership:** No other active checkout owner in thread inventory; preserved 22 prior modified paths. Index initially empty.
+- **Work / files:** Reviewed population loading, ocean fixture spawn, construction admission and initial persistence. Recorded coverage/findings evidence plus this PROGRESS.md entry. No new confirmed defect; RF01 remains queued. BACKLOG.md unchanged as CR03 remains incomplete.
+- **Checks:** Baseline hash, next function boundary, rejected-load return and save-before-publish assertions passed. Inspected population schema/config matcher, candidate builder and direct-material crafting caller as context. Whitespace, staged scope and MAX_PATH checks performed before commit.
+- **Full verification:** Deferred; no build, UBT, tests, editor, save-failure injection or peer/runtime validation. Not milestone-final acceptance.
+- **Impact / authority:** Partial-file coverage reaches line 744; no gameplay, save or network authority changes.
+- **Limitations / next:** Helper/crafting internals retain their own pending reviews; no end-to-end persistence guarantee. Next CR03-001b-05: subdivide/review wall-to-door replacement from line 745. Existing edits remain unstaged.
