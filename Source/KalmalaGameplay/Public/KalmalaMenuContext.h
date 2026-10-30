@@ -14,10 +14,12 @@ class KALMALAGAMEPLAY_API AKalmalaMenuPlayerController : public APlayerControlle
 {
     GENERATED_BODY()
 public:
+    AKalmalaMenuPlayerController();
     void RequestWorldSeedSelection(uint64 Seed, bool bConfirmedExisting, uint64 RequestToken);
     FKalmalaMenuWorldSeedSelectionResult& OnWorldSeedSelectionResult() { return WorldSeedSelectionResult; }
 
 protected:
+    virtual void BeginPlay() override;
     virtual void SpawnDefaultHUD() override;
     virtual ASpectatorPawn* SpawnSpectatorPawn() override;
 

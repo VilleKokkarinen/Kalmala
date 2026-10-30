@@ -24772,3 +24772,43 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   run dedicated join with an Unreal installation that supports Server targets;
   then resolve any feature-related verification failures and rerun the full
   milestone checks.
+
+## Main-menu startup mouse capture repair — 2026-10-30
+
+- **Selected increment:** User-requested repair of hidden cursor/unresponsive
+  main-menu input and windowed menu mouse confinement. The user clarified that
+  gameplay camera capture should remain; only menus with a visible cursor must
+  let the mouse leave the window.
+- **Ownership:** Thread inventory showed this as the only active run in this
+  checkout. All pre-existing implementation, documentation and asset edits
+  were preserved and excluded from this commit.
+- **Work completed:** Disabled automatic mouse capture on launch and default
+  mouse locking. The dedicated menu controller now starts with a visible cursor
+  and establishes unlocked UI-only input in BeginPlay before Home assigns widget
+  focus. It also clears the viewport cursor-hide-on-capture flag, which Unreal's
+  UI-only mode does not reset. Options explicitly uses no mouse lock and its
+  gameplay caller keeps the cursor visible during clicks. Existing Home focus
+  deferral and settings-controller ownership repairs were already present and
+  were not changed or committed by this run.
+- **Files changed:** `Config/DefaultInput.ini`,
+  `Source/KalmalaGameplay/Public/KalmalaMenuContext.h`,
+  `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp`,
+  `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp`, `BACKLOG.md`, `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check`,
+  `Scripts/Tests/Presentation/LocalInputContract.ps1`,
+  `Scripts/Tests/Presentation/MenuInputCopy.ps1`, and
+  `Scripts/Tests/Presentation/PresentationOwnership.ps1` passed. Inspected UE
+  5.8 input-mode and viewport activation code: launch capture can refocus the
+  viewport, UI-only releases capture, and GameOnly explicitly restores gameplay
+  capture. Reviewed other visible-cursor menus' existing no-lock defaults.
+- **Full verification:** Deferred; no Unreal build, package or runtime test was
+  run. This targeted user-requested repair does not complete SM15 or the milestone.
+- **Observable impact:** Intended behavior is visible, interactive Home from
+  startup and a cursor that can leave windowed menus, including Options clicks.
+  Actual rebuilt startup and play/Home round trips remain unverified.
+- **Networking/authority:** Local input/presentation only; no RPC, save format,
+  replicated state or server validation changed.
+- **Known limitations / next eligible task:** Continue SM15 acceptance with a
+  rebuilt package: check cold-launch mouse/keyboard activation, Options, clicking
+  outside the window, alt-tab, and gameplay/Home return, plus the outstanding
+  session acceptance cases recorded in the preceding SM15 handoff.

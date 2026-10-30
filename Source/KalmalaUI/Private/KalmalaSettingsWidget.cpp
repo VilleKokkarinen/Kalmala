@@ -747,6 +747,8 @@ void UKalmalaSettingsWidget::Open(APlayerController* InOwningPlayer)
     SetVisibility(ESlateVisibility::Visible);
     InOwningPlayer->SetShowMouseCursor(true);
     FInputModeGameAndUI InputMode;
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    InputMode.SetHideCursorDuringCapture(false);
     InputMode.SetWidgetToFocus(TakeWidget());
     InOwningPlayer->SetInputMode(InputMode);
     InOwningPlayer->SetIgnoreMoveInput(true);
@@ -764,6 +766,7 @@ void UKalmalaSettingsWidget::OpenOptionsFromHome(APlayerController* InOwningPlay
     SetVisibility(ESlateVisibility::Visible);
     InOwningPlayer->SetShowMouseCursor(true);
     FInputModeUIOnly InputMode;
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
     InputMode.SetWidgetToFocus(TakeWidget());
     InOwningPlayer->SetInputMode(InputMode);
     ShowOptionsMenu();

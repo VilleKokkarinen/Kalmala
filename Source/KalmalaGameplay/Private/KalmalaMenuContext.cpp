@@ -1,9 +1,32 @@
 #include "KalmalaMenuContext.h"
 
 #include "Engine/World.h"
+#include "Engine/GameViewportClient.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "KalmalaM7PersistenceContract.h"
+
+AKalmalaMenuPlayerController::AKalmalaMenuPlayerController()
+{
+    bShowMouseCursor = true;
+}
+
+void AKalmalaMenuPlayerController::BeginPlay()
+{
+    Super::BeginPlay();
+    if (!IsLocalController()) return;
+
+    // Establish menu ownership before the Home widget supplies its initial focus.
+    // UIOnly releases capture but does not clear the viewport's cursor-hide flag.
+    SetShowMouseCursor(true);
+    if (UGameViewportClient* Viewport = GetWorld()->GetGameViewport())
+    {
+        Viewport->SetHideCursorDuringCapture(false);
+    }
+    FInputModeUIOnly InputMode;
+    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+    SetInputMode(InputMode);
+}
 
 void AKalmalaMenuPlayerController::SpawnDefaultHUD() {}
 ASpectatorPawn* AKalmalaMenuPlayerController::SpawnSpectatorPawn() { return nullptr; }

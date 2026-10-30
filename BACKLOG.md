@@ -2,6 +2,11 @@
 
 ## Active queue
 
+- [x] Repair main-menu startup cursor/input capture and leave visible menu cursors unlocked in windowed mode (2026-10-30).
+  - Disable launch capture; initialize the menu controller in UI-only mode with
+    a visible cursor and no mouse lock; keep Options clicks from hiding it.
+  - Lightweight checks passed; rebuilt runtime confirmation remains under SM15.
+
 - [x] Minimap notification queue.
   - [x] Research player-facing actions and implement a bounded owner-local queue
     beneath the minimap with icons for item gains, skill levels, discoveries,
