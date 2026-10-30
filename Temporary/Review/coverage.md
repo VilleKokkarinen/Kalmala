@@ -5,7 +5,7 @@
 - **Tracked project files:** 1437 (all enumerated below); **authored non-ignored untracked files:** 0; **relevant ignored source assets:** 0.
 - **Review assignments:** CR04 is a cross-cutting source-code pass layered over each file's primary CR02–CR16 domain. Batch sizes are capped at 12 source/code files, 8 Content files, and 10 CR16 files. Each batch is an independent 10–20 minute review unit plus a lightweight check; batch status is pending until evidence is recorded.
 - **Working-tree baseline:** 22 changed tracked files, no untracked files, and no staged changes. Local edits are preserved and recorded by path/status/hash below.
-- **Review status:** CR02-001 is reviewed with no confirmed actionable finding; all other assignments remain pending. No code batch or overall project review is claimed clean.
+- **Review status:** CR02-001 and CR02-002 are reviewed with no confirmed actionable finding; all other assignments remain pending. No code batch or overall project review is claimed clean.
 
 ## Reviewed batch results
 
@@ -15,6 +15,13 @@
 - **Evidence:** `Automation_Kalmala.slnx` parses as XML with 53 existing references. `Kalmala.slnx` parses with 59 existing references, including three present generated local references, and maps `DebugGame Editor | Win64` to `DebugGame_Editor`. `Kalmala.uproject` parses as JSON; its six declared modules each have a source directory and matching `.Build.cs` file. The engine association is 5.8, matching the project and development-setup context.
 - **Result:** No confirmed actionable finding in this batch. The generated solution references and retained server configuration align with the documented project-file recovery guidance and installed-engine limits.
 - **Limits:** No project-file regeneration, Unreal build, editor launch, or runtime validation was run.
+
+### CR02-002 — Game and Editor target rules
+
+- **Reviewed revision:** `cfbaccd6931c448f7600014de55d80705d95b189`; both SHA-256 fingerprints match the CR01 baseline.
+- **Evidence:** Read both target constructors in full. Game selects `TargetType.Game` and the four runtime modules Core/Gameplay/World/UI; Editor selects `TargetType.Editor` and adds KalmalaEditor. Each class/constructor matches its target filename. Every named module is registered in the project descriptor and has a matching Build.cs. Neither target explicitly adds the ServerOnly module; Game does not add the Editor module. Both use V7 build settings and Unreal5_8 include order, present in the installed UE 5.8 TargetRules.cs (lines 170 and 235). Compared module intent with architecture module boundaries and development-setup project-file recovery guidance.
+- **Result:** No confirmed actionable finding or open question within these two target rules.
+- **Limits:** Static review only; no UBT invocation, regeneration, compilation, test suite or runtime validation. Module dependency internals and dedicated-server target remain assigned to their later batches; this result does not close CR04.
 
 ## Pre-existing local changes
 
@@ -66,7 +73,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | Batch | Review child | File scope | Files | Status | Review focus |
 | --- | --- | --- | ---: | --- | --- |
 | `CR02-001` | CR02 | `` | 3 | reviewed | Project structure, Core, targets, descriptors and public module contracts |
-| `CR02-002` | CR02 | `Source` | 2 | pending | Project structure, Core, targets, descriptors and public module contracts |
+| `CR02-002` | CR02 | `Source` | 2 | reviewed | Project structure, Core, targets, descriptors and public module contracts |
 | `CR02-003` | CR02 | `Source/KalmalaCore` | 1 | pending | Project structure, Core, targets, descriptors and public module contracts |
 | `CR02-004` | CR02 | `Source/KalmalaCore/Private` | 1 | pending | Project structure, Core, targets, descriptors and public module contracts |
 | `CR03-001` | CR03 | `Source/KalmalaGameplay/Private` | 5 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1153,10 +1160,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `Scripts/Validate-CreatureCatalogues.py` | CR14 | Tracked project file | `cfc8c2d3e8767c17cc67e750cbf7376c47ace129ff0c034053833fb109331aea` | `CR14:CR14-002=pending` | pending — assigned for review; all listed batches remain open |
 | `Scripts/Validate-UIIcons.ps1` | CR14 | Tracked project file | `fecb74226192439738287cee0b6d1fa5e7fc1635e449a4bcfb16063ce89e9879` | `CR14:CR14-002=pending` | pending — assigned for review; all listed batches remain open |
 | `Scripts/WorldMapPreview.params` | CR14 | Tracked project file | `9a28205177c683667a6840da54296573464c2fda49e8e6f29d53e97901203cab` | `CR14:CR14-002=pending` | pending — assigned for review; all listed batches remain open |
-| `Source/Kalmala.Target.cs` | CR02 | Tracked project file | `4b9ecfe8a348c9c7e48bcc4ee8c5318ff53693ed5f4c0b4c5557bf899233882f` | `CR02:CR02-002=pending; CR04:CR04-001=pending` | pending — assigned for review; all listed batches remain open |
+| `Source/Kalmala.Target.cs` | CR02 | Tracked project file | `4b9ecfe8a348c9c7e48bcc4ee8c5318ff53693ed5f4c0b4c5557bf899233882f` | `CR02:CR02-002=reviewed; CR04:CR04-001=pending` | CR02 reviewed — no finding; CR04 remains pending |
 | `Source/KalmalaCore/KalmalaCore.Build.cs` | CR02 | Tracked project file | `834ef4b8ff32ab4c7239c336e8e1bcb47446d02ed5afda74362a8f5323f38335` | `CR02:CR02-003=pending; CR04:CR04-002=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaCore/Private/KalmalaCoreModule.cpp` | CR02 | Tracked project file | `209a7c16c1799ff6efac7383f1074f5f686dcb039b585e5ef798aee6eaeab2ee` | `CR02:CR02-004=pending; CR04:CR04-003=pending` | pending — assigned for review; all listed batches remain open |
-| `Source/KalmalaEditor.Target.cs` | CR02 | Tracked project file | `92053872776e2884a4886b985c70ceb4ca3190a507866fa3c9525dce22dbf3c4` | `CR02:CR02-002=pending; CR04:CR04-001=pending` | pending — assigned for review; all listed batches remain open |
+| `Source/KalmalaEditor.Target.cs` | CR02 | Tracked project file | `92053872776e2884a4886b985c70ceb4ca3190a507866fa3c9525dce22dbf3c4` | `CR02:CR02-002=reviewed; CR04:CR04-001=pending` | CR02 reviewed — no finding; CR04 remains pending |
 | `Source/KalmalaEditor/KalmalaEditor.Build.cs` | CR14 | Tracked project file | `d5f35ab619912372415b204d150c18cf3a39ceac4e9fe8352eee62966c1755c6` | `CR14:CR14-004=pending; CR04:CR04-004=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp` | CR14 | Tracked project file | `0e364026de9fa7d9392bf4962c73f998061a3bac61f9e25a8f5899742f9a67c3` | `CR14:CR14-005=pending; CR04:CR04-005=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.h` | CR14 | Tracked project file | `d303c4a94ffd64c69aabd2a7e4497a919b3af976298470e5dbb9812a263431ae` | `CR14:CR14-005=pending; CR04:CR04-005=pending` | pending — assigned for review; all listed batches remain open |
