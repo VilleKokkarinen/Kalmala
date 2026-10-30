@@ -24843,3 +24843,36 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
   text and high-contrast layout verification remain outstanding.
 - **Next eligible task:** Continue SM15 acceptance, including this visual pass,
   cold-launch input and the outstanding session/return/failure cases.
+
+
+## Return-to-Home cursor ownership repair - 2026-10-30
+
+- **Selected increment:** User-reported disappearing cursor after gameplay/Home
+  return; targeted repair ahead of the normal SM15 acceptance queue.
+- **Ownership:** Thread inventory showed no other active run in this checkout.
+  All pre-existing working-tree changes remain untouched and unstaged.
+- **Finding:** SettingsSubsystem releases the gameplay pause widget when the
+  controller changes. Close previously resolved GetOwningPlayer at cleanup
+  time, then hid the cursor and selected GameOnly. UE's local-player widget
+  context can resolve the replacement controller; even an old controller can
+  change the shared viewport input mode. This can overwrite Home initialization.
+- **Work completed:** Settings now records the exact controller when opened,
+  clears that reference on close, and restores gameplay input only if that
+  controller is valid, not being destroyed, and still the local player's current
+  controller. Home Options retains its existing caller/focus return delegate.
+- **Files changed:** Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp,
+  Source/KalmalaUI/Public/KalmalaSettingsWidget.h, BACKLOG.md and PROGRESS.md.
+- **Lightweight checks:** git diff --check, LocalInputContract.ps1,
+  MenuInputCopy.ps1 and PresentationOwnership.ps1 passed. Inspected UE 5.8
+  UUserWidget::GetOwningPlayer and FLocalPlayerContext::GetPlayerController,
+  settings release order, ordinary pause close and Home Options close paths.
+- **Full verification:** Deferred; no Unreal build, package or runtime test.
+  This is not milestone-final verification and does not complete SM15.
+- **Observable impact:** Retired gameplay pause-menu cleanup can no longer hide
+  Home's cursor or replace its UI-only input; ordinary gameplay close still
+  restores game input. Rebuilt runtime confirmation remains outstanding.
+- **Networking/authority:** Local input only; no save, RPC or authority changes.
+- **Limitations / next eligible task:** Continue SM15 with a rebuilt package:
+  verify cursor and clicks after solo and networked Home returns, repeated
+  round trips, ordinary pause close and Home Options, then outstanding session
+  acceptance. No runtime success is claimed for this repair.

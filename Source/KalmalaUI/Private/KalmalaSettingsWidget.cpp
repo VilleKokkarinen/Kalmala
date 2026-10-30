@@ -742,6 +742,7 @@ void UKalmalaSettingsWidget::Open(APlayerController* InOwningPlayer)
 {
     if (InOwningPlayer == nullptr) return;
     SetOwningPlayer(InOwningPlayer);
+    MenuInputController = InOwningPlayer;
     bHomeOptionsCaller = false;
     bMenuOpen = true;
     SetVisibility(ESlateVisibility::Visible);
@@ -761,6 +762,7 @@ void UKalmalaSettingsWidget::OpenOptionsFromHome(APlayerController* InOwningPlay
 {
     if (InOwningPlayer == nullptr || bMenuOpen) return;
     SetOwningPlayer(InOwningPlayer);
+    MenuInputController = InOwningPlayer;
     bHomeOptionsCaller = true;
     bMenuOpen = true;
     SetVisibility(ESlateVisibility::Visible);
@@ -968,6 +970,8 @@ void UKalmalaSettingsWidget::Close()
     bShowingOptions = false;
     const bool bReturnToHome = bHomeOptionsCaller;
     bHomeOptionsCaller = false;
+    APlayerController* InputController = MenuInputController.Get();
+    MenuInputController.Reset();
     ResetOptionsOpeningAnimation();
     SetVisibility(ESlateVisibility::Collapsed);
     if (bReturnToHome)
@@ -975,7 +979,13 @@ void UKalmalaSettingsWidget::Close()
         HomeOptionsClosed.Broadcast();
         return;
     }
-    if (APlayerController* Controller = GetOwningPlayer())
+    // GetOwningPlayer can now resolve to the new Home controller. Even the old
+    // controller's SetInputMode would change the shared viewport after travel.
+    // Only restore gameplay while the controller that opened us is still current.
+    if (APlayerController* Controller = InputController;
+        IsValid(Controller) && !Controller->IsActorBeingDestroyed()
+        && Controller->GetLocalPlayer()
+        && Controller->GetLocalPlayer()->PlayerController == Controller)
     {
         Controller->SetShowMouseCursor(false);
         Controller->SetInputMode(FInputModeGameOnly());

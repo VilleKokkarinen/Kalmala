@@ -332,6 +332,8 @@ private:
     // Retained by the owner-local widget across ordinary close/reopen only.
     int32 LastOptionsTabIndex = 0;
     FKalmalaHomeOptionsClosed HomeOptionsClosed;
+    // Widget ownership follows the local player across travel; input ownership must not.
+    TWeakObjectPtr<APlayerController> MenuInputController;
     bool bHomeOptionsCaller = false;
     bool bShowingOptions = false;
     bool bMenuOpen = false;

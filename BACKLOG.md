@@ -2,6 +2,11 @@
 
 ## Active queue
 
+- [x] Repair cursor loss when returning from gameplay to Home (2026-10-30).
+  - Pause-menu cleanup restores gameplay input only to its original controller
+    while that controller is still current; never to Home after travel.
+  - Lightweight checks passed; rebuilt round-trip confirmation remains SM15.
+
 - [x] User-requested opening-screen and existing-menu visual refresh (2026-10-30).
   - Original static northern landscape, centered title/actions, framed existing
     player/world/join/save/credits/exit branches, and paired world/join choices.
