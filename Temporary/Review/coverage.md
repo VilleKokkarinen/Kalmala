@@ -190,7 +190,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-42` | CR03 | `GameMode.cpp:3187-3260` | 1 partial | reviewed | Lynx gates and terrain helpers |
 | `CR03-001b-43` | CR03 | `GameMode.cpp:3262-3410` | 1 partial | reviewed | Lynx descriptor budget and approach selection |
 | `CR03-001b-44` | CR03 | `GameMode.cpp:3412-3516` | 1 partial | reviewed | Lynx staging and activation |
-| `CR03-001b-45` | CR03 | `GameMode.cpp:3518-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-45` | CR03 | `GameMode.cpp:3518-3551` | 1 partial | reviewed | Lynx leap acceptance |
+| `CR03-001b-46` | CR03 | `GameMode.cpp:3553-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2179,3 +2180,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Finite starting health above 75 required; stages host on selected ring, stores seed/host, clears target/cue flags and activates ordinary key before stage/time. Later host weak reference validated; stage one locates selected persistent ID with twenty-second timeout, requires Lynx archetype and 150-health tolerance. Moves host to selected approach. Valid observers use sixteen-direction bounded world-contained placement at 1000 plus 500 cm per index; missing placement or fewer than two terminates. Stores target, forces update, logs actual host distance then publishes stage two/time. Compared setup 50 m staging and 10/15 m peer contract.
 - **Result/limits:** No new confirmed actionable finding; RF01 queued. Actual host distance logged but not independently gated here; prior candidate reach and later combat acceptance remain relevant. Observer positions check world bounds only, not dry habitat, visibility or actual replication. Teleport success, continued connectivity and cleanup unverified. No other domain coverage closed.
 - **Checks:** Baseline hash, boundaries, finite-health/lifetime/profile gates, timeout, bounded observer loop and publication ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-45 begins stage two at 3518.
+
+### CR03-001b-45 - Lynx leap acceptance (3518-3551)
+
+- **Revision:** 27b9412a; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Stage two validates weak target before cue query, uses preceding host lifetime gate, independently latches telegraph/Lunge/recovery and requires positive net host damage. Success logs seed, cue evidence, damage and selected ID then terminates/returns. Eighteen-second timeout logs current cue/latches/damage and terminates. Read through Shipping/function closure and compared generated peer acceptance contract.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Cue observations and aggregate host damage are not exact attack timing/order or per-hit attribution. This stage has no accepted-hit counter; unrelated damage could satisfy damage predicate in an uncontrolled world. Controlled fixture and independent client logs remain necessary; continued observer connectivity, replication, reward/restart and cleanup unverified. No other domain coverage closed.
+- **Checks:** Baseline hash, exact stage/function boundaries, target-before-access, success/timeout and terminal ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-46 begins Polar Bear fixture at 3553.

@@ -281,3 +281,7 @@ Reviewed GameMode 3262-3410 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-44 - Lynx staging and activation
 
 Reviewed GameMode 3412-3516 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Health, ring staging, activation/identity/profile, bounded observer placement and stage publication inspected. Actual reach, teleport success, visibility/replication, connectivity and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-44.
+
+## CR03-001b-45 - Lynx leap acceptance
+
+Reviewed GameMode 3518-3551 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Lifetime guard, cue latches, net-damage acceptance and success/timeout termination inspected. No per-hit attribution or exact timing/order proof; client replication, observer connectivity and cleanup unverified. Full verification deferred; see coverage.md CR03-001b-45.
