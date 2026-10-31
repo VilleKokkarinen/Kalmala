@@ -25687,3 +25687,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The due-key query is server-authoritative, read-only, and returns stable order for the bounded scheduler.
 - Limitations: live authority behavior, runtime timing, and hitch behavior were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-69, subdivide remaining GameMode starting at line 5492 before reviewing it.
+
+## Run 2026-10-31 - CR03 due-key service and cadence advance review
+
+- Reviewed GameMode.cpp 5492-5508 for CR03-001b-69 and split the remaining range into CR03-001b-70. No new confirmed actionable finding; BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: the prior automation thread completed after reporting an ownership conflict; a fresh `list_threads` check showed only this active Kalmala checkout. Main checkout `master` at `c81e507f`, no handoff required, and the index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree change at line 9674 is outside the reviewed range.
+- Checks: Inspected authority/world/time/active-key/due-time guards, five-second service advance, wake-work/counter ordering, and focused cadence-test source assertions. Cross-checked `docs/monster-spawning.md` S06. Static review only; the automation was inspected but not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The service helper requires server authority and only advances a due active key.
+- Limitations: live scheduler execution, runtime timing, and failure/retry behavior were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-70, subdivide remaining GameMode starting at line 5510 before reviewing it.

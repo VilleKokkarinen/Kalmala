@@ -389,3 +389,7 @@ Reviewed GameMode 5427-5467 against `docs/monster-spawning.md` S06 and the caden
 ## CR03-001b-68 - Due population-key filtering and deterministic ordering
 
 Reviewed GameMode 5469-5490 against `docs/monster-spawning.md` S06 and the cadence automation source. No new confirmed actionable finding; due-key eligibility is based on active scheduler membership and elapsed due time, and results are lexicographically ordered independently of TSet iteration. The focused automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-68.
+
+## CR03-001b-69 - Server-authoritative due-key service and cadence advance
+
+Reviewed GameMode 5492-5508 against `docs/monster-spawning.md` S06 and the cadence automation source. No new confirmed actionable finding; service requires an authoritative active key with an elapsed due time, then advances its due time by the five-second interval. The focused automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-69.
