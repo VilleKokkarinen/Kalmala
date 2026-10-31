@@ -25757,3 +25757,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The predicate requires server authority and evaluates only the server-supplied current-world living-player list.
 - Limitations: invalid actors, non-finite player locations, world transitions, and runtime spawn behavior were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-76, subdivide remaining GameMode starting at line 5856 before reviewing it.
+
+## Run 2026-10-31 - CR03 species-habitat gate review
+
+- Reviewed `KalmalaGameMode.cpp:5856-5870` for CR03-001b-76 and split the remaining GameMode range into CR03-001b-77. No new confirmed actionable finding. BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: initial check found no other active Kalmala run. A scheduled same-checkout attempt started during review recording and exited after detecting this work; it reported no repository, index, or commit changes. A fresh check found only this run active. Main checkout `master` at `07ee08d3`; index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected the wrapper's iteration over retained attempts, server-side species/habitat predicate, first-rejection ordering, candidate filtering, scheduler and configured-source callers, S13–S15 and biome-enemy rules, and focused automation assertions for attempt retention and gate propagation. Static source/document/test-source review only; automation was not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The delegated predicate requires authority and valid world/configuration before deriving species and evaluating habitat; admission remains server-side.
+- Limitations: live biome/terrain sampling and configured-source admission were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-77, subdivide remaining GameMode starting at line 5872 before reviewing it.

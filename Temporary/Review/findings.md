@@ -417,3 +417,7 @@ Reviewed GameMode 5793-5818 against `docs/monster-spawning.md` S09/S14/S15, the 
 ## CR03-001b-75 - Server-authoritative horizontal player-exclusion predicate
 
 Reviewed GameMode 5820-5854 against `docs/monster-spawning.md` S09/S15, both call sites and focused player-distance automation source. No new confirmed actionable finding; the predicate rejects any valid current-world player within 36 m using horizontal distance, while exactly 36 m passes and ring membership remains a separate requirement. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-75.
+
+## CR03-001b-76 - Species-habitat gate result and candidate filtering
+
+Reviewed GameMode 5856-5870 against `docs/monster-spawning.md` S13–S15, `docs/biome-enemies.md`, the shared species/habitat predicate, both callers and focused automation sources. No new confirmed actionable finding; every retained attempt receives the habitat result without replacing an earlier rejection, and candidates use the same predicate for filtering. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-76.
