@@ -1,3 +1,12 @@
+## CR03-001b-16 - Combat fixture positioning review - 2026-10-31
+
+- Reviewed GameMode lines 1484-1587; no new confirmed finding. RF01 remains queued. No code changed.
+- Files: Temporary/Review/coverage.md, Temporary/Review/findings.md and PROGRESS.md. CR03 remains unchecked; BACKLOG.md unchanged because criteria remain incomplete.
+- Baseline SHA-256, boundaries, bounded search/failure and placement/observer guard checks passed; whitespace and MAX_PATH checks passed before commit.
+- Full verification deferred; no build, tests, editor or runtime checks run. Static server fixture placement/replication review only; no networking change or peer acceptance claim.
+- Limits: sampled dryness does not prove continuous collision-safe terrain; later stages remain pending. Preserved 22 prior edits; main checkout, no handoff required.
+- Next: CR03-001b-17, subdivide Viper status setup from line 1588.
+
 ## CR03-001b-05 — Door persistence review — 2026-10-31
 
 - Reviewed GameMode lines 745–798 and relevant actor/save/crafting context;
