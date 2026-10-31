@@ -25747,3 +25747,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. Distance evaluation requires server authority and uses the current-world living-player list supplied by the server.
 - Limitations: live movement, death/world transitions, and actor creation were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-75, subdivide remaining GameMode starting at line 5820 before reviewing it.
+
+## Run 2026-10-31 - CR03 player-exclusion predicate review
+
+- Reviewed `KalmalaGameMode.cpp:5820-5854` for CR03-001b-75 and split the remaining GameMode range into CR03-001b-76. No new confirmed actionable finding. BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: no other active Kalmala run was listed for this checkout. Main checkout `master` at `7c6d7de8`; index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected authority/world/spawn-coordinate guards, current-world and finite player filtering, horizontal squared-distance comparison and strict 36 m boundary, both predicate call sites, and its separate conjunction with the 32–96 m ring. Compared with S09/S15 and inspected player-distance assertions for the second distant player, 35 m rejection, and exact-boundary acceptance. Static source/document/test-source review only; automation was not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The predicate requires server authority and evaluates only the server-supplied current-world living-player list.
+- Limitations: invalid actors, non-finite player locations, world transitions, and runtime spawn behavior were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-76, subdivide remaining GameMode starting at line 5856 before reviewing it.

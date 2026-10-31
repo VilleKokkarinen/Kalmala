@@ -413,3 +413,7 @@ Reviewed GameMode 5738-5791 against `docs/monster-spawning.md` S08/S14, its sche
 ## CR03-001b-74 - Server-authoritative population ring and all-player distance gate
 
 Reviewed GameMode 5793-5818 against `docs/monster-spawning.md` S09/S14/S15, the ring/exclusion predicates and gate evaluator, and focused player-distance automation source. No new confirmed actionable finding; every retained attempt requires the inclusive ring and at least 36 m from every valid current-world living player, while earlier scheduler or roll failures remain the recorded reason. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-74.
+
+## CR03-001b-75 - Server-authoritative horizontal player-exclusion predicate
+
+Reviewed GameMode 5820-5854 against `docs/monster-spawning.md` S09/S15, both call sites and focused player-distance automation source. No new confirmed actionable finding; the predicate rejects any valid current-world player within 36 m using horizontal distance, while exactly 36 m passes and ring membership remains a separate requirement. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-75.
