@@ -25847,3 +25847,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The placement predicates and roof scan are server-authoritative.
 - Limitations: no runtime collision/roof traces were exercised; RF01-RF08 remain queued behind CR19. The pre-existing line 9674 change remains outside reviewed scope.
 - Next eligible task: CR03-001b-84, review `KalmalaGameMode.cpp:6772-6895` (population time gate and live-creature registry).
+
+## Run 2026-10-31 - CR03 population time gate and live-registry review
+
+- Reviewed `KalmalaGameMode.cpp:6772-6895` for CR03-001b-84 and marked its bounded coverage row reviewed. No production defect found. Confirmed RF09 (P3), a focused test gap for lazy pruning of stale invalid or defeated weak entries in the live-creature count query. Updated BACKLOG.md with RF09, PROGRESS.md and Temporary/Review/coverage.md and Temporary/Review/findings.md only; implementation files and tests were not changed.
+- Ownership: only this task was active on the main checkout before editing. Main checkout `master` at `4903edce`; the index was clean. Preserved the 22 pre-existing modified paths, including the existing BACKLOG.md deletion and GameMode.cpp line 9674 edit outside the reviewed range.
+- Checks: Re-read AGENTS.md, BACKLOG.md, PROGRESS.md, project brief, game design, architecture, agent/review guidance, S10/S16 population contracts and the decision log. Inspected the time-gate wiring and descriptor classifier, server registration/count/removal paths, wildlife lifecycle hooks, focused time-policy/registry tests and configured-admission coverage. The GameMode.cpp SHA-256 matches the CR01 baseline. Static source/document/test-source inspection only; no automation, build, tests, editor or runtime checks.
+- Full verification deferred: CR03 review remains incomplete; this is not its final task and no full verification was run.
+- Impact/authority: review evidence and a queued test improvement only; gameplay behavior is unchanged. Time-gate evaluation and live-creature registry are server-authoritative.
+- Limitations: stale weak-entry cleanup, runtime scheduler behavior and live actor lifecycle were not exercised; RF01-RF09 remain queued behind CR19. The pre-existing line 9674 edit remains outside scope.
+- Next eligible task: CR03-001b-85, review `KalmalaGameMode.cpp:6896-7047` (population area-cap counting and admission).

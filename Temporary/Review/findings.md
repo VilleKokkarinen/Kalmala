@@ -513,3 +513,19 @@ Reviewed GameMode 6416-6582 against S22a/S25, the server creation transaction, s
 ## CR03-001b-83 - Body tops, roof intersection, collision overlap and bounds
 
 Reviewed GameMode 6583-6771 against the shared active collision profiles, S22a/S22b/S25, and the focused body-clearance and roof-clearance tests. Body-top calculation, RoofKit query filtering, sphere/capsule overlap transforms and horizontal world-bound extents match their contracts; focused tests cover these helpers. No new production defect or distinct test gap was found. The actor-origin XY used with maximum body-top Z is already recorded as RF05 from CR03-001b-80. Static inspection only; full verification deferred.
+
+## CR03-001b-84 - Population time gate and live-creature registry
+
+Reviewed GameMode 6772-6895 against S10/S16 and the gate/registry tests. Time remains unrestricted for all current species, unknown archetypes fail closed, and the live count uses current actor positions with inclusive horizontal radius and server-side lazy pruning. No production defect was found. Confirmed RF09 (P3): the registry test covers explicit defeat and EndPlay unregistration, but does not exercise the count query's lazy removal of invalid or defeated weak entries. Static inspection only; full verification deferred.
+
+## RF09 - Lazy live-creature registry pruning lacks focused coverage (P3)
+
+- **Source review:** CR03-001b-84.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6829-6864` and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLiveCreatureRegistryTest.cpp:58-84`.
+- **Trigger:** A regression removes the lazy cleanup in `CountLivePopulationCreaturesWithinRadius` while the explicit defeat and EndPlay unregistration tests still pass.
+- **Evidence:** The count query removes invalid, foreign-world, non-authoritative, defeated and dead weak entries. The focused registry test verifies duplicate registration, inclusive current-position counts, roaming, and immediate removal on defeat/EndPlay; those lifecycle paths remove entries before a later count can exercise the query's pruning branch. No test injects a stale invalid or defeated weak entry and verifies lazy cleanup.
+- **Impact:** A missed lifecycle removal can leave stale weak handles in the long-running server registry, increasing the registry size and the work of later count queries; invalid entries are currently skipped rather than counted.
+- **Proposed repair:** Extend `Kalmala.Gameplay.Population.LiveCreatureRegistry` with invalid and defeated weak entries inserted without lifecycle unregistration, then query the count and assert both entries are removed while healthy live actors still count at their current positions.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** The focused automation proves the count query prunes invalid and defeated weak entries without changing inclusive-radius/current-position count semantics.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.LiveCreatureRegistry` after an Editor build.

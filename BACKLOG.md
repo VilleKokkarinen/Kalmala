@@ -232,6 +232,22 @@
     Focused validation: run `Kalmala.Gameplay.Population.PhysicalPlacementGate`
     after an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf08--s25-camp-suppression-lacks-wolf-member-composition-coverage-p3`.
+  - [ ] **RF09 — Cover lazy pruning of stale live-creature entries (P3; CR03-001b-84).**
+    Affected: `KalmalaGameMode.cpp:6829-6864` and
+    `KalmalaPopulationLiveCreatureRegistryTest.cpp:58-84`. The count query
+    removes invalid, foreign-world, non-authoritative, defeated and dead weak
+    entries, but the focused test only verifies explicit defeat/EndPlay
+    unregistration before counting. Trigger: a regression removes lazy cleanup
+    while lifecycle cleanup tests still pass, leaving stale weak handles in a
+    long-running server registry. No production defect was found. After CR19,
+    extend the focused registry test with stale invalid and defeated weak entries
+    that bypass lifecycle unregistration, then assert the count excludes and
+    prunes them while a healthy actor still follows current-position/inclusive
+    radius rules. Acceptance: the focused automation proves lazy cleanup of both
+    invalid and defeated entries without changing live count semantics.
+    Focused validation: run `Kalmala.Gameplay.Population.LiveCreatureRegistry`
+    after an Editor build. Evidence and repair:
+    `Temporary/Review/findings.md#rf09--lazy-live-creature-registry-pruning-lacks-focused-coverage-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
