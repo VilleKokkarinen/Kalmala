@@ -265,3 +265,7 @@ Reviewed GameMode 2839-2987 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-40 - Wolf placement and activation
 
 Reviewed GameMode 2989-3065 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Placement helper, finite health, bounded observers, array precondition and activation/publication inspected. Direct terrain Z, unchecked teleport and leash wording remain explicit fixture limitations; collision-safe arrival, targeting, replication and cleanup unverified. Full verification deferred; see coverage.md CR03-001b-40.
+
+## CR03-001b-41 - Wolf formation and attack acceptance
+
+Reviewed GameMode 3067-3185 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Member identity/count/profile/formation gates, array preconditions, attack cues, hit/damage acceptance and timeouts inspected. XY-only formation, cue timing/order, damage attribution, observers, replication and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-41.

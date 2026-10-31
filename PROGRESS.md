@@ -25429,3 +25429,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 3065; gameplay/save/server authority unchanged. Terrain-Z placement and unchecked teleport, targeting, replication and cleanup remain limitations.
 - Next: CR03-001b-41, host lifetime gate from 3067. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Wolf formation and attack review
+
+- Reviewed GameMode 3067-3185; updated coverage/findings and PROGRESS only. No new confirmed finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, exact boundaries, member/array/formation gates, cue/hit/damage predicates and terminal/timeouts inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 3185; gameplay/save/server authority unchanged. XY-only formation, exact timing/order, damage attribution, observers, replication and cleanup unverified.
+- Next: CR03-001b-42, Lynx fixture from 3187. RF01 queued behind CR19.
