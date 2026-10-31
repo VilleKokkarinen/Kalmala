@@ -453,3 +453,27 @@ Reviewed GameMode 5900-6008 against S20/S22c, the three-member Wolf contract, fi
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** Kalmala.Gameplay.Population.AquaticSurface covers valid descriptor-level admission and rejects a failing center and footprint sample through the full policy path.
 - **Focused validation:** Run Kalmala.Gameplay.Population.AquaticSurface after an Editor build.
+
+## RF05 - Snake roof clearance traces only the actor center (P3)
+
+- **Source review:** CR03-001b-80.
+- **Affected files:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6217-6235 and 6583-6636; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:3645-3692; Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp:416-435; Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRoofClearanceTest.cpp:130-169.
+- **Trigger:** A snake spawns with its uppermost capsule point beneath a solid RoofKit that does not cover the actor-origin XY.
+- **Evidence:** DoesPopulationDescriptorPassRoofClearance gets one BodyTop and traces upward from that point. TryGetPopulationBodyTop computes the maximum active-shape Z but returns ActorLocation.X/Y. The actual Viper, Giant Snake and Death Adder capsule profile has RelativeLocation (-22, 0, 0), radius 16/38/21 cm and half-height 92/210/112 cm. With zero actor rotation, the actual capsule top is offset from the actor origin, but the trace is not. The RoofKit collision half-extents are 132 x 132 x 16 cm, so it can cover the actual top while excluding the actor origin. If its lower face is just above the body top, the separate body-overlap check finds no collision and the combined S25 placement gate can admit the spawn. The existing roof automation tests centered traces and body-top Z, not this offset descriptor case.
+- **Impact:** A snake can spawn beneath a solid construction roof at a roof edge, contrary to S22b.
+- **Proposed repair:** Preserve the actual world-space top positions for each active collision shape and trace from them for each descriptor, including each Wolf member. Add a deterministic RoofKit fixture over an offset snake capsule top but outside the actor-origin trace.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** A valid snake descriptor is rejected when a RoofKit covers the capsule top but misses actor-origin XY; no roof and a roof beyond 24 m remain allowed. Wolf member roof checks remain per member.
+- **Focused validation:** Run Kalmala.Gameplay.Population.RoofClearance after an Editor build.
+
+## RF06 - Valid wildlife body-clearance composition lacks a test (P3)
+
+- **Source review:** CR03-001b-80.
+- **Affected files:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6103-6169; Source/KalmalaGameplay/Private/Tests/KalmalaPopulationBodyClearanceTest.cpp:281-286; Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp:24-49.
+- **Trigger:** A regression in full descriptor body validation denies valid wildlife or skips an actor/member shape while helper-level support and overlap assertions remain green.
+- **Evidence:** KalmalaPopulationBodyClearanceTest calls DoesPopulationDescriptorPassBodyClearance only for an out-of-bounds descriptor and a nonfinite descriptor. It tests the profile, placement, bounds and overlap helpers separately but never asserts that a valid descriptor passes the composition or that a blocker fails through it. The physical-placement test supplies a nonfinite descriptor and stops before a valid body-clearance decision.
+- **Impact:** The focused automation can miss a fail-closed regression that suppresses wildlife or a composition regression that omits required body-shape checks.
+- **Proposed repair:** Add deterministic valid land descriptors that pass without blockers and reject a blocker intersecting an active body shape through the full predicate; cover all generated Wolf member descriptors.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** Kalmala.Gameplay.Population.BodyClearance proves valid admission and body-overlap rejection through DoesPopulationDescriptorPassBodyClearance, including Wolf member placement.
+- **Focused validation:** Run Kalmala.Gameplay.Population.BodyClearance after an Editor build.

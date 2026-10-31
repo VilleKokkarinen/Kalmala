@@ -162,6 +162,37 @@
     descriptor-level predicate. Focused validation: run
     Kalmala.Gameplay.Population.AquaticSurface after an Editor build. Evidence
     and repair: Temporary/Review/findings.md#rf04--reef-maw-whole-body-surface-loop-lacks-descriptor-path-test-p3.
+  - [ ] **RF05 - Trace offset snake body tops for roof clearance (P3; CR03-001b-80).**
+    Affected: KalmalaGameMode.cpp:6217-6235,6583-6636; KalmalaWildlifeSpawn.cpp:3645-3692;
+    KalmalaConstructionActor.cpp:416-435; KalmalaPopulationRoofClearanceTest.cpp:130-169.
+    Trigger: a snake body top is beneath a RoofKit whose footprint misses the actor origin.
+    Evidence: the shared snake capsule has a -22 cm X offset and 210 cm half-height,
+    but the body-top helper returns actor X/Y and the roof predicate traces only there.
+    An offset roof can cover the actual capsule top while the center trace misses; if
+    the roof is just above the body, collision overlap does not reject the descriptor.
+    Proposed repair: trace from the actual top positions of active shapes for each
+    actor descriptor, with deterministic coverage for offset snake profiles.
+    Dependency: defer until CR19 review acceptance. Acceptance: a valid snake
+    descriptor is rejected when a solid RoofKit covers its capsule top but not the
+    actor-origin trace; no roof and roofs beyond 24 m remain eligible. Focused
+    validation: run Kalmala.Gameplay.Population.RoofClearance after an Editor build.
+    Evidence and repair: Temporary/Review/findings.md#rf05--snake-roof-clearance-traces-only-the-actor-center-p3.
+  - [ ] **RF06 - Exercise valid body-clearance descriptor composition (P3; CR03-001b-80).**
+    Affected: KalmalaGameMode.cpp:6103-6169; KalmalaPopulationBodyClearanceTest.cpp:281-286;
+    KalmalaPopulationPhysicalPlacementGateTest.cpp:24-49.
+    Trigger: a regression in full descriptor body validation denies valid wildlife or
+    skips a member/shape while helper-level overlap and placement assertions remain green.
+    Evidence: the dedicated test calls DoesPopulationDescriptorPassBodyClearance only
+    with out-of-bounds and nonfinite descriptors; it tests placement/profile/overlap
+    helpers separately but never proves that a valid descriptor passes the composition.
+    Proposed repair: add deterministic valid land descriptors that pass without blockers
+    and reject a blocker intersecting an active body shape through the full predicate;
+    cover the generated Wolf members as part of the same fixture.
+    Dependency: defer until CR19 review acceptance. Acceptance:
+    Kalmala.Gameplay.Population.BodyClearance proves valid admission and rejection
+    through the descriptor-level body predicate. Focused validation: run that test
+    after an Editor build. Evidence and repair:
+    Temporary/Review/findings.md#rf06--valid-wildlife-body-clearance-composition-lacks-test-p3.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
