@@ -194,7 +194,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-46` | CR03 | `GameMode.cpp:3553-3626` | 1 partial | reviewed | Polar Bear gates and terrain helpers |
 | `CR03-001b-47` | CR03 | `GameMode.cpp:3628-3777` | 1 partial | reviewed | Polar Bear descriptor and approach selection |
 | `CR03-001b-48` | CR03 | `GameMode.cpp:3779-3889` | 1 partial | reviewed | Polar Bear reserve staging and activation |
-| `CR03-001b-49` | CR03 | `GameMode.cpp:3891-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-49` | CR03 | `GameMode.cpp:3891-3927` | 1 partial | reviewed | Polar Bear charge acceptance |
+| `CR03-001b-50` | CR03 | `GameMode.cpp:3929-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2211,3 +2212,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Development fixture sets host health to 300 and forces update; validates reserve constant above 200. Stages host at selected ring, stores seed/host, clears target and four cue flags, activates ordinary key before stage/time. Host weak pointer validated on later ticks. Stage one locates selected ID with twenty-second timeout; requires Bear archetype, recorded hard-start exclusion and 750 health tolerance. Places host at approach and valid observers through sixteen-direction world-contained search at 1000 plus 500 cm per index. Placement failure/fewer than two terminate. Stores target, forces update, logs distances and publishes stage two/time. Compared setup reserve and generated peer contract.
 - **Result/limits:** No new confirmed actionable finding; RF01 queued. Reserve changes test health directly rather than production healing, and constant guard does not prove later health stability. Recorded exclusion and logged reach are not independent live-position assertions. Observer bounds do not prove visibility, dry habitat or replication. Teleport success, reserve restoration, continued observers and cleanup unverified. No other domain coverage closed.
 - **Checks:** Baseline hash, exact boundaries, reserve/weak/profile gates, timeout, observer bounds/count and publication inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-49 begins charge acceptance at 3891.
+
+### CR03-001b-49 - Polar Bear charge acceptance (3891-3927)
+
+- **Revision:** 236f5734; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Stage two validates weak target before cue access with preceding host lifetime gate. Independently latches telegraph, Lunge charge, retreat and recovery; requires all flags and positive net host damage. Success logs seed, four cues, damage and selected ID, terminates and returns. Eighteen-second timeout logs current cue/latches/damage and terminates. Read through Shipping/function closure; compared setup charge/retreat/recovery acceptance contract.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Latches do not prove exact sequence/duration. Aggregate host damage has no per-hit attribution or accepted-hit counter; controlled fixture assumptions and independent peer evidence remain necessary. Reserve restoration, continued observers, replication, rewards/restart and cleanup unverified. No other domain coverage closed.
+- **Checks:** Baseline hash, exact boundaries, validity-before-access, cue/damage predicates, success/timeout and terminal ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-50 starts Horned Goat fixture at 3929.

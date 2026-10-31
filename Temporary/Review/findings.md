@@ -297,3 +297,7 @@ Reviewed GameMode 3628-3777 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-48 - Polar Bear reserve staging and activation
 
 Reviewed GameMode 3779-3889 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Reserve, host/target identity/profile/exclusion, activation timeout, observers and stage publication inspected. Live position/reach, teleport, reserve restoration, connectivity, replication and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-48.
+
+## CR03-001b-49 - Polar Bear charge acceptance
+
+Reviewed GameMode 3891-3927 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Lifetime guard, four cue latches, net-damage acceptance and success/timeout termination inspected. Sequence/timing, per-hit attribution, reserve restoration, observers, replication and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-49.
