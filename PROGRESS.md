@@ -25375,3 +25375,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 2515; gameplay/save/server authority unchanged. Fixture payment is not player payment validation; continuous protection, lit behavior, persistence and privacy remain unverified.
 - Next: CR03-001b-35, stage nine from 2517. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 lit campfire acceptance review
+
+- Reviewed GameMode 2517-2555; updated coverage/findings and PROGRESS only. No new confirmed actionable GameMode finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, exact boundaries, flame/bite/time predicates, cumulative evidence, null fallback and terminal ordering inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 2555; gameplay/save/server authority unchanged. Privacy, timing, persistence and fixture cleanup unverified. Missing documented mosquito runner path recorded as CR14/CR16 reconciliation question.
+- Next: CR03-001b-36, Peat Husk fixture from 2557. RF01 queued behind CR19.
