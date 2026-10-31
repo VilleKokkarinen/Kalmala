@@ -25483,3 +25483,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 3626; gameplay/save/server authority unchanged. Collision-safe placement, topology, later predicate enforcement, health reserve and cleanup unverified.
 - Next: CR03-001b-47, descriptor search from 3628. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Polar Bear selection review
+
+- Reviewed GameMode 3628-3777; updated coverage/findings and PROGRESS only. No new confirmed finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, boundaries, loop/denominator bounds, budgets/pack accounting, exclusion, dry path/ring and charge reach inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 3777; gameplay/save/server authority unchanged. Activation parity, rejected-candidate accounting, collision/navigation, frame cost and live position unverified.
+- Next: CR03-001b-48, health reserve from 3779. RF01 queued behind CR19.

@@ -289,3 +289,7 @@ Reviewed GameMode 3518-3551 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-46 - Polar Bear gates and terrain helpers
 
 Reviewed GameMode 3553-3626 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, placement clearance, peer waits/timeouts and dry predicate inspected. Collision-safe arrival, topology, later caller enforcement, reserve and cleanup remain unverified. Full verification deferred; see coverage.md CR03-001b-46.
+
+## CR03-001b-47 - Polar Bear descriptor and approach selection
+
+Reviewed GameMode 3628-3777 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Search bounds, budgets/pack accounting, hard exclusion, saved defeat, dry path/ring and charge reach inspected. Activation parity, rejected-candidate accounting, collision/navigation and frame cost remain limitations. Full verification deferred; see coverage.md CR03-001b-47.
