@@ -509,3 +509,7 @@ Reviewed GameMode 6416-6582 against S22a/S25, the server creation transaction, s
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** `Kalmala.Gameplay.Population.PhysicalPlacementGate` proves the valid no-source Wolf pass and rejects station and eligible camp-source overlap at every actual member origin while preserving earlier rejection-order coverage.
 - **Focused validation:** Run `Kalmala.Gameplay.Population.PhysicalPlacementGate` after an Editor build.
+
+## CR03-001b-83 - Body tops, roof intersection, collision overlap and bounds
+
+Reviewed GameMode 6583-6771 against the shared active collision profiles, S22a/S22b/S25, and the focused body-clearance and roof-clearance tests. Body-top calculation, RoofKit query filtering, sphere/capsule overlap transforms and horizontal world-bound extents match their contracts; focused tests cover these helpers. No new production defect or distinct test gap was found. The actor-origin XY used with maximum body-top Z is already recorded as RF05 from CR03-001b-80. Static inspection only; full verification deferred.

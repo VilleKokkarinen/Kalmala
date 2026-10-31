@@ -25837,3 +25837,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence and a queued test improvement only; gameplay behavior is unchanged. The S25 predicate and natural creation transaction remain server-authoritative.
 - Limitations: valid final-gate admission, live collision geometry, Wolf member suppression and runtime spawn behavior were not exercised. RF01-RF08 remain queued behind CR19.
 - Next eligible task: CR03-001b-83, review `KalmalaGameMode.cpp:6583-6771` (body tops, roof intersection, collision overlap and bounds).
+
+## Run 2026-10-31 - CR03 population body-top and collision-helper review
+
+- Reviewed `KalmalaGameMode.cpp:6583-6771` for CR03-001b-83 and marked its bounded coverage row reviewed. No new production defect or distinct test gap was found; the body-top actor-origin XY issue is already recorded as RF05 from CR03-001b-80. No implementation or backlog item changed. Updated PROGRESS.md and Temporary/Review/coverage.md and Temporary/Review/findings.md only.
+- Ownership: only this task was active on the main checkout before editing. Main checkout `master` at `4c90d39d`; the index was empty. Preserved the 22 pre-existing unstaged paths, including existing BACKLOG.md edits and the GameMode.cpp change at line 9674 outside the reviewed range.
+- Checks: Re-read AGENTS.md, BACKLOG.md, PROGRESS.md and the relevant project/design/architecture/review guidance and population contracts. Inspected the reviewed helpers and callers, active collision-profile creation, the body-clearance and roof-clearance tests, and S22a/S22b/S25 documentation. The GameMode.cpp SHA-256 matches the CR01 baseline. Static source/document/test-source inspection only; no automation, build, tests, editor or runtime checks.
+- Full verification deferred: CR03 review remains incomplete; this is not its final task and no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The placement predicates and roof scan are server-authoritative.
+- Limitations: no runtime collision/roof traces were exercised; RF01-RF08 remain queued behind CR19. The pre-existing line 9674 change remains outside reviewed scope.
+- Next eligible task: CR03-001b-84, review `KalmalaGameMode.cpp:6772-6895` (population time gate and live-creature registry).
