@@ -25393,3 +25393,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 2665; gameplay/save/server authority unchanged. Search frame cost, actual activation, distinct observer connections and replication unverified.
 - Next: CR03-001b-37, host lifetime gate from 2667. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Peat Husk activation review
+
+- Reviewed GameMode 2667-2799; updated coverage/findings and PROGRESS only. No new confirmed finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, exact stage boundaries, lifetime/profile/health gates, bounded dry approach, observer count and publication ordering inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 2799; gameplay/save/server authority unchanged. Collision-safe placement, continuous dry path, live exclusion position, replication and cleanup unverified.
+- Next: CR03-001b-38, stage two from 2801. RF01 queued behind CR19.
