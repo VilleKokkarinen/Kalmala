@@ -25366,3 +25366,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 2484; gameplay/save/server authority unchanged. Exact reacquisition timing, collision-safe placement and later campfire behavior remain unverified. RF01 queued behind CR19.
 - Next: CR03-001b-34, subdivide stage eight from 2486.
+
+## Run 2026-10-31 - CR03 unlit campfire and ignition review
+
+- Reviewed GameMode 2485-2515; updated coverage/findings and PROGRESS only. Corrected pending boundary to include stage-eight condition. No new confirmed finding; BACKLOG unchanged because CR03 incomplete. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active; automation chat idle; initial index empty. Main checkout; no handoff required.
+- Checks: baseline hash matched; exact boundaries, predicates, timeout/failure returns and publication inspected with campfire ignition context. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 2515; gameplay/save/server authority unchanged. Fixture payment is not player payment validation; continuous protection, lit behavior, persistence and privacy remain unverified.
+- Next: CR03-001b-35, stage nine from 2517. RF01 queued behind CR19.

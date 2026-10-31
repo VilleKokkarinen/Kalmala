@@ -237,3 +237,7 @@ Reviewed GameMode 2408-2447 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-33 - Resumed bites and unlit campfire setup
 
 Reviewed GameMode 2449-2484 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected resumed-bite timeout, spawn/default flame checks and contact/stage publication. Exact reacquisition delay, collision safety, later flame behavior and cleanup remain unverified. Full verification deferred; see coverage.md CR03-001b-33.
+
+## CR03-001b-34 - Unlit campfire bite and ignition
+
+Reviewed GameMode 2485-2515 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected weak-reference/unlit gate, resumed bite timeout, paid fixture ignition and contact/stage publication. Continuous protection state, lit behavior, persistence and privacy remain unverified. Full verification deferred; see coverage.md CR03-001b-34.
