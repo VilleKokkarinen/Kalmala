@@ -25647,3 +25647,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: evidence and repair-queue updates only; gameplay behavior and server authority are unchanged. Current owner-only conditions show no live leak, but actual host-replica privacy was not exercised.
 - Limitations: peer runtime, client request routing, replication of host feedback/inventory, and runtime timing remain unverified. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-65, subdivide remaining GameMode starting at line 5298 before reviewing it.
+
+## Run 2026-10-31 - CR03 living player pawn source review
+
+- Reviewed GameMode.cpp 5298-5362 for CR03-001b-65 and split the remaining range into CR03-001b-66. No new confirmed actionable finding; BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: `list_threads` showed only this active Kalmala checkout; no competing run surfaced. Other listed worktrees use distinct checkouts. Main checkout `master`, no handoff needed; the index was empty before this increment. Preserved all 22 pre-existing modified paths.
+- Checks: GameMode SHA-256 matches the CR01 baseline. Inspected authority/world guards, controller/PlayerState/pawn validity and lifecycle filters, health finite and threshold gates, ordering comparator, duplicate-pointer handling, call sites, and the S04 contract in docs/monster-spawning.md. Static inspection only; no builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; no runtime behavior changed. Population player selection remains server-authoritative and follows the documented active-player filters.
+- Limitations: disconnect, spectator, possession, death/health, and duplicate-pawn transitions were not exercised in a live session. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-66, subdivide remaining GameMode starting at line 5364 before reviewing it.

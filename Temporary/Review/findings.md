@@ -373,3 +373,7 @@ Reviewed GameMode 5093-5184 against the baseline-matching source. No new confirm
 ## CR03-001b-64 - M9 exploration reward claims and peer privacy checks
 
 Reviewed GameMode 5187-5296. Confirmed additional test-coverage evidence for RF02: the server checks owner state, but the M9 peer runner does not inspect the Host's replicated feedback or reward inventory on the Remote client. Current fields use `COND_OwnerOnly`; no live leak is established. Full verification deferred; see coverage.md CR03-001b-64.
+
+## CR03-001b-65 - Living player pawn source and deterministic ordering
+
+Reviewed GameMode 5298-5362 against the baseline-matching source and `docs/monster-spawning.md` S04. No new confirmed actionable finding; authority, eligibility filters, deterministic ordering, and pointer deduplication match the documented contract. Runtime lifecycle transitions were not exercised. Full verification deferred; see coverage.md CR03-001b-65.
