@@ -178,7 +178,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-30` | CR03 | `GameMode.cpp:2290-2339` | 1 partial | reviewed | Mosquito dodge request sequencing |
 | `CR03-001b-31` | CR03 | `GameMode.cpp:2341-2406` | 1 partial | reviewed | Roll window and held torch fixture setup |
 | `CR03-001b-32` | CR03 | `GameMode.cpp:2408-2447` | 1 partial | reviewed | Held torch protection and unequip transition |
-| `CR03-001b-33` | CR03 | `GameMode.cpp:2449-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-33` | CR03 | `GameMode.cpp:2449-2484` | 1 partial | reviewed | Resumed bites and unlit campfire setup |
+| `CR03-001b-34` | CR03 | `GameMode.cpp:2486-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2083,3 +2084,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read complete stage six with preceding weak-reference and bite-helper context. Rejects new bites or lost authoritative flame; waits at least 1.25 seconds of torch protection and 2.05 seconds from accepted roll, then rejects continuing roll protection. Clears Main Hand through validated server transaction, advances torch state, rejects remaining flame, records protection/bite baseline, requires contact placement before publishing stage seven/time. Inspected character authority, exact active GUID/fuel eligibility and no-active-torch clearing paths against mosquito design.
 - **Result/limits:** No new confirmed actionable finding; RF01 queued. Sampled state/count assertions do not independently prove continuous protection or replication privacy. Later resumed-bite observation, runtime scheduling and persistence remain unverified; helper context does not close other domains.
 - **Checks:** Baseline hash and exact stage boundaries checked; predicates, failure returns and publication order inspected. No source changes, build, tests, editor or runtime checks; full verification deferred. CR03 remains incomplete; next CR03-001b-33 begins stage seven at 2449.
+
+### CR03-001b-33 - Resumed bites and unlit campfire setup (2449-2484)
+
+- **Revision:** cbe8e955cb9fb0df1e2e6ad735b4f57268ae7d61; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before recording review.
+- **Evidence:** Read complete stage seven and preceding lifetime guards. Rejects remaining held flame, waits for bite count strictly above unequip baseline with ten-second timeout, spawns a server campfire 200 cm away with AlwaysSpawn, rejects null/lit/flame-eligible initial state, stores weak reference and bite baseline, requires contact placement before publishing stage eight/time. Compared setup peer contract and mosquito flame design; inspected campfire authority/fuel eligibility predicate as context.
+- **Result/limits:** No new confirmed actionable finding; RF01 remains queued. Increased count demonstrates a sampled resumed bite, not the exact reacquisition delay. AlwaysSpawn does not prove collision-safe placement; later unlit/lit behavior and cleanup remain pending. This server fixture bypasses player building payment intentionally and creates no portable item. Context does not close construction or CR04 coverage.
+- **Checks:** Baseline hash and complete stage boundaries inspected; failure returns, predicate ordering and publication reviewed. No code changes, builds, tests, editor or runtime verification. Full verification deferred; CR03 incomplete. Next CR03-001b-34 begins stage eight at 2486.
