@@ -25807,3 +25807,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: gameplay behavior was not changed. The production roof predicate is server-authoritative and participates in S25 admission; the confirmed edge case can admit a snake beneath an offset RoofKit. RF06 is a test-coverage gap for server-side body placement.
 - Limitations: the offset-roof descriptor case, valid body-predicate composition and runtime spawn admission were not executed. RF01-RF06 remain queued behind CR19.
 - Next eligible task: CR03-001b-81, subdivide the remaining GameMode review starting at line 6241 into bounded batches before inspection.
+
+## Run 2026-10-31 - CR03 GameMode remainder subdivision
+
+- Replaced the pending 5,813-line GameMode range with 33 contiguous pending batches covering lines 6241-12053, each 107-275 lines. Split oversized functions only at identified population-materialization and baseline-capture phases. This increment changed Temporary/Review/coverage.md and PROGRESS.md only; no source code was reviewed or changed. BACKLOG.md remains unchanged because CR03 is incomplete; this subdivision is recorded in the review ledger.
+- Ownership: only this run was active on the checkout before editing. Main checkout master was at 3b959956 with a clean index. Preserved the 22 pre-existing modified paths, including the GameMode edit at line 9674 within pending batch CR03-001b-100.
+- Checks: Re-read AGENTS.md, BACKLOG.md, PROGRESS.md, the project brief, architecture, agent operating/review guidance, decision log, and population contract. Inspected function boundaries and the pre-existing GameMode diff. A range check confirmed all 5,813 lines are covered exactly once with no gaps or overlaps. `git diff --check` found no whitespace errors; Git emitted CRLF normalization warnings. Staged-diff inspection confirmed only the two increment files were staged; their absolute paths measured 26 and 43 characters. No automation, build, tests, editor, or runtime checks were run.
+- Full verification deferred: no source batch was reviewed in this increment; CR03 remains incomplete and no full verification was run.
+- Impact/authority: review scheduling metadata only; gameplay, persistence, and network behavior are unchanged. The pending batches include server-owned GameMode logic and test fixtures.
+- Limitations: all lines 6241-12053 remain pending review; the pre-existing line 9674 change will be assessed in batch CR03-001b-100.
+- Next eligible task: CR03-001b-81, review GameMode.cpp:6241-6415 (population movement support and station/camp spacing).

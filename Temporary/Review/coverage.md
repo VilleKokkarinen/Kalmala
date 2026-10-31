@@ -226,7 +226,39 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-78` | CR03 | `GameMode.cpp:5900-6008` | 1 partial | reviewed | Authoritative dry-land surface gate and Wolf formation sampling |
 | `CR03-001b-79` | CR03 | `GameMode.cpp:6010-6102` | 1 partial | reviewed | Reef Maw aquatic surface and full-body water fit |
 | `CR03-001b-80` | CR03 | `GameMode.cpp:6103-6240` | 1 partial | reviewed | Wildlife body and roof clearance |
-| `CR03-001b-81` | CR03 | `GameMode.cpp:6241-12053` | 1 partial | pending | Subdivide remaining GameMode into bounded batches before review |
+| `CR03-001b-81` | CR03 | `GameMode.cpp:6241-6415` | 1 partial | pending | Population movement support and station/camp spacing |
+| `CR03-001b-82` | CR03 | `GameMode.cpp:6416-6582` | 1 partial | pending | Physical placement composition and support transforms |
+| `CR03-001b-83` | CR03 | `GameMode.cpp:6583-6771` | 1 partial | pending | Body tops, roof intersection, collision overlap, and bounds |
+| `CR03-001b-84` | CR03 | `GameMode.cpp:6772-6895` | 1 partial | pending | Population time gate and live-creature registry |
+| `CR03-001b-85` | CR03 | `GameMode.cpp:6896-7047` | 1 partial | pending | Population area-cap counting and admission |
+| `CR03-001b-86` | CR03 | `GameMode.cpp:7048-7198` | 1 partial | pending | Population time, weather, progression, and cap gates |
+| `CR03-001b-87` | CR03 | `GameMode.cpp:7199-7422` | 1 partial | pending | Physical-placement dispatch, unload/reactivation, and source caps |
+| `CR03-001b-88` | CR03 | `GameMode.cpp:7423-7631` | 1 partial | pending | Natural population spawn transaction |
+| `CR03-001b-89` | CR03 | `GameMode.cpp:7632-7819` | 1 partial | pending | Population progression/cap admission and reservations |
+| `CR03-001b-90` | CR03 | `GameMode.cpp:7820-7931` | 1 partial | pending | GameMode tick and population scheduler service |
+| `CR03-001b-91` | CR03 | `GameMode.cpp:7932-8087` | 1 partial | pending | Ocean travel feedback and weather peer fixtures |
+| `CR03-001b-92` | CR03 | `GameMode.cpp:8088-8307` | 1 partial | pending | Ocean journey fixture and world-profile readiness |
+| `CR03-001b-93` | CR03 | `GameMode.cpp:8308-8478` | 1 partial | pending | Active-key wildlife, harvest, and hazard materialization |
+| `CR03-001b-94` | CR03 | `GameMode.cpp:8479-8622` | 1 partial | pending | Active-key discovery and M9 reward materialization |
+| `CR03-001b-95` | CR03 | `GameMode.cpp:8623-8819` | 1 partial | pending | Spawn depletion and Rat-to-Peat Husk reward callbacks |
+| `CR03-001b-96` | CR03 | `GameMode.cpp:8820-9045` | 1 partial | pending | Wolf-to-Reef Maw reward callbacks |
+| `CR03-001b-97` | CR03 | `GameMode.cpp:9046-9304` | 1 partial | pending | Pending wildlife and gemstone reward delivery |
+| `CR03-001b-98` | CR03 | `GameMode.cpp:9305-9426` | 1 partial | pending | M9 resource depletion and Ocean discovery ledger |
+| `CR03-001b-99` | CR03 | `GameMode.cpp:9427-9587` | 1 partial | pending | Player discovery save lookup and server player-state persistence |
+| `CR03-001b-100` | CR03 | `GameMode.cpp:9588-9711` | 1 partial | pending | World save and solo/client/listen-host Home returns |
+| `CR03-001b-101` | CR03 | `GameMode.cpp:9712-9884` | 1 partial | pending | Listen-host completion and Ocean travel save restoration |
+| `CR03-001b-102` | CR03 | `GameMode.cpp:9885-10055` | 1 partial | pending | Ocean travel persistence/restoration and discovery identity |
+| `CR03-001b-103` | CR03 | `GameMode.cpp:10056-10207` | 1 partial | pending | World and Ocean discovery claim handlers |
+| `CR03-001b-104` | CR03 | `GameMode.cpp:10208-10359` | 1 partial | pending | M9 exploration and Mireling boss reward handlers |
+| `CR03-001b-105` | CR03 | `GameMode.cpp:10360-10529` | 1 partial | pending | Biome baseline capture arguments and scene setup |
+| `CR03-001b-106` | CR03 | `GameMode.cpp:10530-10665` | 1 partial | pending | Baseline capture lighting and fixture controls |
+| `CR03-001b-107` | CR03 | `GameMode.cpp:10666-10816` | 1 partial | pending | Baseline capture sequence, weather transitions, and reporting |
+| `CR03-001b-108` | CR03 | `GameMode.cpp:10817-10923` | 1 partial | pending | Logout and initial PostLogin test-role setup |
+| `CR03-001b-109` | CR03 | `GameMode.cpp:10924-11146` | 1 partial | pending | PostLogin pawn setup and authority-owned test fixtures |
+| `CR03-001b-110` | CR03 | `GameMode.cpp:11147-11373` | 1 partial | pending | M9 schema-2 candidate world/player peer tests |
+| `CR03-001b-111` | CR03 | `GameMode.cpp:11374-11648` | 1 partial | pending | Traversal test configuration and reconnect verification |
+| `CR03-001b-112` | CR03 | `GameMode.cpp:11649-11880` | 1 partial | pending | Traversal drive, generated starts, and terrain patch lifecycle |
+| `CR03-001b-113` | CR03 | `GameMode.cpp:11881-12053` | 1 partial | pending | Player-start selection, gem state, and treasure rewards |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
