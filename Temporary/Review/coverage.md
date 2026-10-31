@@ -170,7 +170,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-22` | CR03 | `GameMode.cpp:1788-1908` | 1 partial | reviewed | Pending-reward retry observation |
 | `CR03-001b-23` | CR03 | `GameMode.cpp:1910-1970` | 1 partial | reviewed | Post-combat defeat and owner claim lookup |
 | `CR03-001b-24` | CR03 | `GameMode.cpp:1971-2026` | 1 partial | reviewed | Full-pack escrow predicates |
-| `CR03-001b-25` | CR03 | `GameMode.cpp:2028-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-25` | CR03 | `GameMode.cpp:2028-2055` | 1 partial | reviewed | Reward retry cell freeing and stage transition |
+| `CR03-001b-26` | CR03 | `GameMode.cpp:2057-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2021,3 +2022,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read inventory collection, other-peer enumeration, complete escrow conjunction and failure branch. Player-state-bearing characters excluding attacker contribute reward quantities; missing inventory uses a nonzero sentinel. Acceptance requires defeated target, preceding authenticated-owner claim lookup, both principal inventories, exact full capacity adjusted for packed tools and zero quantities of all six relevant rewards on attacker and remote. Two-item scenarios additionally require at least two other peers with zero four relevant reward quantities. Rejection logs and terminates stage 99 before freeing inventory cells.
 - **Context/result:** Compared architecture all-or-none retry and authenticated-owner escrow contract; inspected adjacent claim lookup and later cell-freeing transition as context only. No new confirmed actionable finding; RF01 remains queued. These server inventory observations do not prove client replication privacy, exact claim multiplicity or disk durability. Controlled clean peer inventories remain a fixture assumption.
 - **Checks/limits:** Baseline hash, exact boundaries, peer exclusion, missing-inventory sentinel and terminal failure source assertions passed. No code changes, build, UBT, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete; next CR03-001b-25 begins cell freeing at 2028.
+
+### CR03-001b-25 - Reward retry cell freeing (2028-2055)
+
+- **Revision:** 3679cfd45d56fb361eecf917686c31f56cc55c8b; whole-file SHA-256 matches CR01 baseline including preserved local edits. Subdivided remainder before recording review; next begins 2057.
+- **Evidence:** Read complete bounded snapshot loop and terminal/stage transitions. Required cells are two for two-item scenarios, three for Badger and one otherwise. Only single-quantity non-reward stacks are consumed; six reward IDs are excluded. Snapshot iteration avoids mutation invalidating traversal. Successful server consumption and reduced stack count advance the counter; mismatch terminates stage 99 before stage-three publication. Inspected TryConsumeFromServer authority guard and exchange/commit path as context only.
+- **Result/limits:** No new confirmed actionable finding; RF01 remains queued. Cell count relies on the preceding full-pack invariant and synchronous stack removal. This prepares retry capacity; it does not prove retry delivery, client privacy or persistence. Context does not close inventory or CR04 coverage.
+- **Checks:** Baseline hash, exact start/return boundaries, loop cap, quantity filter, server consume, failure and stage/time source assertions passed; closing braces inspected. No source changes, build, tests, editor or runtime validation. Full verification deferred; CR03 remains incomplete.

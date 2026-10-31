@@ -198,3 +198,8 @@ Reviewed GameMode 1910-1970 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-24 - Full-pack escrow predicates
 
 Reviewed GameMode 1971-2026 with baseline-matching bytes. No new confirmed actionable finding; RF01 remains queued. Inspected full-capacity, zero-reward, owner-claim and other-peer predicates plus terminal failure. Server observations do not prove replication privacy, unique claim count or durable storage. Full verification deferred; see coverage.md CR03-001b-24.
+
+
+## CR03-001b-25 - Reward retry cell freeing
+
+Reviewed GameMode 2028-2055 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected bounded snapshot consumption, reward exclusions, failure exit and stage publication. Capacity preparation does not prove retry delivery or durable storage. Full verification deferred; see coverage.md CR03-001b-25.
