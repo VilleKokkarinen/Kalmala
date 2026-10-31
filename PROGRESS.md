@@ -25737,3 +25737,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The selector requires server authority and the caller dispatches only attempts whose authoritative gates report no rejection.
 - Limitations: live player movement, world transitions, and actor creation were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-74, subdivide remaining GameMode starting at line 5793 before reviewing it.
+
+## Run 2026-10-31 - CR03 population player-distance gate review
+
+- Reviewed `KalmalaGameMode.cpp:5793-5818` for CR03-001b-74 and split the remaining GameMode range into CR03-001b-75. No new confirmed actionable finding. BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: the initial check found no other active Kalmala run. A scheduled same-checkout attempt appeared during pre-commit checks, then completed after reporting it made no repository edits; a fresh check found only this run active. Main checkout `master` at `a36607ca`; index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected authority/world/player-list guards, S08 ring and S09 all-player exclusion composition, exact 36 m boundary behavior, retained-attempt rejection ordering, candidate filtering, scheduler caller, and transaction dispatch. Compared with S09/S14/S15 and inspected focused player-distance assertions for a second player outside the selecting radius, 35 m rejection, seeded-roll rejection retention, and exact-boundary acceptance. Static source/document/test-source review only; automation was not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. Distance evaluation requires server authority and uses the current-world living-player list supplied by the server.
+- Limitations: live movement, death/world transitions, and actor creation were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-75, subdivide remaining GameMode starting at line 5820 before reviewing it.
