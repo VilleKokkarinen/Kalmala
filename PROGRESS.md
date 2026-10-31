@@ -25145,3 +25145,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, UBT, tests, editor or runtime validation; not milestone-final acceptance.
 - Impact/authority: Partial review reaches line 1058; gameplay, saves and server authority unchanged.
 - Limits/next: No long-session precision/performance or peer acceptance claim. RF01 queued behind CR19. Next CR03-001b-11: subdivide/review rain fixture from 1059.
+
+
+## Run 2026-10-31 - CR03 rain acceptance fixture review
+
+- Work/files: Reviewed GameMode lines 1059-1222; baseline unchanged. Updated coverage/findings and this entry. No new confirmed finding. BACKLOG unchanged as CR03 remains incomplete.
+- Ownership: No other active checkout owner in chat inventory; preserved 22 prior modified paths and empty index. Main checkout; no handoff needed.
+- Checks: Baseline hash, exact boundaries, development flag and two-player gate passed; inspected runner and caller context. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, UBT, tests, editor or runtime validation; not milestone-final acceptance.
+- Impact/authority: Review coverage reaches line 1222; no gameplay, save or server-authority changes.
+- Limits/next: Controlled fixture lifetime/timing not runtime verified. RF01 remains queued behind CR19. Next CR03-001b-12: subdivide/review combat fixture from line 1224.
