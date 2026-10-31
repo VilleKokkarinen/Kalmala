@@ -162,7 +162,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-14` | CR03 | `GameMode.cpp:1387-1426` | 1 partial | reviewed | Combat target activation and herd selection |
 | `CR03-001b-15` | CR03 | `GameMode.cpp:1427-1482` | 1 partial | reviewed | Pending-reward fixture pack setup |
 | `CR03-001b-16` | CR03 | `GameMode.cpp:1484-1587` | 1 partial | reviewed | Combat fixture positioning |
-| `CR03-001b-17` | CR03 | `GameMode.cpp:1588-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-17` | CR03 | `GameMode.cpp:1588-1630` | 1 partial | reviewed | Combat fixture health reset and herd placement |
+| `CR03-001b-18` | CR03 | `GameMode.cpp:1632-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1950,3 +1951,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Inspection:** Terrain placement activates neighboring patches, samples height and adds capsule half-height before forcing replication. Snake approaches search at most 36 directions with radius-dependent finite samples; biome/ocean/lake predicates reject sampled wet approaches and failure ends the fixture. Rat/snake remote and additional player observers use grounded positioning; snake and Mireling attackers deliberately disable movement for controlled encounters.
 - **Result:** No new confirmed actionable finding; RF01 remains queued. Sampled dry points do not prove continuous dry/collision-free terrain, and unswept teleports are controlled fixture setup rather than production traversal. Later poison/stage behavior and participant destruction remain pending.
 - **Checks/limits:** Baseline hash, exact boundaries, bounded-search, failure and null/observer guards passed. Static inspection only; no build, tests, editor or runtime validation. Full verification deferred; CR03 remains incomplete.
+
+
+### CR03-001b-17 - Combat fixture health reset and herd placement
+
+- **Revision:** eaad9379; GameMode SHA-256 matches baseline including preserved local edits. Split remaining range before inspection; next starts at 1632.
+- **Evidence:** Read lines 1588-1630. Viper setup advances prior poison by its maximum remaining duration, then both snake scenarios attempt at most four heals and terminate stage 99 unless health is nearly 100. AdvanceFromServer is authority-gated and may apply one final poison tick and advance other statuses; it is not a poison-only removal. RestoreHealthFromDraughtFromServer rejects dead/non-authority actors and clamps to current maximum health. These controlled fixtures assume the default 100-health profile; rejection exits rather than silently accepting an invalid start. Deer companion is deliberately placed 600 cm from target, within the documented 800 cm noise radius.
+- **Context/result:** Compared setup Viper historical fixture contract and architecture server-owned status timing. No new confirmed actionable finding; RF01 stays queued. Helper context does not close helper or CR04 coverage. No runtime survival, terrain/collision or later-stage acceptance claim.
+- **Checks/limits:** Baseline hash, exact boundaries, bounded heal loops and failure exits passed. No code changes, build, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete.
