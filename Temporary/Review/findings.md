@@ -477,3 +477,19 @@ Reviewed GameMode 5900-6008 against S20/S22c, the three-member Wolf contract, fi
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** Kalmala.Gameplay.Population.BodyClearance proves valid admission and body-overlap rejection through DoesPopulationDescriptorPassBodyClearance, including Wolf member placement.
 - **Focused validation:** Run Kalmala.Gameplay.Population.BodyClearance after an Editor build.
+
+## CR03-001b-81 - Population movement support and station/camp spacing
+
+Reviewed GameMode 6241-6415 against S22c/S23/S24/S25 and the focused station, camp, land-surface, aquatic-surface and physical-placement test sources. The production S22c path routes land and Reef Maw descriptors to their documented S20/S21 checks, constructs all three Wolf member descriptors, and evaluates existing species movement support at each proposed actor position. Station and camp source eligibility and inclusive geometry match the documented S23/S24 policy. No current production defect was found. Confirmed RF07: no test calls the descriptor movement-support composition or shared position-support helper, and the combined placement fixture uses a NaN descriptor that exits before valid movement support. Static inspection only; automation and runtime behavior were not exercised. Full verification deferred.
+
+## RF07 - Movement-support descriptor composition lacks a focused test (P3)
+
+- **Source review:** CR03-001b-81.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6241-6310`, `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:848-916`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp:24-76`.
+- **Trigger:** A future regression routes a species through the wrong S20/S21 support path, omits an actual actor or Wolf member position, or drops a documented biome, water, traversability or snake-leash constraint while surface and fail-closed coverage remains green.
+- **Evidence:** `DoesPopulationDescriptorPassMovementSupport` composes S20 land or S21 Reef Maw surface support and then calls `IsPopulationSpawnPositionSupported` for each proposed actor location; Wolf descriptors are expanded to all three members. A repository-wide search found no test calls to the descriptor movement gate or shared support helper. The physical-placement gate test uses a NaN location and returns before valid support evaluation. Existing S20/S21 tests exercise surface predicates separately, not the S22c descriptor composition. The current production path follows the documented policy; no live placement defect was observed.
+- **Impact:** Focused automation can miss a regression that admits unsupported natural wildlife or rejects supported wildlife through the server-side movement gate.
+- **Proposed repair:** Add deterministic valid and rejected land and Reef Maw descriptor cases through the movement-support gate or final placement composition. Cover the species-specific biome, water, traversability and snake-leash rules and verify every actual Wolf member location.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** `Kalmala.Gameplay.Population.MovementSupport` proves supported descriptor admission and rejects unsupported actual actor positions through S22c composition, including the aquatic route and all generated Wolf members.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.MovementSupport` after an Editor build.

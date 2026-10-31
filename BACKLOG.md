@@ -193,6 +193,25 @@
     through the descriptor-level body predicate. Focused validation: run that test
     after an Editor build. Evidence and repair:
     Temporary/Review/findings.md#rf06--valid-wildlife-body-clearance-composition-lacks-test-p3.
+  - [ ] **RF07 — Exercise movement-support descriptor composition (P3; CR03-001b-81).**
+    Affected: `KalmalaGameMode.cpp:6241-6310`, `KalmalaWildlifeSpawn.cpp:848-916`,
+    and `KalmalaPopulationPhysicalPlacementGateTest.cpp:24-76`. The production
+    descriptor gate composes S20 land or S21 Reef Maw surface support with the
+    existing species movement-support rules and checks each proposed actor
+    position, including each generated Wolf member. No test calls this movement
+    composition or the shared position-support helper; the combined placement
+    test uses a NaN descriptor and exits before valid support evaluation.
+    Trigger: a future regression routes a species through the wrong support
+    policy, skips a proposed actor/member, or drops a documented biome, water,
+    traversability, or snake-leash rule while the existing surface and
+    fail-closed checks still pass. No current spawn defect was found. After CR19,
+    add deterministic valid and rejected descriptor cases for land and Reef Maw
+    support, including every Wolf member and the applicable species rules.
+    Acceptance: focused automation proves supported descriptor admission and
+    rejects unsupported actual actor positions through S22c composition.
+    Focused validation: run `Kalmala.Gameplay.Population.MovementSupport` after
+    an Editor build. Evidence and repair:
+    `Temporary/Review/findings.md#rf07--movement-support-descriptor-composition-lacks-a-focused-test-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
