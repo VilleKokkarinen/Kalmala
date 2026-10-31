@@ -165,7 +165,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-17` | CR03 | `GameMode.cpp:1588-1630` | 1 partial | reviewed | Combat fixture health reset and herd placement |
 | `CR03-001b-18` | CR03 | `GameMode.cpp:1632-1661` | 1 partial | reviewed | Screenshot setup and stage-zero completion |
 | `CR03-001b-19` | CR03 | `GameMode.cpp:1663-1701` | 1 partial | reviewed | Fixture lifetime guards and snake observation |
-| `CR03-001b-20` | CR03 | `GameMode.cpp:1702-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-20` | CR03 | `GameMode.cpp:1702-1723` | 1 partial | reviewed | Target placement helper |
+| `CR03-001b-21` | CR03 | `GameMode.cpp:1725-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1976,3 +1977,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read weak-pointer resolution for both participants and target; absent actors or combat component terminate stage 99 before use. Header fields are TWeakObjectPtr. During stages 1-2 Viper observation latches actual WeakPoison status, then disables target ticking to avoid repeated bites. Giant Snake latches health below the controlled 100-health starting point and disables target ticking. The latter infers a bite from health loss rather than inspecting a damage event, so it does not independently prove damage type or source.
 - **Context/result:** Compared the preceding full-health setup, non-Shipping function gate, architecture server combat contract and current EnemyPeers selection guidance. No new confirmed actionable finding for this controlled fixture; RF01 remains queued. Context reads do not close helper or CR04 coverage.
 - **Checks/limits:** Baseline hash, exact boundaries, terminal guards and both tick-pause branches passed static checks. No runtime disconnect, damage-source isolation or timing acceptance. No build, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete; next CR03-001b-20 begins placement helper at 1702.
+
+
+### CR03-001b-20 - Combat target placement helper (1702-1723)
+
+- **Revision:** 7e6cb21b3c20c1dbb7e76ffc9987624b1d66fba4; whole-file SHA-256 matches baseline including preserved local edits. Subdivided before review recording.
+- **Evidence:** Read entire lambda and stage-two callers at 1758/1774. Server attacker position/forward determines placement. Rat and shore snakes use sampled terrain height. Shore snakes require Shimmering Lakes biome and rejection of ocean/lake water before mutation. Both callers terminate stage 99 on false. Successful unswept relocation forces a network update. Captures use preceding actor guards in the same invocation.
+- **Result:** No new confirmed actionable finding; RF01 queued. Point dryness does not prove a collision-free location or dry route. SetActorLocation result is unchecked; runtime relocation remains unverified. No client target/distance payload introduced. Context does not close callers or CR04.
+- **Checks/limits:** Baseline, corrected exact boundaries, dry rejection before mutation and replication-update checks passed. Initial boundary assertion was off by one and failed before edits. Compared brief/design, roadmap/decisions, architecture authority and setup EnemyPeers context. No build, tests, editor or runtime validation; full verification deferred. CR03 incomplete; next CR03-001b-21 starts 1725.
