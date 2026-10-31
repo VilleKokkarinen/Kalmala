@@ -160,7 +160,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-12` | CR03 | `GameMode.cpp:1224-1332` | 1 partial | reviewed | Combat fixture admission and equipment setup |
 | `CR03-001b-13` | CR03 | `GameMode.cpp:1333-1386` | 1 partial | reviewed | Combat fixture descriptor search |
 | `CR03-001b-14` | CR03 | `GameMode.cpp:1387-1426` | 1 partial | reviewed | Combat target activation and herd selection |
-| `CR03-001b-15` | CR03 | `GameMode.cpp:1427-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-15` | CR03 | `GameMode.cpp:1427-1482` | 1 partial | reviewed | Pending-reward fixture pack setup |
+| `CR03-001b-16` | CR03 | `GameMode.cpp:1484-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1932,3 +1933,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read target activation, world actor scan, bounded 3x3 fallback herd search and terminal validation. Target must be undefeated with the expected persistent descriptor ID. Herd mate must be another undefeated deer; initial and fallback scans can select any active deer in the world, rather than requiring membership in the selected key. Later fixture positioning at 1624-1630 intentionally places that generated companion within herd-noise range, so no locality defect is confirmed for this controlled fixture. Missing target/herd, failed reproduction or excess descriptor-matching actors stops stage zero with stage 99 before later dereference.
 - **Context:** Inspected ActivatePopulationKey admission and descriptor/legacy wildlife path (8308 onward): authority/world, existing-key and active-key cap guards; legacy actors require non-Shipping verification mode, valid archetype and undefeated persistence identity. Compared brief session scope, architecture server authority and setup's current EnemyPeers contract. These context reads do not close helper or CR04 coverage.
 - **Result/checks/limits:** No new confirmed actionable finding; RF01 remains queued. Baseline hash, exact boundaries, bounded fallback and failure guard assertions passed. Count check covers descriptor-matching actors, not a proof of total world population bounds. No build, tests, editor, runtime timing or disconnect validation; full verification deferred. CR03 remains incomplete.
+
+
+### CR03-001b-15 - Pending-reward fixture pack setup (lines 1427-1482)
+
+- **Revision:** aedeba9f34441456aa60ffdbc566352a077d7ec2; whole-file SHA-256 matches baseline including preserved local edits. Subdivided remaining range; next starts at 1484.
+- **Evidence:** Read complete pending-reward setup block. Missing inventory/catalogue terminates stage 99. Giant Snake protection grants a catalogue coat, requires a unique valid stack GUID, equips through the server API and validates level-one stats before continuing. Pack filling reserves cells for packed tools, excludes reward items, existing stacks and both legacy Kit IDs and catalogue buildables. Failed individual grants cannot falsely pass final exact stack-count/capacity validation.
+- **Context:** Inspected authority gate and candidate commit in TryGrantFromServer; compared architecture owner-bound all-or-none rewards and setup full-pack Badger acceptance contract. Context reads do not close inventory, persistence or CR04 assignments.
+- **Result/checks/limits:** No new confirmed actionable finding; RF01 remains queued. Baseline hash, exact boundaries, buildable exclusions and final capacity assertions passed. No code changed; no build, UBT, tests, editor or runtime validation. Full verification deferred; fixture assumes controlled initial inventory, and reward delivery/retry/privacy remain outside this range. CR03 remains incomplete.
