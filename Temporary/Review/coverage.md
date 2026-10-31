@@ -174,7 +174,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-26` | CR03 | `GameMode.cpp:2057-2086` | 1 partial | reviewed | Combat fixture final acceptance |
 | `CR03-001b-27` | CR03 | `GameMode.cpp:2088-2211` | 1 partial | reviewed | Mosquito fixture setup and descriptor selection |
 | `CR03-001b-28` | CR03 | `GameMode.cpp:2213-2258` | 1 partial | reviewed | Mosquito fixture activation |
-| `CR03-001b-29` | CR03 | `GameMode.cpp:2260-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-29` | CR03 | `GameMode.cpp:2260-2288` | 1 partial | reviewed | Mosquito encounter observation |
+| `CR03-001b-30` | CR03 | `GameMode.cpp:2290-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2052,3 +2053,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read complete stage one and preceding authority/Shipping and placement-helper context. Three weak pawn references are validated before use; generated actor lookup requires the selected persistent spawn ID. Missing activation fails after 15 seconds; defeated or wrong-archetype actors fail before placement. Owner is placed at the swarm, observer and listen host at 3000/4000 cm offsets. Contact location, target, starting health and stage time are stored before stage two. Compared setup's MosquitoSwarmPeer contract.
 - **Result:** No new confirmed actionable finding; RF01 remains queued. Fixture is server-owned and accepts no client-selected target. Unswept placement and unchecked relocation return do not prove successful collision-safe positioning; offsets alone do not prove actual targeting or replication. Later encounter and privacy predicates remain pending.
 - **Checks/limits:** Baseline hash, exact boundaries and validity/archetype/publication ordering assertions passed; whitespace and path checks performed before commit. No source changes, builds, tests, editor or runtime checks; full verification deferred. CR03 remains incomplete; next CR03-001b-29 begins stage two at 2260.
+
+
+### CR03-001b-29 - Mosquito encounter observation (2260-2288)
+
+- **Revision:** 4145b1b38bac4282daeeeb8b98f9fbf955929106; whole-file SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Subdivided remaining range before review.
+- **Evidence:** Read complete stage two and surrounding stage transition. Weak host/target references and status component are checked before use. Progress requires at least two accepted bites, ten net health loss and eight seconds of weak poison remaining. Bite baseline/time/stage are published before requesting the owner-client dodge; success returns immediately. Missing encounter progress fails after thirty seconds. Compared development setup MosquitoSwarmPeer contract and biome-enemies ten-second poison/contact design.
+- **Result:** No new confirmed actionable finding; RF01 remains queued. Aggregate health loss and current status are fixture observations, not per-hit attribution or proof of exact poison duration. Armor and other damage/healing can affect net health; peer privacy, dodge handling and subsequent counterplay remain outside this range.
+- **Checks/limits:** Baseline hash, exact boundaries, validity-before-use, acceptance predicate, publication ordering and bounded timeout assertions passed. No code changes, builds, tests, editor or runtime checks; full verification deferred. CR03 incomplete; next CR03-001b-30 begins counterplay at 2290.
