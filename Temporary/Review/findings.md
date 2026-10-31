@@ -421,3 +421,7 @@ Reviewed GameMode 5820-5854 against `docs/monster-spawning.md` S09/S15, both cal
 ## CR03-001b-76 - Species-habitat gate result and candidate filtering
 
 Reviewed GameMode 5856-5870 against `docs/monster-spawning.md` S13–S15, `docs/biome-enemies.md`, the shared species/habitat predicate, both callers and focused automation sources. No new confirmed actionable finding; every retained attempt receives the habitat result without replacing an earlier rejection, and candidates use the same predicate for filtering. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-76.
+
+## CR03-001b-77 - Seeded species derivation and hard-enemy start exclusion
+
+Reviewed GameMode 5872-5898 against S15, the species rules, mapping/classification helpers, all output-parameter callers, and focused hard-enemy start-exclusion assertions. No new confirmed actionable finding: the shared gate is authoritative and requires valid world/configuration, and the documented 150 m exclusion is applied to all six hard-enemy archetypes with an inclusive boundary. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-77.

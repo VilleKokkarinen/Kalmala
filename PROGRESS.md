@@ -25767,3 +25767,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The delegated predicate requires authority and valid world/configuration before deriving species and evaluating habitat; admission remains server-side.
 - Limitations: live biome/terrain sampling and configured-source admission were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-77, subdivide remaining GameMode starting at line 5872 before reviewing it.
+
+## Run 2026-10-31 - CR03 species derivation and start exclusion review
+
+- Reviewed `KalmalaGameMode.cpp:5872-5898` for CR03-001b-77 and split the remaining GameMode range into pending CR03-001b-78 beginning at line 5900. No new confirmed actionable finding. BACKLOG.md remains unchanged because CR03 review is still incomplete. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: two scheduled same-checkout attempts completed after detecting this active review and reported no repository, index, or commit changes; fresh ownership checks showed no other active Kalmala checkout before this increment. Main checkout `master` at `52f9b1be`; index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected the authority/world/configuration guards, species mapping and six hard-enemy classifications, optional output use at every call site, 2D generated-start distance, shared 15,000 cm policy helper and focused 14,999/15,000 cm, ordinary-wildlife and missing-start assertions. Cross-checked `docs/monster-spawning.md` S15 and `docs/biome-enemies.md`. Static source/document/test-source inspection only; automation was not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not the final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. Species/habitat evaluation requires server authority and a valid world/configuration; hard-enemy distance admission remains server-side.
+- Limitations: generated-start lifetime under external destruction and live biome/terrain/admission behavior were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-78, subdivide remaining GameMode starting at line 5900 before reviewing it.
