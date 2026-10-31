@@ -78,6 +78,13 @@
 - **Construction evidence:** Admission checks authority, available matching save, valid record/transform, overall count and station-attachment count. Persistence constructs a new record and candidate, routes attachment additions separately, revalidates and saves before publishing the candidate pointer. Inspected candidate-builder rejection and the crafting call site's server-generated actor/ID and direct-material exchange with failure rollback as context. This is no portable construction grant. Full transaction/cross-world misuse review remains assigned to construction and CR04.
 - **Result / checks / limits:** No new confirmed defect; RF01 remains open. Baseline hash, exact boundary, rejected-load return and save-before-publish assertions passed. No build, UBT, tests, editor, runtime save-failure injection or peer validation. Candidate/record/crafting internals read as context do not close their own batches.
 
+### CR03-001b-05 — Wall replacement and door persistence (lines 745–798)
+
+- **Reviewed revision:** `09e342f5`; whole-file SHA-256 `9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325` matches baseline including existing edits. Split the remaining range before review; next batch begins at PersistCharcoalKilnState, line 799.
+- **Evidence:** Read all three functions. Admission requires authority, valid same-world authoritative wall, exact saved ID/type/transform and matching world. Replacement modifies an isolated candidate, validates and writes before publishing and changing the live actor. Inspected the actor conversion: its only rejection guards are already satisfied by admission on this synchronous path. Door persistence rejects unchanged state and validates exact saved identity/transform through UpdateDoorOpenRecord before writing and publishing.
+- **Caller context:** Crafting pays direct materials and restores inventory on replacement failure. Door toggle checks usable range and occupied closing clearance before persistence and publishes replicated state after success. Compared with architecture's 8-Wood replacement, retained identity/transform and schema-7 open-state contract. These contextual reads do not close the construction/crafting or CR04 assignments.
+- **Result / checks / limits:** No new confirmed defect; RF01 remains open. Baseline hash, exact next boundary and save-before-publication checks passed. No code changed; no build, tests, editor, save-failure injection or peer validation. Full verification deferred; CR03 remains incomplete.
+
 ## Pre-existing local changes
 
 | Status | Path |
@@ -136,7 +143,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-02` | CR03 | `GameMode.cpp:399–519` | 1 partial | reviewed | Exposure/defaults; RF01 queued |
 | `CR03-001b-03` | CR03 | `GameMode.cpp:520–646` | 1 partial | reviewed | BeginPlay initialization |
 | `CR03-001b-04` | CR03 | `GameMode.cpp:647–744` | 1 partial | reviewed | Population load/fixture/construction persistence |
-| `CR03-001b-05` | CR03 | `GameMode.cpp:745–12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-05` | CR03 | `GameMode.cpp:745–798` | 1 partial | reviewed | Wall replacement and door persistence |
+| `CR03-001b-06` | CR03 | `GameMode.cpp:799–12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1273,7 +1281,7 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp` | CR16 | Tracked project file | `67e46e9bfc3fe0b782ec594db72c640b24bb5eefa6e753593d77dde9d3b8f4b8` | `CR16:CR16-020=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp` | CR13 | Tracked project file | `0fc80af73bd6ec748d3d62f4646d8ecb2c30fb72c0491269527019ee97da4c67` | `CR13:CR13-098=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.h` | CR13 | Tracked project file | `a3550567a6ca2fe544a96b6dfef9f5b1f5a1a954ac3d44f72763d64d5e4f5343` | `CR13:CR13-098=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
-| `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` | CR03 | Tracked project file | `9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325` | `CR03:CR03-001a=reviewed; CR03:CR03-001b-01=reviewed; CR03:CR03-001b-02=reviewed; CR03:CR03-001b-03=reviewed; CR03:CR03-001b-04=reviewed; CR03:CR03-001b-05=pending; CR04:CR04-010=pending` | partial — lines 1–744 reviewed; RF01; remaining GameMode and CR04 pending |
+| `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp` | CR03 | Tracked project file | `9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325` | `CR03:CR03-001a=reviewed; CR03:CR03-001b-01=reviewed; CR03:CR03-001b-02=reviewed; CR03:CR03-001b-03=reviewed; CR03:CR03-001b-04=reviewed; CR03:CR03-001b-05=reviewed; CR03:CR03-001b-06=pending; CR04:CR04-010=pending` | partial — lines 1–798 reviewed; RF01; remaining GameMode and CR04 pending |
 | `Source/KalmalaGameplay/Private/KalmalaGameplayModule.cpp` | CR03 | Tracked project file | `eaa39949aa8640a81ac711beee537f63f8e249cfb6be1783a19c2177c71d6cc3` | `CR03:CR03-001c=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGardenPlotVerification.cpp` | CR16 | Tracked project file | `c99c438c8adc0b1842b782943267706302bccd17cfde90731545fac8083fd2fb` | `CR16:CR16-020=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaGameplay/Private/KalmalaGemstoneNode.cpp` | CR06 | Tracked project file | `179f7989c2b517125680c239b6c13476ad1008350b7d1c477bf6448d35a732d2` | `CR06:CR06-001=pending; CR04:CR04-010=pending` | pending — assigned for review; all listed batches remain open |
