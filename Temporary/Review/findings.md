@@ -377,3 +377,7 @@ Reviewed GameMode 5187-5296. Confirmed additional test-coverage evidence for RF0
 ## CR03-001b-65 - Living player pawn source and deterministic ordering
 
 Reviewed GameMode 5298-5362 against the baseline-matching source and `docs/monster-spawning.md` S04. No new confirmed actionable finding; authority, eligibility filters, deterministic ordering, and pointer deduplication match the documented contract. Runtime lifecycle transitions were not exercised. Full verification deferred; see coverage.md CR03-001b-65.
+
+## CR03-001b-66 - Loaded population-key union geometry and ordering
+
+Reviewed GameMode 5364-5425 against `docs/monster-spawning.md` S05 and the focused automation source. No new confirmed actionable finding; the query returns the deterministic inclusive horizontal intersection of living-player radii with already active spatial keys and leaves activation state unchanged. The automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-66.
