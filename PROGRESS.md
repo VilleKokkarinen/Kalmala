@@ -25717,3 +25717,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The helper itself is server-only, and source search found no production caller or configured source actor/registry, so the path is currently dormant.
 - Limitations: no live scheduler caller, source content, due-time progression, candidate execution or actor creation was exercised. The future caller's ordinal progression remains an open integration question. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-72, subdivide remaining GameMode starting at line 5698 before reviewing it.
+
+## Run 2026-10-31 - CR03 horizontal population ring review
+
+- Reviewed `KalmalaGameMode.cpp:5698-5736` for CR03-001b-72 and split the remaining GameMode range into CR03-001b-73. No new confirmed actionable finding. BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: the scheduled same-checkout attempt completed without repository edits after reporting that this thread was reviewing the same batch. A fresh `list_threads` check then showed only this active Kalmala checkout. Main checkout `master` at `a4608cad`; index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected authority/world guards, finite spawn/player coordinates, horizontal distance math and inclusive 32–96 m bounds, valid same-world living-player filtering, selector use, and separate S09 all-player exclusion. Inspected S08/S09 docs and focused ring/distance automation assertions for endpoints, one-centimetre outside rejection, second-player exclusion, and exact 36 m. Static source/document inspection only; automation not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The ring predicate returns false without server authority or a valid world and evaluates horizontal distance to the supplied living players.
+- Limitations: live movement, player death/world transition, invalid location data, and runtime ring/exclusion interactions were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-73, subdivide remaining GameMode starting at line 5738 before reviewing it.
