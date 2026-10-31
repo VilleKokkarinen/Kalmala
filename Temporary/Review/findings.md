@@ -393,3 +393,7 @@ Reviewed GameMode 5469-5490 against `docs/monster-spawning.md` S06 and the caden
 ## CR03-001b-69 - Server-authoritative due-key service and cadence advance
 
 Reviewed GameMode 5492-5508 against `docs/monster-spawning.md` S06 and the cadence automation source. No new confirmed actionable finding; service requires an authoritative active key with an elapsed due time, then advances its due time by the five-second interval. The focused automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-69.
+
+## CR03-001b-70 - Server-authoritative bounded population scheduler wake and attempt gates
+
+Reviewed GameMode 5510-5575 against `docs/monster-spawning.md` S06/S07, scheduler tuning assertions, and the focused budget automation source. No new confirmed actionable finding; due work is re-based and bounded to four keys/sixteen candidates, serviced keys receive one ordinal, and only attempts surviving the ordered gates reach the server transaction. The focused automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-70.

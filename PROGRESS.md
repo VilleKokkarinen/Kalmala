@@ -25697,3 +25697,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The service helper requires server authority and only advances a due active key.
 - Limitations: live scheduler execution, runtime timing, and failure/retry behavior were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-70, subdivide remaining GameMode starting at line 5510 before reviewing it.
+
+## Run 2026-10-31 - CR03 bounded population scheduler wake review
+
+- Reviewed `KalmalaGameMode.cpp:5510-5575` for CR03-001b-70 and split the remaining GameMode range into CR03-001b-71. No new confirmed actionable finding; BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: the automation's concurrent attempt completed without repository edits after reporting an ownership conflict. A fresh `list_threads` check then showed only this active Kalmala checkout. Main checkout `master` at `86652c9d`; no handoff required and the index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected scheduler authority/world/time guards, quarter-second wake rebasing, due-key ordering, four-key/sixteen-candidate budget bounds, service and ordinal ordering, the ordered spawn-gate pipeline, Tick authority/configuration preconditions, tuning constants/static assertion, S06/S07 docs, and focused budget automation assertions. Static source/document inspection only; automation not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. Scheduler work is server-authoritative in both `Tick` and the wake helper, and only candidates passing all gates reach the spawn transaction.
+- Limitations: live server timing, player movement/stream transitions, descriptor results, gate behavior in world conditions, and actor creation were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-71, subdivide remaining GameMode starting at line 5577 before reviewing it.
