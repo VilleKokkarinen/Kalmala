@@ -191,7 +191,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-43` | CR03 | `GameMode.cpp:3262-3410` | 1 partial | reviewed | Lynx descriptor budget and approach selection |
 | `CR03-001b-44` | CR03 | `GameMode.cpp:3412-3516` | 1 partial | reviewed | Lynx staging and activation |
 | `CR03-001b-45` | CR03 | `GameMode.cpp:3518-3551` | 1 partial | reviewed | Lynx leap acceptance |
-| `CR03-001b-46` | CR03 | `GameMode.cpp:3553-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-46` | CR03 | `GameMode.cpp:3553-3626` | 1 partial | reviewed | Polar Bear gates and terrain helpers |
+| `CR03-001b-47` | CR03 | `GameMode.cpp:3628-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2187,3 +2188,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Stage two validates weak target before cue query, uses preceding host lifetime gate, independently latches telegraph/Lunge/recovery and requires positive net host damage. Success logs seed, cue evidence, damage and selected ID then terminates/returns. Eighteen-second timeout logs current cue/latches/damage and terminates. Read through Shipping/function closure and compared generated peer acceptance contract.
 - **Result/limits:** No new confirmed actionable finding; RF01 queued. Cue observations and aggregate host damage are not exact attack timing/order or per-hit attribution. This stage has no accepted-hit counter; unrelated damage could satisfy damage predicate in an uncontrolled world. Controlled fixture and independent client logs remain necessary; continued observer connectivity, replication, reward/restart and cleanup unverified. No other domain coverage closed.
 - **Checks:** Baseline hash, exact stage/function boundaries, target-before-access, success/timeout and terminal ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-46 begins Polar Bear fixture at 3553.
+
+### CR03-001b-46 - Polar Bear gates and terrain helpers (3553-3626)
+
+- **Revision:** aee121b3; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Non-Shipping command-line/authority/world/config/terminal guards inspected. Placement helper validates character, activates patches, samples height with capsule half-height plus one cm, teleports unswept, forces update and disables movement after stopping. Host/start and two player-state-bearing observers required, with ninety-second world-time failure exits. Dry predicate requires bounds, Tundra, no ocean/lake and normal Z at least .82. Candidate locations/flag initialized. Compared Polar Bear generated peer acceptance staging/approach contract.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Helper clearance does not prove collision-safe arrival; teleport result ignored. Observer pawn count assumes controlled topology. Later search, exclusion, temporary health reserve, activation and cleanup remain pending; predicate definition alone does not prove caller enforcement. No other domain coverage closed.
+- **Checks:** Baseline hash, exact helper/setup boundaries, validity-before-access, clearance arithmetic, peer timeouts and dry predicate inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-47 begins descriptor search at 3628.
