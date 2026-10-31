@@ -203,7 +203,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-55` | CR03 | `GameMode.cpp:4369-4464` | 1 partial | reviewed | Thunder Sentinel descriptor and lane selection |
 | `CR03-001b-56` | CR03 | `GameMode.cpp:4466-4580` | 1 partial | reviewed | Thunder Sentinel staging and activation |
 | `CR03-001b-57` | CR03 | `GameMode.cpp:4582-4628` | 1 partial | reviewed | Thunder Sentinel slam acceptance |
-| `CR03-001b-58` | CR03 | `GameMode.cpp:4630-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-58` | CR03 | `GameMode.cpp:4630-4710` | 1 partial | reviewed | Reef Maw gates and ocean helpers |
+| `CR03-001b-59` | CR03 | `GameMode.cpp:4711-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2283,3 +2284,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Weak target validated before cue access with preceding host guard. Telegraph/Lunge slam/recovery latched; during Lunge, nonpositive recorded step replaced by actual XY displacement from captured Sentinel start. Success requires net host damage 300 within one, step inclusive 80-120.5 cm, all cues and remaining host health above one. Logs evidence then terminates/returns; eighteen-second timeout logs state and terminates. Read Shipping/function closure and compared setup damage/short-step acceptance.
 - **Result/limits:** No new confirmed actionable finding; RF01 queued. Step captures first positive sampled displacement, not maximum trajectory or explicit direction. Recovery presence does not measure its documented 1.2-second duration. Net damage is aggregate, not per-hit attribution. Continued observers, client cue receipt, reserve restoration and cleanup remain unverified; no other domain coverage closed.
 - **Checks:** Baseline hash, boundaries, target-before-access, first-positive step condition, damage tolerance/inclusive step bounds, health gate and terminal ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-58 starts Reef Maw fixture at 4630.
+
+### CR03-001b-58 - Reef Maw gates and ocean helpers (4630-4710)
+
+- **Revision:** b4ea9cc7; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Non-Shipping command-line/authority/world/config/terminal gates. Ocean predicate requires bounds, ocean water and Reef Maw habitat contract with biome/lake/depth inputs. Path checks endpoints and at-most-80-cm samples with minimum one denominator. Swimming helper validates character, activates terrain, teleports to capsule half-height plus eight, forces update, requires custom movement component, stops movement and selects generated-ocean swimming mode; returns mode query. Host/start and two player-state observer pawns required with ninety-second failure exits; search initialized. Compared generated Ocean peer contract.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Placement can mutate position before movement-component failure and ignores teleport result. Mode query does not independently prove depth, unattached state or collision safety; helper callers remain pending. Sampled path is not continuous navigation evidence. Observer topology, activation, reserve and cleanup unverified; no other domain coverage closed.
+- **Checks:** Baseline hash, boundaries, validity/component gates, path denominator/sample bounds, movement mode return and peer timeouts inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-59 begins search at 4711.

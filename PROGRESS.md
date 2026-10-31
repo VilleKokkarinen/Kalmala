@@ -25582,3 +25582,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 4628; gameplay/save/server authority unchanged. Step trajectory, recovery duration, damage attribution, replication, restoration and cleanup unverified.
 - Next: CR03-001b-58, Reef Maw fixture from 4630. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Reef Maw setup review
+
+- Reviewed GameMode 4630-4710; updated coverage/findings and PROGRESS only. No new confirmed finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, boundaries, authority/validity/component gates, ocean/path samples and denominator, swimming mode return and peer timeouts inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 4710; gameplay/save/server authority unchanged. Partial placement mutation, collision, actual depth/attachment, topology and cleanup unverified.
+- Next: CR03-001b-59, descriptor search from 4711. RF01 queued behind CR19.

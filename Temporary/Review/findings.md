@@ -333,3 +333,7 @@ Reviewed GameMode 4466-4580 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-57 - Thunder Sentinel slam acceptance
 
 Reviewed GameMode 4582-4628 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Lifetime/cue gates, sampled step, damage tolerance, health and terminal timeout inspected. Step trajectory, recovery duration, per-hit attribution, replication, restoration and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-57.
+
+## CR03-001b-58 - Reef Maw gates and ocean helpers
+
+Reviewed GameMode 4630-4710 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, ocean habitat/path predicate, swimming helper/component/mode and peer timeouts inspected. Partial placement mutation, teleport/collision, actual depth/attachment, topology and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-58.
