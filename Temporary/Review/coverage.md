@@ -232,7 +232,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-84` | CR03 | `GameMode.cpp:6772-6895` | 1 partial | reviewed | Population time gate and live-creature registry |
 | `CR03-001b-85` | CR03 | `GameMode.cpp:6896-7047` | 1 partial | reviewed | Population area-cap counting and admission |
 | `CR03-001b-86` | CR03 | `GameMode.cpp:7048-7198` | 1 partial | reviewed | Population time, weather, progression, and cap gates |
-| `CR03-001b-87` | CR03 | `GameMode.cpp:7199-7422` | 1 partial | pending | Physical-placement dispatch, unload/reactivation, and source caps |
+| `CR03-001b-87` | CR03 | `GameMode.cpp:7199-7422` | 1 partial | reviewed | Physical-placement dispatch, unload/reactivation, and source caps |
 | `CR03-001b-88` | CR03 | `GameMode.cpp:7423-7631` | 1 partial | pending | Natural population spawn transaction |
 | `CR03-001b-89` | CR03 | `GameMode.cpp:7632-7819` | 1 partial | pending | Population progression/cap admission and reservations |
 | `CR03-001b-90` | CR03 | `GameMode.cpp:7820-7931` | 1 partial | pending | GameMode tick and population scheduler service |

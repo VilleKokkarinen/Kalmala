@@ -537,3 +537,31 @@ Reviewed GameMode 6896-7047 against S11/S19, area-cap and Wolf-reservation autom
 ## CR03-001b-86 - Population time, weather, progression, and cap gates
 
 Reviewed GameMode 7048-7198 against S13/S16-S19 and the configured-source S27-S29 policy. All 17 current archetypes pass the intentionally unrestricted time, weather and progression policies; unknown archetypes fail closed. Natural and configured-source paths apply gates in order, and shared/source-local cap checks include pending reservations and whole-pack Wolf capacity. Focused evaluator, cap and configured-admission tests cover the relevant policies and rejection behavior. No production defect or distinct test gap was found. Static inspection only; full verification deferred.
+
+## CR03-001b-87 - Physical-placement dispatch, unload/reactivation, and source caps
+
+Reviewed GameMode 7199-7422 against S10/S26 and S27-S29. Physical-placement dispatch preserves rejection order and filters failed candidates. Unload and reactivation match the inclusive 96 m player radius and session-only 30 s cooldown contract; source-local cap sampling combines mapped live actors and pending reservations and applies the inclusive 24 m limit. No production defect found. Confirmed RF10 (P3): lifecycle coverage uses one player and does not verify unload composition with multiple living players. Confirmed RF11 (P3): source-cap policy and reservation tests do not exercise the successful source-owned live-actor mapping path. Static inspection only; full verification deferred.
+
+## RF10 - Population unload lacks multiple-player composition coverage (P3)
+
+- **Source review:** CR03-001b-87.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:7232-7305`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp:56-112`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLivingPlayersTest.cpp:88-98`.
+- **Trigger:** A regression unloads a roaming actor while at least one other living player remains within its inclusive 96 m horizontal radius, despite the existing one-player boundary and living-player selection tests passing.
+- **Evidence:** `UpdatePopulationCreatureUnloads` retains the actor when any valid same-world authoritative living player is within range. `KalmalaPopulationCreationLifecycleTest` verifies exact-radius retention, 1 cm outside unload, cooldown and reload with one player. `KalmalaPopulationLivingPlayersTest` verifies that two living players are returned but does not pass them through the unload behavior. No production defect was found.
+- **Impact:** A regression in the multi-player composition could unload a creature still within one player's neighborhood. Current implementation correctly checks all supplied players.
+- **Proposed repair:** Extend `Kalmala.Gameplay.Population.CreationLifecycle` with two living players, one near and one far, and verify the actor stays loaded; then move both outside and verify unload and cooldown behavior.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** The focused automation proves the actor remains loaded when any living player is at or within 96 m, and unloads only after all living players move outside.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.CreationLifecycle` after an Editor build.
+
+## RF11 - Source-owned live actors lack local-cap adapter coverage (P3)
+
+- **Source review:** CR03-001b-87.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:7348-7419`, `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerPolicyTest.cpp:45-91`, and `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerAdmissionTest.cpp:145-212`.
+- **Trigger:** A regression omits or assigns a live actor to the wrong environmental source in `EnvironmentalSpawnerSourceIdBySpawnId` or `GetEnvironmentalSpawnerLivingSamples`, while synthetic-sample policy checks and pending-reservation admission checks continue to pass.
+- **Evidence:** The sampler joins living registry actors through their registered source IDs and appends matching pending reservations before applying S29's local cap. Policy tests exercise synthetic same-source, other-source, dead, outside-radius and invalid samples; admission tests exercise pending reservations and rejection behavior, but no test creates a configured-source actor successfully and verifies that the resulting live actor is sampled for later admission. No production defect was found. Two stable source slots and shared/pending caps bound the untested path.
+- **Impact:** If live ownership sampling regresses, a same-source actor can be omitted or misattributed and the local cap can make the wrong admission decision. Current code and source limits show no defect.
+- **Proposed repair:** Extend `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` through successful configured-source actor creation, then assert a later same-source candidate within the inclusive 24 m radius counts that actor while an actor from another source is excluded.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** The focused test covers successful live source registration, same-source local counting, other-source exclusion and existing pending-reservation semantics.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` after an Editor build.

@@ -248,6 +248,42 @@
     Focused validation: run `Kalmala.Gameplay.Population.LiveCreatureRegistry`
     after an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf09--lazy-live-creature-registry-pruning-lacks-focused-coverage-p3`.
+  - [ ] **RF10 — Verify population unload against every living player (P3; CR03-001b-87).**
+    Affected: `KalmalaGameMode.cpp:7232-7305`,
+    `KalmalaPopulationCreationLifecycleTest.cpp:56-112`, and
+    `KalmalaPopulationLivingPlayersTest.cpp:88-98`. The unload path correctly
+    retains an actor when any valid living player is within the inclusive 96 m
+    radius, but the lifecycle test exercises only one player. The separate
+    living-player test confirms two players are collected but never composes
+    that list with unload behavior. Trigger: a regression unloads an actor while
+    another living player remains nearby, despite single-player radius and
+    player-selection tests passing. No production defect was found. After CR19,
+    extend the lifecycle automation with two living players, one near and one
+    far, then move both outside and verify unload/cooldown behavior. Acceptance:
+    the actor stays loaded when at least one living player is on or within 96 m
+    and unloads only after every living player is outside. Focused validation:
+    run `Kalmala.Gameplay.Population.CreationLifecycle` after an Editor build.
+    Evidence and repair:
+    `Temporary/Review/findings.md#rf10--population-unload-lacks-multiple-player-composition-coverage-p3`.
+  - [ ] **RF11 — Cover source-owned live actors in the local cap path (P3; CR03-001b-87).**
+    Affected: `KalmalaGameMode.cpp:7348-7419`,
+    `KalmalaEnvironmentalSpawnerPolicyTest.cpp:45-91`, and
+    `KalmalaEnvironmentalSpawnerAdmissionTest.cpp:145-212`. The source-sample
+    adapter joins live registry actors to their configured source IDs and
+    combines them with pending reservations, but tests cover synthetic policy
+    samples and pending reservations only; none exercises a successfully
+    created source-owned actor through that adapter. Trigger: a regression
+    omits or misattributes a live actor in the sampler while synthetic policy
+    and pending-reservation tests still pass. The two stable slots bound current
+    exposure; no production defect was found. After CR19, add a narrow configured
+    admission regression that successfully creates one source-owned actor and
+    proves a second same-source candidate within the inclusive 24 m radius sees
+    that actor, while another source's actor is excluded. Acceptance: successful
+    source registration, same-source local counting, other-source exclusion and
+    existing pending-reservation behavior are covered. Focused validation: run
+    `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` after an Editor
+    build. Evidence and repair:
+    `Temporary/Review/findings.md#rf11--source-owned-live-actors-lack-local-cap-adapter-coverage-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
