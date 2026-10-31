@@ -175,7 +175,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-27` | CR03 | `GameMode.cpp:2088-2211` | 1 partial | reviewed | Mosquito fixture setup and descriptor selection |
 | `CR03-001b-28` | CR03 | `GameMode.cpp:2213-2258` | 1 partial | reviewed | Mosquito fixture activation |
 | `CR03-001b-29` | CR03 | `GameMode.cpp:2260-2288` | 1 partial | reviewed | Mosquito encounter observation |
-| `CR03-001b-30` | CR03 | `GameMode.cpp:2290-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-30` | CR03 | `GameMode.cpp:2290-2339` | 1 partial | reviewed | Mosquito dodge request sequencing |
+| `CR03-001b-31` | CR03 | `GameMode.cpp:2341-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2061,3 +2062,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read complete stage two and surrounding stage transition. Weak host/target references and status component are checked before use. Progress requires at least two accepted bites, ten net health loss and eight seconds of weak poison remaining. Bite baseline/time/stage are published before requesting the owner-client dodge; success returns immediately. Missing encounter progress fails after thirty seconds. Compared development setup MosquitoSwarmPeer contract and biome-enemies ten-second poison/contact design.
 - **Result:** No new confirmed actionable finding; RF01 remains queued. Aggregate health loss and current status are fixture observations, not per-hit attribution or proof of exact poison duration. Armor and other damage/healing can affect net health; peer privacy, dodge handling and subsequent counterplay remain outside this range.
 - **Checks/limits:** Baseline hash, exact boundaries, validity-before-use, acceptance predicate, publication ordering and bounded timeout assertions passed. No code changes, builds, tests, editor or runtime checks; full verification deferred. CR03 incomplete; next CR03-001b-30 begins counterplay at 2290.
+
+### CR03-001b-30 - Mosquito dodge request sequencing (2290-2339)
+
+- **Revision:** f130745412c91c7b6f48ca8fd73bca05faea0b7f; whole-file SHA-256 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Read counterplay lifetime guards, captured bite comparison helper and complete stages three/four. Missing host/target terminates before access. Stage three waits for exactly one accepted request, asks owning client for retry, then publishes stage four; rejection or ten-second timeout fails. Stage four rejects any changed bite count before accepting exactly one rejected retry, otherwise fails after ten seconds. Inspected command-line/local-control client helper and server stamina/ground/cooldown gates and counters as context only; compared setup MosquitoSwarmPeer and biome-enemies roll contract.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Rejected count records any rejection reason, not independently cooldown; scheduling/latency and actual contact suppression need runtime acceptance. Stage five verifies totals separately and remains pending. No additional domain coverage closed.
+- **Checks:** Baseline hash, exact boundaries and source inspection passed. No code changes, builds, tests, editor or runtime checks; full verification deferred. CR03 incomplete; next CR03-001b-31 starts at 2341.
