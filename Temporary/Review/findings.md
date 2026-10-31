@@ -193,3 +193,8 @@ Reviewed GameMode 1788-1908 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-23 - Post-combat defeat and owner claim lookup
 
 Reviewed GameMode 1910-1970 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Accepted-serial gate, Rat natural defeat requirement, bounded fixture damage and authenticated owner claim lookup inspected. Direct defeat fallback is reward fixture setup, not natural lethality evidence. Full verification deferred; see coverage.md CR03-001b-23.
+
+
+## CR03-001b-24 - Full-pack escrow predicates
+
+Reviewed GameMode 1971-2026 with baseline-matching bytes. No new confirmed actionable finding; RF01 remains queued. Inspected full-capacity, zero-reward, owner-claim and other-peer predicates plus terminal failure. Server observations do not prove replication privacy, unique claim count or durable storage. Full verification deferred; see coverage.md CR03-001b-24.

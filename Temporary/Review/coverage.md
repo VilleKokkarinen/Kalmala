@@ -169,7 +169,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-21` | CR03 | `GameMode.cpp:1725-1786` | 1 partial | reviewed | Encounter pressure and attack sequencing |
 | `CR03-001b-22` | CR03 | `GameMode.cpp:1788-1908` | 1 partial | reviewed | Pending-reward retry observation |
 | `CR03-001b-23` | CR03 | `GameMode.cpp:1910-1970` | 1 partial | reviewed | Post-combat defeat and owner claim lookup |
-| `CR03-001b-24` | CR03 | `GameMode.cpp:1971-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-24` | CR03 | `GameMode.cpp:1971-2026` | 1 partial | reviewed | Full-pack escrow predicates |
+| `CR03-001b-25` | CR03 | `GameMode.cpp:2028-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2012,3 +2013,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Stage-two completion waits for expected request count and Idle. Viper/Giant Snake additionally require exactly four accepted action serials. Rat must already be defeated by its single combat hit or terminates stage 99. Other pending-reward scenarios explicitly use fixture-only completion: relocate to 150 cm, attempt at most four 100-Crush server hits, then request direct defeat if necessary. Claim lookup requires both scenario-specific spawn claim ID and authenticated attacker identity, with null-save fallback.
 - **Context/result:** Inspected wildlife damage authority/world/range gates, validated-attacker assignment and defeat reward ownership calls. Direct fallback preserves last validated attacker rather than proving each requested attack hit; subsequent escrow predicates remain pending. No new confirmed actionable finding; RF01 remains queued. Context does not close wildlife or CR04 coverage.
 - **Checks/limits:** Baseline hash, exact boundaries, serial gate, bounded damage loop and owner-match assertions passed. This controlled reward setup is not proof of natural combat lethality, persisted claim durability or client privacy. No build, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete.
+
+
+### CR03-001b-24 - Full-pack escrow predicates (1971-2026)
+
+- **Revision:** 555dd5954503da86f668da806e20bc3816867e08; whole-file SHA-256 matches baseline including preserved local edits. Subdivided remaining range before recording review.
+- **Evidence:** Read inventory collection, other-peer enumeration, complete escrow conjunction and failure branch. Player-state-bearing characters excluding attacker contribute reward quantities; missing inventory uses a nonzero sentinel. Acceptance requires defeated target, preceding authenticated-owner claim lookup, both principal inventories, exact full capacity adjusted for packed tools and zero quantities of all six relevant rewards on attacker and remote. Two-item scenarios additionally require at least two other peers with zero four relevant reward quantities. Rejection logs and terminates stage 99 before freeing inventory cells.
+- **Context/result:** Compared architecture all-or-none retry and authenticated-owner escrow contract; inspected adjacent claim lookup and later cell-freeing transition as context only. No new confirmed actionable finding; RF01 remains queued. These server inventory observations do not prove client replication privacy, exact claim multiplicity or disk durability. Controlled clean peer inventories remain a fixture assumption.
+- **Checks/limits:** Baseline hash, exact boundaries, peer exclusion, missing-inventory sentinel and terminal failure source assertions passed. No code changes, build, UBT, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete; next CR03-001b-25 begins cell freeing at 2028.
