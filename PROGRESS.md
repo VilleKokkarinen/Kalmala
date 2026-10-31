@@ -25155,3 +25155,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, UBT, tests, editor or runtime validation; not milestone-final acceptance.
 - Impact/authority: Review coverage reaches line 1222; no gameplay, save or server-authority changes.
 - Limits/next: Controlled fixture lifetime/timing not runtime verified. RF01 remains queued behind CR19. Next CR03-001b-12: subdivide/review combat fixture from line 1224.
+
+
+## Run 2026-10-31T06:53:14.026537+00:00 — CR03-001b-12 combat fixture setup review
+
+- Reviewed GameMode lines 1224-1332. Updated coverage/findings ledgers and PROGRESS only; CR03 remains unchecked. No new confirmed finding; RF01 remains queued. Reconciled stale rain summary with existing evidence.
+- Only this chat active in app inventory; main checkout/master, empty index. Preserved 22 pre-existing modified paths; no handoff needed.
+- Baseline SHA-256, exact boundaries and Shipping gate assertions passed; inspected tick/runner context. Whitespace, staged scope and MAX_PATH checks performed before commit. Corrected a Python text-encoding error while writing review records; no source files affected.
+- Full verification deferred: no build, UBT, tests, editor or runtime acceptance. Not milestone-final verification.
+- Impact/authority: review coverage reaches line 1332; no gameplay, save or server authority changes.
+- Limits/next: later stages, runtime timing and disconnect behavior unverified. Next CR03-001b-13: subdivide descriptor search from line 1333.
