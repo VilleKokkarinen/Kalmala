@@ -385,3 +385,7 @@ Reviewed GameMode 5364-5425 against `docs/monster-spawning.md` S05 and the focus
 ## CR03-001b-67 - Per-key cadence initialization and inactive scheduler-state cleanup
 
 Reviewed GameMode 5427-5467 against `docs/monster-spawning.md` S06 and the cadence automation source. No new confirmed actionable finding; authority guards, stable per-key initial phases, and removal of inactive due/cursor/ordinal state match the documented cadence. The focused automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-67.
+
+## CR03-001b-68 - Due population-key filtering and deterministic ordering
+
+Reviewed GameMode 5469-5490 against `docs/monster-spawning.md` S06 and the cadence automation source. No new confirmed actionable finding; due-key eligibility is based on active scheduler membership and elapsed due time, and results are lexicographically ordered independently of TSet iteration. The focused automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-68.

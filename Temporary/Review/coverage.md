@@ -213,7 +213,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-65` | CR03 | `GameMode.cpp:5298-5362` | 1 partial | reviewed | Living player pawn source and deterministic ordering |
 | `CR03-001b-66` | CR03 | `GameMode.cpp:5364-5425` | 1 partial | reviewed | Loaded population-key union geometry and ordering |
 | `CR03-001b-67` | CR03 | `GameMode.cpp:5427-5467` | 1 partial | reviewed | Per-key cadence initialization and inactive scheduler-state cleanup |
-| `CR03-001b-68` | CR03 | `GameMode.cpp:5469-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-68` | CR03 | `GameMode.cpp:5469-5490` | 1 partial | reviewed | Due population-key filtering and deterministic ordering |
+| `CR03-001b-69` | CR03 | `GameMode.cpp:5492-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2359,7 +2360,14 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 
 ### CR03-001b-67 - Per-key cadence initialization and inactive scheduler-state cleanup (5427-5467)
 
-- **Revision:** `fc830400` source baseline; the reviewed range is unchanged in the worktree. The existing local edit at `GameMode.cpp:9671` is outside this range and was preserved.
+- **Revision:** `fc830400` source baseline; the reviewed range is unchanged in the worktree. The existing local edit at `GameMode.cpp:9674` is outside this range and was preserved.
 - **Evidence:** `UpdatePopulationKeySchedule` returns unless the GameMode has authority, its world and generation config are valid, and `NowSeconds` is finite. It builds the current candidate-key set from S05, removes inactive scheduler keys and their due-time, candidate-cursor, and serviced-ordinal state, then activates each current candidate. A key without a due-time entry receives a stable wildlife-seed phase modulo 20 at 0.25 seconds per phase. The tuning assertion confirms 20 phases partition the five-second check interval. `Tick` updates this schedule before constructing the bounded wake. Compared with `docs/monster-spawning.md` S06 and the cadence automation source.
 - **Result/limits:** No new confirmed actionable finding. Authority filtering, inactive-state cleanup, and fresh deterministic phases on reactivation match the S06 contract. Live movement/stream transitions, scheduling under runtime stalls, and actual cadence timing were not exercised.
 - **Checks:** Inspected the exact function boundaries and local diff scope, tick call order, phase constants/static assertion, and cadence-test assertions for initial phases, due ordering, service advance, deactivation, and reactivation. Static source/document review only; the automation was not run. No build, tests, editor, or runtime checks. Full verification deferred; CR03 remains incomplete. Next CR03-001b-68 begins at GameMode.cpp:5469.
+
+### CR03-001b-68 - Due population-key filtering and deterministic ordering (5469-5490)
+
+- **Revision:** `fc830400` source baseline; the reviewed range is unchanged in the worktree. The existing local edit at `GameMode.cpp:9674` is outside this range and was preserved.
+- **Evidence:** `GetDuePopulationSpatialKeys` returns an empty list unless the GameMode has authority, a valid world, and a finite current time. It iterates only `ActivePopulationSchedulerKeys`, includes a key only when a due-time entry exists and is at or before `NowSeconds`, then sorts by X and Y so the TSet's iteration order does not affect service order. The query is const and does not advance or remove scheduling state. Compared with `docs/monster-spawning.md` S06 and the cadence automation source.
+- **Result/limits:** No new confirmed actionable finding. Active-key eligibility, due-time comparison, and lexicographic order match S06. Runtime stalls and actual server cadence were not exercised.
+- **Checks:** Inspected function boundaries, authority/world/time guards, due-entry lookup and comparison, sorting comparator, sole scheduler caller and its preceding schedule update, and cadence-test assertions for early/independent due keys, stable overdue ordering, and no catch-up retries. Static source/document review only; the automation was not run. No build, tests, editor, or runtime checks. Full verification deferred; CR03 remains incomplete. Next CR03-001b-69 begins at GameMode.cpp:5492.

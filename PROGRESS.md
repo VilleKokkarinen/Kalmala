@@ -25671,9 +25671,19 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 ## Run 2026-10-31 - CR03 per-key population cadence review
 
 - Reviewed GameMode.cpp 5427-5467 for CR03-001b-67 and split the remaining range into CR03-001b-68. No new confirmed actionable finding; BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
-- Ownership: `list_threads` showed only this active Kalmala checkout; other listed worktrees use distinct checkouts. Main checkout `master` at `9f8142e9`, no handoff required, and the index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree change is confined to line 9671, outside the reviewed range.
+- Ownership: `list_threads` showed only this active Kalmala checkout; other listed worktrees use distinct checkouts. Main checkout `master` at `9f8142e9`, no handoff required, and the index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree change is confined to line 9674, outside the reviewed range.
 - Checks: Inspected authority/world/config/time guards, candidate membership, inactive-key cleanup for due times/cursors/ordinals, deterministic wildlife-seed phase initialization, phase/check-interval static assertion, and Tick call order. Cross-checked `docs/monster-spawning.md` S06 and the focused cadence automation source; it was inspected but not run. Static review only; no builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
 - Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The scheduler update is server-authoritative through its `HasAuthority` guard; it removes inactive scheduling metadata and initializes deterministic due times for candidate keys.
 - Limitations: live movement/stream transitions, runtime stalls, and actual scheduler timing were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-68, subdivide remaining GameMode starting at line 5469 before reviewing it.
+
+## Run 2026-10-31 - CR03 due population-key ordering review
+
+- Reviewed GameMode.cpp 5469-5490 for CR03-001b-68 and split the remaining range into CR03-001b-69. No new confirmed actionable finding; BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only. Corrected the prior run's source-diff note to identify the actual changed line 9674 rather than the hunk start.
+- Ownership: `list_threads` showed only this active Kalmala checkout; other listed worktrees use distinct checkouts. Main checkout `master` at `e6e7e0e3`, no handoff required, and the index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree change at line 9674 is outside this review range.
+- Checks: Inspected authority/world/finite-time guards, active-key membership, due-time entry and comparison, deterministic X/Y sort, caller order, and focused cadence-test source assertions. Cross-checked `docs/monster-spawning.md` S06. Static review only; the automation was inspected but not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The due-key query is server-authoritative, read-only, and returns stable order for the bounded scheduler.
+- Limitations: live authority behavior, runtime timing, and hitch behavior were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-69, subdivide remaining GameMode starting at line 5492 before reviewing it.
