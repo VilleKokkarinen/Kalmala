@@ -150,6 +150,18 @@
     Focused validation: run `Kalmala.Gameplay.Population.LandSurface` after an
     Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf03--wolf-land-surface-test-omits-one-required-pack-location-p3`.
+  - [ ] **RF04 - Exercise Reef Maw aquatic footprint validation (P3; CR03-001b-79).**
+    KalmalaGameMode.cpp:6010-6102 validates the center and sampled sphere
+    footprint. The dedicated test covers helper geometry, but its only
+    descriptor-level call uses an out-of-bounds input at
+    KalmalaPopulationAquaticSurfaceTest.cpp:99-102; it never reaches the
+    sampling loop. No present spawn defect was observed. After CR19, add
+    deterministic valid Reef Maw descriptors that exercise accepted full-water
+    placement and rejection when an individual footprint sample fails.
+    Acceptance: the focused automation proves both results through the
+    descriptor-level predicate. Focused validation: run
+    Kalmala.Gameplay.Population.AquaticSurface after an Editor build. Evidence
+    and repair: Temporary/Review/findings.md#rf04--reef-maw-whole-body-surface-loop-lacks-descriptor-path-test-p3.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

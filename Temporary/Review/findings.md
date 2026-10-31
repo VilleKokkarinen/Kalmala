@@ -441,3 +441,15 @@ Reviewed GameMode 5900-6008 against S20/S22c, the three-member Wolf contract, fi
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** The land-surface automation verifies all four contributions and rejects the pack when any one member's surface fails through the pack placement path.
 - **Focused validation:** Run `Kalmala.Gameplay.Population.LandSurface` after an Editor build.
+
+## RF04 - Reef Maw whole-body surface loop lacks descriptor-path test (P3)
+
+- **Source review:** CR03-001b-79.
+- **Affected files:** Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6010-6101, Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAquaticSurfaceTest.cpp:93-102, and Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp:24-49.
+- **Trigger:** A regression omits or misclassifies a center/footprint sample in DoesPopulationDescriptorPassAquaticSurface while its isolated sphere-geometry helper remains correct.
+- **Evidence:** Production loops over the sampled Reef Maw sphere footprint and combines the center swimming check with per-sample Ocean and terrain-clearance checks. The aquatic test directly covers the geometry helper, but its only descriptor-level call uses an out-of-bounds position, so it returns before species evaluation and the footprint loop. The combined physical-placement test uses a NaN descriptor and likewise does not exercise valid aquatic placement. No test currently calls the descriptor-level predicate with valid in-bounds generated Ocean data.
+- **Impact:** Focused automation can pass if Reef Maw full-body water placement stops rejecting an invalid center or footprint sample; an unsuitable natural spawn could then be admitted.
+- **Proposed repair:** Add deterministic valid Reef Maw descriptors that pass the full-body check, plus cases where the center or a footprint sample fails its Ocean, depth or terrain requirement. Exercise the descriptor-level predicate or final placement composition while retaining direct helper math coverage.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** Kalmala.Gameplay.Population.AquaticSurface covers valid descriptor-level admission and rejects a failing center and footprint sample through the full policy path.
+- **Focused validation:** Run Kalmala.Gameplay.Population.AquaticSurface after an Editor build.

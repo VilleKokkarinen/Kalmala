@@ -25787,3 +25787,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence and a queued test improvement only; gameplay behavior is unchanged. The placement surface gate requires server authority and runs as part of server-side admission.
 - Limitations: actual generated terrain, water sampling, Wolf placement and runtime automation were not exercised. RF01–RF03 remain queued behind CR19.
 - Next eligible task: CR03-001b-79, subdivide remaining GameMode starting at line 6010 before reviewing it.
+
+## Run 2026-10-31 - CR03 Reef Maw aquatic surface review
+
+- Reviewed KalmalaGameMode.cpp:6010-6102 for CR03-001b-79, recorded the bounded result in Temporary/Review/coverage.md, and split the remaining GameMode coverage into pending CR03-001b-80 (6103-6240) and CR03-001b-81 (6241-12053, to be subdivided before review). Confirmed RF04, a P3 test-coverage gap; current production checks the center and full sampled Reef Maw body footprint. Queued RF04 under the CR19 dependency. Changed BACKLOG.md, PROGRESS.md, Temporary/Review/coverage.md, and Temporary/Review/findings.md only.
+- Ownership: two scheduled same-checkout attempts detected this active turn and stopped without repository, index or commit changes. A fresh check showed this turn as the only active Kalmala run, HEAD 1b92c758, and an empty index. Preserved the 22 pre-existing modified paths, including the existing BACKLOG.md deletions and the GameMode.cpp edit at line 9674 outside the reviewed range.
+- Checks: Inspected the authority/world/configuration and bounds guards, species classification, 25 cm maximum grid step, center navigation, per-sample Ocean/lake/terrain checks, body-fit geometry, final placement caller, focused aquatic and physical-placement automation sources, S21/S22c/S25 and Reef Maw Ocean rules. Static source/document/test-source inspection only; automation was not run. No builds, tests, editor or runtime checks. git diff --check, staged-scope inspection and Windows path-length checks are recorded after commit preparation.
+- Full verification deferred: CR03 remains incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence and queued test improvement only; gameplay behavior is unchanged. The aquatic predicate requires server authority and feeds server-side placement admission.
+- Limitations: generated Ocean sampling, valid descriptor-level admission/rejection and runtime automation were not exercised. RF01-RF04 remain queued behind CR19.
+- Next eligible task: CR03-001b-80, review GameMode.cpp:6103-6240 (wildlife body and roof clearance).
