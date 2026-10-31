@@ -309,3 +309,7 @@ Reviewed GameMode 3929-4020 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-51 - Horned Goat descriptor and lane selection
 
 Reviewed GameMode 4021-4116 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Mountain key/budget, archetype/exclusion/defeat/count filters, bounded lane search and failure gates inspected. Sampled terrain versus exact contact/collision safety, activation parity, push and replication remain limitations. Full verification deferred; see coverage.md CR03-001b-51.
+
+## CR03-001b-52 - Horned Goat staging and activation
+
+Reviewed GameMode 4118-4220 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Fixture health/resets, actor lifetime/profile, contact baseline, bounded dry observers and publication inspected. Actual reach/collision, Armor application, visibility/replication, restoration and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-52.
