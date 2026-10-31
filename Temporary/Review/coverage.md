@@ -168,7 +168,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-20` | CR03 | `GameMode.cpp:1702-1723` | 1 partial | reviewed | Target placement helper |
 | `CR03-001b-21` | CR03 | `GameMode.cpp:1725-1786` | 1 partial | reviewed | Encounter pressure and attack sequencing |
 | `CR03-001b-22` | CR03 | `GameMode.cpp:1788-1908` | 1 partial | reviewed | Pending-reward retry observation |
-| `CR03-001b-23` | CR03 | `GameMode.cpp:1910-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-23` | CR03 | `GameMode.cpp:1910-1970` | 1 partial | reviewed | Post-combat defeat and owner claim lookup |
+| `CR03-001b-24` | CR03 | `GameMode.cpp:1971-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2003,3 +2004,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read the complete stage-three block. Claim lookup uses the scenario-derived persistent spawn claim ID, with a null-save fallback. Inventory reads are null guarded; reward acceptance requires both principal inventories, exact expected attacker quantities, zero relevant remote quantities, defeated actor and saved defeated ID, and absence of the pending claim. Rat/Viper/Giant Snake additionally enumerate player-state-bearing peers excluding the attacker and require at least two others with zero relevant rewards. Success and twenty-second timeout both terminate the fixture; otherwise it returns and waits for the production retry path.
 - **Context/result:** Compared architecture owner-bound deferred reward contract and setup SharedCombat selection guidance; earlier actor lifetime guards apply in this invocation. No new confirmed actionable finding; RF01 remains queued. Server inspection of remote contents establishes allocation only, not client replication privacy. Saved=1 tests the in-memory save object here, not disk durability or restart acceptance. Other species branches check the principal remote only. These limitations need later runner/persistence review; contextual reads do not close CR04 or other assignments.
 - **Checks/limits:** Baseline hash, exact range boundaries, peer exclusion, success conjunction and terminal timeout assertions passed. No code changes, build, UBT, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete. Next CR03-001b-23 begins stage-two completion at 1910.
+
+
+### CR03-001b-23 - Post-combat defeat and owner claim lookup (1910-1970)
+
+- **Revision:** f3f02431322b11faee43fa2243ee53ac1154451c; GameMode SHA-256 matches baseline including preserved edits. Subdivided remaining range before recording review; next begins 1971.
+- **Evidence:** Stage-two completion waits for expected request count and Idle. Viper/Giant Snake additionally require exactly four accepted action serials. Rat must already be defeated by its single combat hit or terminates stage 99. Other pending-reward scenarios explicitly use fixture-only completion: relocate to 150 cm, attempt at most four 100-Crush server hits, then request direct defeat if necessary. Claim lookup requires both scenario-specific spawn claim ID and authenticated attacker identity, with null-save fallback.
+- **Context/result:** Inspected wildlife damage authority/world/range gates, validated-attacker assignment and defeat reward ownership calls. Direct fallback preserves last validated attacker rather than proving each requested attack hit; subsequent escrow predicates remain pending. No new confirmed actionable finding; RF01 remains queued. Context does not close wildlife or CR04 coverage.
+- **Checks/limits:** Baseline hash, exact boundaries, serial gate, bounded damage loop and owner-match assertions passed. This controlled reward setup is not proof of natural combat lethality, persisted claim durability or client privacy. No build, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete.
