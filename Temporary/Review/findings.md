@@ -533,3 +533,7 @@ Reviewed GameMode 6772-6895 against S10/S16 and the gate/registry tests. Time re
 ## CR03-001b-85 - Population area-cap counting and admission
 
 Reviewed GameMode 6896-7047 against S11/S19, area-cap and Wolf-reservation automation, and the gate evaluator. The implementation counts valid living actors and pending reservations against world, home-key and aggregate budgets, and current same-species positions against inclusive area caps. Current species limits and rejection order match the contracts; focused tests cover boundaries, movement, budgets and reservations. No production defect or distinct test gap was found. Static inspection only; full verification deferred.
+
+## CR03-001b-86 - Population time, weather, progression, and cap gates
+
+Reviewed GameMode 7048-7198 against S13/S16-S19 and the configured-source S27-S29 policy. All 17 current archetypes pass the intentionally unrestricted time, weather and progression policies; unknown archetypes fail closed. Natural and configured-source paths apply gates in order, and shared/source-local cap checks include pending reservations and whole-pack Wolf capacity. Focused evaluator, cap and configured-admission tests cover the relevant policies and rejection behavior. No production defect or distinct test gap was found. Static inspection only; full verification deferred.
