@@ -25591,3 +25591,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 4710; gameplay/save/server authority unchanged. Partial placement mutation, collision, actual depth/attachment, topology and cleanup unverified.
 - Next: CR03-001b-59, descriptor search from 4711. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Reef Maw selection review
+
+- Reviewed GameMode 4711-4810; updated coverage/findings and PROGRESS only. No new confirmed finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, boundaries, search bounds, budget/filter/count ordering, three-position precondition and activation/publication inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 4810; gameplay/save/server authority unchanged. Live depth/exclusion, collision/navigation, accounting parity, frame cost and replication unverified.
+- Next: CR03-001b-60, host lifetime gate from 4812. RF01 queued behind CR19.

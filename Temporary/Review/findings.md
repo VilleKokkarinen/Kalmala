@@ -337,3 +337,7 @@ Reviewed GameMode 4582-4628 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-58 - Reef Maw gates and ocean helpers
 
 Reviewed GameMode 4630-4710 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, ocean habitat/path predicate, swimming helper/component/mode and peer timeouts inspected. Partial placement mutation, teleport/collision, actual depth/attachment, topology and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-58.
+
+## CR03-001b-59 - Reef Maw descriptor and ocean lane selection
+
+Reviewed GameMode 4711-4810 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Ocean budget/filter/count gates, bounded three-peer path selection, failure gates and activation inspected. Sampled versus live depth/exclusion, collision/navigation, accounting parity, frame cost and replication remain limitations. Full verification deferred; see coverage.md CR03-001b-59.
