@@ -203,3 +203,7 @@ Reviewed GameMode 1971-2026 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-25 - Reward retry cell freeing
 
 Reviewed GameMode 2028-2055 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected bounded snapshot consumption, reward exclusions, failure exit and stage publication. Capacity preparation does not prove retry delivery or durable storage. Full verification deferred; see coverage.md CR03-001b-25.
+
+## CR03-001b-26 - Combat fixture final acceptance
+
+Reviewed GameMode 2057-2086 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected saved-defeat, reward, herd and terminal predicates. Server observations and in-memory save membership do not prove privacy or restart durability. Full verification deferred; see coverage.md CR03-001b-26.

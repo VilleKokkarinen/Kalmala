@@ -171,7 +171,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-23` | CR03 | `GameMode.cpp:1910-1970` | 1 partial | reviewed | Post-combat defeat and owner claim lookup |
 | `CR03-001b-24` | CR03 | `GameMode.cpp:1971-2026` | 1 partial | reviewed | Full-pack escrow predicates |
 | `CR03-001b-25` | CR03 | `GameMode.cpp:2028-2055` | 1 partial | reviewed | Reward retry cell freeing and stage transition |
-| `CR03-001b-26` | CR03 | `GameMode.cpp:2057-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-26` | CR03 | `GameMode.cpp:2057-2086` | 1 partial | reviewed | Combat fixture final acceptance |
+| `CR03-001b-27` | CR03 | `GameMode.cpp:2088-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2029,3 +2030,9 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read complete bounded snapshot loop and terminal/stage transitions. Required cells are two for two-item scenarios, three for Badger and one otherwise. Only single-quantity non-reward stacks are consumed; six reward IDs are excluded. Snapshot iteration avoids mutation invalidating traversal. Successful server consumption and reduced stack count advance the counter; mismatch terminates stage 99 before stage-three publication. Inspected TryConsumeFromServer authority guard and exchange/commit path as context only.
 - **Result/limits:** No new confirmed actionable finding; RF01 remains queued. Cell count relies on the preceding full-pack invariant and synchronous stack removal. This prepares retry capacity; it does not prove retry delivery, client privacy or persistence. Context does not close inventory or CR04 coverage.
 - **Checks:** Baseline hash, exact start/return boundaries, loop cap, quantity filter, server consume, failure and stage/time source assertions passed; closing braces inspected. No source changes, build, tests, editor or runtime validation. Full verification deferred; CR03 remains incomplete.
+### CR03-001b-26 - Combat fixture final acceptance (2057-2086)
+
+- **Revision:** 50e1cfa4ffb18855734899514cc702db4190cb06; GameMode SHA-256 matches CR01 baseline including preserved edits. Subdivided remainder before recording review; next begins 2088.
+- **Evidence:** Read final saved-defeat, reward and herd predicates, success/failure logging and unconditional terminal stage. Saved defeat requires a nonempty stable ID and membership in the in-memory population save. Mireling requires both inventories and empty stacks; Boar requires exact three rewards and zero remote copies; Deer requires exact meat/hide/bone and optional zero-or-one sinew with zero remote quantities. Deer success also requires latched herd alert. Exact action serial applies to all scenarios.
+- **Result/limits:** No new confirmed actionable finding; RF01 remains queued. Other scenario branches rely on earlier acceptance paths. Server quantities do not prove client privacy; save-object membership does not prove disk durability/restart. Logged SeedReproduced/BoundedActivation/InvalidRejected constants rely on preceding setup, not independent predicates here. Compared persistence architecture and setup SharedCombat restart guidance. No other domain coverage closed.
+- **Checks:** Baseline hash, exact boundaries, save membership, optional sinew bounds, remote exclusion, herd gate and terminal-stage source assertions passed; predicate/log branches inspected. No source changes, build, tests, editor or runtime checks; full verification deferred. CR03 remains incomplete.
