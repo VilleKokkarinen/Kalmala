@@ -164,7 +164,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-16` | CR03 | `GameMode.cpp:1484-1587` | 1 partial | reviewed | Combat fixture positioning |
 | `CR03-001b-17` | CR03 | `GameMode.cpp:1588-1630` | 1 partial | reviewed | Combat fixture health reset and herd placement |
 | `CR03-001b-18` | CR03 | `GameMode.cpp:1632-1661` | 1 partial | reviewed | Screenshot setup and stage-zero completion |
-| `CR03-001b-19` | CR03 | `GameMode.cpp:1663-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-19` | CR03 | `GameMode.cpp:1663-1701` | 1 partial | reviewed | Fixture lifetime guards and snake observation |
+| `CR03-001b-20` | CR03 | `GameMode.cpp:1702-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1967,3 +1968,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Revision:** f39a829a34ec30c9d3cfd33f5b2b7f89e49015ae; whole-file SHA-256 matches baseline including preserved edits. Split remaining range before review; next starts at 1663. Reconciled the prior batch summary row with its completed evidence.
 - **Evidence:** Read the complete optional screenshot block and stage-zero tail. Only non-Shipping Mireling/Deer command-line arguments request capture. Local-controller presence gates camera creation; transient camera spawn failure leaves the current view intact. Capture request is logged as requested, not successful. Screenshot paths come from the trusted server command line, not a client RPC. Both participants receive forced replication updates before stage/time publication and return.
 - **Result/checks/limits:** No new confirmed actionable finding; RF01 remains queued. Baseline hash, exact boundaries and Shipping/controller/stage-order inspection passed. Camera framing, capture completion and peer delivery were not executed or proven. No code changes, build, tests, editor or runtime verification; full verification deferred. CR03 remains incomplete.
+
+
+### CR03-001b-19 - Fixture lifetime guards and snake observation (1663-1701)
+
+- **Revision:** 7b3f0f5f28ad3be6bd6980c706cf6fcb25aa5095; GameMode SHA-256 matches baseline including preserved local edits. Bounded subdivision ends before the placement lambda at 1702.
+- **Evidence:** Read weak-pointer resolution for both participants and target; absent actors or combat component terminate stage 99 before use. Header fields are TWeakObjectPtr. During stages 1-2 Viper observation latches actual WeakPoison status, then disables target ticking to avoid repeated bites. Giant Snake latches health below the controlled 100-health starting point and disables target ticking. The latter infers a bite from health loss rather than inspecting a damage event, so it does not independently prove damage type or source.
+- **Context/result:** Compared the preceding full-health setup, non-Shipping function gate, architecture server combat contract and current EnemyPeers selection guidance. No new confirmed actionable finding for this controlled fixture; RF01 remains queued. Context reads do not close helper or CR04 coverage.
+- **Checks/limits:** Baseline hash, exact boundaries, terminal guards and both tick-pause branches passed static checks. No runtime disconnect, damage-source isolation or timing acceptance. No build, tests, editor or runtime validation; full verification deferred. CR03 remains incomplete; next CR03-001b-20 begins placement helper at 1702.
