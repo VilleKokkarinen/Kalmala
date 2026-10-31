@@ -349,3 +349,20 @@ Reviewed GameMode 4812-4931 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-61 - Reef Maw bite cue and damage observation
 
 Reviewed GameMode 4933-4978 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Target lifetime, cue presence latches, sampled bite distance, aggregate damage/range/survival gates and timeout termination inspected. This block does not attribute damage to the Maw or prove client cue replication/rendering; runtime timing, unrelated damage interference and fixture cleanup remain unverified. Full verification deferred; see coverage.md CR03-001b-61.
+
+## CR03-001b-62 - Discovery descriptor, privacy and duplicate-claim fixture
+
+Reviewed GameMode 4980-5091 with baseline-matching bytes. Confirmed test-coverage finding RF02: the client privacy probe reads the remote client's own pawn instead of the entitled host pawn replica, so host feedback leakage can pass the runner's client gate. No current runtime leak found; discovery feedback fields are presently owner-only. The server stage-one actor wait is bounded by the outer 90-second runner, which retains logs. No runtime execution; see coverage.md CR03-001b-62.
+
+## RF02 — Discovery peer privacy probe checks the local pawn (P2)
+
+- **Source review:** CR03-001b-62.
+
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:736-750`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4992-4999`, `Scripts/Tests/Progression/DiscoveryPeer.ps1:23-28`.
+- **Trigger:** Run the discovery peer privacy regression with a host Entitled player and a remote client; a replication regression may expose the host's feedback on the remote client after the probe has run.
+- **Evidence:** GameMode assigns the listen-server pawn to Entitled and the other player to Remote. The client helper executes only for `IsLocallyControlled()` and inspects `GetDiscoveryProgressComponent()` on that local pawn once at four seconds. It never checks the non-local host replica. The runner accepts the one-time client marker independently of the server's later claim completion. The component is currently configured with `COND_OwnerOnly`, so no live leak is established.
+- **Impact:** A regression that replicates the host's private discovery feedback, serial or label to the remote client can escape this peer privacy gate.
+- **Proposed repair:** Have the Development-only client probe inspect the non-local host replica after the server has completed both first and duplicate claims, synchronized to completion or polled through the sequence. Keep the normal owner feedback and server-side rejection assertions.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** The focused peer case confirms host feedback remains None with serial 0 and empty label on the remote client's host replica after the claims, while the host retains the expected owner feedback. It must fail when the host fields are exposed to the non-owner.
+- **Focused validation:** Run `Scripts/Tests/Progression/DiscoveryPeer.ps1` after an Editor build and verify that the regression fails when the host fields are exposed to the remote client in a test-only configuration.

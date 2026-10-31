@@ -113,6 +113,21 @@
     keys while preserving live rain accumulation; validate repeated destroyed
     characters/disconnects and unchanged Wet timing. Evidence and acceptance:
     `Temporary/Review/findings.md#rf01--prune-stale-per-character-rain-timers-p3`.
+  - [ ] **RF02 — Check discovery privacy on the remote client
+    (P2; CR03-001b-62).** Affected files: `KalmalaCharacter.cpp:736-750`,
+    `KalmalaGameMode.cpp:4992-4999`, and `Scripts/Tests/Progression/DiscoveryPeer.ps1:23-28`.
+    The client probe reads only its locally controlled `Remote` pawn, but the
+    server claims as the host `Entitled`; it never inspects the host's replicated
+    component. Trigger: host feedback is accidentally replicated to the remote
+    client after its one-time four-second marker. Impact: the privacy runner can
+    pass without testing the host replica. After CR19, inspect the host replica
+    on the remote client after first and duplicate claims, synchronized with
+    fixture completion. Keep the server owner and duplicate checks. Acceptance:
+    feedback, serial and label stay default on that replica, and the focused case
+    fails if the fields reach a non-owner. Focused validation: run
+    `Scripts/Tests/Progression/DiscoveryPeer.ps1` after an Editor build, including
+    a test-only exposed-field regression. Evidence and repair:
+    `Temporary/Review/findings.md#rf02--discovery-peer-privacy-probe-checks-the-local-pawn-p2`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
