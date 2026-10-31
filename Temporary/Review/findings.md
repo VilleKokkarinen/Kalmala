@@ -493,3 +493,19 @@ Reviewed GameMode 6241-6415 against S22c/S23/S24/S25 and the focused station, ca
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** `Kalmala.Gameplay.Population.MovementSupport` proves supported descriptor admission and rejects unsupported actual actor positions through S22c composition, including the aquatic route and all generated Wolf members.
 - **Focused validation:** Run `Kalmala.Gameplay.Population.MovementSupport` after an Editor build.
+
+## CR03-001b-82 - Physical placement composition and support transforms
+
+Reviewed GameMode 6416-6582 against S22a/S25, the server creation transaction, shared body profiles, and the body-clearance, station-cylinder, spherical-suppression and physical-placement tests. The final placement predicate composes movement, body and roof clearance, then evaluates station and camp suppression at each proposed actor origin; Wolf packs expand to all three deterministic members. The support-offset formula matches the sphere/capsule collision geometry and zero-rotation creation path, with focused assertions for sloped support, capsule offset, Mosquito height and Reef Maw depth. No production defect was found. Confirmed RF08 (P3): the final S25 predicate has no valid-descriptor test; the existing combined-gate fixture uses NaN and never reaches component or source-suppression evaluation. Static inspection only; full verification deferred.
+
+## RF08 - S25 camp suppression lacks Wolf-member composition coverage (P3)
+
+- **Source review:** CR03-001b-82.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6416-6480`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp:24-76`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationStationCylinderTest.cpp:35-79`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp:45-142`.
+- **Trigger:** A future regression omits station/camp suppression from the final S25 result or checks only the Wolf pack descriptor/anchor while all point-query tests remain green.
+- **Evidence:** The production S25 predicate builds all three deterministic Wolf member descriptors, derives each proposed actor origin and evaluates both the station cylinder and eligible camp sphere for each one. Existing station and camp tests directly exercise the point predicates. `KalmalaPopulationPhysicalPlacementGateTest` is the only test call to `DoesPopulationDescriptorPassPhysicalPlacement`, and its descriptor contains NaN, so it returns before the component and source-suppression checks. No valid final-gate result is asserted. Current production composition matches S25; no live spawn defect was observed.
+- **Impact:** Focused automation can miss a future server-side regression that admits a Wolf member within a suppressed station or camp volume.
+- **Proposed repair:** Extend the physical-placement gate automation with a deterministic valid Wolf pack that passes without suppression sources. Add a Workbench/Forge and an eligible Camp Bed/source at each member origin in turn while keeping the pack anchor outside the source field, and assert rejection through the final S25 predicate.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** `Kalmala.Gameplay.Population.PhysicalPlacementGate` proves the valid no-source Wolf pass and rejects station and eligible camp-source overlap at every actual member origin while preserving earlier rejection-order coverage.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.PhysicalPlacementGate` after an Editor build.

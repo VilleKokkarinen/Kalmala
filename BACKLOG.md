@@ -212,6 +212,26 @@
     Focused validation: run `Kalmala.Gameplay.Population.MovementSupport` after
     an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf07--movement-support-descriptor-composition-lacks-a-focused-test-p3`.
+  - [ ] **RF08 — Exercise S25 camp suppression for every Wolf member origin (P3; CR03-001b-82).**
+    Affected: `KalmalaGameMode.cpp:6416-6480`,
+    `KalmalaPopulationPhysicalPlacementGateTest.cpp:24-76`,
+    `KalmalaPopulationStationCylinderTest.cpp:35-79`, and
+    `KalmalaPopulationSphericalSuppressionTest.cpp:45-142`. S25 correctly
+    derives each proposed Wolf member origin and checks it against both station
+    and camp suppression. Existing tests cover the point queries, but none calls
+    the final placement predicate with a valid descriptor; the combined-gate test
+    uses NaN and exits before those checks. Trigger: a regression omits station
+    or camp suppression from S25, or evaluates only the pack anchor, while the
+    point-query and fail-closed tests remain green. No current production defect
+    was found. After CR19, extend `Kalmala.Gameplay.Population.PhysicalPlacementGate`
+    with a deterministic valid Wolf pack that passes without suppression sources
+    and is rejected when a source overlaps each member origin while the pack
+    anchor remains outside. Acceptance: the final gate rejects Workbench/Forge
+    and eligible camp-source overlap at each actual Wolf member origin, retains
+    the valid no-source pass, and preserves existing rejection-order assertions.
+    Focused validation: run `Kalmala.Gameplay.Population.PhysicalPlacementGate`
+    after an Editor build. Evidence and repair:
+    `Temporary/Review/findings.md#rf08--s25-camp-suppression-lacks-wolf-member-composition-coverage-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
