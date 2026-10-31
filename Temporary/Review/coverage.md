@@ -195,7 +195,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-47` | CR03 | `GameMode.cpp:3628-3777` | 1 partial | reviewed | Polar Bear descriptor and approach selection |
 | `CR03-001b-48` | CR03 | `GameMode.cpp:3779-3889` | 1 partial | reviewed | Polar Bear reserve staging and activation |
 | `CR03-001b-49` | CR03 | `GameMode.cpp:3891-3927` | 1 partial | reviewed | Polar Bear charge acceptance |
-| `CR03-001b-50` | CR03 | `GameMode.cpp:3929-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-50` | CR03 | `GameMode.cpp:3929-4020` | 1 partial | reviewed | Horned Goat gates and mountain helpers |
+| `CR03-001b-51` | CR03 | `GameMode.cpp:4021-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2219,3 +2220,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Stage two validates weak target before cue access with preceding host lifetime gate. Independently latches telegraph, Lunge charge, retreat and recovery; requires all flags and positive net host damage. Success logs seed, four cues, damage and selected ID, terminates and returns. Eighteen-second timeout logs current cue/latches/damage and terminates. Read through Shipping/function closure; compared setup charge/retreat/recovery acceptance contract.
 - **Result/limits:** No new confirmed actionable finding; RF01 queued. Latches do not prove exact sequence/duration. Aggregate host damage has no per-hit attribution or accepted-hit counter; controlled fixture assumptions and independent peer evidence remain necessary. Reserve restoration, continued observers, replication, rewards/restart and cleanup unverified. No other domain coverage closed.
 - **Checks:** Baseline hash, exact boundaries, validity-before-access, cue/damage predicates, success/timeout and terminal ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-50 starts Horned Goat fixture at 3929.
+
+### CR03-001b-50 - Horned Goat gates and mountain helpers (3929-4020)
+
+- **Revision:** 5ab649d6; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Non-Shipping command-line/authority/world/config/terminal gates. Placement validates character, activates terrain, samples capsule-cleared height, teleports unswept and forces update; stops movement and restores Walking only from None. Mountain helper requires bounds and habitat contract with ocean/lake exclusion and normal Z at least .82. Safe-path helper checks endpoints and at-most-80-cm samples, minimum one denominator, dry surface and height within 80 cm of start. Host/start and two player-state observers required with ninety-second failure exits; search initialized. Compared generated peer acceptance and decision-log 250 cm push/.75 s stagger.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Sampled terrain does not prove continuous collision/navigation safety; teleport success unchecked. Walking restoration supports subsequent physical push but does not prove stagger timing or caller use. Observer count assumes controlled topology; cleanup/search/activation remain pending. No other domain coverage closed.
+- **Checks:** Baseline hash, boundaries, validity-before-access, clearance, movement branch, path denominator/sample/height gates and peer timeouts inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-51 begins search at 4021.

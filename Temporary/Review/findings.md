@@ -301,3 +301,7 @@ Reviewed GameMode 3779-3889 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-49 - Polar Bear charge acceptance
 
 Reviewed GameMode 3891-3927 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Lifetime guard, four cue latches, net-damage acceptance and success/timeout termination inspected. Sequence/timing, per-hit attribution, reserve restoration, observers, replication and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-49.
+
+## CR03-001b-50 - Horned Goat gates and mountain helpers
+
+Reviewed GameMode 3929-4020 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, terrain clearance, Walking restoration, sampled dry/height path and peer timeouts inspected. Collision safety, later helper use, stagger/push, topology and cleanup unverified. Full verification deferred; see coverage.md CR03-001b-50.
