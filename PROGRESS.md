@@ -25707,3 +25707,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. Scheduler work is server-authoritative in both `Tick` and the wake helper, and only candidates passing all gates reach the spawn transaction.
 - Limitations: live server timing, player movement/stream transitions, descriptor results, gate behavior in world conditions, and actor creation were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-71, subdivide remaining GameMode starting at line 5577 before reviewing it.
+
+## Run 2026-10-31 - CR03 configured environmental-spawner admission review
+
+- Reviewed `KalmalaGameMode.cpp:5577-5696` for CR03-001b-71 and split the remaining GameMode range into CR03-001b-72. No confirmed actionable finding; recorded an open integration question about future `CheckOrdinal` advancement. BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: `list_threads` showed the scheduled same-checkout attempt had completed without repository edits; a fresh check showed only this Kalmala checkout active. Main checkout `master` at `5aa6f9ba`; index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected configured-source authority/config/save/time guards, due-time rebase, finite slot/depletion identity, four-candidate and shared-budget accounting, radius/key checks, seeded roll and gate ordering, transaction revalidation, S08/S14/S28/S29 docs, policy helpers, and focused policy/admission automation assertions. Static source/document inspection only; automation not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The helper itself is server-only, and source search found no production caller or configured source actor/registry, so the path is currently dormant.
+- Limitations: no live scheduler caller, source content, due-time progression, candidate execution or actor creation was exercised. The future caller's ordinal progression remains an open integration question. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-72, subdivide remaining GameMode starting at line 5698 before reviewing it.
