@@ -273,3 +273,7 @@ Reviewed GameMode 3067-3185 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-42 - Lynx gates and terrain helpers
 
 Reviewed GameMode 3187-3260 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, placement clearance, peer timeouts and dry-surface predicate inspected. Collision-safe placement, distinct connections, cleanup and later predicate use unverified. Full verification deferred; see coverage.md CR03-001b-42.
+
+## CR03-001b-43 - Lynx descriptor budget and approach selection
+
+Reviewed GameMode 3262-3410 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Search bounds, descriptor/actor budgets, pack accounting, dry approach/ring/path and reach inspected. Activation parity, rejected-candidate accounting, collision/navigation and frame cost remain explicit review limits. Full verification deferred; see coverage.md CR03-001b-43.
