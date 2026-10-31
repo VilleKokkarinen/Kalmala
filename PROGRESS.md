@@ -25243,3 +25243,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, UBT, tests, editor or runtime validation; not milestone-final acceptance.
 - Impact/authority: Partial review reaches 1723; gameplay, saves and server authority unchanged.
 - Limits/next: Collision/relocation success and runtime timing unverified. RF01 queued. Next CR03-001b-21: subdivide encounter pressure stage from 1725.
+
+
+## Run 2026-10-31T07:09:05.547026+00:00 - CR03 encounter pressure and attack sequencing review
+
+- Work/files: Reviewed GameMode 1725-1786; baseline unchanged. Updated coverage/findings and this entry. No new confirmed finding. BACKLOG unchanged because CR03 remains incomplete; prior edits preserved.
+- Ownership: Only this chat active in app inventory; preserved 22 pre-existing modified paths and empty index. Main checkout; no handoff needed.
+- Checks: Baseline hash, exact boundaries, grace bounds, terminal failure, bounded sequence and weak-pointer guard assertions passed; inspected combat request and later acceptance context. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, UBT, tests, editor or runtime validation; not milestone-final acceptance.
+- Impact/authority: Partial review reaches 1786; no gameplay, save or server authority changes.
+- Limits/next: Sampled pressure/health and fixture timing remain runtime limitations. RF01 queued behind CR19. Next CR03-001b-22: subdivide pending-reward checks from 1788.

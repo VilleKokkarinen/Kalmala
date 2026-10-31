@@ -178,3 +178,8 @@ Reviewed GameMode 1663-1701 at 7b3f0f5f with baseline-matching bytes. No new con
 ## CR03-001b-20 - Target placement helper
 
 Reviewed GameMode 1702-1723 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Server-derived placement, dry-shore rejection and caller failure exits inspected. Unswept relocation and unchecked relocation result remain runtime limitations, not proven failures. Full verification deferred; see coverage.md CR03-001b-20.
+
+
+## CR03-001b-21 - Encounter pressure and attack sequencing
+
+Reviewed GameMode 1725-1786 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Bounded pressure grace, failure exits, attack sequence cap and companion lifetime guard inspected. Sampled health/pressure does not prove historical non-mutation or damage source; runtime timing remains unverified. Full verification deferred; see coverage.md CR03-001b-21.

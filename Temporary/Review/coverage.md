@@ -166,7 +166,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-18` | CR03 | `GameMode.cpp:1632-1661` | 1 partial | reviewed | Screenshot setup and stage-zero completion |
 | `CR03-001b-19` | CR03 | `GameMode.cpp:1663-1701` | 1 partial | reviewed | Fixture lifetime guards and snake observation |
 | `CR03-001b-20` | CR03 | `GameMode.cpp:1702-1723` | 1 partial | reviewed | Target placement helper |
-| `CR03-001b-21` | CR03 | `GameMode.cpp:1725-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-21` | CR03 | `GameMode.cpp:1725-1786` | 1 partial | reviewed | Encounter pressure and attack sequencing |
+| `CR03-001b-22` | CR03 | `GameMode.cpp:1788-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -1985,3 +1986,11 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read entire lambda and stage-two callers at 1758/1774. Server attacker position/forward determines placement. Rat and shore snakes use sampled terrain height. Shore snakes require Shimmering Lakes biome and rejection of ocean/lake water before mutation. Both callers terminate stage 99 on false. Successful unswept relocation forces a network update. Captures use preceding actor guards in the same invocation.
 - **Result:** No new confirmed actionable finding; RF01 queued. Point dryness does not prove a collision-free location or dry route. SetActorLocation result is unchecked; runtime relocation remains unverified. No client target/distance payload introduced. Context does not close callers or CR04.
 - **Checks/limits:** Baseline, corrected exact boundaries, dry rejection before mutation and replication-update checks passed. Initial boundary assertion was off by one and failed before edits. Compared brief/design, roadmap/decisions, architecture authority and setup EnemyPeers context. No build, tests, editor or runtime validation; full verification deferred. CR03 incomplete; next CR03-001b-21 starts 1725.
+
+
+### CR03-001b-21 - Encounter pressure and attack sequencing (1725-1786)
+
+- **Revision:** 0a26bcab2f65ef37801e772531520f4d18cd28ee; GameMode whole-file SHA-256 matches baseline including preserved local edits. Subdivided remaining range before recording review.
+- **Evidence:** Read complete stage-one pressure gate, stage-two attack scheduling/windup placement and Deer alert latch. Pressure waits 2.5 seconds and permits an eight-second grace window before terminal failure. Health mutation and missing required pressure prevent stage advance. Viper poison is latched from server statuses; Giant Snake uses the preceding bite observation. Stage two requests at most the scenario attack count (one Rat, four otherwise), only while Idle, with increasing sequence. Placement failures terminate stage 99 before requesting attacks; windup positioning uses the same helper. Deer companion is checked for validity before behavior access.
+- **Context/result:** Inspected combat request authority, freshness, living-owner, condition and action gates, expected-count definition and later action-serial acceptance as context. Compared architecture server combat authority and current setup EnemyPeers selection guidance. No new confirmed actionable finding; RF01 remains queued. Context reads do not close combat component, later stages or CR04.
+- **Checks/limits:** Baseline hash, exact boundaries, grace bounds, terminal failure, bounded sequence and weak-pointer guard assertions passed. Pressure/health observations are sampled rather than historical guarantees; fixture relocation and timing remain unverified. No build, tests, editor or runtime validation; full verification deferred. CR03 incomplete; next CR03-001b-22 starts pending rewards at 1788.
