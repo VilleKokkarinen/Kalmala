@@ -321,3 +321,7 @@ Reviewed GameMode 4222-4275 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-54 - Thunder Sentinel gates and mountain helpers
 
 Reviewed GameMode 4277-4368 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, terrain clearance/Walking restoration, dry sampled path and peer timeouts inspected. Collision safety, helper callers, actual step, topology, reserve and cleanup unverified. Full verification deferred; see coverage.md CR03-001b-54.
+
+## CR03-001b-55 - Thunder Sentinel descriptor and lane selection
+
+Reviewed GameMode 4369-4464 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Mountain/budget, archetype/exclusion/defeat/count gates, bounded paths and rejection inspected. Live-position evidence, collision safety, activation parity, frame cost and actual step/slam unverified. Full verification deferred; see coverage.md CR03-001b-55.
