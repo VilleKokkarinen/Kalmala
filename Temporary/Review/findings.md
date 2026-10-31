@@ -277,3 +277,7 @@ Reviewed GameMode 3187-3260 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-43 - Lynx descriptor budget and approach selection
 
 Reviewed GameMode 3262-3410 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Search bounds, descriptor/actor budgets, pack accounting, dry approach/ring/path and reach inspected. Activation parity, rejected-candidate accounting, collision/navigation and frame cost remain explicit review limits. Full verification deferred; see coverage.md CR03-001b-43.
+
+## CR03-001b-44 - Lynx staging and activation
+
+Reviewed GameMode 3412-3516 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Health, ring staging, activation/identity/profile, bounded observer placement and stage publication inspected. Actual reach, teleport success, visibility/replication, connectivity and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-44.
