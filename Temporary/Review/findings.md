@@ -529,3 +529,7 @@ Reviewed GameMode 6772-6895 against S10/S16 and the gate/registry tests. Time re
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** The focused automation proves the count query prunes invalid and defeated weak entries without changing inclusive-radius/current-position count semantics.
 - **Focused validation:** Run `Kalmala.Gameplay.Population.LiveCreatureRegistry` after an Editor build.
+
+## CR03-001b-85 - Population area-cap counting and admission
+
+Reviewed GameMode 6896-7047 against S11/S19, area-cap and Wolf-reservation automation, and the gate evaluator. The implementation counts valid living actors and pending reservations against world, home-key and aggregate budgets, and current same-species positions against inclusive area caps. Current species limits and rejection order match the contracts; focused tests cover boundaries, movement, budgets and reservations. No production defect or distinct test gap was found. Static inspection only; full verification deferred.

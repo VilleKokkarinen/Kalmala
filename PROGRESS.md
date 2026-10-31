@@ -25857,3 +25857,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence and a queued test improvement only; gameplay behavior is unchanged. Time-gate evaluation and live-creature registry are server-authoritative.
 - Limitations: stale weak-entry cleanup, runtime scheduler behavior and live actor lifecycle were not exercised; RF01-RF09 remain queued behind CR19. The pre-existing line 9674 edit remains outside scope.
 - Next eligible task: CR03-001b-85, review `KalmalaGameMode.cpp:6896-7047` (population area-cap counting and admission).
+
+## Run 2026-10-31 - CR03 population area-cap and admission review
+
+- Reviewed `KalmalaGameMode.cpp:6896-7047` for CR03-001b-85 and marked its bounded coverage row reviewed. No production defect or distinct test gap was found. No implementation or backlog item changed. Updated PROGRESS.md and Temporary/Review/coverage.md and Temporary/Review/findings.md only.
+- Ownership: only this task was active on the main checkout before editing. Main checkout `master` at `42ca80ad`; the index was clean. Preserved the 22 pre-existing modified paths, including the existing BACKLOG.md deletion and the GameMode.cpp line 9674 edit outside the reviewed range.
+- Checks: Re-read AGENTS.md, BACKLOG.md, recent PROGRESS.md, and the relevant S11/S19 population/cap contracts in docs/monster-spawning.md and docs/02-technical-architecture.md; searched the project brief, game design and decision log for additional population-cap constraints. Inspected the cap-count and admission predicates, active species cap mapping, adjacent cap-gate wiring, and focused area-cap, Wolf-reservation, gate-evaluator and configured-admission tests. The GameMode.cpp SHA-256 matches the CR01 baseline. Static source/document/test-source inspection only; no automation, build, tests, editor or runtime checks.
+- Full verification deferred: CR03 review remains incomplete; this is not its final task and no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. Cap counts, reservations and admission decisions remain server-authoritative.
+- Limitations: no runtime population admissions or live reservation changes were exercised; RF01-RF09 remain queued behind CR19. The pre-existing line 9674 edit remains outside reviewed scope.
+- Next eligible task: CR03-001b-86, review `KalmalaGameMode.cpp:7048-7198` (population time, weather, progression and cap gates).
