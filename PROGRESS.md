@@ -25098,3 +25098,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Full verification:** Deferred; no build, UBT, tests, editor, save-failure injection or peer/runtime validation. Not milestone-final acceptance.
 - **Impact / authority:** Partial-file coverage reaches line 744; no gameplay, save or network authority changes.
 - **Limitations / next:** Helper/crafting internals retain their own pending reviews; no end-to-end persistence guarantee. Next CR03-001b-05: subdivide/review wall-to-door replacement from line 745. Existing edits remain unstaged.
+
+## Run 2026-10-31 - CR03 kiln and Smelter persistence review
+
+- Work: Reviewed GameMode lines 799-862 at HEAD 9d0886d7; baseline hash unchanged. Updated coverage/findings and this progress entry. No new confirmed defect. BACKLOG unchanged because CR03 remains incomplete.
+- Ownership: No other active checkout owner; preserved 22 pre-existing modified paths and initially empty index.
+- Checks: Baseline hash, boundaries, authority/identity guards and save-before-publication assertions passed. Inspected record updaters and processing/interaction callers. Whitespace, staged scope and MAX_PATH checked.
+- Full verification deferred: no build, UBT, tests, editor, failure injection or runtime validation; not milestone-final acceptance.
+- Impact/authority: Review coverage reaches line 862; no gameplay, save or network authority changes.
+- Limits/next: No end-to-end atomicity or performance claim. RF01 remains queued. Next CR03-001b-07 starts Garden Plot persistence at line 863; helper/crafting and CR04 remain pending.
