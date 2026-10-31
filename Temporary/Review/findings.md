@@ -163,3 +163,8 @@ Reviewed GameMode 1484-1587 at `130c0d6a` with baseline-matching bytes. No new c
 ## CR03-001b-17 - Combat fixture health reset and herd placement
 
 Reviewed GameMode 1588-1630 at eaad9379 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Bounded healing and terminal full-health validation inspected; advancing poison also advances other statuses and may apply one tick. Controlled default-health assumptions remain. Full verification deferred; see coverage.md CR03-001b-17.
+
+
+## CR03-001b-18 - Screenshot setup and stage-zero completion
+
+Reviewed GameMode 1632-1661 at f39a829a34ec30c9d3cfd33f5b2b7f89e49015ae with baseline-matching bytes. No new confirmed actionable finding; RF01 remains queued. Non-Shipping trusted command-line capture, optional transient camera and stage publication inspected. Capture success/framing and peer delivery remain unverified. Full verification deferred; see coverage.md CR03-001b-18.
