@@ -25384,3 +25384,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 2555; gameplay/save/server authority unchanged. Privacy, timing, persistence and fixture cleanup unverified. Missing documented mosquito runner path recorded as CR14/CR16 reconciliation question.
 - Next: CR03-001b-36, Peat Husk fixture from 2557. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Peat Husk setup review
+
+- Reviewed GameMode 2557-2665; updated coverage/findings and PROGRESS only. No new confirmed finding. CR03 incomplete, BACKLOG unchanged; preserved 22 pre-existing modified files.
+- Ownership: only this chat active; automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash matched; stage boundaries, authority gates, peer timeout, search bounds, filters, activation budget and publication inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 2665; gameplay/save/server authority unchanged. Search frame cost, actual activation, distinct observer connections and replication unverified.
+- Next: CR03-001b-37, host lifetime gate from 2667. RF01 queued behind CR19.

@@ -181,7 +181,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-33` | CR03 | `GameMode.cpp:2449-2484` | 1 partial | reviewed | Resumed bites and unlit campfire setup |
 | `CR03-001b-34` | CR03 | `GameMode.cpp:2485-2515` | 1 partial | reviewed | Unlit campfire bite and ignition transition |
 | `CR03-001b-35` | CR03 | `GameMode.cpp:2517-2555` | 1 partial | reviewed | Lit campfire final acceptance |
-| `CR03-001b-36` | CR03 | `GameMode.cpp:2557-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-36` | CR03 | `GameMode.cpp:2557-2665` | 1 partial | reviewed | Peat Husk fixture selection and activation |
+| `CR03-001b-37` | CR03 | `GameMode.cpp:2667-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2107,3 +2108,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read stage nine through function closure. Valid campfire with authoritative flame and unchanged bite baseline required on each sample; waits 1.25 seconds, then requires held/unlit evidence flags, exactly one accepted and rejected dodge, expired roll, at least four bites, twenty net health loss and eight seconds poison. Missing status yields zero and rejection. Failure returns precede success. Success disables swarm tick, forces update, logs evidence then terminates stage 99. Compared mosquito design and setup peer acceptance.
 - **Result/limits:** No new confirmed actionable GameMode finding; RF01 queued. Server log does not prove client privacy, damage attribution or persistent storage. Sampling does not establish exact timing; actor tick disable leaves fixture cleanup to world lifecycle. Setup's referenced MosquitoSwarmPeer.ps1 path was absent; runner/document reconciliation remains an explicit question for CR14/CR16, not runtime evidence.
 - **Checks:** Baseline hash, complete stage/function boundaries, predicates, null fallback and terminal ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-36 starts Peat Husk fixture at 2557.
+
+### CR03-001b-36 - Peat Husk selection and activation (2557-2665)
+
+- **Revision:** 89938086; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Inspected non-Shipping, command-line, authority/world/config and terminal gates. Stage zero requires listen host/generated start and two player-state-bearing observer pawns, with ninety-second world-time failures. Radius-64 perimeter search uses generated wildlife descriptors, Peat Husk archetype, hard-enemy start-distance contract and nonempty undefeated persistent ID. Missing candidate and full active-key budget terminate; otherwise activates selected key before publishing host/stage/time. Compared setup generated-descriptor/150 m acceptance and biome profile.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Descriptor search is bounded but its frame cost is unmeasured. Observer pawn count relies on controlled runner topology, not distinct authenticated connection validation. Activation success, actual actor profile, sweep and remote replication remain pending; descriptor selection alone does not prove live spawn exclusion. No additional domain coverage closed.
+- **Checks:** Baseline hash, complete stage-zero boundary, perimeter bounds, rejection paths and activation/publication ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-37 begins host lifetime gate at 2667.
