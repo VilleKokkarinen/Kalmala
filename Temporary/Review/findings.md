@@ -257,3 +257,7 @@ Reviewed GameMode 2667-2799 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-38 - Peat Husk sweep acceptance
 
 Reviewed GameMode 2801-2837 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Pointer guards, latched cues, hit/damage predicates, success and timeout termination inspected. Exact timing/order, damage attribution, continued observers, replication and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-38.
+
+## CR03-001b-39 - Wolf pack and approach selection
+
+Reviewed GameMode 2839-2987 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, waits, bounded pack/member selection, terrain/reach filters and population budget inspected. Frame cost, collision/path safety, formation and actual activation remain unverified. Full verification deferred; see coverage.md CR03-001b-39.

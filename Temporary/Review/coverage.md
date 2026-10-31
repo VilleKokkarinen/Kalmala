@@ -184,7 +184,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-36` | CR03 | `GameMode.cpp:2557-2665` | 1 partial | reviewed | Peat Husk fixture selection and activation |
 | `CR03-001b-37` | CR03 | `GameMode.cpp:2667-2799` | 1 partial | reviewed | Peat Husk activation and placement |
 | `CR03-001b-38` | CR03 | `GameMode.cpp:2801-2837` | 1 partial | reviewed | Peat Husk sweep acceptance |
-| `CR03-001b-39` | CR03 | `GameMode.cpp:2839-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-39` | CR03 | `GameMode.cpp:2839-2987` | 1 partial | reviewed | Wolf pack and approach selection |
+| `CR03-001b-40` | CR03 | `GameMode.cpp:2989-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2131,3 +2132,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Inspected stage two through function closure with preceding host lifetime gate. Target weak pointer validated before cue/count queries. Telegraph and recovery are latched independently; success needs both, positive sweep count and positive net host damage. Success logs seed, recorded distance, counts/damage and ID, then terminates/returns. Eighteen-second timeout logs observed state and terminates. Compared setup live sweep acceptance and biome attack timing; located verification accessors in wildlife header as context.
 - **Result/limits:** No new confirmed actionable finding; RF01 queued. Latched cues do not prove exact duration/order, and cumulative net damage does not attribute damage to a particular hit. Observers=2 log relies on earlier placement, not continued connectivity or client cue receipt. Remote replication, authored damage bounds, restart/rewards and fixture cleanup unverified; no other domain coverage closed.
 - **Checks:** Baseline hash, stage/function boundaries, pointer-before-access, acceptance/timeout and terminal ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-39 begins Wolf fixture at 2839.
+
+### CR03-001b-39 - Wolf pack and approach selection (2839-2987)
+
+- **Revision:** b3b6e554; GameMode SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Split remainder before review.
+- **Evidence:** Non-Shipping command-line/authority/world/config/terminal guards; ninety-second host/start and two-observer waits. Radius-64 perimeter descriptor search requires Wolf archetype and complete contract-sized members with nonempty stable IDs, successful member spawn derivation and no saved defeats. Sixteen 120 cm approaches require world bounds, Tundra, surface normal Z at least .82 and 3D reach within bite boundary minus ten. Stores selected member descriptors/IDs and nonempty pack ID. Missing candidate or full new-key budget terminates before placement. Compared setup stable trio/180 cm contract and biome pack profile.
+- **Result/limits:** No new confirmed actionable finding; RF01 queued. Candidate approach checks do not establish collision safety, continuous path or live targeting. Search frame cost unmeasured; observer count relies on controlled topology. Member helper success is assumed here; formation, actual population activation and replicated attack evidence remain pending. No other domain coverage closed.
+- **Checks:** Baseline hash, exact search/budget boundary, loop bounds, saved-defeat/member filters and failure ordering inspected. No source changes, builds, tests, editor or runtime checks. Full verification deferred; CR03 incomplete. Next CR03-001b-40 begins terrain placement helper at 2989.
