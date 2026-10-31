@@ -25637,3 +25637,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior and authority are unchanged. The fixture executes through the server GameMode and the discovery initializer checks authority.
 - Limitations: one-tick search cost, normal activation/collision behavior, actor materialization, peer replication, teleport safety, and later fixture cleanup remain unverified. CR03 review is incomplete; RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-64, subdivide the remaining GameMode range starting at line 5187 before reviewing it.
+
+## Run 2026-10-31 - CR03 M9 exploration reward claims review
+
+- Reviewed GameMode.cpp 5187-5296 for CR03-001b-64 and split the remainder into CR03-001b-65. Confirmed an M9 client-privacy coverage gap and extended existing RF02 instead of duplicating the finding. Updated BACKLOG.md, Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md.
+- Ownership: `list_threads` showed only this active Kalmala checkout; no competing run surfaced. Main checkout `master`, no worktree handoff; the index was empty before this increment. Preserved the 22 pre-existing modified paths, including unrelated BACKLOG.md edits.
+- Checks: GameMode SHA-256 matches the CR01 baseline. Inspected Stage 1/2 server assertions, forged/distant/duplicate/replay/independent-player claims, exact reward and feedback gates, runner completion markers, client probe scope, current `COND_OwnerOnly` feedback/inventory conditions, and M9 documented acceptance. Static inspection only; no builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final implementation task; no full verification was run.
+- Impact/authority: evidence and repair-queue updates only; gameplay behavior and server authority are unchanged. Current owner-only conditions show no live leak, but actual host-replica privacy was not exercised.
+- Limitations: peer runtime, client request routing, replication of host feedback/inventory, and runtime timing remain unverified. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-65, subdivide remaining GameMode starting at line 5298 before reviewing it.

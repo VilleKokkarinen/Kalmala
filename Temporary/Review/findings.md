@@ -356,17 +356,20 @@ Reviewed GameMode 4980-5091 with baseline-matching bytes. Confirmed test-coverag
 
 ## RF02 — Discovery peer privacy probe checks the local pawn (P2)
 
-- **Source review:** CR03-001b-62.
-
-- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:736-750`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4992-4999`, `Scripts/Tests/Progression/DiscoveryPeer.ps1:23-28`.
-- **Trigger:** Run the discovery peer privacy regression with a host Entitled player and a remote client; a replication regression may expose the host's feedback on the remote client after the probe has run.
-- **Evidence:** GameMode assigns the listen-server pawn to Entitled and the other player to Remote. The client helper executes only for `IsLocallyControlled()` and inspects `GetDiscoveryProgressComponent()` on that local pawn once at four seconds. It never checks the non-local host replica. The runner accepts the one-time client marker independently of the server's later claim completion. The component is currently configured with `COND_OwnerOnly`, so no live leak is established.
-- **Impact:** A regression that replicates the host's private discovery feedback, serial or label to the remote client can escape this peer privacy gate.
-- **Proposed repair:** Have the Development-only client probe inspect the non-local host replica after the server has completed both first and duplicate claims, synchronized to completion or polled through the sequence. Keep the normal owner feedback and server-side rejection assertions.
+- **Source review:** CR03-001b-62 and CR03-001b-64.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:736-750`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4992-4999, 5201-5290`, `Scripts/Tests/Progression/DiscoveryPeer.ps1:23-28`, and `Scripts/Tests/Progression/ExplorationRewards.ps1:27-41`.
+- **Trigger:** A host's discovery feedback, serial, label, or reward inventory is accidentally replicated to a remote client while the peer checks still pass.
+- **Evidence:** In DiscoveryPeer, GameMode assigns the listen-server pawn to Entitled and the other player to Remote. The client helper executes only for `IsLocallyControlled()` and inspects that local pawn once at four seconds; it never checks the nonlocal host replica, and the runner accepts the one-time marker independently of claim completion. In the M9 fixture, the server checks Host and Remote components and prints `OwnerOnlyState=1`, but the runner's client gate checks only world-generation identity. It never checks the Host pawn's replicated discovery feedback or reward inventory on the Remote client. Current discovery-feedback and inventory fields use `COND_OwnerOnly`, so no live leak is established.
+- **Impact:** A regression exposing another player's private discovery feedback or reward inventory can escape the peer coverage.
+- **Proposed repair:** Extend the Development-only client probe and both peer runners to inspect the nonlocal Host replica after the relevant claims, synchronized or polled through fixture completion. Keep the server-side distance, forgery, duplicate, independent-player, owner-feedback, and exact-reward assertions.
 - **Dependency:** Defer implementation until CR19 review acceptance.
-- **Acceptance:** The focused peer case confirms host feedback remains None with serial 0 and empty label on the remote client's host replica after the claims, while the host retains the expected owner feedback. It must fail when the host fields are exposed to the non-owner.
-- **Focused validation:** Run `Scripts/Tests/Progression/DiscoveryPeer.ps1` after an Editor build and verify that the regression fails when the host fields are exposed to the remote client in a test-only configuration.
+- **Acceptance:** DiscoveryPeer and M9 peer checks confirm the Host retains expected feedback and reward while Remote sees no Host feedback, serial, label, or private reward inventory. A test-only exposed-field regression must fail.
+- **Focused validation:** Run `Scripts/Tests/Progression/DiscoveryPeer.ps1` and `Scripts/Tests/Progression/ExplorationRewards.ps1` after an Editor build; verify a test-only exposed-field regression fails for the non-owner.
 
 ## CR03-001b-63 - M9 exploration reward peer setup and descriptor staging
 
 Reviewed GameMode 5093-5184 against the baseline-matching source. No new confirmed actionable finding. The Development-only fixture selects a canonical server-built descriptor and calls an actor initializer that checks authority. The one-tick bounded scan cost, ordinary population activation/collision behavior, peer replication, teleport safety, and cleanup after the later stages were not exercised. Full verification deferred; see coverage.md CR03-001b-63.
+
+## CR03-001b-64 - M9 exploration reward claims and peer privacy checks
+
+Reviewed GameMode 5187-5296. Confirmed additional test-coverage evidence for RF02: the server checks owner state, but the M9 peer runner does not inspect the Host's replicated feedback or reward inventory on the Remote client. Current fields use `COND_OwnerOnly`; no live leak is established. Full verification deferred; see coverage.md CR03-001b-64.

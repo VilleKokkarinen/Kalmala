@@ -114,19 +114,28 @@
     characters/disconnects and unchanged Wet timing. Evidence and acceptance:
     `Temporary/Review/findings.md#rf01--prune-stale-per-character-rain-timers-p3`.
   - [ ] **RF02 — Check discovery privacy on the remote client
-    (P2; CR03-001b-62).** Affected files: `KalmalaCharacter.cpp:736-750`,
-    `KalmalaGameMode.cpp:4992-4999`, and `Scripts/Tests/Progression/DiscoveryPeer.ps1:23-28`.
-    The client probe reads only its locally controlled `Remote` pawn, but the
-    server claims as the host `Entitled`; it never inspects the host's replicated
-    component. Trigger: host feedback is accidentally replicated to the remote
-    client after its one-time four-second marker. Impact: the privacy runner can
-    pass without testing the host replica. After CR19, inspect the host replica
-    on the remote client after first and duplicate claims, synchronized with
-    fixture completion. Keep the server owner and duplicate checks. Acceptance:
-    feedback, serial and label stay default on that replica, and the focused case
-    fails if the fields reach a non-owner. Focused validation: run
-    `Scripts/Tests/Progression/DiscoveryPeer.ps1` after an Editor build, including
-    a test-only exposed-field regression. Evidence and repair:
+    (P2; CR03-001b-62, CR03-001b-64).** Affected files:
+    `KalmalaCharacter.cpp:736-750`, `KalmalaGameMode.cpp:4992-4999, 5201-5290`,
+    `Scripts/Tests/Progression/DiscoveryPeer.ps1:23-28`, and
+    `Scripts/Tests/Progression/ExplorationRewards.ps1:27-41`.
+    In DiscoveryPeer, the client probe checks only its locally controlled
+    `Remote` pawn, not the host `Entitled` pawn replica. In the M9 fixture, the
+    server validates Host and Remote state and reports `OwnerOnlyState=1`, while
+    the client runner checks only world-generation identity; it never inspects
+    the Host replica's feedback or reward inventory. Trigger: host feedback,
+    serial, label, or inventory becomes visible to the nonowner while these
+    fixtures still pass. Impact: peer tests can miss a privacy regression.
+    Current progress-feedback and inventory fields use `COND_OwnerOnly`, so no
+    live leak is established. After CR19, extend the Development-only client
+    checks to inspect the nonlocal host replica after first, duplicate, and
+    independent M9 claims, synchronized or polled through fixture completion.
+    Keep the server owner, distance, forgery, duplicate, independent-player,
+    and exact-reward assertions. Acceptance: the host retains expected feedback
+    and reward; Remote observes no host feedback, serial, label, or private
+    reward inventory; both fixtures fail under a test-only exposed-field
+    regression. Focused validation: run both
+    `Scripts/Tests/Progression/DiscoveryPeer.ps1` and `ExplorationRewards.ps1`
+    after an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf02--discovery-peer-privacy-probe-checks-the-local-pawn-p2`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
