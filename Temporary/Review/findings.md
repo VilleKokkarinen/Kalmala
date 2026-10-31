@@ -381,3 +381,7 @@ Reviewed GameMode 5298-5362 against the baseline-matching source and `docs/monst
 ## CR03-001b-66 - Loaded population-key union geometry and ordering
 
 Reviewed GameMode 5364-5425 against `docs/monster-spawning.md` S05 and the focused automation source. No new confirmed actionable finding; the query returns the deterministic inclusive horizontal intersection of living-player radii with already active spatial keys and leaves activation state unchanged. The automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-66.
+
+## CR03-001b-67 - Per-key cadence initialization and inactive scheduler-state cleanup
+
+Reviewed GameMode 5427-5467 against `docs/monster-spawning.md` S06 and the cadence automation source. No new confirmed actionable finding; authority guards, stable per-key initial phases, and removal of inactive due/cursor/ordinal state match the documented cadence. The focused automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-67.

@@ -25667,3 +25667,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; runtime behavior is unchanged. The query is server-authoritative and returns candidate keys without activating or removing population state.
 - Limitations: large-coordinate precision, live movement/stream transitions, and scheduler/materialization behavior were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-67, subdivide remaining GameMode starting at line 5427 before reviewing it.
+
+## Run 2026-10-31 - CR03 per-key population cadence review
+
+- Reviewed GameMode.cpp 5427-5467 for CR03-001b-67 and split the remaining range into CR03-001b-68. No new confirmed actionable finding; BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: `list_threads` showed only this active Kalmala checkout; other listed worktrees use distinct checkouts. Main checkout `master` at `9f8142e9`, no handoff required, and the index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree change is confined to line 9671, outside the reviewed range.
+- Checks: Inspected authority/world/config/time guards, candidate membership, inactive-key cleanup for due times/cursors/ordinals, deterministic wildlife-seed phase initialization, phase/check-interval static assertion, and Tick call order. Cross-checked `docs/monster-spawning.md` S06 and the focused cadence automation source; it was inspected but not run. Static review only; no builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The scheduler update is server-authoritative through its `HasAuthority` guard; it removes inactive scheduling metadata and initializes deterministic due times for candidate keys.
+- Limitations: live movement/stream transitions, runtime stalls, and actual scheduler timing were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-68, subdivide remaining GameMode starting at line 5469 before reviewing it.
