@@ -25438,3 +25438,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 3185; gameplay/save/server authority unchanged. XY-only formation, exact timing/order, damage attribution, observers, replication and cleanup unverified.
 - Next: CR03-001b-42, Lynx fixture from 3187. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Lynx setup review
+
+- Reviewed GameMode 3187-3260; updated coverage/findings and PROGRESS only. No new confirmed finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, boundaries, authority gates, placement clearance, peer timeout and dry predicate inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 3260; gameplay/save/server authority unchanged. Collision-safe placement, distinct observers, cleanup, later predicate use and activation remain unverified.
+- Next: CR03-001b-43, descriptor search from 3262. RF01 queued behind CR19.
