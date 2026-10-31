@@ -341,3 +341,7 @@ Reviewed GameMode 4630-4710 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-59 - Reef Maw descriptor and ocean lane selection
 
 Reviewed GameMode 4711-4810 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Ocean budget/filter/count gates, bounded three-peer path selection, failure gates and activation inspected. Sampled versus live depth/exclusion, collision/navigation, accounting parity, frame cost and replication remain limitations. Full verification deferred; see coverage.md CR03-001b-59.
+
+## CR03-001b-60 - Reef Maw activation and swimmer staging
+
+Reviewed GameMode 4812-4931 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Actor lifetime/profile, three-position/two-observer bounds, swimming/attachment, actual reach and publication inspected. Live habitat/exclusion, Armor application, collision safety, continued connectivity, replication and restoration remain limitations. Full verification deferred; see coverage.md CR03-001b-60.
