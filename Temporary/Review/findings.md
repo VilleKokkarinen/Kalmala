@@ -325,3 +325,7 @@ Reviewed GameMode 4277-4368 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-55 - Thunder Sentinel descriptor and lane selection
 
 Reviewed GameMode 4369-4464 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Mountain/budget, archetype/exclusion/defeat/count gates, bounded paths and rejection inspected. Live-position evidence, collision safety, activation parity, frame cost and actual step/slam unverified. Full verification deferred; see coverage.md CR03-001b-55.
+
+## CR03-001b-56 - Thunder Sentinel staging and activation
+
+Reviewed GameMode 4466-4580 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Reserve/reset, lifetime/profile/exclusion, actual XY reach gate, dry observers and publication inspected. Live start exclusion, Armor application, teleport, restoration, connectivity/replication and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-56.
