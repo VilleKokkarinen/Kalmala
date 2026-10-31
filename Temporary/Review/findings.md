@@ -225,3 +225,7 @@ Reviewed GameMode 2260-2288 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-30 - Mosquito dodge request sequencing
 
 Reviewed GameMode 2290-2339 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Lifetime, bite comparison, request counts and timeouts inspected with character RPC context. Rejection reason and live timing remain unverified. Full verification deferred; see coverage.md CR03-001b-30.
+
+## CR03-001b-31 - Roll window and held torch setup
+
+Reviewed GameMode 2341-2406 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected bite/count/window gates, server material grants and craft, GUID selection, flame eligibility and contact/stage publication. Clean-loadout identity and runtime timing/persistence/privacy remain limitations. Full verification deferred; see coverage.md CR03-001b-31.

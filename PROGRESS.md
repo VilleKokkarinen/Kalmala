@@ -25339,3 +25339,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 2339; gameplay/save/server authority unchanged. Rejection reason and runtime latency/contact suppression unverified. RF01 queued behind CR19.
 - Next: CR03-001b-31, subdivide stage five from 2341.
+
+## Run 2026-10-31T07:28:48.4989186Z - CR03 roll window and torch setup review
+
+- Reviewed GameMode 2341-2406; changed coverage/findings and PROGRESS only. No new confirmed finding. CR03 incomplete, so BACKLOG unchanged; preserved 22 pre-existing modified files.
+- Ownership: only this chat active in app inventory; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, exact boundaries, predicate/order and failure-path source inspection passed. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 2406; gameplay/save/server authority unchanged. Runtime timing, clean-loadout torch identity, persistence and peer privacy remain unverified. RF01 queued behind CR19.
+- Next: CR03-001b-32, subdivide stage six from 2408.
