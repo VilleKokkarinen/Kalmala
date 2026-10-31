@@ -207,3 +207,7 @@ Reviewed GameMode 2028-2055 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-26 - Combat fixture final acceptance
 
 Reviewed GameMode 2057-2086 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected saved-defeat, reward, herd and terminal predicates. Server observations and in-memory save membership do not prove privacy or restart durability. Full verification deferred; see coverage.md CR03-001b-26.
+
+## CR03-001b-27 - Mosquito fixture setup
+
+Reviewed GameMode 2088-2211 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Inspected server/Shipping gates, peer selection, placement helpers and bounded generated-descriptor selection. Runtime placement, external timeout, status replication and later stages remain unverified. Full verification deferred; see coverage.md CR03-001b-27.

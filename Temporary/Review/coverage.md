@@ -172,7 +172,8 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-24` | CR03 | `GameMode.cpp:1971-2026` | 1 partial | reviewed | Full-pack escrow predicates |
 | `CR03-001b-25` | CR03 | `GameMode.cpp:2028-2055` | 1 partial | reviewed | Reward retry cell freeing and stage transition |
 | `CR03-001b-26` | CR03 | `GameMode.cpp:2057-2086` | 1 partial | reviewed | Combat fixture final acceptance |
-| `CR03-001b-27` | CR03 | `GameMode.cpp:2088-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
+| `CR03-001b-27` | CR03 | `GameMode.cpp:2088-2211` | 1 partial | reviewed | Mosquito fixture setup and descriptor selection |
+| `CR03-001b-28` | CR03 | `GameMode.cpp:2213-12053` | 1 partial | pending | Subdivide remaining GameMode before review |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
@@ -2036,3 +2037,10 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Evidence:** Read final saved-defeat, reward and herd predicates, success/failure logging and unconditional terminal stage. Saved defeat requires a nonempty stable ID and membership in the in-memory population save. Mireling requires both inventories and empty stacks; Boar requires exact three rewards and zero remote copies; Deer requires exact meat/hide/bone and optional zero-or-one sinew with zero remote quantities. Deer success also requires latched herd alert. Exact action serial applies to all scenarios.
 - **Result/limits:** No new confirmed actionable finding; RF01 remains queued. Other scenario branches rely on earlier acceptance paths. Server quantities do not prove client privacy; save-object membership does not prove disk durability/restart. Logged SeedReproduced/BoundedActivation/InvalidRejected constants rely on preceding setup, not independent predicates here. Compared persistence architecture and setup SharedCombat restart guidance. No other domain coverage closed.
 - **Checks:** Baseline hash, exact boundaries, save membership, optional sinew bounds, remote exclusion, herd gate and terminal-stage source assertions passed; predicate/log branches inspected. No source changes, build, tests, editor or runtime checks; full verification deferred. CR03 remains incomplete.
+
+### CR03-001b-27 - Mosquito fixture setup (2088-2211)
+
+- **Revision:** eb9cdd2cb8785ffac3d24e35a1706d597131c38c; whole-file SHA-256 9866c16cd248f54eeff0226c9ac5281a3af5a05aa226158bc94f11a5dee3c325 matches baseline including preserved edits. Subdivided remaining range before recording review.
+- **Evidence:** Inspected Shipping exclusion, command-line/authority/world/config/terminal gates, failure closure, grounded placement helpers, host plus two remote pawn selection, server precipitation override, bounded radius-64 perimeter search, biome budget truncation, mosquito archetype and saved-defeat exclusion, stable ID/seed selection and population activation before stage publication. EnemyPeers MosquitoCounterplay specifies seed 445 and two clients, matching the setup assumption.
+- **Result:** No new confirmed actionable finding; RF01 remains queued. Stage zero waits for peers without an internal deadline; external runner timeout remains necessary. Placement is unswept and does not prove collision safety; helper callers and later lifetime/status/privacy assertions remain pending. No client-selected target or weather payload is introduced. Context inspection does not close helper, population or CR04 coverage.
+- **Checks/limits:** Baseline hash and exact stage boundary checked; reviewed bounded search, defeated-spawn rejection and activation ordering. No source changes, builds, tests, editor or runtime checks; full verification deferred. CR03 remains incomplete; next CR03-001b-28 begins stage-one activation at 2213.
