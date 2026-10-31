@@ -25402,3 +25402,12 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
 - Impact/authority: review reaches 2799; gameplay/save/server authority unchanged. Collision-safe placement, continuous dry path, live exclusion position, replication and cleanup unverified.
 - Next: CR03-001b-38, stage two from 2801. RF01 queued behind CR19.
+
+## Run 2026-10-31 - CR03 Peat Husk sweep acceptance review
+
+- Reviewed GameMode 2801-2837; updated coverage/findings and PROGRESS only. No new confirmed finding; CR03 incomplete, BACKLOG unchanged. Preserved 22 pre-existing modified files.
+- Ownership: only this chat active, automation idle; initial index empty. Main checkout; no handoff needed.
+- Checks: baseline hash, exact boundaries, lifetime guard, cue/hit/damage predicates and success/timeout ordering inspected. Whitespace, staged scope and MAX_PATH checked before commit.
+- Full verification deferred: no build, tests, editor or runtime checks; not milestone-final verification.
+- Impact/authority: review reaches 2837; gameplay/save/server authority unchanged. Exact timing/order, damage attribution, continued observers, replication and cleanup unverified.
+- Next: CR03-001b-39, Wolf fixture from 2839. RF01 queued behind CR19.
