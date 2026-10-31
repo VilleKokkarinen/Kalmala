@@ -317,3 +317,7 @@ Reviewed GameMode 4118-4220 with baseline-matching bytes. No new confirmed actio
 ## CR03-001b-53 - Horned Goat push and stagger acceptance
 
 Reviewed GameMode 4222-4275 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Lifetime/cue/stagger latches, duration bounds, net damage/displacement and terminal timeout inspected. Sampling delay, exact cue order, effect attribution/bounds, replication, restoration and cleanup remain limitations. Full verification deferred; see coverage.md CR03-001b-53.
+
+## CR03-001b-54 - Thunder Sentinel gates and mountain helpers
+
+Reviewed GameMode 4277-4368 with baseline-matching bytes. No new confirmed actionable finding; RF01 queued. Authority/Shipping gates, terrain clearance/Walking restoration, dry sampled path and peer timeouts inspected. Collision safety, helper callers, actual step, topology, reserve and cleanup unverified. Full verification deferred; see coverage.md CR03-001b-54.
