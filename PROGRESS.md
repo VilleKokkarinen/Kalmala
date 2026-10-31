@@ -25727,3 +25727,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. The ring predicate returns false without server authority or a valid world and evaluates horizontal distance to the supplied living players.
 - Limitations: live movement, player death/world transition, invalid location data, and runtime ring/exclusion interactions were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-73, subdivide remaining GameMode starting at line 5738 before reviewing it.
+
+## Run 2026-10-31 - CR03 population ring candidate selection review
+
+- Reviewed `KalmalaGameMode.cpp:5738-5791` for CR03-001b-73 and split the remaining GameMode range into CR03-001b-74. No new confirmed actionable finding. BACKLOG.md unchanged. Updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: no other active Kalmala thread was listed for this checkout. Main checkout `master` at `c884459a`; index was empty before this increment. Preserved all 22 pre-existing modified paths. The existing GameMode.cpp working-tree edit at line 9674 is outside the reviewed range.
+- Checks: Inspected selector authority/world/configuration and empty-input guards, per-key budget clamp, cursor normalization and advancement, attempt retention, seeded roll and ring filtering, caller ordering, downstream distance/all-player exclusion gate, remaining gate sequence, and server transaction guard. Compared with S08/S14 and inspected focused ring-selector automation assertions for bounded attempts, boundaries, rotation, failed-roll retention and later rejection. Static source/document/test-source review only; automation was not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. The selector requires server authority and the caller dispatches only attempts whose authoritative gates report no rejection.
+- Limitations: live player movement, world transitions, and actor creation were not exercised. RF01 and RF02 remain queued behind CR19.
+- Next eligible task: CR03-001b-74, subdivide remaining GameMode starting at line 5793 before reviewing it.

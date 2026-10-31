@@ -405,3 +405,7 @@ Reviewed GameMode 5577-5696 against `docs/monster-spawning.md` S08/S14/S28/S29, 
 ## CR03-001b-72 - Authoritative horizontal 32–96 m spawn-ring predicate
 
 Reviewed GameMode 5698-5736 against `docs/monster-spawning.md` S08/S09, the ring selector and player-distance gate call paths, and focused boundary automation sources. No new confirmed actionable finding; the predicate enforces inclusive horizontal 32–96 m membership for at least one valid same-world living player, while S09's 36 m all-player exclusion remains a separate later gate. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-72.
+
+## CR03-001b-73 - Bounded authoritative population ring candidate selection
+
+Reviewed GameMode 5738-5791 against `docs/monster-spawning.md` S08/S14, its scheduler caller and later gate/creation path, and the focused ring-selector automation source. No new confirmed actionable finding; the selector bounds work, rotates its per-key cursor on every examined descriptor, retains each attempt and seeded-roll result, and filters candidates through the authoritative ring predicate. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-73.
