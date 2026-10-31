@@ -425,3 +425,19 @@ Reviewed GameMode 5856-5870 against `docs/monster-spawning.md` S13–S15, `docs/
 ## CR03-001b-77 - Seeded species derivation and hard-enemy start exclusion
 
 Reviewed GameMode 5872-5898 against S15, the species rules, mapping/classification helpers, all output-parameter callers, and focused hard-enemy start-exclusion assertions. No new confirmed actionable finding: the shared gate is authoritative and requires valid world/configuration, and the documented 150 m exclusion is applied to all six hard-enemy archetypes with an inclusive boundary. Automation was inspected but not run. Full verification deferred; see coverage.md CR03-001b-77.
+
+## CR03-001b-78 - Authoritative dry-land surface gate and Wolf formation sampling
+
+Reviewed GameMode 5900-6008 against S20/S22c, the three-member Wolf contract, final placement wiring, and `KalmalaPopulationLandSurfaceTest`. The production path samples the anchor and all three generated member positions and rejects any failing surface. Confirmed RF03: the test's positive array has three booleans although its assertion describes four positions; it tests only the generic all-of helper and does not exercise descriptor-level member enumeration. No current spawn defect was found. Automation was inspected but not run; full verification is deferred.
+
+## RF03 - Wolf land-surface test omits one required pack location (P3)
+
+- **Source review:** CR03-001b-78.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:5928-5953`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLandSurfaceTest.cpp:39-52`, and `Source/KalmalaGameplay/Public/KalmalaWolfPackContract.h:15`.
+- **Trigger:** A future regression omits a generated Wolf member's surface result while the focused land-surface automation remains green.
+- **Evidence:** `MemberCount` is three, and `DoesPopulationDescriptorPassLandSurface` samples the pack anchor plus each of those three member positions. The test's success array contains only three booleans despite claiming to cover the center and all three members. It passes that array directly to the generic all-of helper; its descriptor-level call only checks an out-of-bounds non-Wolf descriptor. The current production loop checks all three members, so no present spawn defect or live bad placement was observed.
+- **Impact:** The focused regression test can miss a future omission of one required Wolf surface check.
+- **Proposed repair:** Cover four positions (anchor plus all three generated members) and exercise the pack composition path. Add a focused rejection assertion for each member's failed surface.
+- **Dependency:** Defer implementation until CR19 review acceptance.
+- **Acceptance:** The land-surface automation verifies all four contributions and rejects the pack when any one member's surface fails through the pack placement path.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.LandSurface` after an Editor build.

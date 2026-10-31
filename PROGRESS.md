@@ -25777,3 +25777,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. Species/habitat evaluation requires server authority and a valid world/configuration; hard-enemy distance admission remains server-side.
 - Limitations: generated-start lifetime under external destruction and live biome/terrain/admission behavior were not exercised. RF01 and RF02 remain queued behind CR19.
 - Next eligible task: CR03-001b-78, subdivide remaining GameMode starting at line 5900 before reviewing it.
+
+## Run 2026-10-31 - CR03 land-surface and Wolf formation review
+
+- Reviewed `KalmalaGameMode.cpp:5900-6008` for CR03-001b-78 and split the remaining GameMode range into pending CR03-001b-79 starting at line 6010. Confirmed RF03, a P3 Wolf land-surface test-coverage gap; the current production loop checks all required positions. BACKLOG.md now queues RF03 under the CR19 dependency. Updated BACKLOG.md, Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only.
+- Ownership: a scheduled same-checkout attempt stopped after detecting this review and reported no repository, index, or commit changes; a fresh check showed only this run active. Main checkout `master` at `591c68e5`; index was empty before this increment. Preserved the 22 pre-existing modified paths, including unrelated edits and prior BACKLOG.md deletions. The existing GameMode.cpp edit at line 9674 is outside this review range.
+- Checks: Inspected the authority/world/configuration and bounds gates, habitat classification, all three Wolf member builders and surface samples, dry-water and finite-normal/slope checks, all-of handling, final placement caller, S20/S22c and Wolf documentation, and the focused automation source. Confirmed the success fixture has three values while claiming four positions. Static review only; automation was not run. No builds, tests, editor, or runtime checks. Whitespace, staged scope, and Windows path lengths checked before commit.
+- Full verification deferred: CR03 review is incomplete and this is not its final task; no full verification was run.
+- Impact/authority: review evidence and a queued test improvement only; gameplay behavior is unchanged. The placement surface gate requires server authority and runs as part of server-side admission.
+- Limitations: actual generated terrain, water sampling, Wolf placement and runtime automation were not exercised. RF01–RF03 remain queued behind CR19.
+- Next eligible task: CR03-001b-79, subdivide remaining GameMode starting at line 6010 before reviewing it.

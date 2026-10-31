@@ -137,6 +137,19 @@
     `Scripts/Tests/Progression/DiscoveryPeer.ps1` and `ExplorationRewards.ps1`
     after an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf02--discovery-peer-privacy-probe-checks-the-local-pawn-p2`.
+  - [ ] **RF03 — Cover all Wolf land-surface samples (P3; CR03-001b-78).**
+    `KalmalaGameMode.cpp:5928-5953` checks the pack anchor and all three actual
+    member locations. `KalmalaPopulationLandSurfaceTest.cpp:39-52` claims its
+    success case covers the center and all three members, but supplies only
+    three booleans and calls only the generic all-of helper. The current
+    production loop checks all three members; this is a test-coverage gap, not
+    an observed spawn defect. After CR19, cover the anchor plus all three
+    generated member positions and verify that any one failing member rejects
+    the pack. Acceptance: focused automation covers all four positions and
+    rejects each individual member failure through the pack placement path.
+    Focused validation: run `Kalmala.Gameplay.Population.LandSurface` after an
+    Editor build. Evidence and repair:
+    `Temporary/Review/findings.md#rf03--wolf-land-surface-test-omits-one-required-pack-location-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
