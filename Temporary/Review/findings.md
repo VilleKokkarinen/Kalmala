@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-015 reviewed. Confirmed findings RF01-RF41 are queued; other review children remain pending. No overall project-clean conclusion is implied.
+- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-016 reviewed. Confirmed findings RF01-RF42 are recorded in this ledger; other review children remain pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -995,3 +995,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize implementation during CR04.
 - **Acceptance:** The remote owner can activate an entitled effect through its current server-owned hotbar cell; a repeat during cooldown is rejected without further stamina payment; owner feedback arrives once; observers receive the public active effect but none of the owner-only fields; the guide matches the current M13 contract and executed evidence.
 - **Focused validation:** Build the Editor target, run the focused support automation and the new peer scenario with a listen host, remote owner and observer, then verify the peer markers and replication conditions.
+
+## RF42 — Bound repeated interaction RPC work (P3)
+
+- **Source:** CR04-016; `Source/KalmalaGameplay/Public/KalmalaCharacter.h:296-298`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1687-1973`, `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryNetworkContractTest.cpp:14-30`, and `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp:21-97`.
+- **Affected path:** An owning client's reliable `ServerRequestInteract` requests against world actors.
+- **Trigger:** An owning client sends repeated `ServerRequestInteract` RPCs. The handler obtains the server view point, performs `TraceInteractionCandidate`, and dispatches the hit without a server-side per-character cadence check. Inventory layout and hotbar RPCs have separate 50 ms and 100 ms gates, but this general interaction RPC has none.
+- **Impact:** Repeated requests can make the server repeat view tracing and target dispatch work beyond normal button cadence. Target-specific authority and state gates still apply; no client-authoritative mutation or practical flood impact was established.
+- **Evidence:** The RPC is declared `UFUNCTION(Server, Reliable)`. `ServerRequestInteract_Implementation` contains no interaction request timer before the view trace or dispatch. The assigned network contract checks the two bounded intent parameters, while the interaction authority fixture's cadence assertion covers automatic pickup scanning rather than this RPC. No peer flood was run.
+- **Proposed repair:** Add a server-owned per-character cadence for interaction requests before tracing, keeping the first valid request immediate and preserving existing target-specific checks.
+- **Dependencies:** After CR19 review acceptance; this is a review handoff and does not authorize implementation during CR04.
+- **Acceptance:** A remote owner can still perform an ordinary interaction immediately; a burst of repeated interaction requests results in at most one dispatch per configured cadence window, while invalid intent, range, authority and inventory checks remain intact.
+- **Focused validation:** Add a focused listen-server owner scenario that issues rapid interaction requests, verifies the first accepted request and bounded subsequent dispatches, and confirms a normally paced interaction still succeeds.
