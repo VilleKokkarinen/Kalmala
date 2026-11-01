@@ -601,3 +601,7 @@ Reviewed GameMode 7820-7931 against the S06/S07 server scheduler contract, const
 - **Dependency:** Defer implementation until CR19 review acceptance; no repair belongs in this review run.
 - **Acceptance:** A focused test observes a due key being scheduled and serviced through actual `Tick`, verifies one wake remains within the key/candidate limits, and proves no extra wake occurs before the next deadline.
 - **Focused validation:** Run `Kalmala.Gameplay.Population.SchedulerCadence` and `Kalmala.Gameplay.Population.SchedulerWakeBudget` after an Editor build.
+
+## CR03-001b-91 - Ocean travel feedback and weather peer fixtures
+
+Reviewed GameMode 7932-8087 against the owner-only travel-feedback contract, server-authoritative weather and skiff movement, the ocean travel automation sources, and M8 peer-validation guidance. The listen-server fixture publishes distinct host/remote feedback, checks server values and serials, and the integrated runner requires both owners' local messages plus no cross-owner feedback on the remote client. The weather fixture selects a server crosswind and calm state; both peers verify replicated pressure, and the remote client attempts an unauthorized local weather mutation that must leave the accepted state unchanged. The travel runners require these results and reject a client-received forged cycle. No production defect or distinct focused-test gap was found. Static inspection only; full verification deferred.
