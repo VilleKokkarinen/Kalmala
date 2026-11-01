@@ -26206,3 +26206,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; no code or runtime behavior changed. The module dependency rules do not change client/server ownership or validation.
 - Limitations: CR04's request-level trust-boundary review continues in later batches; no compiled target or live peer session was tested.
 - Next eligible task: CR04-003, review `Source/KalmalaCore/Private/KalmalaCoreModule.cpp`.
+
+## Run 2026-11-01 - CR04-003 KalmalaCore module-entrypoint review
+
+- Reviewed `Source/KalmalaCore/Private/KalmalaCoreModule.cpp` for CR04-003 and marked its batch and CR04 assignment reviewed in `Temporary/Review/coverage.md`. Its SHA-256 matches the CR01 baseline. The source is a standard `FDefaultModuleImpl` registration with no custom lifecycle or network behavior; no actionable trust-boundary issue was found. `BACKLOG.md` remains unchanged because CR04-003 is a coverage batch, not a backlog checkbox.
+- **Files changed:** `PROGRESS.md` and `Temporary/Review/coverage.md`.
+- Ownership: the Codex app showed this as the only active local Kalmala run; other listed checkouts are distinct. The main checkout was `master` at `5d843615b2a92fc606654468f093dd2abba75cb0` before this run; no staged paths or Git index lock were present. Preserved all 22 pre-existing modified paths, including the user's `BACKLOG.md` deletions and the unrelated `KalmalaGameMode.cpp` edit at line 9674.
+- Checks: Re-read `AGENTS.md`, active backlog/progress and CR04 coverage/findings context, plus relevant brief, design, architecture, agent guide, roadmap, decision log, and development setup sections. Verified the source hash against the baseline and checked the module registration against the `.uproject` entry and reviewed Core build rules. Static inspection only; no UBT, build, network test, or runtime session was run. `git diff --check` passed after the evidence update. Full verification remains deferred; no milestone-final verification was due.
+- Impact/authority: review evidence only; no code or runtime behavior changed. The module entrypoint does not alter client/server ownership, RPC handling, or persistence.
+- Limitations: no compiled target or live session was exercised; request validation and replicated privacy remain in later CR04 batches.
+- Next eligible task: CR04-004, review `Source/KalmalaEditor/KalmalaEditor.Build.cs`.

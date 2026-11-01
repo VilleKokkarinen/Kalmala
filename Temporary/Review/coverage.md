@@ -265,7 +265,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-004` | CR03 | `Source/KalmalaServer/Private` | 1 | reviewed | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR04-001` | CR04 | `Source` | 3 | reviewed | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-002` | CR04 | `Source/KalmalaCore` | 1 | reviewed | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
-| `CR04-003` | CR04 | `Source/KalmalaCore/Private` | 1 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
+| `CR04-003` | CR04 | `Source/KalmalaCore/Private` | 1 | reviewed | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-004` | CR04 | `Source/KalmalaEditor` | 1 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-005` | CR04 | `Source/KalmalaEditor/Private` | 10 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-006` | CR04 | `Source/KalmalaEditor/Public` | 7 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
@@ -1345,7 +1345,7 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `Scripts/WorldMapPreview.params` | CR14 | Tracked project file | `9a28205177c683667a6840da54296573464c2fda49e8e6f29d53e97901203cab` | `CR14:CR14-002=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/Kalmala.Target.cs` | CR02 | Tracked project file | `4b9ecfe8a348c9c7e48bcc4ee8c5318ff53693ed5f4c0b4c5557bf899233882f` | `CR02:CR02-002=reviewed; CR04:CR04-001=reviewed` | CR02 and CR04 reviewed — no finding |
 | `Source/KalmalaCore/KalmalaCore.Build.cs` | CR02 | Tracked project file | `834ef4b8ff32ab4c7239c336e8e1bcb47446d02ed5afda74362a8f5323f38335` | `CR02:CR02-003=reviewed; CR04:CR04-002=reviewed` | CR02 and CR04 reviewed — no finding |
-| `Source/KalmalaCore/Private/KalmalaCoreModule.cpp` | CR02 | Tracked project file | `209a7c16c1799ff6efac7383f1074f5f686dcb039b585e5ef798aee6eaeab2ee` | `CR02:CR02-004=reviewed; CR04:CR04-003=pending` | CR02 reviewed — no finding; CR04 remains pending |
+| `Source/KalmalaCore/Private/KalmalaCoreModule.cpp` | CR02 | Tracked project file | `209a7c16c1799ff6efac7383f1074f5f686dcb039b585e5ef798aee6eaeab2ee` | `CR02:CR02-004=reviewed; CR04:CR04-003=reviewed` | CR02 and CR04 reviewed — no finding |
 | `Source/KalmalaEditor.Target.cs` | CR02 | Tracked project file | `92053872776e2884a4886b985c70ceb4ca3190a507866fa3c9525dce22dbf3c4` | `CR02:CR02-002=reviewed; CR04:CR04-001=reviewed` | CR02 and CR04 reviewed — no finding |
 | `Source/KalmalaEditor/KalmalaEditor.Build.cs` | CR14 | Tracked project file | `d5f35ab619912372415b204d150c18cf3a39ceac4e9fe8352eee62966c1755c6` | `CR14:CR14-004=pending; CR04:CR04-004=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaEditor/Private/CreateLightingComparisonFixtureCommandlet.cpp` | CR14 | Tracked project file | `0e364026de9fa7d9392bf4962c73f998061a3bac61f9e25a8f5899742f9a67c3` | `CR14:CR14-005=pending; CR04:CR04-005=pending` | pending — assigned for review; all listed batches remain open |
@@ -2791,3 +2791,12 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Result:** No finding. CR04-002 is reviewed. The existing CR02-003 result remains no finding; CR04-003, which covers the private module entrypoint, remains pending.
 - **Impact/authority:** Review evidence only; no code or runtime behavior changed. Client-controlled gameplay requests and their validation remain in their assigned gameplay batches.
 - **Limits:** This build-rule batch does not verify individual request handlers or a compiled target. `BACKLOG.md` is unchanged because CR04 remains incomplete.
+
+## CR04-003 - KalmalaCore module entrypoint
+
+- **Reviewed revision:** `master` at `5d843615b2a92fc606654468f093dd2abba75cb0`; `Source/KalmalaCore/Private/KalmalaCoreModule.cpp` SHA-256 `209a7c16c1799ff6efac7383f1074f5f686dcb039b585e5ef798aee6eaeab2ee` matches the CR01 baseline.
+- **Evidence:** The selected file includes `Modules/ModuleManager.h` and registers `KalmalaCore` with `IMPLEMENT_MODULE(FDefaultModuleImpl, KalmalaCore)`. The `.uproject` registers KalmalaCore as a Runtime module with default loading, and the reviewed CR04-002 module rules directly depend on Core for this include. The file adds no custom startup, client request, RPC, replication, or persistence behavior. No actionable trust-boundary defect was confirmed.
+- **Checks / limits:** Verified the whole-file SHA-256 and absence of a source diff; cross-checked the module name and loading phase against `Kalmala.uproject` and the Core build rules. Static inspection only; no UBT, build, network test, or runtime session was run. `git diff --check` passed after the evidence update. Full verification remains deferred.
+- **Result:** No finding. CR04-003 is reviewed; its CR02-004 assignment remains reviewed as before. The next Core/Editor boundary batch, CR04-004, remains pending.
+- **Impact/authority:** Review evidence only; no runtime behavior changed. Module startup adds no client-controlled behavior or change to server ownership.
+- **Limits:** This default module entrypoint does not exercise a target or session. CR04 request validation and privacy review continue in later batches. `BACKLOG.md` is unchanged because CR04 remains incomplete.
