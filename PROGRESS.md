@@ -26176,3 +26176,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; runtime behavior and authority are unchanged. The server target excludes UI and no new networking or persistence behavior was introduced.
 - Limitations: the installed Epic Games Launcher engine does not support dedicated-server builds; compilation and peer acceptance remain deferred until a server-capable UE 5.8 distribution is available. CR03 remains open, CR04 assignments remain pending, and no milestone-final verification was due.
 - Next eligible task: CR03-004, review `Source/KalmalaServer/Private/KalmalaServerModule.cpp`.
+
+## Run 2026-11-01 - CR03-004 dedicated-server module entrypoint review
+
+- Reviewed `Source/KalmalaServer/Private/KalmalaServerModule.cpp` for CR03-004 and marked its batch and CR03 file assignment reviewed in `Temporary/Review/coverage.md`. Its SHA-256 matches the CR01 baseline; the file is a standard `FDefaultModuleImpl` registration with no custom lifecycle behavior. No actionable defect was confirmed. This completes CR03's review coverage, so checked only **CR03 — Review session and server code** in `BACKLOG.md`; the overall project-wide review remains open.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `Temporary/Review/coverage.md`.
+- Ownership: the Codex app showed this as the only active local Kalmala run; other listed checkouts are distinct. The main checkout was `master` at `3a1806add55d7a4240ce254b59b8beb8367182fd` before this run; no staged paths or Git index lock were present. Preserved all 22 pre-existing modified paths, including the user's other `BACKLOG.md` edits and the unrelated `KalmalaGameMode.cpp` edit at line 9674.
+- Checks: Re-read `AGENTS.md`, current backlog/progress and CR03 coverage/findings context, plus relevant brief, design, architecture, agent guide, roadmap, decision log, and development setup sections. Verified the selected file's SHA-256 against the baseline and inspected its module registration and adjacent target/module boundaries. Static inspection only; no build or live dedicated-server session was run. `git diff --check` passed after the evidence update. No milestone-final verification was due.
+- Impact/authority: review evidence only; no code or runtime behavior changed. The default module registration does not add client-controlled behavior or change server authority.
+- Limitations: dedicated-server compilation and peer acceptance remain unavailable with the installed Launcher engine. CR04–CR19 review work and queued finding remediation remain; full verification is deferred.
+- Next eligible task: CR04-001, begin the network trust-boundary review batch covering the three top-level `Source` files.

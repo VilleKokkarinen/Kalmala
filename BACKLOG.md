@@ -48,7 +48,7 @@
     findings are claimed in this baseline increment.
   - [x] **CR02 — Review project structure and Core.** Check module/target rules,
     project descriptor, shared types, ownership, dependencies and public APIs.
-  - [ ] **CR03 — Review session and server code.** Check solo/listen/dedicated
+  - [x] **CR03 — Review session and server code.** Check solo/listen/dedicated
     lifecycle, identity, joins, disconnects, reconnects and cleanup.
   - [ ] **CR04 — Review network trust boundaries.** Trace every client request
     to server validation, ownership, bounds, replay/rate handling and replicated

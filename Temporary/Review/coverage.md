@@ -262,7 +262,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | reviewed | Original CR03-001 files other than GameMode |
 | `CR03-002` | CR03 | `Source/KalmalaGameplay/Public` | 4 | reviewed | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR03-003` | CR03 | `Source/KalmalaServer` | 1 | reviewed | Session lifecycle, identity, joins, disconnects and cleanup |
-| `CR03-004` | CR03 | `Source/KalmalaServer/Private` | 1 | pending | Session lifecycle, identity, joins, disconnects and cleanup |
+| `CR03-004` | CR03 | `Source/KalmalaServer/Private` | 1 | reviewed | Session lifecycle, identity, joins, disconnects and cleanup |
 | `CR04-001` | CR04 | `Source` | 3 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-002` | CR04 | `Source/KalmalaCore` | 1 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-003` | CR04 | `Source/KalmalaCore/Private` | 1 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
@@ -1595,7 +1595,7 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `Source/KalmalaGameplay/Public/KalmalaWorldSaveInspector.h` | CR11 | Tracked project file | `2796433a4068a21cef35abe6312a51f61d02d9817251bbe83a9c17ed50d019f1` | `CR11:CR11-003=pending; CR04:CR04-027=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaServer.Target.cs` | CR16 | Tracked project file | `ade4f1f550e2c7dbf5782957e7db9ef7e3d4d1f48f59bd3fb81c2584117b0a93` | `CR16:CR16-018=pending; CR04:CR04-001=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaServer/KalmalaServer.Build.cs` | CR03 | Tracked project file | `8969391043271007f914e6c84160078bdf1882733b5bdaf9fbbf72615ae3d111` | `CR03:CR03-003=reviewed; CR04:CR04-028=pending` | partial — CR03 reviewed; CR04 pending |
-| `Source/KalmalaServer/Private/KalmalaServerModule.cpp` | CR03 | Tracked project file | `a401dd60f4dc6223953baf9281d5ce84a33a2ba10b14052662be652b7ef5e4d1` | `CR03:CR03-004=pending; CR04:CR04-029=pending` | pending — assigned for review; all listed batches remain open |
+| `Source/KalmalaServer/Private/KalmalaServerModule.cpp` | CR03 | Tracked project file | `a401dd60f4dc6223953baf9281d5ce84a33a2ba10b14052662be652b7ef5e4d1` | `CR03:CR03-004=reviewed; CR04:CR04-029=pending` | partial — CR03 reviewed; CR04 pending |
 | `Source/KalmalaUI/KalmalaUI.Build.cs` | CR12 | Tracked project file | `9dd4215a6b9e6d26d6cb87aeff3264aad3b7d9df8c0c8e4270a2309ce9e2fc16` | `CR12:CR12-001=pending; CR04:CR04-030=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaUI/Private/KalmalaAccessibilityFeedbackSubsystem.cpp` | CR12 | Tracked project file | `6ad2487a94d416024d639dfc3420c47611d7fa0a083d864a89dbfb48059d1059` | `CR12:CR12-002=pending; CR04:CR04-031=pending` | pending — assigned for review; all listed batches remain open |
 | `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp` | CR12 | Tracked project file | `c7d35b2ebf938405e4ec222b3a1a801db4134da81c8329de83468c6659b8e157` | `CR12:CR12-002=pending; CR04:CR04-031=pending` | pending — assigned for review; all listed batches remain open |
@@ -2764,3 +2764,12 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Result:** No finding. CR03-003 and the CR03 assignment for this file are reviewed; its CR04-028 assignment remains pending.
 - **Impact/authority:** Review evidence only; no gameplay or build behavior changed. The server target remains separate from the UI target, and existing gameplay authority is unchanged.
 - **Limits:** Dedicated-server compilation and peer acceptance remain unverified because the installed engine does not support the target. `BACKLOG.md` is unchanged because this review batch has no checkbox; CR03 and cross-cutting CR04 remain open.
+
+## CR03-004 - Dedicated-server module entrypoint
+
+- **Reviewed revision:** `master` at `3a1806add55d7a4240ce254b59b8beb8367182fd`; `Source/KalmalaServer/Private/KalmalaServerModule.cpp` SHA-256 `a401dd60f4dc6223953baf9281d5ce84a33a2ba10b14052662be652b7ef5e4d1` matches the CR01 baseline.
+- **Evidence:** The selected file includes `Modules/ModuleManager.h` and registers `KalmalaServer` with `IMPLEMENT_MODULE(FDefaultModuleImpl, KalmalaServer)`. It adds no custom module startup, network, or persistence behavior. Its Core include matches the direct Core dependency in the CR03-003 module rules; project registration remains `ServerOnly`, and the target remains `Server`. This is a valid default module entrypoint for the current dedicated-server target; no actionable defect was confirmed.
+- **Checks / limits:** Verified the whole-file SHA-256 and absence of a source diff; cross-checked the module rules, server target, `.uproject` registration, and module-boundary contract. Static inspection only; no dedicated-server build or live session was run because the installed Launcher engine lacks server-target support. `git diff --check` passed after the evidence update. Full project verification remains deferred.
+- **Result:** No finding. CR03-004 and the CR03 file assignment are reviewed; the file's CR04-029 assignment remains pending. This closes the CR03 review batches.
+- **Impact/authority:** Review evidence only; no runtime behavior changed. Gameplay authority, persistence, and networking remain unchanged.
+- **Limits:** Server compilation and peer acceptance remain unverified until a server-capable UE 5.8 distribution is available. CR04 and the overall project review remain open.
