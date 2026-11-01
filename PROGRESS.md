@@ -26444,3 +26444,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** No authority boundary changed. The existing review found server-owned combat, crafting, construction, discovery, campfire and persistence mutations; RF48/RF49 concern bounded work on rejected requests.
 - **Known limitations / remaining scope:** RF48/RF49 still need their focused rejection-burst and persistence-failure repair validation. CR04 remains open; no runtime review was performed in this reconciliation.
 - **Next eligible task:** CR04-024, review the next twelve public headers under `Source/KalmalaGameplay/Public`.
+
+## Run 2026-11-01 — CR04-024 gameplay public-header trust-boundary review
+
+- **Selected task:** CR04-024, review the next twelve public headers under Source/KalmalaGameplay/Public.
+- **Work completed:** Reviewed all twelve assigned headers and marked only their CR04 assignments reviewed in Temporary/Review/coverage.md. Each SHA-256 matches its CR01 baseline and none of the selected headers has a local diff. No new review finding was confirmed; RF42 and RF43 remain existing repair entries and were not duplicated. BACKLOG.md remains unchanged because CR04 is incomplete and this coverage batch does not complete a backlog parent.
+- **Files changed:** Temporary/Review/coverage.md and PROGRESS.md.
+- **Ownership:** Stayed in the main checkout E:\dev\Kalmala on master at 905e02f44a616c254ba70c0a2a019578a73d9071. The active-thread inventory showed no other live Kalmala run; the index lock was absent, no Git process was running, and registered worktrees use distinct checkout paths. Preserved all 22 pre-existing modified tracked paths. No separate worktree handoff synchronization was needed.
+- **Checks:** Re-read the active backlog/progress and coverage context plus the project brief, game design, architecture, roadmap, decision-log, spawning and development-setup contracts. Recomputed all twelve assigned header hashes and confirmed no selected source diffs. Inspected authority, input validation, request cadence, replication privacy, interaction retracing, inventory identity and catalogue boundaries. Static review only; git diff --check passed after this evidence update. No build, automation, editor session, live peer/observer, request-flood, forced-GC or save-failure check was run. Full verification remains deferred; no milestone-final verification was due.
+- **Observable impact:** CR04-024 is traceably reviewed; no gameplay code or runtime behavior changed.
+- **Networking/authority:** No authority boundary changed. Mutations for inventory, discovery, harvesting, interactions, exposure and spawning remain server-owned; private inventory and discovery feedback remain owner-only. No new client authority bypass was observed.
+- **Known limitations / remaining scope:** Live peer privacy, request amplification, inventory rollback receipts, forced garbage collection and save-write failure were not exercised. RF42 and RF43 remain queued for repair, and primary CR07/CR08/CR09 assignments are still open.
+- **Next eligible task:** CR04-025, review the next twelve files in Source/KalmalaGameplay/Public.
