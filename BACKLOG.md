@@ -442,6 +442,40 @@
     validation: build the Editor target, run the support automation and peer
     scenario, and check observer replication. Evidence:
     `Temporary/Review/findings.md#rf41--add-remote-support-magic-authority-and-privacy-coverage-p3`.
+  - [ ] **RF51 — Bound repeated arrow-preference RPC work (P3; CR04-032).**
+    `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:1431`,
+    `Source/KalmalaGameplay/Public/KalmalaCombatComponent.h:32,55`,
+    `Source/KalmalaGameplay/Private/KalmalaBowCombat.cpp:118-128`,
+    `Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp:254`, and
+    `Source/KalmalaGameplay/Private/Tests/KalmalaBowDrawTest.cpp:67-71`.
+    **Affected path:** A remote owning client selects or clears its preferred
+    arrow stack through the inventory menu; the server stores an owner-only
+    preference used for bow ammunition selection.
+    **Trigger:** Repeated reliable ServerPreferArrowStack calls with a valid
+    owned arrow GUID, or repeated clears, are processed without a request
+    cadence or duplicate-state check. Valid requests scan the server inventory
+    and every accepted selection or clear calls ForceNetUpdate.
+    **Evidence:** The server verifies authority and resolves a supplied unit or
+    stack GUID against supported arrow inventory stacks. An invalid GUID is the
+    menu's clear request and always invalidates the preference and forces an
+    update. The preference replicates with COND_OwnerOnly. The existing
+    Kalmala.Gameplay.Combat.BowDrawAndArrows test directly exercises the
+    handler in a local authority world; it does not exercise remote RPC cadence.
+    **Proposed repair:** Add a server-owned cadence for this preference RPC and
+    skip replication scheduling when the resolved value is unchanged, while
+    keeping the first selection or clear responsive.
+    **Dependencies:** After CR19 review acceptance; this is a review handoff and
+    does not authorize implementation during CR04.
+    **Acceptance:** The first remote-owner selection or clear is applied
+    immediately. Repeated and alternating requests inside the configured
+    cadence do not repeat inventory resolution or ForceNetUpdate; a request
+    after the cadence can change the preference. The server still accepts only
+    a GUID belonging to a supported owned arrow stack, and the preference
+    remains owner-only.
+    **Focused validation:** Extend Kalmala.Gameplay.Combat.BowDrawAndArrows
+    for selection, clear, duplicate and cadence behavior; after an Editor
+    build, add or run a remote-owner/observer check for the actual RPC route,
+    owner preference update and observer privacy.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
