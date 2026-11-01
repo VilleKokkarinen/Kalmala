@@ -369,6 +369,10 @@
     restores depleted sources or accepted claims. Focused validation: run the
     new key-turnover GameMode automation after an Editor build. Evidence and
     repair: `Temporary/Review/findings.md#rf15--active-population-keys-never-turn-over-p1`.
+  - [ ] **RF16 — Recover failed population depletion writes (P2; CR03-001b-95).**
+    `KalmalaGameMode.cpp:8623-8655` ignores failed harvest/defeat population-slot writes after live depletion is committed. A restart before a later successful save can recreate the source or defeated hazard. Add a retryable, server-owned depletion transaction and prevent a failed harvest write from duplicating a durable player grant. Acceptance: injected write failure is retried or rolled back safely; a fresh load never treats a failed write as durable. Focused validation: run new harvest/death write-failure automations and the forest restart regression after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf16--failed-population-depletion-writes-are-silently-abandoned-p2`.
+  - [ ] **RF17 — Keep Rat defeat rejection atomic (P2; CR03-001b-95).**
+    `KalmalaGameMode.cpp:8658-8671` marks the spawn defeated before the owner-bound reward queue can reject; `KalmalaWildlifeSpawn.cpp:478-491` then aborts the actor defeat when the callback returns false. A later activation/save can suppress a Rat whose defeat and reward claim were never accepted. Queue on a candidate save or otherwise leave the live ledger unchanged on rejection. Acceptance: queue rejection leaves the live and serialized defeated sets unchanged, and a valid retry accepts exactly one owner-bound claim. Focused validation: run a new Rat GameMode rejection regression and the existing Rat peer reward/reconnect regression after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf17--rat-reward-queue-rejection-leaves-a-false-defeated-ledger-entry-p2`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

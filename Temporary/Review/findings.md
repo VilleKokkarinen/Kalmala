@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-94 have queued RF01-RF15; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
+- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-95 have queued RF01-RF17; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -643,3 +643,31 @@ Confirmed RF15 (P1): `ActivePopulationSpatialKeys` is capped at nine in `Activat
 - **Dependency:** Defer implementation until CR19 review acceptance; no repair belongs in this review run.
 - **Acceptance:** A focused server test activates nine keys, moves into a tenth, and verifies the new cell becomes active without exceeding nine. Returning to a prior cell must not duplicate actors or restore depleted sources/accepted claims; scheduler and living-creature unload behavior must remain bounded and correct.
 - **Focused validation:** Run the new key-turnover GameMode automation after an Editor build.
+
+## CR03-001b-95 - Spawn depletion and Rat-to-Peat Husk reward callbacks
+
+Reviewed GameMode.cpp:8623-8819 against S02's permanent-depletion/reward-escrow rules, the world-population sparse-save contract, the M7 persistence and multiplayer gates, and the Rat/Peat Husk regression procedures. The normal callback path validates authority and world identity; reward handlers queue owner-bound claims and persist stable defeated IDs, while Peat Husk keeps its 25% Peat Heart outcome in the stable claim identity. Two failure paths are confirmed: depletion callbacks do not react to a failed population-slot write, and the Rat handler mutates the defeated ledger before reward-queue acceptance. No other production defect was found in this slice. Static inspection only; full verification deferred.
+
+## RF16 - Failed population depletion writes are silently abandoned (P2)
+
+- **Source:** CR03-001b-95; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8623-8655`.
+- **Affected path:** The harvest and generic defeat callbacks update the in-memory population save and invoke `SaveGameToSlot`, but neither propagates nor retries a failed write. `RecordHarvestedSpawn` explicitly discards its `bSaved` result. `RecordDefeatedSpawn` discards the call result.
+- **Trigger:** The population slot write fails after a server harvest has committed its inventory/player-state transaction or after an accepted hazard defeat broadcasts `OnDefeated`.
+- **Impact:** The live session keeps the source depleted, but disk can retain the earlier population save. A restart before another successful population save may recreate the harvested source or defeated hazard, enabling repeated resource/reward acquisition or encounter replay.
+- **Evidence:** `AKalmalaHarvestNode::CommitHarvestedStateFromServer` sets `bHarvested` and broadcasts `OnHarvested` after the accepted grant; GameMode binds this callback to `RecordHarvestedSpawn`. Hazard defeat broadcasts after server acceptance and GameMode binds `RecordDefeatedSpawn`. Both callbacks mutate the live save before writing and have no callback-level retry/rollback. The forest test writer seam returns no success value, so it cannot cover a failed write. This conflicts with `docs/monster-spawning.md` S02 permanent depletion and the sparse-save contract in `docs/02-technical-architecture.md`.
+- **Proposed repair:** Make the persistence result part of a recoverable depletion transaction. Preserve a retryable server-owned delta on write failure and prevent the harvesting grant from becoming a second durable acquisition; ensure accepted defeats remain queued for durable persistence.
+- **Dependencies:** After CR19 review acceptance; no repair is authorized during CR03 review.
+- **Acceptance:** A focused failure-injection regression proves a failed harvest depletion cannot create a durable grant/depletion mismatch and is retried or rolled back safely; an accepted hazard defeat remains scheduled for persistence until its stable ID is durably saved. Reload checks confirm successful depletion stays absent and a failed write does not silently claim durable success.
+- **Focused validation:** Run the new harvest/death persistence-failure automations and the existing forest restart regression after an Editor build; full milestone verification remains governed by `docs/07-development-setup.md`.
+
+## RF17 - Rat reward-queue rejection leaves a false defeated ledger entry (P2)
+
+- **Source:** CR03-001b-95; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8658-8671` and `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-491`.
+- **Affected path:** `RecordRatDefeatReward` calls `MarkDefeated` before `TryQueuePendingWildlifeReward`. The queue can reject at its 4096-claim limit or when an existing stable claim belongs to a different player identity.
+- **Trigger:** A valid Rat defeat callback reaches a queue rejection. The callback returns false; `DefeatServer` then exits before setting `bDefeated` or broadcasting the accepted defeat, but `PopulationSaveGame` already contains the spawn ID in `DefeatedSpawnIds`.
+- **Impact:** The unaccepted live Rat remains at zero health while the shared save reports it defeated. If the actor unloads or a later unrelated save serializes that object, activation can suppress a Rat whose defeat and reward claim never completed.
+- **Evidence:** In the selected handler, `MarkDefeated` precedes the queue call and its false return. `TryQueuePendingWildlifeReward` can fail on capacity or owner mismatch. `AKalmalaWildlifeSpawn::DefeatServer` returns immediately when the callback fails, before accepting the defeat. The neighboring callbacks in this slice queue before marking. The existing Rat save-model test covers queue idempotency, owner identity and serialization but does not exercise this GameMode rejection path.
+- **Proposed repair:** Validate/queue the claim before mutating the defeated ledger, preferably on a candidate save that is published only after the complete callback succeeds. A rejected queue must leave the original save unchanged.
+- **Dependencies:** After CR19 review acceptance; no repair is authorized during CR03 review.
+- **Acceptance:** A focused GameMode regression fills/rejects the pending queue and verifies that the callback fails without adding the Rat ID to the live or serialized defeated set; a valid retry queues exactly one owner-bound claim and accepts the defeat.
+- **Focused validation:** Run the new Rat GameMode callback regression and the existing Rat peer reward/reconnect regression after an Editor build.
