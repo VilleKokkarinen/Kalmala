@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-88 have queued RF01-RF12; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
+- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-89 have queued RF01-RF12; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -569,6 +569,10 @@ Reviewed GameMode 7199-7422 against S10/S26 and S27-S29. Physical-placement disp
 ## CR03-001b-88 - Natural population spawn transaction
 
 Reviewed GameMode 7423-7631 against S26/S29, the natural and configured call sites, wildlife initialization/registry callbacks, and focused population automation sources. The server transaction rechecks caps and final placement, reserves all proposed capacity before spawning, initializes and validates stable actor identity/state, cleans up partial failures, releases reservations, and only then clears cooldown and publishes source ownership. No production defect was found. Confirmed RF12 (P3): no test exercises a successful natural population transaction or partial Wolf-pack creation rollback. Static inspection only; full verification deferred.
+
+## CR03-001b-89 - Population progression/cap admission and reservations
+
+Reviewed GameMode 7632-7819 against S11/S12/S19/S26/S29 and the focused gate-evaluator, area-cap, Wolf-reservation and environmental-admission tests. The server-only progression gate resolves known species and fails unknown archetypes closed. Non-Wolf admission counts live actors and pending reservations; Wolf cap evaluation atomically trial-reserves its three deterministic member locations and releases that token. The shared reservation transaction validates inputs, accounts for each provisional member and source-local pending capacity, and removes the complete reservation on any failure. No production defect or distinct focused-test gap was found. Static source/document/test-source inspection only; full verification deferred.
 
 ## RF12 - Natural population creation and Wolf rollback lack transaction coverage (P3)
 

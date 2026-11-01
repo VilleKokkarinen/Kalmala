@@ -25907,3 +25907,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review-ledger correction only; gameplay behavior is unchanged. The reviewed population decisions remain server-authoritative.
 - Limitations: runtime checks remain deferred; CR03 remains incomplete.
 - Next eligible task: CR03-001b-88, review `KalmalaGameMode.cpp:7423-7631` (natural population spawn transaction).
+
+## Run 2026-11-01 - CR03 population progression/cap admission and reservation review
+
+- Reviewed `KalmalaGameMode.cpp:7632-7819` for CR03-001b-89 and marked its bounded coverage row reviewed. No production defect or distinct focused-test gap was found; no new RF task was warranted. Updated `PROGRESS.md`, `Temporary/Review/coverage.md`, and `Temporary/Review/findings.md` only; no implementation, test, or backlog task state changed.
+- Ownership: this thread was the only active Kalmala run on the main checkout; the two same-checkout automation threads were idle. Main checkout `master` at `63eafbf6`; the index was clean. Preserved all 22 pre-existing unstaged paths, including the existing BACKLOG.md edit and the GameMode.cpp edit at line 9671 outside the reviewed range.
+- Checks: Re-read AGENTS.md, BACKLOG.md, PROGRESS.md and the relevant population contracts in `docs/monster-spawning.md` and `docs/02-technical-architecture.md`; cross-checked the relevant project brief, design, roadmap and decision-log constraints. Inspected the progression/cap predicates, deterministic Wolf trial reservation, shared and source-local reservation rollback/release behavior, their callers and the focused gate-evaluator, area-cap, Wolf-reservation and environmental-admission test sources. Static source/document/test-source inspection only; no automation, build, tests, editor or runtime checks.
+- Full verification deferred: CR03 review remains incomplete; b89 is not its final task and no full verification was run.
+- Impact/authority: review evidence only; gameplay behavior is unchanged. Progression, cap admission and reservation decisions remain server-authoritative.
+- Limitations: no runtime admission or reservation transaction was exercised; later CR03 review batches and all runtime verification remain outstanding. The pre-existing GameMode.cpp line 9671 edit remains outside scope.
+- Next eligible task: CR03-001b-90, review `KalmalaGameMode.cpp:7820-7931` (GameMode tick and population scheduler service).
