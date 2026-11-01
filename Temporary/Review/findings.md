@@ -699,3 +699,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; no documentation repair is authorized during CR03 review.
 - **Acceptance:** All six setup commands reference the existing runner and a valid matching scenario while retaining seed 445.
 - **Focused validation:** Run `Scripts/Tests/Combat/EnemyPeers.ps1 -ListScenarios` and parser-check the updated setup instructions.
+
+## RF20 - Mireling gem claim prefix is not fully removed (P2)
+
+- **Source:** CR03-001b-97; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9104-9118, 12034-12050.
+- **Affected path:** A generated Mireling's optional Dusk Diamond claim, queued for the authenticated credited attacker and retried from the authoritative GameMode tick.
+- **Trigger:** RecordMirelingDefeatReward queues mireling-gem|<PersistentSpawnId> and saves the defeated ledger under the bare spawn ID. DeliverPendingWildlifeRewards recognizes the prefix but calls RightChop(12). The prefix mireling-gem| is 13 characters, so the resulting lookup key is |<PersistentSpawnId>. PopulationSaveGame->IsDefeated checks for the bare ID, fails, and the loop skips delivery on every 0.5-second retry.
+- **Impact:** A rolled Dusk Diamond is never granted, even when the authenticated owner is present and has enough inventory capacity. The pending claim remains stuck rather than following the documented capacity-retry behavior.
+- **Evidence:** The selected delivery guard and claim producer establish the mismatched IDs. docs/02-technical-architecture.md A9 requires the selected gem to be held in the owner's pending claim and retried; docs/monster-spawning.md S02 requires owner-bound durable claims. KalmalaA9EnemySourcesTest verifies deterministic gem source selection but no test exercises DeliverPendingWildlifeRewards or this claim ID.
+- **Proposed repair:** Parse/remove the complete prefix (or use a typed claim-ID parser) before checking the defeated set, and add a focused server delivery regression that starts from the Mireling producer's saved claim.
+- **Dependencies:** After CR19 review acceptance; no repair is authorized during CR03 review.
+- **Acceptance:** A generated Mireling with a persisted successful Dusk Diamond roll delivers the gem exactly once to its authenticated owner when capacity exists. A full inventory retains the original owner-bound claim and stored outcome; after capacity is restored, one retry grants the gem and durably consumes the claim.
+- **Focused validation:** Run Kalmala.Gameplay.Discovery.EnemyGemSources and the new GameMode delivery regression after an Editor build.

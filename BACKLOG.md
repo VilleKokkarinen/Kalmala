@@ -377,6 +377,18 @@
     `KalmalaGameMode.cpp:8820-9045` has six species reward handlers, but their focused tests exercise the save-game claim helpers rather than the GameMode callbacks. The live peer scenarios check attacks/replication; only Rat's shared scenario checks reward escrow. A callback wiring, owner, stored-roll or defeated-ledger regression could pass current species tests. Add isolated GameMode/DefeatServer coverage for Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw. Acceptance: each actual species path creates one authenticated owner-bound claim with its stable member ID and persisted optional-roll outcome, and retry does not reroll or reassign. Focused validation: run the new callback automation and the six existing species contract automations after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf18--species-defeat-reward-callbacks-lack-focused-gamemode-coverage-p3`.
   - [ ] **RF19 — Correct the wildlife peer-runner instructions (P3; CR03-001b-96).**
     `docs/07-development-setup.md:2680-2783` names six per-species `*Peer.ps1` files that are absent from `Scripts/Tests/Combat`; the current runner is `EnemyPeers.ps1` with `WolfPack`, `LynxLeap`, `PolarBearCharge`, `HornedGoatPush`, `ThunderSentinelSlam` and `ReefMawBite` scenarios. Following the documented commands fails before the live peer checks start. Update those commands to the current runner and scenario names while preserving seed 445. Acceptance: every documented wildlife peer command resolves and selects the matching scenario. Focused validation: run `EnemyPeers.ps1 -ListScenarios` and parser-check the setup documentation after editing. Evidence and repair: `Temporary/Review/findings.md#rf19--wildlife-peer-test-docs-reference-missing-scripts-p3`.
+  - [ ] **RF20 — Correct Mireling gemstone claim delivery (P2; CR03-001b-97).**
+    KalmalaGameMode.cpp:9104-9118 removes 12 characters from the
+    mireling-gem| claim prefix although it is 13 characters. The saved
+    defeated ledger contains the unprefixed spawn ID, so lookup receives
+    |<spawn-id> and skips the pending Dusk Diamond claim on every retry.
+    Parse the complete claim prefix and add delivery-path regression coverage.
+    Acceptance: an authenticated generated Mireling with a persisted Dusk
+    Diamond claim delivers exactly once when capacity exists; a full inventory
+    retains the same claim and retry grants it once without rerolling.
+    Focused validation: run Kalmala.Gameplay.Discovery.EnemyGemSources and
+    the new server delivery regression after an Editor build. Evidence:
+    Temporary/Review/findings.md#rf20--mireling-gem-claim-prefix-is-not-fully-removed-p2.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
