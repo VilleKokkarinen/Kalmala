@@ -26516,3 +26516,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The module entrypoint registers no client request or replicated gameplay behavior; server authority is unchanged.
 - **Known limitations / remaining scope:** Dedicated-server compilation and live multi-peer acceptance remain deferred until a server-capable UE 5.8 distribution is available. CR04 remains open.
 - **Next eligible task:** CR04-030, review `Source/KalmalaUI/KalmalaUI.Build.cs`.
+
+## Run 2026-11-01 — CR04-030 UI module dependency trust-boundary review
+
+- **Selected task:** CR04-030, review `Source/KalmalaUI/KalmalaUI.Build.cs`.
+- **Work completed:** Reviewed the UI module dependency rules, public-header dependencies and target inclusion. Marked the CR04-030 batch and its CR04 file assignment reviewed in `Temporary/Review/coverage.md`. The source hash matches the CR01 baseline and the file has no local diff. No new actionable network trust-boundary finding was confirmed. `BACKLOG.md` remains unchanged because CR04 is incomplete and this coverage batch does not complete a backlog parent.
+- **Files changed:** `Temporary/Review/coverage.md` and `PROGRESS.md`. No code, tests, scripts, configuration, catalogue or assets were changed.
+- **Ownership:** Stayed in the main checkout `E:\dev\Kalmala` on `master` at `fb274a7b1ed299668a29c959c0fc486f65da05fb`. The active-thread/checkout check found no competing live Kalmala run on this checkout or shared destination; the index lock was absent and no Git process was running. Preserved the 22 pre-existing modified tracked paths. No worktree handoff synchronization was needed.
+- **Checks:** Re-read `AGENTS.md`, `BACKLOG.md`, `PROGRESS.md`, review coverage/findings, and relevant project brief, game-design, architecture, roadmap, decision-log and development-setup contracts. Recomputed the selected SHA-256 and confirmed no source diff. Parsed `Kalmala.uproject` as JSON and inspected public-header dependency use, target module lists and targeted UI network-function declaration search results. Static review only; no build, automation or live peer/privacy session was run. Full verification remains deferred; this was not milestone-final verification.
+- **Observable impact:** CR04-030 is traceably reviewed. No gameplay or runtime behavior changed.
+- **Networking/authority:** The UI module has no direct server-module dependency, and the dedicated Server target excludes UI. No request or authority path changed.
+- **Known limitations / remaining scope:** UI call-site and dependent Gameplay request validation continue in later CR04 batches; no live peer/privacy check was run. CR04 remains open.
+- **Next eligible task:** CR04-031, review the first twelve files in `Source/KalmalaUI/Private`.
