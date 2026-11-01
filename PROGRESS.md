@@ -26297,3 +26297,14 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** No authority boundary changed. Inventory, discovery claims, ping relay, menu seed selection, and peer-fixture setup remain server-authoritative; the inspected private state remains owner-scoped.
 - **Known limitations / remaining scope:** Peer fixtures and high-volume/replay behavior were not executed. CR04 and the primary CR09-001, CR10-001, and CR16-020 reviews remain open.
 - **Next eligible task:** CR04-012, review the next 12 files in `Source/KalmalaGameplay/Private`.
+
+## Run 2026-11-01 - CR04-012 Ocean travel, placement, status, and player-state review
+
+- Reviewed the twelve CR04-012 files and marked the batch and only its CR04 assignments reviewed in `Temporary/Review/coverage.md`. All source fingerprints match the CR01 baseline, with no selected-file diffs. No new confirmed actionable finding was established; RF02 remains the existing remote-client privacy-test handoff. `BACKLOG.md` remains unchanged because CR04 is still open.
+- **Files changed:** `PROGRESS.md` and `Temporary/Review/coverage.md`.
+- Ownership: this run stayed in the main checkout at `master` on `3eec3020c19383c52e7aeab20a8dd87435046ff4`. The checkout had 22 pre-existing modified paths, including the user's `BACKLOG.md` edits and unrelated gameplay/UI/config/documentation changes; all were preserved. No staged paths or Git index lock were present. The active-thread check found no other live run owning this checkout or shared handoff destination, and no separate worktree handoff was required.
+- Checks: Re-read the project rules and active backlog/progress/review context and relevant architecture, design, decision-log, multiplayer and development-setup material. Recomputed all twelve selected hashes and confirmed no source diffs. Inspected request declarations/callers, server authority, bounds/cadence, owner-only replication, direct-material placement validation, save identity/schema rejection and fixture guards. Static review only; no build, automation, network session, replay/save failure injection, or runtime test was run. `git diff --check` passed after the evidence update. Full verification remains deferred; no milestone-final verification was due.
+- **Observable impact:** CR04-012 is now traceably reviewed. No gameplay code or runtime behavior changed.
+- **Networking/authority:** No authority boundary changed. Skiff movement, placement payment, equipment/status updates and persistence remain server-owned; feedback, detailed status and player-save data remain owner-scoped.
+- **Known limitations / remaining scope:** Peer privacy, network loss/reordering, malformed-save loading and disk-failure paths were not run. CR04 and primary CR05, CR06, CR07, CR08, CR11 and CR16 reviews remain incomplete.
+- **Next eligible task:** CR04-013, review the next 11 files in `Source/KalmalaGameplay/Private`.
