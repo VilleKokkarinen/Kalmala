@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-93 have queued RF01-RF14; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
+- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-94 have queued RF01-RF15; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -625,3 +625,21 @@ Reviewed GameMode 8308-8478 against the active-key population, harvest/depletion
 - **Dependency:** Defer implementation until CR19 review acceptance; no repair belongs in this review run.
 - **Acceptance:** The focused automation covers expected hazard actor materialization, stable descriptor identity, production `OnDefeated` binding and exact sparse save mutation, and fresh activation suppression of only the defeated ID.
 - **Focused validation:** Run the new focused GameMode hazard-materialization test after an Editor build.
+
+## CR03-001b-94 - Active-key discovery and M9 reward materialization
+
+Reviewed GameMode 8479-8622 against the first-wave discovery, M9 land-reward, active-key, persistence and authority contracts. Generated POI/scroll actors and biome-specific harvest discovery nodes use server-derived descriptors; nodes skip saved depletion and bind the production callback. The M9 catalogue supplies at most one deterministic candidate per eligible key, and the replicated actor accepts only server initialization. Claim handling revalidates the canonical descriptor and active cell, authenticated owner, range, saved/session duplicate state and exact reward transaction. Existing catalogue and peer checks cover descriptor validity, placement, forged/distant/replayed claims, independent owners and private feedback. The peer fixture manually creates the marker, so it does not cover activation integration.
+
+Confirmed RF15 (P1): `ActivePopulationSpatialKeys` is capped at nine in `ActivatePopulationKey`, only appended to after materialization, and never removed. `Tick` keeps requesting the current key for each living player, but unseen cells are rejected after the ninth unique key. `GetPopulationSpatialKeyCandidates` iterates only the existing set, while `UpdatePopulationKeySchedule` removes only scheduler/due/cursor/ordinal entries for keys outside the player neighborhood. Therefore moving through the world eventually stops materializing population, harvest, hazard, POI/scroll, biome discovery and M9 reward actors in new cells. The focused key-union test proves only candidate-query stability; cadence tests prove scheduler-state cleanup; the M9 peer fixture manually inserts its key. No test covers rollover or new-cell activation after the cap. This conflicts with the current nine-active-key budget's use as a loaded-cell bound and prevents long-distance world exploration from continuing to receive generated content. No runtime traversal was exercised.
+
+## RF15 - Active population keys never turn over (P1)
+
+- **Source review:** CR03-001b-94.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:5365-5450, 7922, 8311, 8619`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpatialKeyUnionTest.cpp:42-133`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp:75-119`; `Scripts/Tests/Progression/ExplorationRewards.ps1:12-42`.
+- **Trigger:** A server session visits nine distinct population spatial keys and a living player enters a tenth.
+- **Evidence:** `ActivatePopulationKey` returns for any new key once `ActivePopulationSpatialKeys.Num()` reaches `MaxActivePopulationSpatialKeys` (9), and successful activation only adds the key. Repository-wide references show no removal from this set. The normal server tick keeps calling activation for each living pawn's current key. `GetPopulationSpatialKeyCandidates` filters only keys already in the set, and `UpdatePopulationKeySchedule` prunes the scheduler's due/cursor/ordinal maps, not the active-key set. The key-union test asserts that its query neither adds nor removes loaded keys; cadence tests cover scheduler entries only. The M9 peer fixture manually inserts its cell and spawns the actor, so it bypasses production activation.
+- **Impact:** Once the ninth unique cell is reached, later cells cannot create wildlife, harvest, hazards, first-wave discoveries or M9 rewards. A small number of spatial transitions permanently disables generated content beyond those initial cells for the rest of the server session.
+- **Proposed repair:** After CR19 review acceptance, add bounded active-key turnover within the existing nine-key budget. Evict keys outside the supported player neighborhood and clean up/recreate their generated actors and per-key state coherently. Preserve permanent sparse depletion, M9 per-player claims, living-creature unload cooldowns and server authority; keep actor and reservation counts bounded.
+- **Dependency:** Defer implementation until CR19 review acceptance; no repair belongs in this review run.
+- **Acceptance:** A focused server test activates nine keys, moves into a tenth, and verifies the new cell becomes active without exceeding nine. Returning to a prior cell must not duplicate actors or restore depleted sources/accepted claims; scheduler and living-creature unload behavior must remain bounded and correct.
+- **Focused validation:** Run the new key-turnover GameMode automation after an Editor build.

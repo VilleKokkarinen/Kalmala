@@ -347,6 +347,28 @@
     Focused validation: run the new GameMode hazard-materialization test after
     an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf14--generated-hazard-materialization-and-permanent-depletion-lack-integration-coverage-p3`.
+  - [ ] **RF15 — Recycle active population keys during traversal (P1; CR03-001b-94).**
+    Affected: `KalmalaGameMode.cpp:8311, 5365-5450, 7922, 8619`;
+    `KalmalaPopulationSpatialKeyUnionTest.cpp:42-133`;
+    `KalmalaPopulationSchedulerCadenceTest.cpp:75-119`; and
+    `Scripts/Tests/Progression/ExplorationRewards.ps1:12-42`. Trigger: the
+    server visits nine distinct spatial keys, then a player enters a new key.
+    `ActivatePopulationKey` rejects new keys at the nine-key limit, while
+    `ActivePopulationSpatialKeys` is only appended to and never evicted. Tick
+    keeps requesting each living player's current key, but the candidate query
+    and cadence cleanup only filter/remove scheduler state. Impact: population,
+    harvest, hazard, first-wave discovery and M9 reward descriptors stop being
+    materialized in all later cells; long-distance exploration loses generated
+    encounters and discoveries. No runtime traversal was exercised. After CR19,
+    implement bounded key turnover within the existing nine-key budget, with
+    safe cleanup/re-activation of generated actors and per-key state while
+    preserving living-creature unload cooldowns, sparse depletion, per-player
+    discovery claims and server authority. Acceptance: a focused server test
+    activates nine keys, moves into a tenth, and proves the new cell becomes
+    active without exceeding nine; reactivation neither duplicates actors nor
+    restores depleted sources or accepted claims. Focused validation: run the
+    new key-turnover GameMode automation after an Editor build. Evidence and
+    repair: `Temporary/Review/findings.md#rf15--active-population-keys-never-turn-over-p1`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
