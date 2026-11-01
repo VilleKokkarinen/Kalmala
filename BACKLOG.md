@@ -389,6 +389,19 @@
     Focused validation: run Kalmala.Gameplay.Discovery.EnemyGemSources and
     the new server delivery regression after an Editor build. Evidence:
     Temporary/Review/findings.md#rf20--mireling-gem-claim-prefix-is-not-fully-removed-p2.
+  - [ ] **RF38 — Suppress M9 reward receipts when claim persistence fails (P3; CR04-010).**
+    `KalmalaGameMode.cpp:10269-10282` commits the M9 reward inventory before
+    saving the player's discovery claim. A failed player-save write rolls back
+    the inventory but cannot retract the reliable owner gain receipt emitted by
+    the first commit. Stage that receipt until the claim save succeeds, or make
+    notification publication part of the transaction. Acceptance: an injected
+    save failure leaves inventory and claim state unchanged, reports unavailable,
+    and emits no item-gain receipt; after persistence recovers, one retry grants
+    the exact reward and one receipt, while replay grants nothing. Focused
+    validation: extend the M9 GameMode failure/retry automation to inspect owner
+    receipts and run it with the M9 exploration peer scenario after an Editor
+    build. Related transaction work: RF30 and RF36. Evidence:
+    `Temporary/Review/findings.md#rf38--suppress-m9-reward-receipts-when-claim-persistence-fails-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
