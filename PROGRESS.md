@@ -26186,3 +26186,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; no code or runtime behavior changed. The default module registration does not add client-controlled behavior or change server authority.
 - Limitations: dedicated-server compilation and peer acceptance remain unavailable with the installed Launcher engine. CR04–CR19 review work and queued finding remediation remain; full verification is deferred.
 - Next eligible task: CR04-001, begin the network trust-boundary review batch covering the three top-level `Source` files.
+
+## Run 2026-11-01 - CR04-001 root build-target review
+
+- Reviewed `Source/Kalmala.Target.cs`, `Source/KalmalaEditor.Target.cs`, and `Source/KalmalaServer.Target.cs` for CR04-001 and marked the batch and CR04 assignments reviewed in `Temporary/Review/coverage.md`. All three SHA-256 fingerprints match the CR01 baseline. Their game, editor, and server module lists preserve the expected separation; no actionable trust-boundary issue was found. `BACKLOG.md` remains unchanged because CR04-001 is a coverage batch, not a backlog checkbox.
+- **Files changed:** `PROGRESS.md` and `Temporary/Review/coverage.md`.
+- Ownership: the Codex app showed this as the only active local Kalmala run; other listed checkouts are distinct. The main checkout was `master` at `337bd095f852b4c53466f5978e2602fb892977fd` before this run; no staged paths or Git index lock were present. Preserved all 22 pre-existing modified paths, including the user's `BACKLOG.md` deletions and the unrelated `KalmalaGameMode.cpp` edit at line 9674.
+- Checks: Re-read `AGENTS.md`, current backlog/progress and CR04 coverage/findings context, plus relevant brief, design, architecture, agent guide, roadmap, decision log, and development setup sections. Verified the three selected hashes against the baseline and inspected target type/module composition. Static inspection only; no build, network test, or live session was run. `git diff --check` passed after the evidence update. Full verification remains deferred; no milestone-final verification was due.
+- Impact/authority: review evidence only; no code or runtime behavior changed. The dedicated-server target remains separate from client UI, and the game/editor target definitions do not change server-side validation.
+- Limitations: this batch covers target composition only; request validation, ownership, privacy, and replay/rate handling remain in later CR04 batches. Dedicated-server compilation remains subject to the documented UE 5.8 engine support constraint.
+- Next eligible task: CR04-002, review `Source/KalmalaCore/KalmalaCore.Build.cs` for the network trust-boundary contract.
