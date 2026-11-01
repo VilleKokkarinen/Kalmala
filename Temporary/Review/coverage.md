@@ -256,7 +256,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR03-001b-108` | CR03 | `GameMode.cpp:10817-10923` | 1 partial | reviewed | Logout and initial PostLogin test-role setup |
 | `CR03-001b-109` | CR03 | `GameMode.cpp:10924-11146` | 1 partial | reviewed | PostLogin pawn setup and authority-owned test fixtures |
 | `CR03-001b-110` | CR03 | `GameMode.cpp:11147-11373` | 1 partial | reviewed | M9 schema-2 candidate world/player peer tests |
-| `CR03-001b-111` | CR03 | `GameMode.cpp:11374-11648` | 1 partial | pending | Traversal test configuration and reconnect verification |
+| `CR03-001b-111` | CR03 | `GameMode.cpp:11374-11648` | 1 partial | reviewed | Traversal test configuration and reconnect verification |
 | `CR03-001b-112` | CR03 | `GameMode.cpp:11649-11880` | 1 partial | pending | Traversal drive, generated starts, and terrain patch lifecycle |
 | `CR03-001b-113` | CR03 | `GameMode.cpp:11881-12053` | 1 partial | pending | Player-start selection, gem state, and treasure rewards |
 | `CR03-001c` | CR03 | `Source/KalmalaGameplay/Private` | 4 | pending | Original CR03-001 files other than GameMode |
