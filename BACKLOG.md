@@ -284,6 +284,27 @@
     `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` after an Editor
     build. Evidence and repair:
     `Temporary/Review/findings.md#rf11--source-owned-live-actors-lack-local-cap-adapter-coverage-p3`.
+  - [ ] **RF12 — Cover natural population transaction success and Wolf rollback (P3; CR03-001b-88).**
+    Affected: `KalmalaGameMode.cpp:7423-7630`,
+    `KalmalaPopulationCreationLifecycleTest.cpp:20-104`, and
+    `KalmalaEnvironmentalSpawnerAdmissionTest.cpp:145-212`. The transaction
+    reserves capacity, spawns and initializes each actor, validates stable IDs,
+    registers live actors and callbacks, releases reservations, and rolls back
+    partial Wolf packs. Trigger: a regression in creation, registration,
+    reservation release or partial rollback passes current gate/cap fixtures.
+    Evidence: the lifecycle fixture calls the transaction only with default
+    failing gates and manually spawns its test actors; configured admission only
+    covers rejection, and Wolf reservation tests do not create a pack through
+    the transaction. No production defect was found. After CR19, extend
+    `Kalmala.Gameplay.Population.CreationLifecycle` with passing natural single
+    and three-member Wolf transactions and a controlled failure after one Wolf
+    member is created. Acceptance: successful transactions produce the expected
+    stable IDs, initialized live actors, registry entries and defeat callbacks,
+    then release all reservations; partial failure leaves no actors, registry
+    entries, reservations, defeated IDs or reward/save callbacks. Focused
+    validation: run `Kalmala.Gameplay.Population.CreationLifecycle` after an
+    Editor build. Evidence and repair:
+    `Temporary/Review/findings.md#rf12--natural-population-creation-and-wolf-rollback-lack-transaction-coverage-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

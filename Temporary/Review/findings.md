@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 partial exposure review found RF01 (P3). Remaining review batches are pending; no overall project-clean conclusion is implied.
+- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-88 have queued RF01-RF12; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -565,3 +565,19 @@ Reviewed GameMode 7199-7422 against S10/S26 and S27-S29. Physical-placement disp
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** The focused test covers successful live source registration, same-source local counting, other-source exclusion and existing pending-reservation semantics.
 - **Focused validation:** Run `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` after an Editor build.
+
+## CR03-001b-88 - Natural population spawn transaction
+
+Reviewed GameMode 7423-7631 against S26/S29, the natural and configured call sites, wildlife initialization/registry callbacks, and focused population automation sources. The server transaction rechecks caps and final placement, reserves all proposed capacity before spawning, initializes and validates stable actor identity/state, cleans up partial failures, releases reservations, and only then clears cooldown and publishes source ownership. No production defect was found. Confirmed RF12 (P3): no test exercises a successful natural population transaction or partial Wolf-pack creation rollback. Static inspection only; full verification deferred.
+
+## RF12 - Natural population creation and Wolf rollback lack transaction coverage (P3)
+
+- **Source review:** CR03-001b-88.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:7423-7630`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp:20-104`, and `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerAdmissionTest.cpp:145-212`.
+- **Trigger:** A regression skips or corrupts actor initialization, stable-ID validation, live registration, defeat-callback binding, reservation release or partial Wolf-pack rollback while the existing gate, cap, rejection and manual actor-lifecycle tests still pass.
+- **Evidence:** The creation-lifecycle automation calls `TryCreatePopulationSpawnTransaction` only with default failing gate results, then manually spawns and initializes a Rat for unload/reload checks. Configured-source admission tests cover disabled, full-local-cap and defeated-slot rejection, not a successful transaction. Wolf-reservation automation tests capacity policy without creating a pack through this transaction. No focused test reaches successful `TryCreatePopulationSpawnTransaction` execution or a failure after one Wolf member has been created. Static review found no production defect.
+- **Impact:** Natural admission could regress by failing to create or correctly register an eligible actor, leaking capacity, or leaving a partial pack; the current transaction contains rollback logic, but these outcomes lack a focused regression guard.
+- **Proposed repair:** Extend `Kalmala.Gameplay.Population.CreationLifecycle` with a fully passing natural single-actor transaction and a successful three-member Wolf transaction. Add a controlled later-member failure (using a test-only spawn hook if needed) to exercise rollback after partial creation.
+- **Dependency:** Defer implementation until CR19 review acceptance; no repair belongs in this review run.
+- **Acceptance:** Successful single and Wolf attempts produce the expected initialized stable IDs, live registry entries and defeat callbacks, then release all pending reservations. Injected partial Wolf failure leaves no new actors or registry entries, pending reservations, defeated IDs or reward/save callbacks.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.CreationLifecycle` after an Editor build.

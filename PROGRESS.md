@@ -25888,6 +25888,16 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Limitations: multi-player unload composition and successfully created source-owned actor sampling were not exercised. RF01-RF11 remain queued behind CR19. The pre-existing GameMode.cpp line 9674 edit remains outside reviewed scope.
 - Next eligible task: CR03-001b-88, review `KalmalaGameMode.cpp:7423-7631` (natural population spawn transaction).
 
+## Run 2026-11-01 - CR03 natural population transaction review
+
+- Reviewed `KalmalaGameMode.cpp:7423-7631` for CR03-001b-88. Found no production defect; confirmed RF12 (P3), missing success-path and partial Wolf-pack rollback coverage for the natural population transaction. Updated BACKLOG.md with RF12 and updated Temporary/Review/coverage.md, Temporary/Review/findings.md, and PROGRESS.md only. No source, tests, assets or runtime behavior changed.
+- Ownership: this thread was the only active Kalmala run on the checkout. Main checkout `master` at `963b3069`; the index was clean before editing. Preserved the 22 pre-existing modified paths, including BACKLOG.md deletions and the GameMode.cpp line 9674 edit outside this review slice.
+- Checks: Inspected the full b88 transaction, natural/configured call sites, live-creature registration and defeat lifecycle, focused creation/admission/reservation automation sources, and the S26/S29 plus server-authority documentation. Static source/document/test-source inspection only; no automation, build, tests, editor or runtime checks. `git diff --check` and `git diff --cached --check` passed; the staged set contains only the four run-owned bookkeeping files, all with absolute paths under 260 characters.
+- Full verification deferred: CR03 remains incomplete; b88 is not its final task and no full verification was run.
+- Impact/authority: review evidence and queued regression coverage only; gameplay behavior is unchanged. Population creation and resulting actor state remain server-authoritative.
+- Limitations: no successful runtime transaction, partial Wolf failure, configured source actor or peer behavior was exercised; runtime verification remains deferred.
+- Next eligible task: CR03-001b-89, review `KalmalaGameMode.cpp:7632-7819` (population progression/cap admission and reservations).
+
 ## Run 2026-10-31 - Complete CR03-001b-87 coverage evidence
 
 - A current-state audit found that the b87 coverage row was marked reviewed but its detailed evidence section was missing. Added the missing bounded review evidence to Temporary/Review/coverage.md. No BACKLOG or production-code/test changes were needed.
