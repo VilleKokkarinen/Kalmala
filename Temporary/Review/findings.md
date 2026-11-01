@@ -365,6 +365,7 @@ Reviewed GameMode 4980-5091 with baseline-matching bytes. Confirmed test-coverag
 - **Dependency:** Defer implementation until CR19 review acceptance.
 - **Acceptance:** DiscoveryPeer and M9 peer checks confirm the Host retains expected feedback and reward while Remote sees no Host feedback, serial, label, or private reward inventory. A test-only exposed-field regression must fail.
 - **Focused validation:** Run `Scripts/Tests/Progression/DiscoveryPeer.ps1` and `Scripts/Tests/Progression/ExplorationRewards.ps1` after an Editor build; verify a test-only exposed-field regression fails for the non-owner.
+- **Additional evidence — CR04-011:** `KalmalaOceanDiscoveryDisembarkPeerTest.cpp:498-609` and `KalmalaOceanIntegratedReconnectPeerTest.cpp:81-170` have the same late-join privacy-probe gap. Their server-side late-join checks inspect the joining player's own inventory and discovery feedback; the late-join client checks also inspect only its locally controlled pawn. Neither path checks the original host/helm pawn replicas on that client after the owners hold discovery feedback and reward inventory. The `RewardLeak=0` markers therefore cannot catch a regression that exposes an original owner's state. Those production fields remain `COND_OwnerOnly`, so no live leak was observed. This is evidence for RF02's existing remote-client privacy repair, not a separate finding.
 
 ## CR03-001b-63 - M9 exploration reward peer setup and descriptor staging
 
