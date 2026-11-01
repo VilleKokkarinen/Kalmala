@@ -402,6 +402,17 @@
     receipts and run it with the M9 exploration peer scenario after an Editor
     build. Related transaction work: RF30 and RF36. Evidence:
     `Temporary/Review/findings.md#rf38--suppress-m9-reward-receipts-when-claim-persistence-fails-p3`.
+  - [ ] **RF39 — Rate-limit repeated storage-close requests (P3; CR04-013).**
+    `KalmalaStorageInteraction.cpp:89-92,300` lets the owning client call the
+    reliable close RPC without the adjacent 200 ms request gate. Every call
+    clears the storage view and asks its character for an immediate update
+    even when already closed. Keep the first valid close immediate, then make repeats
+    idempotent and bounded with a close-specific cadence. Acceptance: open-view
+    closure clears immediately; rapid repeats do not request repeated character
+    updates; closed storage rejects transfers and peer views remain empty.
+    Focused validation: add a two-peer close-flood regression for open and
+    closed states, then run the storage peer scenario. Evidence:
+    `Temporary/Review/findings.md#rf39--rate-limit-repeated-storage-close-requests-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

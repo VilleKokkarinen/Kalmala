@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-96 have queued RF01-RF19; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
+- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-013 reviewed. Confirmed findings RF01-RF39 are queued; other review children remain pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -959,3 +959,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this is a review handoff and does not authorize implementation during CR04.
 - **Acceptance:** An injected player-save rejection leaves inventory and the saved/session claim unchanged, publishes unavailable feedback, and sends no item-gain receipt. After persistence recovers, retrying the same canonical descriptor grants the exact catalogue reward with one owner receipt; replay grants no reward or receipt.
 - **Focused validation:** Extend an isolated M9 GameMode failure/retry automation to inspect inventory, saved/session claim state, owner feedback, and gain receipts at every step. Run it alongside the M9 exploration peer scenario after an Editor build.
+
+## RF39 — Rate-limit repeated storage-close requests (P3)
+
+- **Source:** CR04-013; `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp:89-92,300`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp:143-151`, and `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h:55-58`.
+- **Affected path:** An owning client closing, or repeatedly requesting closure of, its private chest-storage view.
+- **Trigger:** `ServerCloseStorage` is a reliable server RPC but does not call the component's `AcceptRequest` gate used by open, deposit and withdraw. Each request invokes `ClearStorageView`, which resets state and calls `ForceNetUpdate` on the owning character even if no storage view is open and the view is already empty.
+- **Impact:** A client can bypass the normal 200 ms request cadence and repeatedly request immediate character updates, creating avoidable server and network work for relevant peers. The path does not grant items or expose another player's storage; no runtime flood was exercised.
+- **Evidence:** `AcceptRequest` rejects requests inside its 0.2-second window. The adjacent storage open/deposit/withdraw handlers call it; `ServerCloseStorage_Implementation` calls only `ClearStorageView`. `ClearStorageView` has no unchanged-state early return and always calls `GetOwner()->ForceNetUpdate()` after clearing. The storage snapshot remains `COND_OwnerOnly`.
+- **Proposed repair:** Preserve immediate clearing on the first valid close, then make repeated close calls idempotent and subject to a close-specific cadence that cannot leave an open view uncleared because of an unrelated request gate.
+- **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize implementation during CR04.
+- **Acceptance:** Closing an open view immediately clears the owner-only snapshot and active chest. Repeated or rapid close requests remain bounded and do not repeatedly force character updates; closed storage cannot be used for transfers and peers still receive no chest contents.
+- **Focused validation:** Add a focused two-peer storage RPC regression that floods close requests in both open and already-closed states, verifies the first close clears promptly and repeats are bounded/idempotent, then runs the storage peer scenario and checks that simulated peers retain empty views.
