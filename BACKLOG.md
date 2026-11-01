@@ -325,6 +325,28 @@
     `Kalmala.Gameplay.Population.SchedulerWakeBudget` after an Editor build.
     Evidence and repair:
     `Temporary/Review/findings.md#rf13--population-scheduler-tick-integration-lacks-focused-coverage-p3`.
+  - [ ] **RF14 — Cover generated hazard materialization and permanent depletion (P3; CR03-001b-93).**
+    Affected: `KalmalaGameMode.cpp:8460-8473`,
+    `KalmalaInteractionAuthorityTest.cpp:254-264`,
+    `KalmalaWorldPlayerStartResolverTest.cpp:232-279`, and
+    `KalmalaFiniteWorldTest.cpp:34-35`. Trigger: a regression drops GameMode
+    hazard initialization, stable-ID callback binding, persistent defeat write,
+    or saved-ID filtering while the existing eligibility, descriptor-bounds,
+    and generic save tests pass. Evidence: `ActivatePopulationKey` skips saved
+    defeated hazard IDs, spawns each remaining `AKalmalaHazardSpawn`, assigns its
+    deterministic ID, and binds the production defeat callback. Existing tests
+    cover the eligibility predicate, generic save round-trip, and descriptor
+    bounds separately; none exercises materialization through accepted defeat,
+    save, and fresh activation suppression. No production defect was found.
+    After CR19, add a focused GameMode activation test with multiple deterministic
+    hazard descriptors, verify stable IDs and the production callback, persist
+    one accepted server defeat through an isolated/in-memory writer, and require
+    a fresh activation to omit only that ID while materializing its undefeated
+    neighbor. Acceptance: actor materialization, exact-ID save mutation and
+    defeated-slot suppression are covered without touching user save slots.
+    Focused validation: run the new GameMode hazard-materialization test after
+    an Editor build. Evidence and repair:
+    `Temporary/Review/findings.md#rf14--generated-hazard-materialization-and-permanent-depletion-lack-integration-coverage-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
