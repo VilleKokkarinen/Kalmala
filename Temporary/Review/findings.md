@@ -723,3 +723,22 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; no repair belongs to this CR03 review run.
 - **Acceptance:** A successful M9 harvest persists exactly one `ResourceDepleted` delta under the matching world identity; a fresh session for that same world suppresses the source; a different seed or generator revision does not inherit it; and injected write failure cannot create a durable player grant while leaving depletion absent.
 - **Focused validation:** Run the new GameMode M9 depletion persistence regression, the existing M9 source acceptance test, and the M7 sparse persistence contract test after an Editor build.
+
+## CR03-001b-99 - Player discovery save lookup and server player-state persistence
+
+- **Source review:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9427-9587`.
+- **Evidence:** The authenticated server path refreshes the authoritative world identity before caching or loading player data, checks exact current save type/world/scope/owner and current M9 claim descriptors, and preserves invalid slots while blocking later writes for that identity. Player writes validate a cloned candidate, merge server-owned claims and current carried-tool records, save it first, and replace the cache only after disk success. Current model tests cover schema-3 data and malformed identities in memory; the reconnect fixture covers valid GameMode persistence/reload and owner privacy; the Stormcut test covers action rollback when the player save gate fails.
+- **Result:** No production defect confirmed. Confirmed RF22 (P3), a focused test gap for the invalid/incompatible existing player-slot branch and its no-rewrite guarantee.
+- **Scope/limits:** Static inspection only; no disk slot, save failure, PostLogin restore or reconnect was exercised. No gameplay implementation changed.
+
+## RF22 - Cover fail-closed player discovery save loading (P3)
+
+- **Source:** CR03-001b-99; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9427-9488` and `9520-9585`.
+- **Affected path:** Loading and writing authenticated player discovery/equipment state when a player slot already exists but is malformed, incompatible, belongs to another owner/world, or contains a stale M9 descriptor.
+- **Trigger:** Start or reconnect a player whose expected slot contains an invalid or incompatible `UKalmalaPlayerDiscoverySaveGameV2` record, then attempt to restore or persist player state.
+- **Impact:** The production loader currently fails closed and preserves such data, as required. No focused test proves that the GameMode path returns no state, rejects subsequent persistence, and leaves the exact disk bytes unchanged, so a future overwrite or partial-restore regression could pass the save-model and valid-reconnect checks.
+- **Evidence:** `KalmalaPlayerDiscoverySaveGameTest.cpp` checks malformed/over-cap data and identity mismatches through `MatchesPlayer` in memory. `Scripts/Tests/Progression/Schema2CandidateReconnect.ps1` exercises valid current saves and restart restore, not an invalid pre-existing slot. The source loader's invalid branch adds the identity to `RejectedPlayerDiscoverySaveIdentities` and returns without rewriting the slot.
+- **Proposed repair:** Add an isolated GameMode persistence test that seeds the exact player slot with invalid schema, owner/world mismatch, and a stale-but-well-formed M9 claim in separate cases; call the production load and persist paths, and compare the slot bytes before and after each rejection.
+- **Dependencies:** After CR19 review acceptance; no test repair belongs to this CR03 review run.
+- **Acceptance:** Each invalid case returns no restored player state; a subsequent `PersistPlayerStateFromServer` remains rejected; the original slot bytes remain identical; and a valid current-format slot still loads through the same GameMode path.
+- **Focused validation:** Run the new GameMode invalid-player-slot regression, `Kalmala.Gameplay.Discovery.Schema3CurrentFormat`, and `Scripts/Tests/Progression/Schema2CandidateReconnect.ps1` after an Editor build.
