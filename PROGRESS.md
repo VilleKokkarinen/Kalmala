@@ -25887,3 +25887,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence and queued test improvements only; gameplay behavior is unchanged. Unload, live-creature registry, source mapping, cap sampling and admission decisions remain server-authoritative.
 - Limitations: multi-player unload composition and successfully created source-owned actor sampling were not exercised. RF01-RF11 remain queued behind CR19. The pre-existing GameMode.cpp line 9674 edit remains outside reviewed scope.
 - Next eligible task: CR03-001b-88, review `KalmalaGameMode.cpp:7423-7631` (natural population spawn transaction).
+
+## Run 2026-10-31 - Complete CR03-001b-87 coverage evidence
+
+- A current-state audit found that the b87 coverage row was marked reviewed but its detailed evidence section was missing. Added the missing bounded review evidence to Temporary/Review/coverage.md. No BACKLOG or production-code/test changes were needed.
+- Ownership: the scheduled automation is configured for gpt-6-luna with max reasoning. This thread was the only active Kalmala run on the checkout. Main checkout `master` at `9dc44c8a`; preserved the 22 pre-existing modified paths and left the index untouched during editing.
+- Checks: Confirmed the b87 ledger section and inspected the full worktree diff; `git diff --check` passed. No automation, build, tests, editor or runtime checks were run.
+- Full verification deferred: CR03 review remains incomplete; no full verification was run.
+- Impact/authority: review-ledger correction only; gameplay behavior is unchanged. The reviewed population decisions remain server-authoritative.
+- Limitations: runtime checks remain deferred; CR03 remains incomplete.
+- Next eligible task: CR03-001b-88, review `KalmalaGameMode.cpp:7423-7631` (natural population spawn transaction).
