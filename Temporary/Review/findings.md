@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-95 have queued RF01-RF17; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
+- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-96 have queued RF01-RF19; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -671,3 +671,31 @@ Reviewed GameMode.cpp:8623-8819 against S02's permanent-depletion/reward-escrow 
 - **Dependencies:** After CR19 review acceptance; no repair is authorized during CR03 review.
 - **Acceptance:** A focused GameMode regression fills/rejects the pending queue and verifies that the callback fails without adding the Rat ID to the live or serialized defeated set; a valid retry queues exactly one owner-bound claim and accepts the defeat.
 - **Focused validation:** Run the new Rat GameMode callback regression and the existing Rat peer reward/reconnect regression after an Editor build.
+
+## CR03-001b-96 - Wolf-to-Reef Maw reward callbacks
+
+Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the population sparse-save rules, the M7 creature/reward authority boundary, and the six species contracts. Each handler checks authority/world/save identity, preserves the one-time optional outcome in a stable owner-bound claim where applicable, marks the stable spawn defeated, and returns the slot-write result before wildlife defeat broadcasts. The shared actor dispatcher maps each reviewed archetype to its matching GameMode handler. No production defect was observed. Confirmed RF18 (P3): the species tests cover save/claim helpers but do not invoke these GameMode callbacks, and the live peer scenarios do not assert these species' reward claims. Confirmed RF19 (P3): the six live peer commands in development setup refer to absent per-species scripts; the current runner is EnemyPeers.ps1 with named scenarios.
+
+## RF18 - Species defeat reward callbacks lack focused GameMode coverage (P3)
+
+- **Source:** CR03-001b-96; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8820-9045` and `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-583`.
+- **Affected path:** Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw defeat dispatch, authenticated owner claim creation, stable defeated-ID write and stored optional-roll outcomes.
+- **Trigger:** A callback mapping or handler refactor changes a species' claim ID, owner, roll preservation, defeated mark or save order.
+- **Impact:** The current source tests can still pass while production omits a species reward, assigns its claim incorrectly, or fails to preserve its stable outcome. Rat's shared end-to-end escrow case does not cover these six callbacks.
+- **Evidence:** `KalmalaWildlifeWolfTest.cpp`, `KalmalaWildlifeLynxTest.cpp`, `KalmalaWildlifePolarBearTest.cpp`, `KalmalaWildlifeHornedGoatTest.cpp`, `KalmalaWildlifeThunderSentinelTest.cpp` and `KalmalaWildlifeReefMawTest.cpp` exercise the save-game claim constructors/queue helpers and reward candidates; no test calls the corresponding `Record*DefeatReward` method or `AKalmalaWildlifeSpawn::DefeatServer`. `Scripts/Tests/Combat/EnemyPeers.ps1` checks their nonlethal attack/replication scenarios; its shared reward/persistence scenario is Rat-only. The current handler code matches the documented S02 owner-bound escrow intent.
+- **Proposed repair:** Add isolated GameMode/DefeatServer automation coverage for all six species, using a test save writer or isolated save root so no user slot is touched. Assert exact stable identity, authenticated owner, claim outcome and defeat-save ordering.
+- **Dependencies:** After CR19 review acceptance; no repair is authorized during CR03 review.
+- **Acceptance:** Each actual species dispatch creates one owner-bound claim with the exact persistent member ID, persists the matching defeated ID, and retains its optional roll on retry; rejected identity/world/queue cases create no misplaced claim.
+- **Focused validation:** Run the new callback automation and the six existing species contract automations after an Editor build.
+
+## RF19 - Wildlife peer-test docs reference missing scripts (P3)
+
+- **Source:** CR03-001b-96; `docs/07-development-setup.md:2680-2783`.
+- **Affected path:** The Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw live multi-peer command examples.
+- **Trigger:** A developer follows one of the six documented per-species `*Peer.ps1` commands.
+- **Impact:** The referenced file does not exist, so the documented live acceptance command fails before launching its peer scenario.
+- **Evidence:** `Get-ChildItem Scripts/Tests/Combat` shows only `EnemyPeers.ps1`. That current runner supports `WolfPack`, `LynxLeap`, `PolarBearCharge`, `HornedGoatPush`, `ThunderSentinelSlam` and `ReefMawBite` via its `-Scenario` parameter; the six setup-doc paths do not resolve.
+- **Proposed repair:** Replace each per-species script path with `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario <matching-name>` and retain the documented seed.
+- **Dependencies:** After CR19 review acceptance; no documentation repair is authorized during CR03 review.
+- **Acceptance:** All six setup commands reference the existing runner and a valid matching scenario while retaining seed 445.
+- **Focused validation:** Run `Scripts/Tests/Combat/EnemyPeers.ps1 -ListScenarios` and parser-check the updated setup instructions.
