@@ -26432,3 +26432,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** No authority boundary changed. Combat target selection and damage, crafting, construction, discovery, campfire state and player persistence remain server-owned. The findings concern avoidable server work on rejected client requests; no client-authored target/damage/state bypass was observed.
 - **Known limitations / remaining scope:** Static review only; no request-amplification measurement or failed-save retry burst was run. The primary assignments overlapping these headers and CR04 remain open.
 - **Next eligible task:** CR04-024, review the next public headers in Source/KalmalaGameplay/Public.
+
+## Run 2026-11-01 — CR04-023 review ledger reconciliation
+
+- **Selected task:** Reconcile the first pending CR04 batch. The committed CR04-023 evidence and all twelve per-file rows said reviewed, but its batch row remained pending.
+- **Work completed:** Verified the twelve CR04-023 source files still match their CR01 baseline hashes and have no local source diffs. Updated only the CR04-023 batch status to reviewed; the existing static review evidence and RF48/RF49 findings remain unchanged. `BACKLOG.md` remains unchanged because CR04 is still incomplete.
+- **Files changed:** `Temporary/Review/coverage.md` and `PROGRESS.md`.
+- **Ownership:** Stayed in the main checkout `E:\dev\Kalmala` on `master` at `c0174fa5aa111fbca9b1b55ed3336b024e688313`. The active-thread and checkout checks found no competing live run for this checkout or shared handoff destination. The index lock was absent and no Git process was running. Preserved all 22 pre-existing modified tracked paths; no worktree handoff synchronization was needed.
+- **Checks:** Recomputed all twelve source SHA-256 hashes against the CR01 rows and confirmed every selected source is clean. Static evidence only; no build, automation, live peer or failure-injection check was run. Full verification remains deferred; no milestone-final verification was due. `git diff --check` was run after this ledger update.
+- **Observable impact:** The completed CR04-023 review is now accurately reflected in the ordered batch ledger. No gameplay code or runtime behavior changed.
+- **Networking/authority:** No authority boundary changed. The existing review found server-owned combat, crafting, construction, discovery, campfire and persistence mutations; RF48/RF49 concern bounded work on rejected requests.
+- **Known limitations / remaining scope:** RF48/RF49 still need their focused rejection-burst and persistence-failure repair validation. CR04 remains open; no runtime review was performed in this reconciliation.
+- **Next eligible task:** CR04-024, review the next twelve public headers under `Source/KalmalaGameplay/Public`.

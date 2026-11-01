@@ -285,7 +285,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR04-020` | CR04 | `Source/KalmalaGameplay/Private/Tests` | 12 | reviewed | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-021` | CR04 | `Source/KalmalaGameplay/Private/Tests` | 12 | reviewed | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-022` | CR04 | `Source/KalmalaGameplay/Private/Tests` | 9 | reviewed | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
-| `CR04-023` | CR04 | `Source/KalmalaGameplay/Public` | 12 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
+| `CR04-023` | CR04 | `Source/KalmalaGameplay/Public` | 12 | reviewed | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-024` | CR04 | `Source/KalmalaGameplay/Public` | 12 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-025` | CR04 | `Source/KalmalaGameplay/Public` | 12 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
 | `CR04-026` | CR04 | `Source/KalmalaGameplay/Public` | 12 | pending | Cross-cutting client request validation, ownership, replication privacy and replay/rate boundaries |
