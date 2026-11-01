@@ -413,6 +413,16 @@
     Focused validation: add a two-peer close-flood regression for open and
     closed states, then run the storage peer scenario. Evidence:
     `Temporary/Review/findings.md#rf39--rate-limit-repeated-storage-close-requests-p3`.
+  - [ ] **RF40 — Make the non-axe harvest-gate regression reachable (P3; CR04-014).**
+    `KalmalaCombatLoopTest.cpp:72,165,174` adds only profiles accepted by
+    `IsAttackItemAllowed` to its melee loop, then checks Hammer/Bow rejection
+    inside that loop. Both item types are explicitly excluded, so the negative
+    tree-damage assertion never runs and no non-axe melee item is checked.
+    Move the rejection check to an explicit non-axe melee fixture and verify
+    tree health and tool condition stay unchanged. Focused validation: run
+    `Kalmala.Gameplay.Combat.AllItemSwings` or `Kalmala.Gameplay.Combat.AxeSwing`
+    after an Editor build. Evidence:
+    `Temporary/Review/findings.md#rf40--make-the-non-axe-harvest-gate-regression-reachable-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

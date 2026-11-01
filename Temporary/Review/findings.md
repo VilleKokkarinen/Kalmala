@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-013 reviewed. Confirmed findings RF01-RF39 are queued; other review children remain pending. No overall project-clean conclusion is implied.
+- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-014 reviewed. Confirmed findings RF01-RF40 are queued; other review children remain pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -971,3 +971,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize implementation during CR04.
 - **Acceptance:** Closing an open view immediately clears the owner-only snapshot and active chest. Repeated or rapid close requests remain bounded and do not repeatedly force character updates; closed storage cannot be used for transfers and peers still receive no chest contents.
 - **Focused validation:** Add a focused two-peer storage RPC regression that floods close requests in both open and already-closed states, verifies the first close clears promptly and repeats are bounded/idempotent, then runs the storage peer scenario and checks that simulated peers retain empty views.
+
+## RF40 — Make the non-axe harvest-gate regression reachable (P3)
+
+- **Source:** CR04-014; `Source/KalmalaGameplay/Private/Tests/KalmalaCombatLoopTest.cpp:27-34,72,165,174`.
+- **Affected path:** `Kalmala.Gameplay.Combat.AllItemSwings` coverage of the server axe-only tree-damage gate.
+- **Trigger:** The fixture builds `Items` only from tool profiles for which `IsAttackItemAllowed` returns true (line 72), then checks for `ConstructionHammer` or `Bow` inside that filtered loop (line 165). The test separately asserts that those same items are excluded from `IsAttackItemAllowed` (lines 27-34), so the branch containing the tree-damage rejection assertion (line 174) is unreachable.
+- **Impact:** The stated negative axe-gate assertion never executes, and no non-axe melee profile is checked against `ApplyAxeDamageFromServer`. A regression that lets a non-axe melee item damage a tree would pass this intended check. This is a test-coverage defect; no production exploit was established by this finding.
+- **Evidence:** Static source inspection confirms the mutually exclusive filter and branch conditions. The other test references to `ApplyAxeDamageFromServer` cover accepted axe hits, falling-phase rejection, and range rejection, not rejection of a non-axe melee caller.
+- **Proposed repair:** Move the rejection assertion out of the filtered attackable-item loop. Select an otherwise valid non-axe melee item such as `StoneKnife`, issue the server tree-damage operation against a valid tree, and assert that both tree health and tool condition remain unchanged.
+- **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize implementation during CR04.
+- **Acceptance:** A named automation explicitly executes a valid non-axe melee caller against an eligible tree and confirms rejection with no health or condition mutation, while the accepted axe case continues to pass.
+- **Focused validation:** Extend `Kalmala.Gameplay.Combat.AllItemSwings` or `Kalmala.Gameplay.Combat.AxeSwing`; build the Editor target and run the named automation.
