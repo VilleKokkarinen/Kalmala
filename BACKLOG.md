@@ -423,6 +423,25 @@
     `Kalmala.Gameplay.Combat.AllItemSwings` or `Kalmala.Gameplay.Combat.AxeSwing`
     after an Editor build. Evidence:
     `Temporary/Review/findings.md#rf40--make-the-non-axe-harvest-gate-regression-reachable-p3`.
+  - [ ] **RF41 — Add remote support-magic authority and privacy coverage (P3; CR04-015).**
+    `KalmalaDiscoveryProgressTest.cpp:70-73` checks pure gate helpers, while
+    `KalmalaInventoryHotbarTest.cpp:63-66,116-127` calls the hotbar RPC wrapper
+    directly in a local server-only world. `Scripts/Tests/Acceptance/VerticalSlice.ps1`
+    runs support assertions locally after its three peer scenarios; no remote
+    owner and observer support cast is exercised. The production component
+    marks `LearnedMask`, `CooldownExpiry`, `Feedback` and `FeedbackSerial`
+    owner-only, but no test checks those replication conditions. The setup
+    guide also claims sequence/replay checks and a five-second cooldown, while
+    current M13 architecture specifies slot-only intent and a 300-second
+    cooldown. Add a focused owning-client/server/observer support regression
+    and align the setup notes. Acceptance: a remote owner activates from its
+    server-resolved hotbar slot; the server accepts one cast and rejects a
+    repeat during cooldown without another payment; peers see only public
+    active-effect state while entitlement, cooldown and feedback stay owner-only;
+    the guide accurately describes the tested intent and cooldown. Focused
+    validation: build the Editor target, run the support automation and peer
+    scenario, and check observer replication. Evidence:
+    `Temporary/Review/findings.md#rf41--add-remote-support-magic-authority-and-privacy-coverage-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

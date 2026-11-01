@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-014 reviewed. Confirmed findings RF01-RF40 are queued; other review children remain pending. No overall project-clean conclusion is implied.
+- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-015 reviewed. Confirmed findings RF01-RF41 are queued; other review children remain pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -983,3 +983,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize implementation during CR04.
 - **Acceptance:** A named automation explicitly executes a valid non-axe melee caller against an eligible tree and confirms rejection with no health or condition mutation, while the accepted axe case continues to pass.
 - **Focused validation:** Extend `Kalmala.Gameplay.Combat.AllItemSwings` or `Kalmala.Gameplay.Combat.AxeSwing`; build the Editor target and run the named automation.
+
+## RF41 — Add remote support-magic authority and privacy coverage (P3)
+
+- **Source:** CR04-015; `Source/KalmalaGameplay/Private/Tests/KalmalaDiscoveryProgressTest.cpp:70-73`, `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryHotbarTest.cpp:63-66,116-127`, `Source/KalmalaGameplay/Private/KalmalaInventoryGrid.cpp:341-358`, `Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp:271`, `Scripts/Tests/Acceptance/VerticalSlice.ps1:10-40`, and `docs/07-development-setup.md:2509-2538`.
+- **Affected path:** A remote owning client activates a learned support effect from its numbered hotbar while an observer receives only the public active-effect presentation.
+- **Trigger:** Treating the current local helper and hotbar fixtures as evidence for remote RPC ownership and owner-only replication, or relying on the M4 harness and setup guide claims without verifying the actual peer route.
+- **Impact:** A regression in remote hotbar activation or observer privacy can pass the current support checks. The setup guide also overstates current evidence: its named foundation test has no sequence input or replay assertion, and its five-second cooldown text conflicts with the later M13 300-second slot-only contract. No current production authority or privacy exploit was established.
+- **Evidence:** `KalmalaDiscoveryProgressTest` calls `IsActivationAllowed` directly and tests save-memory identity; it does not create a network world. `KalmalaInventoryHotbarTest` calls `ServerUseHotbarSlot` from a standalone authority world, so it verifies the local server path and cooldown but not a remote caller. `VerticalSlice.ps1` launches peer scenarios for combat, boar and deer, then runs support assertions through local Unreal automation. The server RPC takes only a slot index, and `KalmalaSupportMagicComponent::GetLifetimeReplicatedProps` currently marks learned entitlement, cooldown and feedback fields `COND_OwnerOnly`; no support test asserts those peer conditions.
+- **Proposed repair:** Add a focused listen-host, remote-owner and observer support scenario that activates through the slot-only server RPC, verifies accepted and cooldown-rejected casts with one payment, and checks that only public active-effect state reaches the observer while entitlement, cooldown and feedback remain owner-only. Update the development setup to describe slot-only intent, the current 300-second cooldown, and checks the harness actually performs.
+- **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize implementation during CR04.
+- **Acceptance:** The remote owner can activate an entitled effect through its current server-owned hotbar cell; a repeat during cooldown is rejected without further stamina payment; owner feedback arrives once; observers receive the public active effect but none of the owner-only fields; the guide matches the current M13 contract and executed evidence.
+- **Focused validation:** Build the Editor target, run the focused support automation and the new peer scenario with a listen host, remote owner and observer, then verify the peer markers and replication conditions.
