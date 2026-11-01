@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-89 have queued RF01-RF12; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
+- **Current state:** All four CR02 batches have been reviewed with no confirmed actionable finding. CR03 reviewed batches through CR03-001b-90 have queued RF01-RF13; later CR03 batches and the remaining review children are pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -585,3 +585,19 @@ Reviewed GameMode 7632-7819 against S11/S12/S19/S26/S29 and the focused gate-eva
 - **Dependency:** Defer implementation until CR19 review acceptance; no repair belongs in this review run.
 - **Acceptance:** Successful single and Wolf attempts produce the expected initialized stable IDs, live registry entries and defeat callbacks, then release all pending reservations. Injected partial Wolf failure leaves no new actors or registry entries, pending reservations, defeated IDs or reward/save callbacks.
 - **Focused validation:** Run `Kalmala.Gameplay.Population.CreationLifecycle` after an Editor build.
+
+## CR03-001b-90 - GameMode tick and population scheduler service
+
+Reviewed GameMode 7820-7931 against the S06/S07 server scheduler contract, constructor tick enablement, the population scheduler helpers and focused cadence/budget automation. The authoritative tick guard precedes server services; terrain-key activation is followed by unload update, cadence refresh and bounded wake service. The current code matches the documented order and intervals; no production defect was found. Confirmed RF13 (P3): focused tests exercise cadence and wake helpers directly but do not assert their integration through the real GameMode `Tick`. Static source/document/test-source inspection only; full verification deferred.
+
+## RF13 - Population scheduler Tick integration lacks focused coverage (P3)
+
+- **Source review:** CR03-001b-90.
+- **Affected files:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:7820-7930`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp:12-130`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp:12-69`.
+- **Trigger:** A regression removes or misorders `UpdatePopulationKeySchedule` and `UpdatePopulationSchedulerWake` in the real GameMode tick while the focused helper tests continue to pass.
+- **Evidence:** `AKalmalaGameMode` enables actor ticking. Its `Tick` validates authority, world and generation configuration, refreshes terrain/key activation, then calls `UpdatePopulationKeySchedule` before `UpdatePopulationSchedulerWake`. The cadence test calls the schedule helper directly and the budget test calls the wake helper directly; neither invokes or asserts the GameMode tick integration. Other test files that tick worlds do not assert population scheduler state. The existing runtime order matches the contract; no production defect was found.
+- **Impact:** A future wiring regression could stop or delay natural wildlife scheduler service while direct cadence and budget tests still pass.
+- **Proposed repair:** Extend the scheduler automation with a controlled server fixture that advances the real GameMode tick and checks schedule-to-wake integration, deadline behavior and the existing bounded budgets.
+- **Dependency:** Defer implementation until CR19 review acceptance; no repair belongs in this review run.
+- **Acceptance:** A focused test observes a due key being scheduled and serviced through actual `Tick`, verifies one wake remains within the key/candidate limits, and proves no extra wake occurs before the next deadline.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.SchedulerCadence` and `Kalmala.Gameplay.Population.SchedulerWakeBudget` after an Editor build.

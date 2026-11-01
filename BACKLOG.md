@@ -305,6 +305,26 @@
     validation: run `Kalmala.Gameplay.Population.CreationLifecycle` after an
     Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf12--natural-population-creation-and-wolf-rollback-lack-transaction-coverage-p3`.
+  - [ ] **RF13 — Cover population scheduler GameMode tick integration (P3; CR03-001b-90).**
+    Affected: `KalmalaGameMode.cpp:7820-7930`,
+    `KalmalaPopulationSchedulerCadenceTest.cpp:12-130`, and
+    `KalmalaPopulationSchedulerBudgetTest.cpp:12-69`. Trigger: a regression
+    removes or misorders `UpdatePopulationKeySchedule` and
+    `UpdatePopulationSchedulerWake` in the real server tick while helper-level
+    cadence and wake-budget tests still pass. Evidence: `Tick` currently checks
+    authority/world/configuration, refreshes terrain keys, updates the active-key
+    schedule, then services the bounded wake. The focused population tests call
+    cadence and wake helpers directly and never assert that GameMode `Tick`
+    wires the sequence; no production defect was found. After CR19, extend the
+    scheduler automation with a controlled server tick fixture that proves a
+    due key is serviced through the actual entry point and that the configured
+    wake/candidate bounds and no-catch-up behavior remain intact. Acceptance:
+    a focused test observes schedule advancement followed by one bounded wake
+    through `Tick`, with no extra wake before its deadline. Focused validation:
+    run `Kalmala.Gameplay.Population.SchedulerCadence` and
+    `Kalmala.Gameplay.Population.SchedulerWakeBudget` after an Editor build.
+    Evidence and repair:
+    `Temporary/Review/findings.md#rf13--population-scheduler-tick-integration-lacks-focused-coverage-p3`.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

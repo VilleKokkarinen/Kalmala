@@ -25917,3 +25917,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; gameplay behavior is unchanged. Progression, cap admission and reservation decisions remain server-authoritative.
 - Limitations: no runtime admission or reservation transaction was exercised; later CR03 review batches and all runtime verification remain outstanding. The pre-existing GameMode.cpp line 9671 edit remains outside scope.
 - Next eligible task: CR03-001b-90, review `KalmalaGameMode.cpp:7820-7931` (GameMode tick and population scheduler service).
+
+## Run 2026-11-01 - CR03 GameMode tick and population scheduler review
+
+- Reviewed `KalmalaGameMode.cpp:7820-7931` for CR03-001b-90 and marked its bounded coverage row reviewed. The server tick and scheduler call order match the documented contract; confirmed RF13 (P3), a missing focused test for integrating key cadence and bounded wake service through the real `GameMode::Tick`. Updated BACKLOG.md with RF13 and updated PROGRESS.md, Temporary/Review/coverage.md and Temporary/Review/findings.md only; production code and tests were not changed.
+- Ownership: this thread was the only active Kalmala run on the main checkout; the two same-checkout automation threads were idle. Main checkout `master` at `4bb5b925`; the index was clean. Preserved all 22 pre-existing unstaged paths, including the existing BACKLOG.md deletions and the GameMode.cpp edit at line 9671 outside the reviewed range.
+- Checks: Re-read AGENTS.md, BACKLOG.md, PROGRESS.md and the S06/S07 scheduler contracts in `docs/monster-spawning.md`, plus the population authority row in `docs/02-technical-architecture.md` and relevant design/scope constraints. Inspected GameMode tick enablement and implementation, scheduler call ordering, the previously covered schedule/wake helpers, and the cadence/budget tests; source search found no focused population test invoking the real tick. Static source/document/test-source inspection only; no automation, build, tests, editor or runtime checks.
+- Full verification deferred: CR03 review remains incomplete; b90 is not its final task and no full verification was run.
+- Impact/authority: review evidence and a queued regression test only; gameplay behavior is unchanged. The tick guards scheduler work on server authority and valid world/configuration.
+- Limitations: no live server tick, population activation or wake was exercised. RF13 is deferred until CR19 review acceptance; the existing local GameMode.cpp line 9671 edit remains outside scope.
+- Next eligible task: CR03-001b-91, review `KalmalaGameMode.cpp:7932-8087` (ocean travel feedback and weather peer fixtures).
