@@ -26504,3 +26504,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The ServerOnly module and Server target remain separate from the UI target; no request or authority path changed.
 - **Known limitations / remaining scope:** Dedicated-server compilation and live multi-peer acceptance remain deferred until a server-capable UE 5.8 distribution is available. CR04 remains open.
 - **Next eligible task:** CR04-029, review `Source/KalmalaServer/Private/KalmalaServerModule.cpp`.
+
+## Run 2026-11-01 — CR04-029 dedicated-server module entrypoint trust-boundary review
+
+- **Selected task:** CR04-029, review `Source/KalmalaServer/Private/KalmalaServerModule.cpp`.
+- **Work completed:** Reviewed the server module entrypoint and cross-checked the existing CR03-004 review, module rules, target and project registration. Marked the CR04-029 batch and its CR04 file assignment reviewed in `Temporary/Review/coverage.md`. The source hash matches the CR01 baseline and the file has no local diff. No new actionable finding was confirmed. `BACKLOG.md` remains unchanged because CR04 is incomplete and this coverage batch does not complete a backlog parent.
+- **Files changed:** `Temporary/Review/coverage.md` and `PROGRESS.md`. No code, tests, scripts, configuration, catalogue or assets were changed.
+- **Ownership:** Stayed in the main checkout `E:\dev\Kalmala` on `master` at `0df367d32975bdcf3ca75b1ff9f3ab87849412cf`. The active-thread/checkout check found no competing live Kalmala run on this checkout or shared destination; the index lock was absent and no Git process was running. Preserved the 22 pre-existing modified tracked paths. No worktree handoff synchronization was needed.
+- **Checks:** Re-read `AGENTS.md`, `BACKLOG.md`, `PROGRESS.md`, review coverage/findings, and relevant project brief, architecture, game-design session model, roadmap, decision-log and development-setup contracts. Recomputed the selected SHA-256 and confirmed no source diff; cross-checked the existing CR03-004 evidence and server module/target registration. Static review only; no dedicated-server build or live peer session was attempted because the installed Launcher engine lacks server-target support. Full verification remains deferred; this was not milestone-final verification.
+- **Observable impact:** CR04-029 is traceably reviewed. No gameplay or runtime behavior changed.
+- **Networking/authority:** The module entrypoint registers no client request or replicated gameplay behavior; server authority is unchanged.
+- **Known limitations / remaining scope:** Dedicated-server compilation and live multi-peer acceptance remain deferred until a server-capable UE 5.8 distribution is available. CR04 remains open.
+- **Next eligible task:** CR04-030, review `Source/KalmalaUI/KalmalaUI.Build.cs`.
