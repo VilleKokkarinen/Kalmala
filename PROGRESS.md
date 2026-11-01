@@ -26246,3 +26246,13 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - Impact/authority: review evidence only; no runtime behavior changed. The public declarations do not change server ownership or client request validation.
 - Limitations: no compiled target or runtime commandlet session was exercised; gameplay request handlers remain in later CR04 batches.
 - Next eligible task: CR04-007, review `Source/KalmalaGameplay/KalmalaGameplay.Build.cs`.
+
+## Run 2026-11-01 - CR04-007 KalmalaGameplay module-rule review
+
+- Reviewed `Source/KalmalaGameplay/KalmalaGameplay.Build.cs` for CR04-007 and marked its batch and CR04 file assignment reviewed in `Temporary/Review/coverage.md`. Its hash matches the CR01 baseline. The shared runtime module has no target-specific logic or UI/editor/server-only dependency; its module dependencies do not create a client request path. No actionable trust-boundary defect was found. The separate CR07-001 assignment remains pending, and `BACKLOG.md` remains unchanged because CR04-007 is a coverage batch, not a backlog checkbox.
+- **Files changed:** `PROGRESS.md` and `Temporary/Review/coverage.md`.
+- Ownership: the Codex app showed this as the only active local Kalmala run; the only active Kalmala thread is this one. The main checkout was `master` at `306b15989d1c30d9bf4c46cba28fcd85d3f5f8cd` before this run; no staged paths or Git index lock were present. Preserved all 22 pre-existing modified paths, including the user's `BACKLOG.md` edits and unrelated gameplay/UI changes.
+- Checks: Re-read `AGENTS.md`, the active backlog order, progress handoff, CR04 coverage/findings context, and relevant project brief, game design, architecture, agent guide, roadmap, decision log, multiplayer review prompt, and development setup. Verified the selected hash against the baseline, inspected the dependency list and target composition, and searched module code for OnlineSubsystem/NetCore references. Source matches are private implementation/test includes; public gameplay headers contain no such references. Static inspection only; no UBT, build, network test, or runtime session was run. `git diff --check` passed after the evidence update. Full verification remains deferred; no milestone-final verification was due.
+- Impact/authority: review evidence only; no runtime behavior changed. The reviewed module rules do not change server ownership or client request validation.
+- Limitations: no compiled target or live network session was exercised; gameplay request handlers remain in later CR04 batches.
+- Next eligible task: CR04-008, review the 12 files in `Source/KalmalaGameplay/Private`.
