@@ -1211,3 +1211,27 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during CR05.
 - **Acceptance:** The helmsman receives the specific failure reason; relevant passengers and observers receive blocked mode and movement but cannot read the detailed reason.
 - **Focused validation:** Exercise blocked movement with a helmsman, passenger, and observer in a listen-server session. Confirm the detailed result reaches only the helmsman while public mode and movement still replicate. No runtime check was run during this review.
+
+## RF60 — Repair the selected carried-tool instance (P3)
+
+- **Source:** CR06-001; `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:443-463,1288-1328`; `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h:47`; `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp:657-693`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1996-2008,2060-2073`; and `docs/05-decision-log.md:66-67`.
+- **Affected path:** An owner selects one carried copy from a group of duplicate tools and requests an individual repair.
+- **Trigger:** The inventory row retains a specific copy GUID and the client checks that copy's condition, but `RepairSelectedTool` sends only the shared item ID. The server resolves that ID by preferring the active copy of the same type, then the first matching carried copy.
+- **Impact:** The server may repair a different copy than the owner selected, or report that the tool is already full while the selected duplicate remains worn. `Repair All` is a workaround at a valid station. No authority bypass was found; station and server checks remain enforced.
+- **Evidence:** Inventory tool rows group duplicates by canonical item ID and retain a representative GUID. The selected-tool handler uses that GUID to validate the row, then calls `ServerRepairTool(Row.Id)`. The RPC accepts only `FName ItemId`; its server handler calls `FindToolDurabilityFromServer(CanonicalId)`, which first returns the active matching GUID and otherwise the first matching item ID. The project explicitly permits duplicate physical tool copies with separate GUIDs.
+- **Proposed repair:** Pass the selected instance GUID to the server and validate that exact carried tool before repairing it, or make the UI explicitly present and repair the server-selected copy.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** With duplicate tools at different condition, individual repair changes only the selected GUID's condition. A wrong or unowned GUID, unavailable station, persistence failure, or already-full selected copy leaves all tool conditions unchanged.
+- **Focused validation:** Add a server-side regression with an active full copy and a worn selected spare, then reverse their conditions. Verify only the selected copy changes and rejection changes neither. No test was run during this review.
+
+## RF61 — Reconcile the current Bow feature summary (P3)
+
+- **Source:** CR06-001; `docs/game-features.md:9-25,102-112`; `docs/01-game-design.md:3-25,60-81`; `Content/Data/GameCatalogues/recipes/stations/workbench.json:18-68,293-355`; `Source/KalmalaGameplay/Private/KalmalaBowCombat.cpp:133-194`; and `Source/KalmalaGameplay/Private/KalmalaArrowProjectile.cpp:55-105`.
+- **Affected path:** A developer or player consults the Bow summary for current acquisition materials, ammunition, and shot behavior.
+- **Trigger:** The feature summary says Wooden Arrows are the only current ammunition, Bow String has no source, Bow costs 5 Wood plus 2 generic String, and shooting is unimplemented. Its earlier summary also says only Wooden Arrow is available.
+- **Impact:** The current feature reference describes unavailable materials and omits implemented Stone/Bronze arrows and server shooting, which can mislead players and future changes. This is documentation drift; no runtime defect was found.
+- **Evidence:** The current game-design contract describes 4 Sinew crafting one Bow String, Bow acquisition using 5 Wood plus 1 Bow String, Workbench recipes for Wooden/Stone/Bronze Arrows, and server shooting. The registered recipe data and Bow/projectile implementation confirm those paths. The feature summary contains no subsequent correction.
+- **Proposed repair:** Reconcile or consolidate the Bow summary with the current game-design and catalogue contracts; label any retained historical description as superseded.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** The current feature summary matches current Bow String sourcing and costs, available arrow types, and implemented draw/release shooting. Historical details are clearly labeled and cannot be mistaken for current behavior.
+- **Focused validation:** Compare the edited summary with the Bow design section, registered Workbench recipes, and server shot/projectile paths. Run the documentation contract checker if it covers this section; no Unreal build is needed for a docs-only correction. No test was run during this review.

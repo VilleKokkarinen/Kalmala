@@ -737,6 +737,61 @@
     passenger, and observer in a listen-server session. Confirm the detailed
     result reaches only the helmsman while public mode and movement still
     replicate. No runtime check was run during this review.
+  - [ ] **RF60 — Repair the selected carried-tool instance (P3; CR06-001).**
+    `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:443-463,1288-1328`,
+    `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h:47`,
+    `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp:657-693`,
+    `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1996-2008,2060-2073`,
+    and `docs/05-decision-log.md:66-67`.
+    **Affected path:** The owner selects one duplicate carried tool and requests
+    an individual repair.
+    **Trigger:** The UI validates the representative copy by GUID but sends only
+    its item ID. The server resolves that ID to the active matching copy first,
+    then the first matching copy in carried state.
+    **Impact:** Individual repair can change a different copy or report that the
+    tool is already full while the selected duplicate remains worn. Repair All
+    is a workaround at a valid station; authority and station checks still hold.
+    **Evidence:** Inventory rows group duplicate tools by ID while retaining a
+    GUID; `RepairSelectedTool` validates that GUID then sends `Row.Id`. The RPC
+    accepts only an item ID, and `FindToolDurabilityFromServer(FName)` prefers
+    the active same-type GUID. Duplicate GUID-addressed tool copies are allowed.
+    **Proposed repair:** Send the selected GUID and validate that exact carried
+    tool on the server, or make the UI explicitly present and repair the chosen
+    server-resolved copy.
+    **Dependencies:** After CR19 review acceptance; no repair during review.
+    **Acceptance:** With duplicates at different condition, individual repair
+    changes only the selected GUID. An invalid/unowned GUID, unavailable
+    station, failed persistence, or full selected copy changes no condition.
+    **Focused validation:** Add a regression with an active full copy and a worn
+    selected spare, then reverse conditions; verify selected-only repair and
+    unchanged state on rejection. No test was run during this review.
+  - [ ] **RF61 — Reconcile the current Bow feature summary (P3; CR06-001).**
+    `docs/game-features.md:9-25,102-112`,
+    `docs/01-game-design.md:3-25,60-81`,
+    `Content/Data/GameCatalogues/recipes/stations/workbench.json:18-68,293-355`,
+    `Source/KalmalaGameplay/Private/KalmalaBowCombat.cpp:133-194`, and
+    `Source/KalmalaGameplay/Private/KalmalaArrowProjectile.cpp:55-105`.
+    **Affected path:** A reader uses the Bow summary to learn current materials,
+    ammunition, or shooting behavior.
+    **Trigger:** The summary says only Wooden Arrows are available, Bow String
+    has no source, Bow costs 5 Wood plus 2 generic String, and shooting is not
+    implemented, despite the current design and runtime contract.
+    **Impact:** The feature reference describes obsolete costs and omits
+    implemented arrow types and shooting. This is documentation drift; no
+    runtime defect was found.
+    **Evidence:** Current design and recipe data define 4 Sinew to 1 Bow String,
+    Bow for 5 Wood plus 1 Bow String, and Wooden/Stone/Bronze Arrow recipes.
+    BowCombat and ArrowProjectile implement server draw/release shots.
+    **Proposed repair:** Reconcile or consolidate the summary with current design
+    and catalogue contracts; label retained historical text as superseded.
+    **Dependencies:** After CR19 review acceptance; no repair during review.
+    **Acceptance:** Current text matches Bow String sourcing/costs, available
+    arrow types, and server draw/release shooting; historical details are
+    clearly marked so they cannot be mistaken for current behavior.
+    **Focused validation:** Compare the summary with current design, registered
+    Workbench recipes, and shot/projectile paths. Run the documentation
+    contract checker if it covers the Bow section; no Unreal build is needed.
+    No test was run during this review.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
