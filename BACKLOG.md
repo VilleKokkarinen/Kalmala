@@ -590,6 +590,35 @@
     the widget lifecycle and hotbar sources. Run
     `Scripts/Tests/Acceptance/DocumentationContracts.ps1` if its assertions
     cover the revised wording; no Unreal build is needed for a docs-only repair.
+  - [ ] **RF55 — Reject oversized pending population rewards on load (P3; CR04-047).**
+    `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:41-48,99-116`,
+    `Source/KalmalaWorld/Public/KalmalaWorldPopulationSaveGame.h:48`, and
+    `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:647-658,7829-7833,9046-9053`.
+    **Affected path:** The server loads a same-world schema-2 population save
+    and retries pending wildlife rewards.
+    **Trigger:** A structurally loadable slot contains more than the declared
+    4,096 pending reward rows. Normal queue mutations enforce the limit, but
+    `MatchesWorld` omits it, so `LoadPopulationSave` can retain the oversized
+    record and GameMode copies/scans every row on a 0.5-second retry interval.
+    No client-controlled path to create the over-limit record was found.
+    **Impact:** Malformed or tampered local save data bypasses the intended row
+    bound and causes repeated server allocation and validation work; this is not
+    a demonstrated remote exploit.
+    **Evidence:** `TryQueuePendingWildlifeReward` rejects additions at 4,096,
+    while `MatchesWorld` validates other save caps but never checks the pending
+    reward count. The loader trusts `MatchesWorld`; the authoritative retry
+    loop copies the accepted array and visits every row.
+    **Proposed repair:** Enforce the pending-row cap in load validation and
+    preserve rejected slot bytes without rewriting them. Keep normal owner-bound
+    retry and full-pack delivery behavior unchanged.
+    **Dependencies:** After CR19 review acceptance; this handoff does not
+    authorize implementation during CR04.
+    **Acceptance:** A same-world schema-2 record with 4,096 pending rows remains
+    valid; 4,097 rows are rejected before retention or delivery scans, without
+    modifying the existing slot. Valid in-bound owner claims still retry.
+    **Focused validation:** Extend the population-save contract automation with
+    a serialized over-limit record and the 4,096/4,097 boundary; verify rejected
+    slot bytes remain unchanged. No test was run during this review.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...

@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-018 reviewed. Confirmed findings RF01-RF44 are recorded in this ledger; other review children remain pending. No overall project-clean conclusion is implied.
+- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-047 reviewed. Confirmed findings RF01-RF55 are recorded in this ledger; other review children remain pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -1151,3 +1151,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this is a documentation handoff only and does not authorize implementation during CR04.
 - **Acceptance:** Current architecture and setup guidance describe the lower-left travel-only panel, the single active top-right status/weather hotbar, and no standalone selected-support strip or weather-tier badge. They retain the local fog/material response and mark older presenter verification as historical. No gameplay, network, or save behavior changes.
 - **Focused validation:** Compare the revised current-contract sections with the widget lifecycle and hotbar sources. Run `Scripts/Tests/Acceptance/DocumentationContracts.ps1` if its assertions cover the revised wording; no Unreal build is needed for a docs-only repair.
+
+## RF55 — Reject oversized pending population rewards on load (P3)
+
+- **Source:** CR04-047; `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:41-48,99-116`; `Source/KalmalaWorld/Public/KalmalaWorldPopulationSaveGame.h:48`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:647-658,7829-7833,9046-9053`.
+- **Affected path:** A server loads a same-world schema-2 population save and retries its pending wildlife rewards.
+- **Trigger:** A structurally loadable slot contains more than 4,096 pending reward rows. `TryQueuePendingWildlifeReward` enforces the declared `MaxPendingWildlifeRewards` during normal mutations, but `MatchesWorld` omits the same count check. `LoadPopulationSave` accepts any record for which `MatchesWorld` succeeds, and GameMode copies and scans the pending rows on its 0.5-second retry interval.
+- **Impact:** The intended row bound is bypassed for loaded data, allowing an oversized local save to cause repeated server allocations and validation work. No client-controlled path to create an over-limit record was found; this is a malformed or tampered save-boundary defect, not a demonstrated remote exploit.
+- **Evidence:** `MatchesWorld` checks schema/world identity, gemstone and treasure caps, and gem-item mappings, but never checks `PendingWildlifeRewards.Num()`. The normal queue helper returns false once the 4,096-row cap is reached. `LoadPopulationSave` preserves and rejects records only when `MatchesWorld` returns false; the authoritative retry loop copies the accepted array and visits every row.
+- **Proposed repair:** Reject pending reward arrays larger than `MaxPendingWildlifeRewards` in the complete load-validation contract, preserving the existing slot without rewriting it. Keep normal owner-bound retry and full-pack delivery behavior unchanged.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during CR04.
+- **Acceptance:** A same-world schema-2 record with 4,096 pending rows remains valid; a structurally loadable record with 4,097 rows is rejected before GameMode retains it or performs reward scans. Rejected slot bytes remain untouched, and valid in-bound owner claims still retry normally.
+- **Focused validation:** Extend the population-save contract automation with a serialized over-limit record and the 4,096/4,097 boundary; statically verify that `LoadPopulationSave` leaves a rejected existing slot untouched. No test was run during this review.
