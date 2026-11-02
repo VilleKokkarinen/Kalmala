@@ -673,6 +673,41 @@
     runtime initialization/validation and the decision log without migration.
     **Focused validation:** Compare both save owners' current-version constants
     with the decision-log entry; no Unreal build is needed for a docs-only repair.
+  - [ ] **RF58 — Reconcile rejected Camp Bed interactions with the local rest pose (P3; CR05-001).**
+    Affected: `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1576-1589,1687-1782,1969-1971`,
+    `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp:197-200,255-284`,
+    `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp:118-132`,
+    and `docs/02-technical-architecture.md:520`.
+    **Affected path:** An owning client interacts with a Camp Bed and renders
+    the local rest pose.
+    **Trigger:** Local `RequestInteract` starts the pose when its selected bed passes
+    `CanUse`, before the server's independent trace and interactable checks and
+    the crafting `AcceptRequest` gate accept the action. A missed target or a
+    server-side rejection has no pose cancellation path; the pose stops only
+    after movement, health loss, or loss of local control.
+    **Impact:** The local character can appear to rest even when the server did
+    not accept the Rest action, and may stay posed indefinitely while stationary
+    and undamaged. This is a presentation mismatch, not a gameplay authority bypass.
+    **Evidence:** The client calls `StartCampBedRestPose` before sending the interaction
+    RPC. The server retraces and dispatches only a current interactable target;
+    the Camp Bed branch publishes acceptance only after the crafting request
+    gate. `StopCampBedRestPose` is otherwise called only by model tick when its
+    movement, health, or local-control condition fails. The architecture says
+    the pose follows an accepted Rest action. Existing RF42 covers repeated
+    interaction RPC work and is a separate issue.
+    **Proposed repair:** Start the pose after the owner receives the server's
+    accepted Rest result, or give each pending local pose a bounded prediction
+    window that reverts on rejection or timeout. Keep movement and health as
+    ways to end an accepted pose.
+    **Dependencies:** After CR19 review acceptance; no fix during the review-only phase.
+    **Acceptance:** An accepted server Rest action poses the local model; a
+    missed trace, invalidated bed, rate-rejected action, or missing response
+    leaves the original model transform restored without movement or damage.
+    An accepted pose still ends on movement or health loss.
+    **Focused validation:** Add a focused accepted/rejected interaction result
+    check and a listen-host/remote-owner scenario. Verify the rejected and
+    timed-out cases restore the original model transform. No runtime check was
+    run during this review.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
