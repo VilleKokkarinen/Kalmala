@@ -5,7 +5,7 @@
 - **Tracked project files:** 1437 (all enumerated below); **authored non-ignored untracked files:** 0; **relevant ignored source assets:** 0.
 - **Review assignments:** CR04 is a cross-cutting source-code pass layered over each file's primary CR02–CR16 domain. Batch sizes are capped at 12 source/code files, 8 Content files, and 10 CR16 files. Each batch is an independent 10–20 minute review unit plus a lightweight check; batch status is pending until evidence is recorded.
 - **Working-tree baseline:** 22 changed tracked files, no untracked files, and no staged changes. Local edits are preserved and recorded by path/status/hash below.
-- **Review status:** All four CR02 batches are reviewed with no confirmed actionable finding; CR03-001a is reviewed in part-file scope; CR04 batches through CR04-052, CR05-001/CR05-002, and CR06-001/CR06-002 are reviewed. CR07 and later assignments remain pending. No code batch or overall project review is claimed clean.
+- **Review status:** All four CR02 batches are reviewed with no confirmed actionable finding; CR03-001a is reviewed in part-file scope; CR04 batches through CR04-052, CR05-001/CR05-002, CR06-001/CR06-002, and CR07-001 are reviewed. CR07-002/CR07-003 and later assignments remain pending. No code batch or overall project review is claimed clean.
 
 ## Reviewed batch results
 
@@ -319,7 +319,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR05-002` | CR05 | `Source/KalmalaGameplay/Public` | 4 | reviewed | Player traversal, input, traces and interaction state |
 | `CR06-001` | CR06 | `Source/KalmalaGameplay/Private` | 11 | reviewed | Inventory, equipment, crafting, upgrades and progression |
 | `CR06-002` | CR06 | `Source/KalmalaGameplay/Public` | 8 | reviewed | Inventory, equipment, crafting, upgrades and progression |
-| `CR07-001` | CR07 | `Source/KalmalaGameplay` | 1 | pending | Construction, camp, storage, support and direct-material payment |
+| `CR07-001` | CR07 | `Source/KalmalaGameplay` | 1 | reviewed | Construction, camp, storage, support and direct-material payment |
 | `CR07-002` | CR07 | `Source/KalmalaGameplay/Private` | 7 | pending | Construction, camp, storage, support and direct-material payment |
 | `CR07-003` | CR07 | `Source/KalmalaGameplay/Public` | 7 | pending | Construction, camp, storage, support and direct-material payment |
 | `CR08-001` | CR08 | `Source/KalmalaGameplay/Private` | 4 | pending | Survival, combat, status, damage and support magic |
@@ -1365,7 +1365,7 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 | `Source/KalmalaEditor/Public/RenderMenuCommandlet.h` | CR14 | Tracked project file | `056cce05cf912233b1fc9b902f65628a87ba1908bbddbd889984b428f8941484` | `CR14:CR14-006=pending; CR04:CR04-006=reviewed` | partial — CR04 reviewed; CR14 pending |
 | `Source/KalmalaEditor/Public/RenderWorldGenerationVisualizationCommandlet.h` | CR14 | Tracked project file | `0ddeb1c751171ec33d784ac814b7281aab545ebdd1eeb17fe8f494c05d95f7dc` | `CR14:CR14-006=pending; CR04:CR04-006=reviewed` | partial — CR04 reviewed; CR14 pending |
 | `Source/KalmalaEditor/Public/SetupM1TestMapCommandlet.h` | CR14 | Tracked project file | `e42fe6d2d3215626d6cc6f7c5d2a3329a5e63a7cf834327954b6f07929bc6fc0` | `CR14:CR14-006=pending; CR04:CR04-006=reviewed` | partial — CR04 reviewed; CR14 pending |
-| `Source/KalmalaGameplay/KalmalaGameplay.Build.cs` | CR07 | Tracked project file | `a4f16714bf8565f335e3b2f9e63106bd516e2d7ec214fedcc13dd2ee0d2d181a` | `CR07:CR07-001=pending; CR04:CR04-007=reviewed` | partial — CR04 reviewed; CR07 pending |
+| `Source/KalmalaGameplay/KalmalaGameplay.Build.cs` | CR07 | Tracked project file | `a4f16714bf8565f335e3b2f9e63106bd516e2d7ec214fedcc13dd2ee0d2d181a` | `CR07:CR07-001=reviewed; CR04:CR04-007=reviewed` | reviewed — CR04 overlap and CR07-001 reviewed |
 | `Source/KalmalaGameplay/Private/KalmalaA8bAntidotePeerVerification.cpp` | CR16 | Tracked project file | `44c9f806122f5db98428aa3519cfc9d0ec08cffff8d19f1399fbf26397d08ff9` | `CR16:CR16-019=pending; CR04:CR04-008=reviewed` | partial — CR04 reviewed; CR16 pending |
 | `Source/KalmalaGameplay/Private/KalmalaA8bFangArrowsPeerVerification.cpp` | CR16 | Tracked project file | `bba5b167fd1e943f3a21273b354ebd5a6a771e7ce7d0c643c73015e91e4e581e` | `CR16:CR16-019=pending; CR04:CR04-008=reviewed` | partial — CR04 reviewed; CR16 pending |
 | `Source/KalmalaGameplay/Private/KalmalaA8bFangSpearPeerVerification.inl` | CR16 | Tracked project file | `07da28732d3c342f556ab5a60a5bad93e388b36918f960263d0e7906ab369264` | `CR16:CR16-019=pending; CR04:CR04-008=reviewed` | partial — CR04 reviewed; CR16 pending |
@@ -3236,3 +3236,13 @@ Hashes are SHA-256 of each file working-tree bytes at baseline capture, includin
 - **Impact/authority:** Review evidence only; no code or runtime behavior changed. Tool upgrades, material payment, station validation, and progression selection remain server-side. No new authority bypass was confirmed.
 - **Limits:** No live Workbench upgrade, owner/observer replication, or save-failure scenario was run. RF62 awaits CR19 review acceptance. CR07 and the project-wide review remain incomplete.
 - **Next eligible task:** Close the CR06 review parent in a separate run, then review CR07-001.
+
+## CR07-001 — Construction and camp module dependency review
+
+- **Reviewed revision:** `master` at `292bf8061fda567bdbfd3d5da6842afda1a3668a`. The assigned `KalmalaGameplay.Build.cs` SHA-256 matches its CR01 baseline; the file has no working-tree diff.
+- **Evidence:** Reviewed the module rules with the construction/camp API, project module registration, and Game/Server targets. `KalmalaGameplay` is registered as a Runtime module and included by both the Game and Server targets. `ProceduralMeshComponent` is enabled in the project and its component type appears in public construction-actor and campfire properties, so the public module dependency is required. The module rules add no KalmalaUI, KalmalaEditor, or KalmalaServer dependency and contain no target-specific branch. The reviewed rules do not alter Hammer placement, direct-material payment, storage, or inventory identity; those contracts keep placed-object definitions outside portable inventory items. No actionable finding was confirmed.
+- **Result:** CR07-001 and its single CR07 file assignment are reviewed with no finding. CR07-002 is next; CR07 remains unchecked.
+- **Checks / limits:** Re-read `AGENTS.md`, `BACKLOG.md`, `PROGRESS.md`, review coverage/findings, and the relevant project brief, game-design, architecture, roadmap, decision-log, and development-setup contracts. Recomputed the assigned hash against CR01 and confirmed no selected-file diff. Inspected module dependencies, `.uproject` plugin/module declarations, Game/Server target composition, public construction/camp mesh types, and direct-material/no-portable-kit contracts. Static review only; no UBT, build, automation, or live placement/payment scenario was run. `git diff --check` passed after the evidence update. Full verification remains deferred; this was not milestone-final verification.
+- **Impact/authority:** Review evidence only; no code or runtime behavior changed. The shared gameplay module remains in both Game and Server targets; placement and payment authority remain server-owned.
+- **Limits:** This one-file batch does not validate construction transactions or portable-item rejection at runtime; those paths are assigned to later CR07 batches. CR07-002/CR07-003 and the project-wide review remain pending.
+- **Next eligible task:** CR07-002, review the first seven construction/camp implementation files.
