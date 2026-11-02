@@ -551,6 +551,45 @@
     **Focused validation:** Compare both contract sections with the source and
     run `Kalmala.UI.Settings.AutomaticPickup` and
     `Kalmala.Gameplay.Pickup.AutomaticRadius` if code or test expectations change.
+  - [ ] **RF54 — Reconcile the current HUD ownership contract (P3; CR04-043).**
+    `Source/KalmalaUI/Public/KalmalaSupportSelectionSubsystem.h:84-85`,
+    `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp:32-38,229-232`,
+    `Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp:263-268`,
+    `Source/KalmalaUI/Private/KalmalaStatusHotbarWidget.cpp:381-400`,
+    `docs/02-technical-architecture.md:2774-2775` and
+    `docs/07-development-setup.md:2898-2903,2959,3999-4002`.
+    **Affected path:** The active UI ownership ledger and HUD verification
+    guidance describe a full lower-left survival strip, a selected-support strip,
+    and a separate weather-tier badge. Runtime keeps lower-left ocean-travel
+    feedback, puts active status and Storm icons in the top-right hotbar, and
+    retires the two standalone presenters.
+    **Trigger:** A developer follows the current ownership or capture contract
+    and expects to display or verify the retired widgets.
+    **Impact:** The documented UI and acceptance path diverge from the current
+    runtime layout, so future changes may target a surface that is not active.
+    **Evidence:** `UKalmalaSurvivalStatusWidget::SetSnapshot` uses only
+    `BuildOceanTravelText`; `UKalmalaSupportSelectionSubsystem::IsTickable`
+    returns false with an M13 scroll-migration comment; and
+    `UKalmalaWeatherActivitySubsystem::Tick` releases its widget without creating
+    or updating it. The status hotbar supplies the active support and Storm
+    entries. The architecture ownership ledger still lists all three standalone
+    surfaces as current.
+    **Proposed repair:** Reconcile current ownership and M11/M13 verification
+    guidance with the active HUD and reusable support-scroll path. Label older
+    M7/M12 presenter notes as historical or superseded where needed, while
+    retaining the local weather fog/material response contract. Do not imply a
+    new HUD feature.
+    **Dependencies:** After CR19 review acceptance; this is a documentation
+    handoff and does not authorize implementation during CR04.
+    **Acceptance:** Current architecture and setup guidance describe the
+    lower-left travel-only panel, the single active top-right status/weather
+    hotbar, and no standalone selected-support strip or weather-tier badge.
+    They retain the local fog/material response and mark older presenter
+    verification as historical. No gameplay, network, or save behavior changes.
+    **Focused validation:** Compare the revised current-contract sections with
+    the widget lifecycle and hotbar sources. Run
+    `Scripts/Tests/Acceptance/DocumentationContracts.ps1` if its assertions
+    cover the revised wording; no Unreal build is needed for a docs-only repair.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
