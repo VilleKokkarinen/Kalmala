@@ -476,6 +476,48 @@
     for selection, clear, duplicate and cadence behavior; after an Editor
     build, add or run a remote-owner/observer check for the actual RPC route,
     owner preference update and observer privacy.
+  - [ ] **RF52 — Verify remote ownership of world-seed selection (P3; CR04-039).**
+    `Source/KalmalaGameplay/Public/KalmalaMenuContext.h:18,28-35`,
+    `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp:34-73,115-142`,
+    `Source/KalmalaGameplay/Private/Tests/KalmalaMenuContextTest.cpp:8-19`,
+    `Source/KalmalaUI/Private/Tests/KalmalaWorldSeedParserTest.cpp:8-38`, and
+    `docs/startmenu.md:294-320`.
+    **Affected path:** A remote menu controller invokes the reliable
+    `ServerRequestWorldSeedSelection` RPC. If accepted, the GameMode enumerates
+    server-local save names, resolves whether the requested seed is an existing
+    current-revision identity, and stores a pending selection.
+    **Trigger:** A future regression removes or bypasses the local-controller
+    requirement in `ProcessWorldSeedSelectionRequest`, or otherwise lets a
+    remote controller reach `TrySelectWorldSeedFromServer`. The parser and
+    menu setup tests would still pass.
+    **Evidence:** The server currently requires authority and a local controller
+    before server-local save resolution, and rejects a remote request with a
+    generic result. The selected parser test covers decimal parsing, while the
+    menu context test checks setup and does not invoke the selection RPC. A
+    targeted source/test/script search found no remote-controller regression
+    test. The start-menu contract says only the server-local menu controller
+    may select a seed. No current bypass or disclosure was observed.
+    **Impact:** If the guard regresses, a remote client could infer whether a
+    server-local seed is listed as a current-revision world and alter the
+    GameMode pending selection.
+    **Proposed repair:** Add Development-only replicated-controller coverage
+    that invokes the actual reliable RPC from a remote menu controller while
+    the server has both an unlisted seed and an exact current-revision saved
+    seed. Assert both remote requests are rejected before save enumeration, the
+    reply reveals no save classification, and pending selection is unchanged.
+    Keep a local-controller case proving valid new-world and confirmed-reuse
+    selections still work.
+    **Dependencies:** After CR19 review acceptance; this review handoff does not
+    authorize implementation during CR04.
+    **Acceptance:** A remote controller cannot enumerate or distinguish
+    server-local world-seed records or change pending selection, and receives
+    the generic rejection. The local controller can select an unlisted seed or
+    confirm an exact current-revision identity, and launch still revalidates
+    the exact seed and confirmation.
+    **Focused validation:** After an Editor build, run the focused
+    `Kalmala.Gameplay.MenuContext.WorldSeedSelection` automation and a
+    Development-only remote-controller scenario; also run
+    `Kalmala.UI.WorldSeedParser` for decimal and uint64-boundary coverage.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
