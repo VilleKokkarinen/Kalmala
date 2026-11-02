@@ -50,7 +50,7 @@
     project descriptor, shared types, ownership, dependencies and public APIs.
   - [x] **CR03 — Review session and server code.** Check solo/listen/dedicated
     lifecycle, identity, joins, disconnects, reconnects and cleanup.
-  - [ ] **CR04 — Review network trust boundaries.** Trace every client request
+  - [x] **CR04 — Review network trust boundaries.** Trace every client request
     to server validation, ownership, bounds, replay/rate handling and replicated
     privacy; cover item IDs, targets, quantities, damage and interactions.
   - [ ] **CR05 — Review player traversal and interaction.** Check input routing,
