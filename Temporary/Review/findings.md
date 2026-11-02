@@ -1199,3 +1199,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
 - **Acceptance:** An accepted server Rest action poses the local model; a missed trace, invalidated bed, rate-rejected action, or missing response leaves the original model transform restored without movement or damage. An accepted pose still ends on movement or health loss.
 - **Focused validation:** Add a focused accepted/rejected interaction result check and a listen-host/remote-owner scenario. Verify the rejected and timed-out cases restore the original model transform. No runtime check was run during this review.
+
+## RF59 — Keep skiff blockage details private to the helmsman (P3)
+
+- **Source:** CR05-002; `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h:23-29,62,102-103`; `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp:80-86,283-292`; and `docs/02-technical-architecture.md:1220,1226,1273`.
+- **Affected path:** Relevant peers receive replication for a blocked skiff.
+- **Trigger:** The server sets a specific blockage reason after invalid-water or collision rejection. The public header exposes `GetBlockReason`, and `BlockReason` is a replicated property registered with unconditional `DOREPLIFETIME`.
+- **Impact:** Relevant passengers and observers can distinguish an invalid ocean footprint, generated-terrain collision, or sweep-limit response for another player's helm. The architecture allows blocked mode and movement to relevant peers, but sends failure detail only to the requester and lists movement, mode, and occupancy as the public replicated vessel state. This is excess replicated detail, not a gameplay authority bypass.
+- **Evidence:** `BlockMovementAtLastSafeTransform` assigns the reason and forces an update; `GetLifetimeReplicatedProps` registers `BlockReason` without an owner condition. The existing ocean-travel feedback component uses `COND_OwnerOnly` for feedback and its serial.
+- **Proposed repair:** Keep the detailed reason server-local or deliver it through the existing owner-only travel feedback path, while preserving public blocked-mode and movement replication.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during CR05.
+- **Acceptance:** The helmsman receives the specific failure reason; relevant passengers and observers receive blocked mode and movement but cannot read the detailed reason.
+- **Focused validation:** Exercise blocked movement with a helmsman, passenger, and observer in a listen-server session. Confirm the detailed result reaches only the helmsman while public mode and movement still replicate. No runtime check was run during this review.

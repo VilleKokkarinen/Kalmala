@@ -708,6 +708,35 @@
     check and a listen-host/remote-owner scenario. Verify the rejected and
     timed-out cases restore the original model transform. No runtime check was
     run during this review.
+  - [ ] **RF59 — Keep skiff blockage details private to the helmsman (P3; CR05-002).**
+    Affected: `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h:23-29,62,102-103`,
+    `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp:80-86,283-292`,
+    and `docs/02-technical-architecture.md:1220,1226,1273`.
+    **Affected path:** Relevant peers receive replication for a blocked skiff.
+    **Trigger:** The server selects a specific blockage reason and the skiff
+    exposes it through `GetBlockReason` and an unconditionally replicated
+    property.
+    **Impact:** Relevant passengers and observers can distinguish an invalid
+    ocean footprint, generated-terrain collision, or sweep-limit response for
+    another player's helm. The travel contract allows the blocked mode and
+    movement to relevant peers, but limits transient failure feedback to the
+    requester and public vessel state to movement, mode, and occupancy. This
+    is excess replicated detail, not a gameplay authority bypass.
+    **Evidence:** `BlockMovementAtLastSafeTransform` sets `BlockReason`;
+    `GetLifetimeReplicatedProps` registers it with unconditional
+    `DOREPLIFETIME`. The existing travel feedback component replicates its
+    feedback owner-only.
+    **Proposed repair:** Keep the specific reason server-local or deliver it
+    through the existing owner-only travel feedback path. Preserve public
+    blocked mode and movement replication.
+    **Dependencies:** After CR19 review acceptance; no fix during the review-only phase.
+    **Acceptance:** The helmsman receives the specific failure reason; relevant
+    passengers and observers receive the blocked mode and movement but cannot
+    read that reason.
+    **Focused validation:** Exercise a blocked movement with a helmsman,
+    passenger, and observer in a listen-server session. Confirm the detailed
+    result reaches only the helmsman while public mode and movement still
+    replicate. No runtime check was run during this review.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
