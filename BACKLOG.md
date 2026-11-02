@@ -55,7 +55,7 @@
     privacy; cover item IDs, targets, quantities, damage and interactions.
   - [x] **CR05 — Review player traversal and interaction.** Check input routing,
     movement, traces, range/line-of-sight gates and state/lifetime transitions.
-  - [ ] **CR06 — Review inventory, equipment and progression.** Check capacities,
+  - [x] **CR06 — Review inventory, equipment and progression.** Check capacities,
     transactions, crafting, upgrades, rewards and failure/rollback paths.
   - [ ] **CR07 — Review construction and camp systems.** Check placement,
     support, storage and direct-material Hammer payment; verify no portable
