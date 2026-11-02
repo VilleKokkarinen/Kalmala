@@ -26816,3 +26816,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** No client gameplay authority bypass was identified. Character movement, interaction validation, skiff steering, movement, and occupancy remain server-owned. The skiff's specific blockage reason currently replicates to relevant peers beyond the helmsman.
 - **Known limitations / remaining scope:** No live owner/passenger/observer privacy test was run. RF58 and RF59 await CR19 review acceptance; the project-wide review remains incomplete.
 - **Next eligible task:** CR06-001, review the first eleven files in `Source/KalmalaGameplay/Private` assigned to inventory, equipment, crafting, upgrades, and progression.
+
+## Run 2026-11-02 — Close CR05 review parent
+
+- **Selected task:** CR05, close the first unchecked project-review child after its assigned review batches were completed.
+- **Work completed:** Confirmed that CR05-001 and CR05-002 are both recorded as reviewed and that all ten CR05 private/public file assignments are marked reviewed in `Temporary/Review/coverage.md`. Confirmed findings RF58 and RF59 are queued under the post-CR19 remediation dependency. Checked CR05 in `BACKLOG.md`; no CR06 files were reviewed in this run.
+- **Files changed:** `BACKLOG.md` (CR05 checkbox only) and `PROGRESS.md`.
+- **Ownership:** Worked in the main checkout `E:\dev\Kalmala` on `master`, starting at `360654985609caf93d03879ff402e0a74ecb2f48`. Only this active Kalmala thread targets the checkout; other listed worktrees are separate and unowned by active Kalmala tasks. The index was clean with no `.git/index.lock`. Preserved all 22 pre-existing modified tracked paths. No worktree handoff synchronization was needed.
+- **Checks:** Re-read `AGENTS.md`, `BACKLOG.md`, and `PROGRESS.md`; checked the CR05 batch table, all ten primary file rows, and both batch result records. `git diff --check` passed after the bookkeeping update. No source review, tests, or build were run in this bookkeeping-only run. Full verification remains deferred; this was not milestone-final verification.
+- **Observable impact:** Backlog order now agrees with the completed CR05 coverage; CR06-001 is next.
+- **Networking/authority:** No runtime or authority behavior changed. This run only recorded completion of already-reviewed CR05 scope.
+- **Known limitations / remaining scope:** The project-wide review is incomplete. RF58 and RF59 await CR19 review acceptance; no runtime multiplayer checks were run for those findings.
+- **Next eligible task:** CR06-001, review the first eleven files in `Source/KalmalaGameplay/Private` assigned to inventory, equipment, crafting, upgrades, and progression.

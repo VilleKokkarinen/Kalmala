@@ -53,7 +53,7 @@
   - [x] **CR04 — Review network trust boundaries.** Trace every client request
     to server validation, ownership, bounds, replay/rate handling and replicated
     privacy; cover item IDs, targets, quantities, damage and interactions.
-  - [ ] **CR05 — Review player traversal and interaction.** Check input routing,
+  - [x] **CR05 — Review player traversal and interaction.** Check input routing,
     movement, traces, range/line-of-sight gates and state/lifetime transitions.
   - [ ] **CR06 — Review inventory, equipment and progression.** Check capacities,
     transactions, crafting, upgrades, rewards and failure/rollback paths.
