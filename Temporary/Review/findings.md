@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-047 reviewed. Confirmed findings RF01-RF55 are recorded in this ledger; other review children remain pending. No overall project-clean conclusion is implied.
+- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-048 reviewed. Confirmed findings RF01-RF57 are recorded in this ledger; other review children remain pending. No overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -1163,3 +1163,27 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during CR04.
 - **Acceptance:** A same-world schema-2 record with 4,096 pending rows remains valid; a structurally loadable record with 4,097 rows is rejected before GameMode retains it or performs reward scans. Rejected slot bytes remain untouched, and valid in-bound owner claims still retry normally.
 - **Focused validation:** Extend the population-save contract automation with a serialized over-limit record and the 4,096/4,097 boundary; statically verify that `LoadPopulationSave` leaves a rejected existing slot untouched. No test was run during this review.
+
+## RF56 — Cover the M7 sparse-delta count bound (P3)
+
+- **Source:** CR04-048; `Source/KalmalaWorld/Private/Tests/KalmalaM7PersistenceContractTest.cpp:36-52`; `Source/KalmalaWorld/Public/KalmalaM7PersistenceContract.h:89`; `Source/KalmalaWorld/Private/KalmalaM7PersistenceContract.cpp:110,143-155`.
+- **Affected path:** The M7 identity-scoped save accepts and reloads sparse world/player facts under the documented 256-row bound.
+- **Trigger:** A future change removes or weakens the count checks while the current focused contract test still passes because it adds and reloads only three rows.
+- **Impact:** The M7 save's sparse-record resource limit has no boundary regression guard. No current production bypass was confirmed; `Matches` rejects over-cap loaded data and `AddSparseDelta` rejects additions at the cap.
+- **Evidence:** `MaxSparseDeltas` is 256. `Matches` rejects a stored array over that count, and `AddSparseDelta` rejects once the array already contains 256 rows. The test exercises three accepted kinds, duplicate/invalid IDs, and a three-row in-memory round trip, but has no 256/257 boundary or over-cap load case. The sparse IDs are documented as server-selected.
+- **Proposed repair:** Extend `Kalmala.World.M7.PersistenceContract` with the 256/257 insertion boundary, unchanged count after rejection, and a valid maximum-size round trip. Add a malformed over-cap load case if the fixture can create one without writing a project save slot.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during CR04.
+- **Acceptance:** A current M7 save with 256 valid unique sparse deltas remains valid; the 257th addition is rejected without changing the count; the valid maximum survives in-memory serialization/reload. If an over-cap record can be constructed through the existing fixture, `Matches` rejects it.
+- **Focused validation:** Run `Kalmala.World.M7.PersistenceContract` after an editor build. No test was run during this review.
+
+## RF57 — Correct the generated population save version in the architecture table (P3)
+
+- **Source:** CR04-048; `docs/02-technical-architecture.md:1415`; `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:30-43`; `docs/05-decision-log.md:209`.
+- **Affected path:** A developer consults the current save-version table before inspecting, rejecting, or testing generated population saves.
+- **Trigger:** The architecture table says `UKalmalaWorldPopulationSaveGame` uses save schema 1, but `InitializeForWorld` writes schema 2 and `MatchesWorld` accepts only schema 2. The adjacent M7 sparse persistence ledger is a different save owner and correctly remains schema 1.
+- **Impact:** The authoritative save-version reference gives the wrong current format and can lead to incorrect development-save or test expectations. This is documentation drift; no runtime mismatch or remote exploit was found.
+- **Evidence:** The version table at architecture line 1415 says schema 1 for generated population deltas. The active population save code initializes and validates schema 2; the decision log explicitly records approval of population save schema 2 while preserving the separate M7 schema-1 ledger.
+- **Proposed repair:** Update the generated-population row to schema 2 and keep it clearly separate from the M7 sparse ledger's schema 1. Retain the unreleased no-migration policy and reject existing schema-1 population saves without rewriting them.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during CR04.
+- **Acceptance:** The current-version table identifies generated population saves as schema 2 and M7 sparse persistence as schema 1; wording agrees with runtime initialization/validation and the decision log without introducing compatibility migration behavior.
+- **Focused validation:** Compare the corrected table against both save owners' current-version constants and the decision-log entry; no Unreal build is needed for a documentation-only repair.

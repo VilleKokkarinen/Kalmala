@@ -619,6 +619,60 @@
     **Focused validation:** Extend the population-save contract automation with
     a serialized over-limit record and the 4,096/4,097 boundary; verify rejected
     slot bytes remain unchanged. No test was run during this review.
+  - [ ] **RF56 — Cover the M7 sparse-delta count bound (P3; CR04-048).**
+    `Source/KalmalaWorld/Private/Tests/KalmalaM7PersistenceContractTest.cpp:36-52`,
+    `Source/KalmalaWorld/Public/KalmalaM7PersistenceContract.h:89`, and
+    `Source/KalmalaWorld/Private/KalmalaM7PersistenceContract.cpp:110,143-155`.
+    **Affected path:** The M7 identity-scoped save accepts and reloads sparse
+    world/player facts under the documented 256-row bound.
+    **Trigger:** A future change removes or weakens the count checks while the
+    current focused contract test still passes because it adds and reloads only
+    three rows.
+    **Impact:** The sparse-record resource limit has no boundary regression
+    guard. No current production bypass was confirmed; load and insertion paths
+    currently enforce the cap.
+    **Evidence:** `MaxSparseDeltas` is 256; `Matches` rejects an over-cap loaded
+    array, and `AddSparseDelta` rejects additions at the cap. The test covers
+    three rows, duplicate/invalid IDs, and round-trip, but not 256/257 or an
+    over-cap load. Sparse IDs are server-selected.
+    **Proposed repair:** Extend `Kalmala.World.M7.PersistenceContract` with the
+    256/257 boundary, unchanged count on rejection, and a valid maximum-size
+    round trip. Add an over-cap load case if the fixture can create one without
+    writing a project save slot.
+    **Dependencies:** After CR19 review acceptance; this handoff does not
+    authorize implementation during CR04.
+    **Acceptance:** A current M7 save with 256 valid unique sparse deltas remains
+    valid; the 257th addition is rejected without changing the count; the valid
+    maximum survives in-memory serialization/reload. If feasible through the
+    existing fixture, an over-cap record is rejected by `Matches`.
+    **Focused validation:** Run `Kalmala.World.M7.PersistenceContract` after an
+    editor build. No test was run during this review.
+  - [ ] **RF57 — Correct the generated population save version in the architecture table (P3; CR04-048).**
+    `docs/02-technical-architecture.md:1415`,
+    `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:30-43`,
+    and `docs/05-decision-log.md:209`.
+    **Affected path:** A developer consults the current save-version table
+    before inspecting, rejecting, or testing generated population saves.
+    **Trigger:** The table says `UKalmalaWorldPopulationSaveGame` uses schema 1,
+    but `InitializeForWorld` writes schema 2 and `MatchesWorld` accepts only
+    schema 2. The M7 sparse ledger is a separate save owner and remains schema 1.
+    **Impact:** The authoritative save-version reference gives the wrong current
+    format and can lead to incorrect development-save or test expectations.
+    This is documentation drift; no runtime mismatch or remote exploit was found.
+    **Evidence:** The architecture table says schema 1 for generated population
+    deltas; the active code initializes and validates schema 2; the decision log
+    records approval of population save schema 2.
+    **Proposed repair:** Update the generated-population row to schema 2 and
+    keep it clearly separate from the M7 sparse ledger's schema 1. Retain the
+    unreleased no-migration policy and reject schema-1 population saves without
+    rewriting them.
+    **Dependencies:** After CR19 review acceptance; this handoff does not
+    authorize implementation during CR04.
+    **Acceptance:** The current-version table identifies generated population
+    saves as schema 2 and M7 sparse persistence as schema 1; it agrees with
+    runtime initialization/validation and the decision log without migration.
+    **Focused validation:** Compare both save owners' current-version constants
+    with the decision-log entry; no Unreal build is needed for a docs-only repair.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
