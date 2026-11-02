@@ -518,6 +518,39 @@
     `Kalmala.Gameplay.MenuContext.WorldSeedSelection` automation and a
     Development-only remote-controller scenario; also run
     `Kalmala.UI.WorldSeedParser` for decimal and uint64-boundary coverage.
+  - [ ] **RF53 — Reconcile Automatic Pickup with the settings authority contract (P3; CR04-042).**
+    `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp:139-166`,
+    `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp:1606-1618,2258-2263`,
+    `Source/KalmalaGameplay/Public/KalmalaCharacter.h:74-78`,
+    `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1555-1573`,
+    `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp:588-607`,
+    `docs/02-technical-architecture.md:2648-2663` and
+    `docs/07-development-setup.md:346-365`.
+    **Affected path:** The locally persisted Accessibility > Automatic pickup
+    choice is sent to the owning character, whose server-side tick scans nearby
+    loose materials and broken-tree bundles.
+    **Trigger:** The architecture says settings send no RPC and cannot change
+    inventory, although the Settings subsystem sends
+    `ServerSetAutomaticPickupEnabled` and the server uses that preference to
+    enable accepted pickups.
+    **Evidence:** The setting persists in `GGameUserSettingsIni`; the RPC carries
+    only a boolean. The server selects eligible drops and validates owner,
+    same-world state, the 150 cm radius, visibility and capacity before grant.
+    The preference is not replicated. Development setup documents this flow,
+    but the architecture's local-settings boundary contradicts it. No current
+    authority bypass was found.
+    **Proposed repair:** Limit the architecture's no-RPC/no-gameplay claim to
+    presentation and input preferences, and document Automatic pickup as the
+    explicit local-persisted owner preference. Preserve server-owned candidate
+    selection, checks and grants, and align the settings acceptance wording.
+    **Dependencies:** After CR19 review acceptance; this handoff does not
+    authorize implementation during CR04.
+    **Acceptance:** The architecture and development setup describe the same
+    Automatic pickup RPC and authority boundary; clients cannot select drops or
+    grant quantities, and no replicated preference or save field is added.
+    **Focused validation:** Compare both contract sections with the source and
+    run `Kalmala.UI.Settings.AutomaticPickup` and
+    `Kalmala.Gameplay.Pickup.AutomaticRadius` if code or test expectations change.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
