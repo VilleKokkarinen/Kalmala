@@ -27464,3 +27464,16 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Review bookkeeping only. Audio remains local presentation driven by local visible water, replicated weather, owner Wet status, and owner-local support feedback/state. No network authority or privacy behavior changed.
 - **Known limitations / remaining scope:** Static checks do not establish audible quality, Unreal loading, mixing, spatialization, or packaged playback. RF134 and RF135 remain queued; CR13 remains incomplete.
 - **Next eligible task:** CR13-019, review the first eight assigned source WAVs under Content/Kalmala/Audio/Source/.
+
+## Run 2026-11-04 — CR13-019 main-checkout reconciliation
+
+- **Selected task:** CR13-019 only: the eight assigned WAV sources under `Content/Kalmala/Audio/Source/`.
+- **Work completed:** Reconciled the earlier isolated report with the current main checkout. All eight source SHA-256 values match CR01 and current `HEAD`, with no assigned-source worktree diffs. Confirmed mono PCM16/22.05 kHz format, nonzero samples, no clipping, exact matching endpoint samples for the two loop beds, short durations for the six one-shots, and alignment between generator groups, architecture cue contracts, and runtime path constants. Cross-checked the existing CR13-016 package/import evidence and RF134 cook finding. No additional defect was confirmed. Updated only the CR13-019 aggregate and its eight coverage rows and appended the review result.
+- **Files changed:** `Temporary/Review/coverage.md`, `Temporary/Review/findings.md`, and `PROGRESS.md`. `BACKLOG.md` and all source, test, script, configuration, catalogue, asset, and game-document files remain unchanged by this run.
+- **Ownership and preservation:** Worked in the main `E:/dev/Kalmala` checkout on `master` at `d7c5a4f129804d302286798b0d9f6680ad36f200`. The live-thread check found no other active Kalmala run for this checkout or shared handoff destination; the older `notLoaded` task was stale and no index lock was present. Preserved the 23 pre-existing modified paths and the earlier isolated CR13-019 progress entry. No separate handoff synchronization was needed.
+- **Checks:** Re-read `AGENTS.md`, `BACKLOG.md`, relevant `PROGRESS.md` history, review ledgers, and project brief/design/architecture/roadmap/decision/setup context. A read-only parser verified eight CR01/current-HEAD hashes and WAV properties; static inspection checked generator mappings, runtime references, the existing imported-package review, and current cook paths. No tests, Unreal build, cook, runtime session, Editor load, or audio audition ran.
+- **Full verification:** Deferred; this is not milestone-final verification.
+- **Observable impact:** Main-checkout CR13-019 coverage now reflects the reviewed source batch; runtime behavior and audio content are unchanged.
+- **Networking/authority:** Review bookkeeping only. The cues remain local presentation of existing local or owner-only accepted state; gameplay authority remains server-side. No network behavior changed.
+- **Known limitations / remaining scope:** Static checks do not establish audible quality, Unreal loading, mixing, spatialization, or packaged playback. RF134 remains queued and CR13 is incomplete.
+- **Next eligible task:** CR13-020, review the next eight assigned audio-source files.
