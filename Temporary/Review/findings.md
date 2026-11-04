@@ -1476,6 +1476,18 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Evidence:** CR13-057 source and prepared PNG hashes match their CR01 coverage fingerprints. Each original has a C2PA caBX chunk with readable ChatGPT/gpt-image/OpenAI generator markers, but no PNG text chunk or readable prompt. The current icon-provenance guide and repository documentation search contain no item-specific record; history searches across the guide and development-setup record also found none. Focused UI icon validation passes for all four IDs. The images visually match their mapped placed-object subjects.
 - **Disposition:** Queue RF233 for post-CR19 provenance recovery or an explicit unavailable-provenance record. Do not invent prompts or change any art, catalogue item, recipe, or placement behavior during CR13. These suffix-Kit textures represent placed objects; no portable construction items are introduced.
 
+## RF102 — Reconcile architecture meal and cooking catalogue summaries (P3)
+
+- **Source:** CR13-008/015; `docs/02-technical-architecture.md:751,757,1062-1077`; the registered food and Cooking Rack, Cauldron, and Frying Pan catalogues; `KalmalaPlayerStatusComponent.cpp`; focused status and catalogue tests.
+- **Affected path:** A developer uses the architecture meal-use list to determine which prepared foods can invoke the server-owned Steady Meal transaction.
+- **Trigger:** The architecture lists seven cooking outputs plus Lingonberry and ForestChanterelle for meal use, and describes seven rows as the active cooking catalogue. It omits RoastedBadger, PeatHeartStew, and WolfStew, which the server accepts, and omits current Cauldron recipes from its summary.
+- **Impact:** Architecture guidance understates accepted meal-use behavior and the active station recipe catalogue, which can misdirect implementation or review.
+- **Evidence:** The manifest registers the food catalogue and all three cooking-station files. CR13-015 confirmed all 14 assigned cooking rows are enabled and cross-checked the row set: ten meal outputs include the three omitted meals, alongside Berry Recovery Draught, Root Stamina Draught, Rat-tail Tonic, and Antidote. `IsKnownFoodItem` includes the three meals; focused status/catalogue tests cover their recipes and use path. The non-meal transactions have separate effects and remain distinct from meal effects.
+- **Proposed repair:** After CR19 review acceptance, reconcile the architecture meal allowlist and current cooking summaries with registered recipes and server item-use paths. Keep meal-effect foods distinct from draught, tonic, and Antidote transactions; do not change runtime behavior or item data.
+- **Dependencies:** After CR19 review acceptance; no documentation edits during CR13.
+- **Acceptance:** The architecture meal allowlist and current cooking summaries match registered meal recipes and the server allowlist; the recipe overview accounts for current station outputs and keeps draught/tonic/Antidote effects separate. No runtime or item data changes.
+- **Focused validation:** Compare the revised sections with `IsKnownFoodItem`, all manifest-registered cooking recipes, and focused status/catalogue tests; run `git diff --check`. No Unreal build is required.
+
 ## CR13-009 — build-item catalogue review
 
 - **Reviewed inputs:** The seven assigned `items/buildItems/*.json` files. Their current SHA-256 fingerprints match the CR01 ledger, and all seven remain registered in `itemFiles`.
@@ -1583,17 +1595,17 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Acceptance:** Architecture, decision log, and registered Forge recipe state the same Iron Pick cost; runtime/data remain unchanged.
 - **Focused validation:** Compare the corrected sentence with forge.json, the manifest, and decision row; run git diff --check.
 
-## RF123 — Restore provenance records for existing weapon and material icons (P3)
+## RF123 — Restore provenance records for selected existing weapon, material and utility icons (P3)
 
-- **Source:** CR13-012/013; docs/icon-provenance.md; original/prepared/imported icons and canonical mappings for the twelve Stone/Bronze/Iron Axe, Knife, Pick, and Spear identities and the nine material identities FrostSalt, Amber, BoarHide, DeerHide, Coal, Densewood, Lightwood, Wood, and Stone.
-- **Affected path:** A maintainer traces or prepares an existing weapon or material icon.
-- **Trigger:** The twelve weapon and nine material originals and their canonical mappings/imported assets exist, but current provenance sources have no item-specific generation prompt/source records for these identities.
-- **Impact:** Artwork and runtime mappings are usable, but the provenance guide cannot verify or reproduce these icons' original generation sources.
-- **Evidence:** Catalogue and focused UI icon validators confirm files and mappings exist. The current provenance guide has no item-specific source/prompt entries for the nine material originals; none of their original PNGs has text metadata. This is not a missing-art or missing-mapping finding. ConstructionHammer remains a separately assigned identity in the consolidated BACKLOG task.
+- **Source:** CR13-012/013/015; `docs/icon-provenance.md`; the 12 Stone/Bronze/Iron Axe, Knife, Pick, and Spear identities, nine material identities FrostSalt, Amber, BoarHide, DeerHide, Coal, Densewood, Lightwood, Wood, and Stone, plus ConstructionHammer; their original/prepared/imported icons and canonical mappings.
+- **Affected path:** A maintainer traces the generation source for an existing weapon, material, or utility icon before preparing or replacing it.
+- **Trigger:** The 22 original artworks and canonical mappings/imported assets exist, but item-specific generation prompt/source records are unavailable for these identities.
+- **Impact:** Artwork and runtime mappings remain available, but the provenance guide cannot verify or reproduce the icons' original generation sources.
+- **Evidence:** Earlier CR13-012/013 checks recorded the 12 weapon and nine material provenance gaps. CR13-015's focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ConstructionHammer` check confirmed the original, prepared 64x64 image, and imported target. `docs/icon-provenance.md` has no item-specific ConstructionHammer record, and its original PNG contains no text metadata chunks. This is not a missing-art or missing-mapping finding.
 - **Proposed repair:** Add original prompt/source records where recoverable and explicitly record unavailable provenance otherwise. Do not replace or regenerate assets during CR13.
 - **Dependencies:** After CR19 review acceptance; no icon or documentation edits during CR13.
-- **Acceptance:** Each existing canonical icon has a source/prompt record or explicit unavailable-provenance disposition; assets and mappings remain intact. The current BACKLOG task consolidates weapon, material and utility icon scope under RF123; utility evidence remains outside this CR13-012/013 section.
-- **Focused validation:** Resolve all assigned IDs to original/prepared/imported files and mappings and to provenance entries; run catalogue reference/icon validators and git diff --check.
+- **Acceptance:** Each of the 22 existing canonical weapon/material/utility icons has a source/prompt record or explicit unavailable-provenance disposition; assets and mappings remain intact.
+- **Focused validation:** Resolve all assigned IDs to original/prepared/imported files and mappings and to provenance entries; run catalogue reference/icon validators and `git diff --check`. No Unreal build is required.
 
 ## RF125 — Remove stale Bow shooting status from architecture (P3)
 
@@ -1660,3 +1672,13 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Observable impact:** The main-checkout ledger now records CR13-014 recipe coverage and RF109's confirming evidence; runtime, catalogue data, assets, and player behavior are unchanged.
 - **Networking/authority:** Review bookkeeping only. Recipe identity, Hammer ownership, direct material cost, and placement validation remain server-derived; no runtime or network code changed.
 - **Known limitations / remaining scope:** Static parsing, reference validation, and source inspection do not execute Unreal catalogue loading or live placement/payment. CR13 remains incomplete.
+
+## CR13-015 — Station recipe catalogue review
+
+- **Reviewed inputs:** `a9-gear.json`, `cauldron.json`, `cooking-rack.json`, `forge.json`, `frying-pan.json`, `inventory.json`, and `workbench.json` under `Content/Data/GameCatalogues/recipes/stations/`. All seven SHA-256 fingerprints match CR01 and current main; all seven remain registered in the schema-16 manifest.
+- **Evidence:** Current-main parsing found 72 unique recipe IDs and result identities: 42 ordinary outputs and 30 level-one equipment acquisitions. All 152 ingredient entries have positive quantities; ordinary recipes are enabled with positive output/batch bounds, acquisition station/level forms are valid, and no result is a portable `Kit`. The catalogue reference validator resolved all registered references. The prior isolated handoff's A9 gem-gear acceptance cross-check remains applicable because all seven assigned recipe hashes match. Server crafting checks authority, recipe identity/enabled state, batch, station and inventory exchange; focused tests were inspected in the handoff but not run. RF102's stale architecture meal/cooking summary is confirmed against the 14 enabled cooking rows and server food allowlist. RF123 now includes the separately confirmed ConstructionHammer provenance gap. Existing RF122/RF126 cost discrepancies remain separate.
+- **Result:** The CR13-015 aggregate and seven assigned file rows are reviewed. RF102/RF123 remain existing unchecked remediation tasks in `BACKLOG.md`; no duplicate or new recipe-data finding was added. CR13-016 is next and CR13 remains incomplete. No gameplay, test, script, configuration, catalogue, asset, or game documentation was modified.
+- **Checks / limits:** `python -B Scripts/Validate-CatalogueReferences.py` passed for 61 registered JSON files, 152 unique item/buildable definitions, 776 resolved references, and 152 ledger-backed canonical runtime icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id ConstructionHammer` passed. Focused parsing confirmed all seven CR01 hashes, manifest registrations, row identities and recipe/acquisition invariants. The ConstructionHammer original PNG has no `tEXt`, `zTXt`, or `iTXt` chunks. Source contracts were inspected; no tests, Unreal build, runtime crafting session, Editor load, or visual icon inspection ran. Full verification remains deferred; this is not milestone-final verification.
+- **Observable impact:** The review ledger now records CR13-015 coverage and its RF102/RF123 evidence; runtime, catalogue content, assets, and player behavior are unchanged.
+- **Networking/authority:** Review bookkeeping only. Recipe identity, station checks, material payment, outputs, and accepted crafting transactions remain server-validated; no runtime or network code changed.
+- **Known limitations / remaining scope:** Static parsing and validators do not execute Unreal catalogue loading or live crafting. Icon validation was structural, not visual. RF102 and RF123 remain open for post-CR19 remediation; CR13 remains incomplete.
