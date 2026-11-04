@@ -1460,3 +1460,9 @@ The M11 setup guidance records the intended roles and dimensions for the BuildPa
 The current `docs/icon-provenance.md` retains no exact generation prompt for `CampfireKit` or `CauldronKit`, and the current catalogue icon manifest records only their subjects and batches. Each original has a `caBX` C2PA PNG chunk with readable ChatGPT, gpt-image and OpenAI markers; a readable-byte scan found no prompt text. Visual inspection confirms the originals and prepared 64×64 icons match the campfire and hearth-cauldron identities. The crop/food prompt gaps for `Carrot` and `CarrotSeed` remain covered by RF103. The `CauldronKit` item/pack and inventory-view manifest mismatch is already tracked by RF216; its authored buildable definition and direct-material building recipe remain intact.
 
 - **Question:** Were the exact Campfire and Cauldron icon generation prompts preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing prompts from the images.
+
+### CR13-055 open question — Cooking Rack icon prompt retention
+
+The current `docs/icon-provenance.md` contains no exact generation record for `CookingRackKit`; its manifest row retains only a subject and batch. The original has a `caBX` C2PA PNG chunk with readable ChatGPT, gpt-image and OpenAI markers, while a readable-byte scan found no prompt text. Visual inspection confirms that the original and prepared 64×64 icon depict the placed timber Cooking Rack. The stale item/pack and inventory-view manifest classification is already tracked by RF216; the registered buildable definition and direct-material recipe remain intact.
+
+- **Question:** Was the exact Cooking Rack icon generation prompt preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing the prompt from the image.
