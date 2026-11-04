@@ -1515,3 +1515,34 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Evidence:** All seven build-item files are registered; the 22 unique buildable IDs match the 22 building-recipe outputs one-to-one. CR13-014 separately reconfirmed this against its CR01-matching recipe fingerprint and the loader routes construction outputs to `BuildableOutput`. The setup's 18-object figure is under an as-of-2026-10-18 heading and may remain a historical snapshot.
 - **Proposed repair and dependency:** Update the unqualified architecture count to 22 after CR19 acceptance; retain the setup count only as a clearly dated snapshot or update it. Do not change recipe/buildable data during CR13.
 - **Acceptance and validation:** No current unqualified count conflicts with the 22 registered buildables/recipes. Reparse the manifest, seven build-item files and building outputs; run `Scripts/Validate-CatalogueReferences.py` and `git diff --check`. No Unreal build is required.
+
+## CR13-011 — wearable armor profile review
+
+- **Reviewed inputs:** `boots.json`, `capes.json`, `helmets.json`, `leggings.json`, `shields.json` and `tunics.json` under `items/equipment/armor/`. All six current SHA-256 fingerprints match CR01 and all six files remain registered.
+- **Evidence:** Parsed 16 unique wearable profiles across the six supported slots and cross-checked slot/stat bounds, acquisition and progression references, current descriptions, icon mappings and provenance. The prior review's catalogue-reference validator and focused UI icon validation passed for all assigned IDs. No structural or reference defect was confirmed.
+- **Outcome:** Existing findings RF114–RF116 remain open in `BACKLOG.md`; this report records their current evidence below. RF95 remains the separate CR13-005/CR16-003 count-versus-slot handoff; this profile batch adds no duplicate.
+- **Limits:** The prior review and this reconciliation are static. No Unreal build, automation tests, live equipment transaction, damage session, Editor preview or rendered icon inspection ran.
+
+### RF114 — stale current armor status in architecture (P3; CR13-011)
+
+- **Affected paths:** `docs/02-technical-architecture.md:1479-1489`, current armor profiles and the server damage path.
+- **Trigger and impact:** The undated architecture section says equipped Armor remains zero and that equipment rules need separate gameplay work, which misstates the implemented wearable-defense path.
+- **Evidence:** The six registered armor files contain 16 profiles, including positive Armor values. The server sums non-depleted equipped profile Armor before calling the damage resolver; the resolver subtracts it from physical damage. Current design guidance and focused damage-profile assertions describe this behavior.
+- **Proposed repair and dependency:** After CR19 review acceptance, update or remove only the obsolete Armor-zero and pending-equipment statements; retain the weight/encumbrance limitations. Do not alter runtime or catalogue data during CR13.
+- **Acceptance and validation:** Architecture no longer says wearable defenses are unapplied or equipment is unimplemented. Compare with the current game-design text, server calculation and focused damage test; run `git diff --check`. No Unreal build is needed.
+
+### RF115 — missing authoritative A8b wearable-value source (P3; CR13-011)
+
+- **Affected paths:** `docs/05-decision-log.md:5,186`, `docs/icon-provenance.md:233`, `docs/alpha-item-details.md#a8b` (missing), A8b setup histories and `docs/a9-acceptance.md:215-222`.
+- **Trigger and impact:** The decision log and A9 provenance text identify `alpha-item-details.md` as the authoritative A8b contract, but that file is absent. Dated setup histories only partly preserve the values, so reviewers cannot trace the full delegated armor profile contract.
+- **Evidence:** `docs/alpha-item-details.md` does not exist. Current setup histories omit a complete contract including Badger Fur Vest, while `docs/a9-acceptance.md` retains the Opal Helm table and the stale source citations remain.
+- **Proposed repair and dependency:** After CR19 acceptance, preserve the complete A8b values in an existing current source or restore an appropriate concise contract, and repoint A9 references to retained records. Do not change catalogue values or gameplay during CR13.
+- **Acceptance and validation:** The A8b decision points to an existing complete source, and A9 references resolve or are explicitly historical. Resolve Markdown targets and compare retained values against the profiles and A9 acceptance table; run `git diff --check`.
+
+### RF116 — Boar Hide Cape warmth description (P3; CR13-011)
+
+- **Affected paths:** `items/equipment/armor/capes.json:4-7`, item-detail presentation, the A4 decision and roadmap/setup guidance.
+- **Trigger and impact:** The player-facing description calls the Boar Hide Cape “warm” even though the approved A4 contract defers cold insulation, implying an unsupported survival effect.
+- **Evidence:** The item-detail widget displays the catalogue description. The A4 decision defers insulation/cold protection for the hide Boots and Cape, and the armor profile/runtime schema supplies Armor and condition behavior without a warmth effect.
+- **Proposed repair and dependency:** After CR19 acceptance, remove or qualify “warm” so the description does not promise cold protection. Adding warmth would require separately approved scope; no catalogue or gameplay changes during CR13.
+- **Acceptance and validation:** The displayed description no longer implies unsupported cold protection. Compare with item-detail presentation and the A4 decision; run the focused catalogue/detail checks and `git diff --check`. No Unreal build is required for a text-only correction.
