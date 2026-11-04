@@ -1399,3 +1399,19 @@ The current `docs/icon-provenance.md` has no WallKit-specific prompt. The pre-co
 The current `docs/icon-provenance.md` and pre-consolidation `docs/armor-icons.md` retain shared style constraints and a WoodShield subject description, but not the exact generation prompt. The original PNG's C2PA metadata identifies its generator and media type but contains no prompt text.
 
 - **Question:** Was the exact WoodShield generation prompt preserved outside the repository? If it is unavailable, later provenance work should record that rather than reconstructing it from the image.
+
+
+## RF184 extension — CR13-046 catalogue icon source records
+
+- **Related finding:** `RF184` in `BACKLOG.md`.
+- **Affected packages:** `WorkbenchKit.uasset` and `WorkbenchToolRackKit.uasset` under `Content/Kalmala/UI/Icons/Items/`, with their matching prepared PNGs under `Content/Kalmala/UI/Source/Icons/`.
+- **Trigger:** Both packages record absolute source PNG paths under the removed `E:/dev/Kalmala/wt/m12-hud-feedback-rebuild` worktree. Neither source path resolves in the current checkout.
+- **Impact:** The imported textures remain usable, but reimport is tied to a missing worktree path instead of the checked-in project-local prepared PNGs.
+- **Evidence:** All six package, original-PNG and prepared-PNG SHA-256 values match their CR01 coverage fingerprints. Each package contains its expected `/Game/Kalmala/UI/Icons/Items/<ID>` identity and `Texture2D` class; its embedded source `FileMD5` matches the checked-in prepared PNG. Both recorded paths are missing. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id <ID>` passed for both IDs; `python -B Scripts/Validate-CatalogueReferences.py` passed for 61 registered JSON files, 152 unique item/buildable definitions, 776 resolved references and 152 canonical runtime icon mappings. The originals and prepared icons were visually inspected and match their placed-object subjects. The registered `items/buildItems/workbench.json` contains only the `Workbench` and `WorkbenchToolRack` buildable definitions; `recipes/building.json` defines direct-material Buildable outputs (9 Wood + 2 Stone for Workbench; 6 Wood for the Tool Rack), with no portable kit output. The 2026-10-14 decision and current architecture specify direct Building Hammer placement. The stale icon-manifest `item`/pack/storage views for these identities are already covered by RF216 and are not duplicated.
+- **Disposition:** Extend RF184 from 134 to 136 active affected textures. After CR19 acceptance, reimport these packages from their checked-in project-local prepared PNGs while preserving package identities, source pixels and texture settings; do not change packages during CR13.
+
+### CR13-046 open question — Workbench icon prompt retention
+
+The current `docs/icon-provenance.md` has no item-specific WorkbenchKit or WorkbenchToolRackKit prompt. The pre-consolidation `docs/43-catalogue-icon-manifest.md` Batch 03/04 records their subjects and shared style constraints but not the exact prompts. Their original PNG C2PA metadata identifies ChatGPT/gpt-image trained algorithmic media and contains no readable prompt text.
+
+- **Question:** Were the exact WorkbenchKit and WorkbenchToolRackKit generation prompts preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing either prompt from the image.
