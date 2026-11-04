@@ -1454,3 +1454,9 @@ The current `docs/icon-provenance.md` has no per-icon generation record for Wet,
 The M11 setup guidance records the intended roles and dimensions for the BuildPanel, InventoryPanel, OptionsDivider, OptionsPanel, StoneButtonMaster, StoneSliderThumb and WorldMapPanel artwork, but neither it nor the current `docs/icon-provenance.md` retains their exact generation prompts. The seven original artworks carry C2PA metadata identifying ChatGPT/gpt-image trained algorithmic media; a readable scan found no prompt text. `StoneButton.png` is the documented 160x53 derivative of StoneButtonMaster, not a separate generated original.
 
 - **Question:** Were the exact generation prompts for these seven original UI images preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing prompts from the images.
+
+### CR13-054 open question — Campfire and Cauldron icon prompt retention
+
+The current `docs/icon-provenance.md` retains no exact generation prompt for `CampfireKit` or `CauldronKit`, and the current catalogue icon manifest records only their subjects and batches. Each original has a `caBX` C2PA PNG chunk with readable ChatGPT, gpt-image and OpenAI markers; a readable-byte scan found no prompt text. Visual inspection confirms the originals and prepared 64×64 icons match the campfire and hearth-cauldron identities. The crop/food prompt gaps for `Carrot` and `CarrotSeed` remain covered by RF103. The `CauldronKit` item/pack and inventory-view manifest mismatch is already tracked by RF216; its authored buildable definition and direct-material building recipe remain intact.
+
+- **Question:** Were the exact Campfire and Cauldron icon generation prompts preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing prompts from the images.
