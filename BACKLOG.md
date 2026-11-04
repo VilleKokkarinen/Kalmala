@@ -891,6 +891,21 @@
     run the four focused UI icon validators and
     python -B Scripts/Validate-CatalogueReferences.py. No Unreal build is required.
 
+  - [ ] **RF234 - Regenerate the stale world-generation scalar previews (P3; CR13-023).**
+    `Content/Kalmala/Developer/WorldGeneration/{Elevation,Flora,Humidity,Temperature}.ppm`;
+    `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`;
+    `Source/KalmalaWorld/Public/KalmalaWorldFieldSampler.h`,
+    `KalmalaWorldGenerationSeeds.h`, and `KalmalaRegionalTuning.h`.
+    **Affected path:** A developer uses the tracked scalar PPMs to inspect current world fields.
+    **Trigger:** The four previews were added with the original commandlet at `cb5175f1` and predate the current field equations and seed derivation.
+    **Impact:** The maps can misrepresent present elevation, humidity, temperature, and flora distributions during manual generation review.
+    **Evidence:** All four PPM files still match CR01 and current `HEAD`, and their last asset change is `cb5175f1` (2026-09-02). That version of the sampler used direct normalized Perlin fields with frequencies 0.00035/0.00050/0.00028/0.00075 and seed offsets multiplied by 31. The current sampler uses different tuning and frequencies and adjusts Elevation from the land-water master mask; `DeriveFieldSeed` also changed after the image commit. The current commandlet writes all four sampled channels through `AddFieldPixel`, so the tracked scalar maps are historical output. No runtime code references these PPMs.
+    [Evidence and disposition](Temporary/Review/findings.md#rf234-refresh-stale-world-generation-scalar-previews).
+    **Proposed repair:** After CR19 review acceptance, re-render only these four scalar PPMs from the current commandlet using its default seed, dimensions, and extent. Do not change PPM assets during CR13.
+    **Dependencies:** After CR19 acceptance; no generated-content changes during CR13.
+    **Acceptance:** Each tracked scalar preview matches current commandlet output for the documented defaults and retains the expected grayscale channel.
+    **Focused validation:** Build the Editor, render to a short temporary directory, compare the four generated PPMs with the tracked assets, visually inspect them, and run `git diff --check`. Do not run broad regional-generation peers for this artifact-only repair.
+
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
     children as findings arise; do not invent defects or placeholder fixes.
     Each child includes finding/source CR ID, severity, affected files, trigger,
