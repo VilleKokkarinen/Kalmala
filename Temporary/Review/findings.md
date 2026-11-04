@@ -1447,3 +1447,10 @@ The current `docs/icon-provenance.md` has no per-icon generation record for thes
 The current `docs/icon-provenance.md` has no per-icon generation record for Wet, and `Scripts/Data/status-icon-manifest.csv` records its subject and batch but no exact prompt text. The original PNG C2PA metadata identifies ChatGPT/gpt-image trained algorithmic media; a readable scan found no prompt text.
 
 - **Question:** Was the exact Wet status icon generation prompt preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing the prompt from the artwork.
+
+
+### CR13-049 open question — UI source artwork prompt retention
+
+The M11 setup guidance records the intended roles and dimensions for the BuildPanel, InventoryPanel, OptionsDivider, OptionsPanel, StoneButtonMaster, StoneSliderThumb and WorldMapPanel artwork, but neither it nor the current `docs/icon-provenance.md` retains their exact generation prompts. The seven original artworks carry C2PA metadata identifying ChatGPT/gpt-image trained algorithmic media; a readable scan found no prompt text. `StoneButton.png` is the documented 160x53 derivative of StoneButtonMaster, not a separate generated original.
+
+- **Question:** Were the exact generation prompts for these seven original UI images preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing prompts from the images.
