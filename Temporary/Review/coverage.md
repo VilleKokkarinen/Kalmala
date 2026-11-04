@@ -410,7 +410,7 @@ Ignored files were enumerated by Git. None were authored source assets under `So
 | `CR13-054` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | reviewed | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |
 | `CR13-055` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | reviewed | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |
 | `CR13-056` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | reviewed | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |
-| `CR13-057` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | pending | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |
+| `CR13-057` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | reviewed | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |
 | `CR13-058` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | pending | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |
 | `CR13-059` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | pending | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |
 | `CR13-060` | CR13 | `Content/Kalmala/UI/Source/IconOriginals` | 8 | pending | Catalogues, authored assets, maps, materials, meshes, textures, audio and Blueprint wiring |

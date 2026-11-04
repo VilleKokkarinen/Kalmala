@@ -27216,3 +27216,17 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations / remaining scope:** Unreal package deserialization, editor loading, in-game appearance and clean-mirror reimport remain unverified; package source-path repair remains under RF184 after CR19. The exact buildable icon prompts remain unknown pending RF233. CR13 and the project-wide review remain open.
 - **Next eligible task:** CR13-058, review the next eight UI icon original PNGs.
 ---
+
+## 2026-11-04 — CR13-057 aggregate status reconciliation
+
+- **Selected task:** CR13-057 only: reconcile its aggregate batch status with the previously reviewed original-image rows.
+- **Work completed:** Confirmed all eight CR13-057 original-image rows are reviewed and the prior progress entry records their review. The aggregate CR13-057 batch row still showed pending; changed it to reviewed. This correction adds no new image finding and repeats no visual or validator work. CR13-058 remains next.
+- **Files changed:** Temporary/Review/coverage.md and PROGRESS.md. BACKLOG.md remains unchanged because CR13-057 is a coverage batch and CR13 remains incomplete. No source, test, script, configuration, catalogue, imported package, asset, or game documentation changed.
+- **Ownership and preservation:** Worked in the main checkout on branch master, starting at c2adaf45. The live-thread check found no other active Kalmala task targeting this checkout; the other Kalmala task is not loaded, and other registered worktrees are distinct. .git/index.lock was absent. Preserved the 23 pre-existing modified paths and staged only this correction.
+- **Checks:** Re-read AGENTS.md, BACKLOG.md, PROGRESS.md and review coverage/findings. Confirmed the aggregate row was pending, its eight assigned source rows were already reviewed, and CR13-058 is pending next. The previous CR13-057 progress entry records the focused icon validators and visual review; no build, test suite, or repeat image review was run for this bookkeeping correction. Full verification remains deferred.
+- **Full verification:** Deferred; this is not milestone-final verification. No Unreal build, cook or full test suite was run.
+- **Observable impact:** The CR13-057 aggregate status now agrees with its eight reviewed source rows and prior review record. No runtime behavior changed.
+- **Networking/authority:** Review bookkeeping only; no runtime or network code changed.
+- **Known limitations / remaining scope:** Prior CR13-057 limitations remain documented in its review entry. CR13 and the project-wide review remain open.
+- **Next eligible task:** CR13-058, review the next eight UI icon original PNGs.
+---
