@@ -1585,14 +1585,14 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 
 ## RF123 — Restore provenance records for existing weapon and material icons (P3)
 
-- **Source:** CR13-012; docs/icon-provenance.md; original/prepared/imported icons and canonical mappings for the twelve Stone/Bronze/Iron Axe, Knife, Pick, and Spear identities.
-- **Affected path:** A maintainer traces or prepares an existing weapon icon.
-- **Trigger:** The twelve older weapon originals and their canonical mappings/imported assets exist, but current provenance sources have no item-specific generation prompt/source records.
+- **Source:** CR13-012/013; docs/icon-provenance.md; original/prepared/imported icons and canonical mappings for the twelve Stone/Bronze/Iron Axe, Knife, Pick, and Spear identities and the nine material identities FrostSalt, Amber, BoarHide, DeerHide, Coal, Densewood, Lightwood, Wood, and Stone.
+- **Affected path:** A maintainer traces or prepares an existing weapon or material icon.
+- **Trigger:** The twelve weapon and nine material originals and their canonical mappings/imported assets exist, but current provenance sources have no item-specific generation prompt/source records for these identities.
 - **Impact:** Artwork and runtime mappings are usable, but the provenance guide cannot verify or reproduce these icons' original generation sources.
-- **Evidence:** Catalogue and focused UI icon validators confirm files and mappings exist. The current provenance guide has no per-item records for these twelve identities. This is not a missing-art or missing-mapping finding.
+- **Evidence:** Catalogue and focused UI icon validators confirm files and mappings exist. The current provenance guide has no item-specific source/prompt entries for the nine material originals; none of their original PNGs has text metadata. This is not a missing-art or missing-mapping finding. ConstructionHammer remains a separately assigned identity in the consolidated BACKLOG task.
 - **Proposed repair:** Add original prompt/source records where recoverable and explicitly record unavailable provenance otherwise. Do not replace or regenerate assets during CR13.
 - **Dependencies:** After CR19 review acceptance; no icon or documentation edits during CR13.
-- **Acceptance:** Each existing canonical icon has a source/prompt record or explicit unavailable-provenance disposition; assets and mappings remain intact. The current BACKLOG task consolidates the later material and ConstructionHammer scope under RF123; those later identities are outside this CR13-012 evidence section.
+- **Acceptance:** Each existing canonical icon has a source/prompt record or explicit unavailable-provenance disposition; assets and mappings remain intact. The current BACKLOG task consolidates weapon, material and utility icon scope under RF123; utility evidence remains outside this CR13-012/013 section.
 - **Focused validation:** Resolve all assigned IDs to original/prepared/imported files and mappings and to provenance entries; run catalogue reference/icon validators and git diff --check.
 
 ## RF125 — Remove stale Bow shooting status from architecture (P3)
@@ -1619,6 +1619,18 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Acceptance:** An explicit decision establishes the intended cost and architecture/recipe agree with it; no unsupported balance target is inferred.
 - **Focused validation:** Compare both passages with the approved decision and schema-16 recipe after direction is available; run reference validation and git diff --check.
 
+## RF130 — Remove Frost Salt's unsupported food-preservation claim (P3)
+
+- **Source:** CR13-013; `Content/Data/GameCatalogues/items/materials/cooking-ingredients.json:4-7`; `Source/KalmalaUI/Private/KalmalaItemDetailWidget.cpp:13-16`; `Source/KalmalaGameplay/Private/KalmalaM9SourceLootContract.cpp:20`; `Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp:369-372`; registered recipe catalogues and gameplay/UI sources.
+- **Affected path:** A player inspects Frost Salt in carried-item details and expects it to preserve food.
+- **Trigger:** The catalogue description says “Sprinkle some to preserve your food,” but Frost Salt currently has a Tundra harvest source and no registered recipe or runtime preservation, spoilage, or food-storage consumer.
+- **Impact:** Player-facing copy promises an unavailable use and can mislead players about why they should collect or use the item.
+- **Evidence:** `DescribeItem` presents the registered catalogue description. The server source/reward contract maps `tundra-frost-salt-deposit` to FrostSalt, and the gathering contract selects FrostSalt for that source. No registered recipe references FrostSalt, and a focused gameplay/UI source search found no food-preservation, spoilage, or food-storage rule. This is not a missing-acquisition finding.
+- **Proposed repair:** Replace or qualify the unsupported preservation wording with an accurate material description, unless an explicitly approved and implemented preservation feature is supplied. Do not add gameplay behavior or invent a use during CR13.
+- **Dependencies:** After CR19 review acceptance; any preservation mechanic requires separate approved gameplay scope. No catalogue or runtime edits during CR13.
+- **Acceptance:** Frost Salt's player-facing description does not promise an unavailable preservation use, or the use is separately approved and implemented with its own validation; server authority and storage behavior remain unchanged.
+- **Focused validation:** Compare revised text with the item-detail path, Tundra acquisition contract, registered recipes, and current food/storage implementation; run focused catalogue/detail checks when repaired and git diff --check. No Unreal build is required.
+
 ## CR13-012 — Weapon profile catalogue review
 
 - **Reviewed inputs:** axes.json, bows.json, knives.json, maces.json, pickaxes.json, spears.json, and swords.json under items/equipment/weapons/. All seven current SHA-256 fingerprints match CR01 and all seven files remain registered in itemProfileFiles.
@@ -1628,3 +1640,13 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Observable impact:** The main-checkout ledger now records CR13-012 coverage and its six finding handoffs; gameplay, data, assets, and player behavior are unchanged.
 - **Networking/authority:** Review bookkeeping only. Melee reach/damage and Bow projectile resolution remain server-owned; no runtime or network code changed.
 - **Known limitations / remaining scope:** Static inspection does not execute Unreal catalogue loading or combat. Icon validation was structural, not visual. RF123 provenance scope later expanded beyond the weapon identities; RF126 still needs authoritative direction before any cost correction. Later CR13 batches remain pending.
+
+## CR13-013 — Material catalogue review
+
+- **Reviewed inputs:** `cooking-ingredients.json`, `crafting-ingredients.json`, `gems.json`, `hides.json`, `metal.json`, `ore.json`, `others.json`, and `wood.json` under `Content/Data/GameCatalogues/items/materials/`. All eight SHA-256 fingerprints match CR01 and the current main checkout; all remain registered in the schema-16 manifest.
+- **Evidence:** Parsed 42 unique material ItemIds and checked manifest registration and references to recipes, source loot, Smelter processing, crafting, and item-detail presentation. Ten reserved-gem descriptions match their registered A9 gear recipes. No additional material identity, schema, reference, or recipe defect was confirmed. RF130 tracks Frost Salt's unsupported preservation wording while its server-owned Tundra source exists. RF123 now includes nine material icon provenance gaps; none of their originals has PNG text metadata or an item-specific provenance record. RF106's existing material-category documentation scope was not duplicated.
+- **Result:** The eight CR13-013 file rows and aggregate batch are reviewed. CR13-014 is next; CR13 remains unchecked. RF123 and RF130 are already queued as unchecked tasks in BACKLOG. No gameplay, test, script, configuration, catalogue, asset, or game documentation was modified.
+- **Checks / limits:** `python -B Scripts/Validate-CatalogueReferences.py` passed for 61 registered JSON files, 152 unique item/buildable definitions, 776 resolved references, and 152 ledger-backed canonical runtime icon mappings. `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id` passed individually for all 42 material identities. Current-main parsing confirmed 42 unique IDs, all eight assigned hashes, and manifest registration. No tests, Unreal build, runtime session, Editor preview, or rendered icon inspection ran; full verification remains deferred and this is not milestone-final verification.
+- **Observable impact:** The main-checkout ledger now records CR13-013 material coverage and findings; runtime, catalogue data, assets, and player behavior are unchanged.
+- **Networking/authority:** Review bookkeeping only. Material harvesting, source rewards, recipes, and storage retain existing shared/server-owned paths; no runtime or network code changed.
+- **Known limitations / remaining scope:** Static checks do not execute Unreal catalogue loading, harvesting, recipes, or storage. Icon validation was structural, not visual. The nine material provenance records remain open under RF123; CR13 remains incomplete.
