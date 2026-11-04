@@ -853,6 +853,44 @@
     **Acceptance:** Iron reads as a forged bar and is clearly distinguishable from IronOre at 64×64; source/prompt provenance is traceable or explicitly recorded as unavailable; catalogue IDs and runtime mapping remain intact.
     **Focused validation:** Run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Iron` and `python Scripts/Validate-CatalogueReferences.py`; visually compare the prepared Iron/IronOre icons at 64×64. No Unreal build is required.
 
+  - [ ] **RF233 — Restore provenance records for active placed-object icons (P3; CR13-057).**
+    Content/Kalmala/UI/Source/IconOriginals/{FloorKit,ForgeAnvilKit,ForgeKit,FryingPanKit}.png;
+    Content/Kalmala/UI/Source/Icons/; Content/Kalmala/UI/Icons/Items/;
+    Scripts/Data/catalogue-icon-manifest.csv; docs/icon-provenance.md.
+    **Affected path:** A maintainer verifies or regenerates one of the placed-object
+    textures for Floor, ForgeAnvil, Forge, or FryingPan.
+    **Trigger:** These four active buildable icon textures have retained original
+    and prepared PNGs and canonical runtime mappings, but no item-specific
+    generation/source record appears in the current provenance/setup
+    documentation. The originals identify generated media through C2PA markers
+    but contain no readable prompt text.
+    **Impact:** The buildables and their icons remain usable, but the authored
+    source and intended visual constraints cannot be audited or reproduced from
+    the repository.
+    **Evidence:** CR13-057 originals match their CR01 coverage fingerprints;
+    focused icon validation resolves FloorKit, ForgeAnvilKit, ForgeKit, and
+    FryingPanKit to the expected Texture2D paths. Repository documentation and
+    icon-provenance/setup history searches found no item-specific source prompts.
+    Each original has a caBX chunk and readable ChatGPT/gpt-image/OpenAI markers,
+    with no PNG text chunks or readable prompt strings. RF184 separately covers
+    six stale package source paths; RF216 separately covers the buildable
+    manifest role/view mismatch.
+    [Evidence and disposition](Temporary/Review/findings.md#rf233-finding-missing-prompt-provenance-for-four-placed-object-icon-textures).
+    **Proposed repair:** Recover and record authoritative original prompts or
+    source notes where available; otherwise record provenance as unavailable.
+    Do not invent prompts, regenerate icons, or change buildable data, recipes,
+    IDs, or direct-material placement during CR13.
+    **Dependencies:** After CR19 review acceptance; no icon or documentation
+    edits during CR13.
+    **Acceptance:** Each of the four placed-object icon identities has an
+    authoritative source record or explicit unavailable-provenance disposition;
+    existing textures, mappings, buildable definitions, and direct-material
+    recipes remain intact.
+    **Focused validation:** Compare each source record with its original,
+    prepared PNG, imported package, manifest mapping, and buildable definition;
+    run the four focused UI icon validators and
+    python -B Scripts/Validate-CatalogueReferences.py. No Unreal build is required.
+
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
     children as findings arise; do not invent defects or placeholder fixes.
     Each child includes finding/source CR ID, severity, affected files, trigger,

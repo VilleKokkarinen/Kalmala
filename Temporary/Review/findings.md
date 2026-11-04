@@ -1466,3 +1466,12 @@ The current `docs/icon-provenance.md` retains no exact generation prompt for `Ca
 The current `docs/icon-provenance.md` contains no exact generation record for `CookingRackKit`; its manifest row retains only a subject and batch. The original has a `caBX` C2PA PNG chunk with readable ChatGPT, gpt-image and OpenAI markers, while a readable-byte scan found no prompt text. Visual inspection confirms that the original and prepared 64×64 icon depict the placed timber Cooking Rack. The stale item/pack and inventory-view manifest classification is already tracked by RF216; the registered buildable definition and direct-material recipe remain intact.
 
 - **Question:** Was the exact Cooking Rack icon generation prompt preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing the prompt from the image.
+
+## RF233 finding: missing prompt provenance for four placed-object icon textures
+
+The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve to the existing FloorKit, ForgeAnvilKit, ForgeKit, and FryingPanKit UI textures. Their current catalogue icon manifest rows are stale about inventory/pack views; RF216 covers that separate issue. The six active CR13-057 packages with obsolete import paths are already covered by RF184.
+
+- **Trigger:** A maintainer needs to audit or reproduce the source artwork for one of these four build-menu icons.
+- **Impact:** The textures and buildable mappings work, but the original generation prompts and visual constraints cannot be verified from the repository.
+- **Evidence:** CR13-057 source and prepared PNG hashes match their CR01 coverage fingerprints. Each original has a C2PA caBX chunk with readable ChatGPT/gpt-image/OpenAI generator markers, but no PNG text chunk or readable prompt. The current icon-provenance guide and repository documentation search contain no item-specific record; history searches across the guide and development-setup record also found none. Focused UI icon validation passes for all four IDs. The images visually match their mapped placed-object subjects.
+- **Disposition:** Queue RF233 for post-CR19 provenance recovery or an explicit unavailable-provenance record. Do not invent prompts or change any art, catalogue item, recipe, or placement behavior during CR13. These suffix-Kit textures represent placed objects; no portable construction items are introduced.
