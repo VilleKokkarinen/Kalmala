@@ -27230,3 +27230,16 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Known limitations / remaining scope:** Prior CR13-057 limitations remain documented in its review entry. CR13 and the project-wide review remain open.
 - **Next eligible task:** CR13-058, review the next eight UI icon original PNGs.
 ---
+
+## Run 2026-11-04 — CR13-001 coverage reconciliation
+
+- **Selected task:** CR13-001 only: reconcile the main-checkout ledger for the catalogue root manifest and its import-metadata package.
+- **Work completed:** The main-checkout batch and two assigned rows were still pending although a complete CR13-001 review is recorded in the 2026-11-02 CR13 worktree handoff above. Both current files still match their CR01 fingerprints. Reconciled only the CR13-001 aggregate and file rows to reviewed; the prior review covers schema-16 registration, path safety and completeness, runtime loader expectations, and package identity/import metadata. No new finding was confirmed.
+- **Files changed:** `Temporary/Review/coverage.md` and `PROGRESS.md`. `BACKLOG.md` remains unchanged because CR13 is incomplete and this reconciliation found no new actionable finding. No source, test, script, configuration, catalogue, asset, or game documentation changed.
+- **Ownership and preservation:** Worked in the main `E:\dev\Kalmala` checkout on `master`, starting at `fc79b4af5b731e7926af814684c911e3305ee8d3`. The active-task check found no other live Kalmala task targeting this checkout or shared handoff destination; registered worktrees are distinct and `.git/index.lock` was absent. Preserved the 23 pre-existing modified paths; no separate handoff synchronization was needed.
+- **Checks:** Re-read `AGENTS.md`, `BACKLOG.md`, `PROGRESS.md`, the CR13 coverage entry, and relevant catalogue contracts in `docs/02-technical-architecture.md` and `docs/07-development-setup.md`. Rechecked both assigned SHA-256 values against CR01. Parsed the current manifest and confirmed schema 16, 61 unique safe relative registrations, and all registered files present. Confirmed the runtime loader checks schema 16 and reads `GameCatalogues.json`. The earlier CR13-001 handoff records package identity/import-MD5 inspection. `git diff --check -- Temporary/Review/coverage.md` passed; the appended progress block has no trailing whitespace. No Unreal package load, editor preview, build, test suite, or runtime check ran in this reconciliation.
+- **Full verification:** Deferred; this is not milestone-final verification.
+- **Observable impact:** The main-checkout ledger now reflects the completed CR13-001 evidence; runtime behavior is unchanged.
+- **Networking/authority:** Local catalogue-registry and package-metadata review only; no runtime or networking code changed.
+- **Known limitations / remaining scope:** Unreal deserialization and editor import behavior remain unverified, as recorded in the earlier CR13-001 review. The remaining CR13 batches and overall project-wide review remain open.
+- **Next eligible task:** CR13-002, review `Content/Data/GameCatalogues/creatures.json`.
