@@ -1287,3 +1287,12 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Dependencies:** After CR19 review acceptance; no icon or documentation edits during CR13.
 - **Acceptance:** The Iron texture reads as a forged bar and is readily distinguishable from IronOre at 64×64; its original prompt/source is traceable or explicitly recorded as unavailable; catalogue IDs and runtime mapping remain unchanged.
 - **Focused validation:** Run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Iron` and `python Scripts/Validate-CatalogueReferences.py`; visually compare the prepared Iron and IronOre icons at 64×64. No Unreal build is required for the metadata/art repair.
+
+## RF184 extension — CR13-037 catalogue icon source records
+
+- **Related finding:** `RF184` in `BACKLOG.md`.
+- **Affected packages:** `Content/Kalmala/UI/Icons/Items/JadeRing.uasset`, `Lightwood.uasset`, `LynxMantle.uasset` and `LynxPelt.uasset`, with matching prepared PNGs under `Content/Kalmala/UI/Source/Icons/`.
+- **Trigger:** Reimporting JadeRing uses a recorded source path under the removed `.wt/a9` checkout; Lightwood points into `wt/m12-hud-feedback-rebuild`; LynxMantle and LynxPelt point into the removed `.wt/a8b` checkout.
+- **Impact:** These imported textures remain usable, but source reimport depends on paths missing from the current checkout and cannot reliably use the checked-in project-local prepared PNGs from another checkout or clean mirror.
+- **Evidence:** All eight package SHA-256 values match their CR01 coverage fingerprints. Each package contains the expected object path formed from its asset ID and has a `Texture2D` class marker. Every embedded source `FileMD5` matches its checked-in prepared PNG, and all eight original and prepared PNGs exist and match their CR01 fingerprints. The four paths listed above fail the current-checkout existence check; IronSpear, IronSword, LightBow and Lingonberry resolve to project-local prepared PNGs. All eight focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id <ID>` checks passed, as did `python -B Scripts/Validate-CatalogueReferences.py` for 152 registered definitions and canonical runtime icon mappings. The item-specific prompt gaps for IronSpear and Lightwood remain covered by RF123; the other six prompts are recorded in `docs/icon-provenance.md`.
+- **Disposition:** Extend RF184 from 77 to 81 active affected textures. Reimport these four packages only from the checked-in project-local prepared PNGs after CR19 acceptance; do not change packages during CR13.
