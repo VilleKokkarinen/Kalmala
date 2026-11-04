@@ -1475,3 +1475,43 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Impact:** The textures and buildable mappings work, but the original generation prompts and visual constraints cannot be verified from the repository.
 - **Evidence:** CR13-057 source and prepared PNG hashes match their CR01 coverage fingerprints. Each original has a C2PA caBX chunk with readable ChatGPT/gpt-image/OpenAI generator markers, but no PNG text chunk or readable prompt. The current icon-provenance guide and repository documentation search contain no item-specific record; history searches across the guide and development-setup record also found none. Focused UI icon validation passes for all four IDs. The images visually match their mapped placed-object subjects.
 - **Disposition:** Queue RF233 for post-CR19 provenance recovery or an explicit unavailable-provenance record. Do not invent prompts or change any art, catalogue item, recipe, or placement behavior during CR13. These suffix-Kit textures represent placed objects; no portable construction items are introduced.
+
+## CR13-009 — build-item catalogue review
+
+- **Reviewed inputs:** The seven assigned `items/buildItems/*.json` files. Their current SHA-256 fingerprints match the CR01 ledger, and all seven remain registered in `itemFiles`.
+- **Evidence:** Parsed 22 buildable definitions with unique `ItemId`s. The 22 unique outputs in `recipes/building.json` match those identities one-to-one, and each recipe has positive direct-material inputs. The prior review also checked names, descriptions, material references, attachment stations, Smelter processing, Garden Plot cultivation, Grinding Stone repair scope, icon files/mappings and the catalogue reference validator.
+- **Outcome:** No structural, reference or portable-construction-item defect was confirmed in the assigned data. Existing actionable documentation findings RF106–RF109 remain open in `BACKLOG.md`; no duplicate finding was added.
+- **Additional RF106 evidence:** The current architecture material summary at `docs/02-technical-architecture.md:3276` also says Ore contains only Stone and Metal only Iron, despite registered Copper, Tin and Iron ores/bars. The current setup summary is at line 5215. Include this architecture passage when RF106 is repaired after CR19 acceptance.
+- **Limits:** This reconciliation relies on the exact matching assigned-file fingerprints and the prior source/data review; the full catalogue validator was not rerun. No Unreal build, tests, live interaction, Editor preview, icon render or reimport ran.
+
+### RF106 — Smelter and material-category guidance (P3; CR13-009)
+
+- **Affected paths:** `docs/01-game-design.md:172`, `docs/02-technical-architecture.md:3276`, `docs/07-development-setup.md:5215`, the Smelter buildable and ore/metal catalogues, plus the server Smelter handler.
+- **Trigger and impact:** Current summaries say only Iron Ore is smelted and list only Stone in Ore and Iron in Metal, understating the registered Copper, Tin and Iron routes and giving maintainers conflicting category guidance.
+- **Evidence:** The manifest registers all three ores and bars; the server maps CopperOre, TinOre and IronOre to distinct Smelter modes. The focused A10 source covers Copper, Tin and Iron bars. The architecture construction contract describes all three processing routes elsewhere.
+- **Proposed repair and dependency:** Reconcile the stale design, architecture-material and setup summaries after CR19 review acceptance. Do not change recipes, catalogue data or runtime behavior during CR13.
+- **Acceptance and validation:** Current guidance lists the registered ore/bar categories and accepted Smelter outputs. Compare the repaired text with the manifest, ore/metal catalogues, server handler and A10 test; run `Scripts/Validate-CatalogueReferences.py` and `git diff --check`. No Unreal build is required.
+
+### RF107 — Grinding Stone repair scope (P3; CR13-009)
+
+- **Affected paths:** `items/buildItems/grinding-stone.json`, `docs/04-roadmap.md:364`, `docs/07-development-setup.md`, and the server repair transaction.
+- **Trigger and impact:** The item description promises repair of all worn items, while the server action repairs only eligible entries in the owner's carried-tool list; players may infer that wearable or other condition-bearing inventory items are repaired.
+- **Evidence:** The server repair transaction passes the character's `CarriedTools` into the repair contract and persists that carried-tool array. The roadmap describes the action as repairing the server-owned carried-tool list.
+- **Proposed repair and dependency:** Narrow the description to all carried tools at once after CR19 review acceptance; do not add gear repair behavior.
+- **Acceptance and validation:** The description matches the carried-tool-only server behavior; compare the text with the server transaction and roadmap/setup contract, then run `git diff --check`. No Unreal build is required.
+
+### RF108 — Garden Plot farming status (P3; CR13-009)
+
+- **Affected paths:** `docs/01-game-design.md:172`, `docs/game-features.md:145`, `items/buildItems/other.json`, and the server cultivation/harvest path.
+- **Trigger and impact:** The design and feature summaries say farming is unimplemented even though Garden Plot planting, active-time growth and mature-crop harvest are supported, making current scope appear deferred.
+- **Evidence:** The registered GardenPlot definition and direct-material recipe exist; the architecture documents the Planting Trowel flow, and current server cultivation and harvest handlers accept GardenPlot records. PotatoSeed remains intentionally unused under RF101.
+- **Proposed repair and dependency:** After CR19 acceptance, distinguish implemented Garden Plot cultivation from broader deferred farming scope and keep the PotatoSeed limitation explicit. Do not add gameplay or crop behavior during CR13.
+- **Acceptance and validation:** Both summaries reflect the implemented A7 flow without implying a supported PotatoSeed route; compare them with the definition, server handlers, architecture and focused planting test, then run `git diff --check`.
+
+### RF109 — Current buildable recipe count (P3; CR13-009/014)
+
+- **Affected paths:** `docs/02-technical-architecture.md:506`, the seven registered build-item files, `recipes/building.json` and the catalogue loader.
+- **Trigger and impact:** The unqualified architecture count says 19 placement recipes, but the current manifest has 22 unique buildables and the building recipe catalogue has 22 unique outputs; the stale count understates current direct-recipe coverage.
+- **Evidence:** All seven build-item files are registered; the 22 unique buildable IDs match the 22 building-recipe outputs one-to-one. CR13-014 separately reconfirmed this against its CR01-matching recipe fingerprint and the loader routes construction outputs to `BuildableOutput`. The setup's 18-object figure is under an as-of-2026-10-18 heading and may remain a historical snapshot.
+- **Proposed repair and dependency:** Update the unqualified architecture count to 22 after CR19 acceptance; retain the setup count only as a clearly dated snapshot or update it. Do not change recipe/buildable data during CR13.
+- **Acceptance and validation:** No current unqualified count conflicts with the 22 registered buildables/recipes. Reparse the manifest, seven build-item files and building outputs; run `Scripts/Validate-CatalogueReferences.py` and `git diff --check`. No Unreal build is required.
