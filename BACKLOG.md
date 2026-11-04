@@ -839,6 +839,20 @@
     run during this review.
   - **Dependency:** Blocked until CR19 review acceptance is complete. Review
     completion queues work here and never starts a repair in the same run.
+  - [ ] **RF232 — Make the Iron material icon read as a forged bar (P3; CR13-036).**
+    `Content/Data/GameCatalogues/items/materials/metal.json:4-7`;
+    `Content/Kalmala/UI/Source/IconOriginals/Iron.png`;
+    `Content/Kalmala/UI/Source/Icons/Iron.png`;
+    `Content/Kalmala/UI/Icons/Items/Iron.uasset`; `docs/icon-provenance.md`.
+    **Affected path:** A player identifies refined Iron in the inventory or crafting UI.
+    **Trigger:** The item is named `Iron bar` and described as a forged bar, but its icon is a rough, irregular rock-like mass similar to the separate Iron Ore icon.
+    **Impact:** The image weakens the distinction between refined bar and ore at the 64×64 inventory size; missing prompt provenance also prevents reliable reproduction of the intended appearance.
+    **Evidence:** `metal.json` defines a forged Iron bar while `ore.json` defines IronOre as iron-rich rock. The CR13-036 original and prepared art were visually inspected; the Iron icon reads as an irregular rock. The canonical package and runtime mapping validate, so this is a semantic art/provenance issue rather than missing coverage. The current provenance guide has no dedicated Iron-bar prompt record.
+    **Proposed repair:** After CR19, revise the original Iron artwork to read as a forged bar, retain its prompt or explicitly record unavailable provenance, regenerate the prepared PNG, and reimport through the existing icon pipeline. Preserve IDs, recipes and behavior; do not edit assets during CR13.
+    **Dependencies:** After CR19 review acceptance; no asset or documentation changes during CR13.
+    **Acceptance:** Iron reads as a forged bar and is clearly distinguishable from IronOre at 64×64; source/prompt provenance is traceable or explicitly recorded as unavailable; catalogue IDs and runtime mapping remain intact.
+    **Focused validation:** Run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Iron` and `python Scripts/Validate-CatalogueReferences.py`; visually compare the prepared Iron/IronOre icons at 64×64. No Unreal build is required.
+
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
     children as findings arise; do not invent defects or placeholder fixes.
     Each child includes finding/source CR ID, severity, affected files, trigger,
