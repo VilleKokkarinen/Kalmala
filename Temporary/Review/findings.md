@@ -1415,3 +1415,19 @@ The current `docs/icon-provenance.md` and pre-consolidation `docs/armor-icons.md
 The current `docs/icon-provenance.md` has no item-specific WorkbenchKit or WorkbenchToolRackKit prompt. The pre-consolidation `docs/43-catalogue-icon-manifest.md` Batch 03/04 records their subjects and shared style constraints but not the exact prompts. Their original PNG C2PA metadata identifies ChatGPT/gpt-image trained algorithmic media and contains no readable prompt text.
 
 - **Question:** Were the exact WorkbenchKit and WorkbenchToolRackKit generation prompts preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing either prompt from the image.
+
+
+## RF184 extension — CR13-047 status icon source records
+
+- **Related finding:** `RF184` in `BACKLOG.md`.
+- **Affected packages:** `BearsVigor.uasset`, `Cold.uasset`, `DeerCall.uasset`, `HearthShield.uasset`, `Heat.uasset`, `Mending.uasset`, `SteadyMeal.uasset` and `Storm.uasset` under `Content/Kalmala/UI/Icons/Status/`, with their matching prepared PNGs under `Content/Kalmala/UI/Source/Icons/Status/`.
+- **Trigger:** All eight packages record absolute source PNG paths under the removed `E:/dev/Kalmala/wt/m12-hud-feedback-rebuild` worktree. None resolves in the current checkout.
+- **Impact:** The imported status textures remain usable, but source reimport is tied to missing worktree files instead of the checked-in project-local prepared PNGs.
+- **Evidence:** All 24 package, original-PNG and prepared-PNG SHA-256 values match their CR01 coverage fingerprints. Each package contains its expected `/Game/Kalmala/UI/Icons/Status/<ID>` identity and `Texture2D` class; its embedded source `FileMD5` matches the prepared PNG. All eight recorded source paths are absent. The eight focused `Scripts/Validate-UIIcons.ps1 -Category Status -Id <ID>` checks passed; the original and prepared PNGs were visually inspected and match their status-manifest subjects. `Scripts/Data/status-icon-manifest.csv`, `Source/KalmalaUI/Private/KalmalaStatusIconLibrary.cpp` and the static `Kalmala.UI.StatusHotbar.StatusIconCoverage` assertions in `Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp` agree on the eight reviewed entry-to-icon mappings and target package paths; the reviewed identities remain unique within the nine-icon set. `docs/07-development-setup.md` describes these textures as client-side presentation of owner status snapshots; no status ownership or gameplay behavior changed.
+- **Disposition:** Extend RF184 from 136 to 144 active affected textures. After CR19 acceptance, reimport these packages from their checked-in project-local prepared PNGs while preserving package identities, source pixels and texture settings; do not change assets during CR13.
+
+### CR13-047 open question — status icon prompt retention
+
+The current `docs/icon-provenance.md` has no per-icon generation record for these status icons, and `Scripts/Data/status-icon-manifest.csv` records subjects and batches but no exact prompt text. The original PNG C2PA metadata identifies ChatGPT/gpt-image trained algorithmic media; a readable scan found no prompt text.
+
+- **Question:** Were the exact generation prompts for these eight status icons preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing prompts from the artwork.
