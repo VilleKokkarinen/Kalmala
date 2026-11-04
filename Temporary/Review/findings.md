@@ -1248,6 +1248,15 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Acceptance:** Each of the five carried level-one Stone tools can be upgraded at the required Workbench with its authored materials and receives the catalogued level-two stats. Missing materials, wrong station, absent or wrong-level predecessor, and failed persistence leave tool and inventory unchanged. Level-one acquisition remains available for an uncarried item; clients cannot choose costs or target levels.
 - **Focused validation:** Extend `Kalmala.Gameplay.M9.ToolStationProgression` to cover all five Stone level-one-to-two transactions, exact costs, retained condition/identity, and rejection rollback, while preserving the acquisition case. Run the focused automation after the required Editor build. No test was run during this review.
 
+## RF184 extension — CR13-027 catalogue icon source records
+
+- **Related finding:** `RF184` in `BACKLOG.md`.
+- **Affected packages:** `Amber.uasset`, `Amethyst.uasset`, `AmethystNecklace.uasset`, `Antidote.uasset`, `Aquamarine.uasset`, `AquamarineRing.uasset`, `BadgerFur.uasset` and `BadgerFurVest.uasset` under `Content/Kalmala/UI/Icons/Items/`, with their matching prepared PNGs under `Content/Kalmala/UI/Source/Icons/`.
+- **Trigger:** Reimporting Amethyst, AmethystNecklace, Aquamarine and AquamarineRing uses recorded source paths in the removed `E:/dev/Kalmala/.wt/a9/` worktree. Antidote, BadgerFur and BadgerFurVest point into the removed `.wt/a8b/` worktree. Amber records an absolute source path under `E:/dev/Kalmala/`, which resolves only in this checkout.
+- **Impact:** The imported textures remain usable, but seven source paths do not resolve and the Amber path is tied to one checkout; reimport is not portable to a clean mirror or another checkout.
+- **Evidence:** All 24 package, original-PNG and prepared-PNG SHA-256 values match their CR01 fingerprints and the current main-checkout files. The exact encoded source paths were inspected; seven are absent and Amber's path exists only in the main checkout. The earlier byte-identical CR13-027 parser verified the expected object paths, `Texture2D` class and embedded source `FileMD5` matches. All eight original PNGs were visually inspected and match their identities; `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id <ID>` passed for each ID, and `python -B Scripts/Validate-CatalogueReferences.py` passed for 61 registered JSON files, 152 unique item/buildable definitions, 776 resolved references and 152 canonical runtime icon mappings. The icon manifest and current catalogue/runtime mappings agree for all eight identities. Amber's missing exact prompt remains under RF123; the other seven have provenance records.
+- **Disposition:** Keep these eight source-path defects in the existing RF184 repair scope. After CR19 review acceptance, reimport from the checked-in project-local prepared PNGs while preserving package identities, source pixels and texture settings; do not change packages during CR13.
+
 ## RF184 extension — CR13-034 catalogue icon source records
 
 - **Related finding:** RF184 in `BACKLOG.md`.
