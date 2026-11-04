@@ -1643,6 +1643,18 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Acceptance:** Frost Salt's player-facing description does not promise an unavailable preservation use, or the use is separately approved and implemented with its own validation; server authority and storage behavior remain unchanged.
 - **Focused validation:** Compare revised text with the item-detail path, Tundra acquisition contract, registered recipes, and current food/storage implementation; run focused catalogue/detail checks when repaired and git diff --check. No Unreal build is required.
 
+## RF134 — Cook the string-loaded audio packages (P2; CR13-016)
+
+- **Source:** CR13-016; `Config/DefaultGame.ini:8-14`; `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp:33-54,198-1196`; `Source/KalmalaUI/Public/KalmalaAmbientAudioSubsystem.h`; `Content/Kalmala/Audio/`.
+- **Affected path:** Players using a packaged build that expects local ambient loops and owner-local feedback cues.
+- **Trigger:** The ambient subsystem resolves audio packages with `LoadObject<USoundWave>` from C++ string paths. Its SoundWave pointers are transient, and the current `DefaultGame.ini` cooks `/Game/Kalmala/UI` and lists Menu/Prototype maps but has no `/Game/Kalmala/Audio` cook rule. The existing working-tree Prototype map addition does not add audio content.
+- **Impact:** Audio packages without a cook-visible asset reference may be omitted, leaving runtime loads unresolved and the local audio layer silent in packaged builds.
+- **Evidence:** All eight CR13-016 package hashes match CR01 and current main. Each package contains its expected `/Game/Kalmala/Audio/<name>` identity and `/Script/Engine.SoundWave` class marker; its import record points to `Source/<name>.wav` and the recorded MD5 matches the checked-in WAV. Runtime uses string path constants, and the header stores the waves in transient pointers. The architecture/setup guides say existing static and peer checks do not establish packaged playback. No packaged cook was run.
+- **Proposed repair:** Add `/Game/Kalmala/Audio` to the explicit cook set or provide equivalent cook-visible asset references. Do not change audio behavior or assets during CR13.
+- **Dependencies:** After CR19 review acceptance; no packaging configuration or runtime edits during CR13.
+- **Acceptance:** A packaged cook contains the runtime audio packages and packaged runtime checks resolve ambient beds and local feedback cues with existing non-audio fallbacks intact.
+- **Focused validation:** Inspect the cook manifest/package contents for `/Game/Kalmala/Audio`, run focused packaged audio coverage, and run `git diff --check`.
+
 ## CR13-012 — Weapon profile catalogue review
 
 - **Reviewed inputs:** axes.json, bows.json, knives.json, maces.json, pickaxes.json, spears.json, and swords.json under items/equipment/weapons/. All seven current SHA-256 fingerprints match CR01 and all seven files remain registered in itemProfileFiles.
@@ -1682,3 +1694,13 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Observable impact:** The review ledger now records CR13-015 coverage and its RF102/RF123 evidence; runtime, catalogue content, assets, and player behavior are unchanged.
 - **Networking/authority:** Review bookkeeping only. Recipe identity, station checks, material payment, outputs, and accepted crafting transactions remain server-validated; no runtime or network code changed.
 - **Known limitations / remaining scope:** Static parsing and validators do not execute Unreal catalogue loading or live crafting. Icon validation was structural, not visual. RF102 and RF123 remain open for post-CR19 remediation; CR13 remains incomplete.
+
+## CR13-016 — Audio package review
+
+- **Reviewed inputs:** `BiomeBed.uasset`, `CombatResultCue.uasset`, `DiscoveryAcknowledgedCue.uasset`, `FireBed.uasset`, `GeneratedOceanEntryCue.uasset`, `GeneratedOceanExitCue.uasset`, `InteractionAcceptedCue.uasset`, and `InteractionRejectedCue.uasset` under `Content/Kalmala/Audio/`. All eight current SHA-256 values match CR01.
+- **Evidence:** Each package has the Unreal package magic, expected `/Game/Kalmala/Audio/<name>` identity, `SoundWave` class marker, and matching embedded import records. Every import path is `Source/<name>.wav`, and each stored MD5 matches the checked-in source WAV. All eight sources are mono PCM16 at 22.05 kHz, non-silent, and have no clipped samples; the BiomeBed and FireBed first/last samples match. All eight runtime path constants resolve through `LoadObject<USoundWave>` in the local audio subsystem. The current worktree `DefaultGame.ini` has no `/Game/Kalmala/Audio` cook rule; its pre-existing Prototype map entry does not affect this. RF134 is the existing cook-inclusion finding; no additional asset or runtime defect was confirmed.
+- **Result:** The CR13-016 aggregate and only its eight assigned package rows are reviewed. RF134 remains an unchecked remediation task in `BACKLOG.md`; no duplicate finding or Backlog checkbox change was needed. CR13-017 is next and CR13 remains incomplete. No code, tests, scripts, configuration, audio assets, or game documentation were modified.
+- **Checks / limits:** Focused read-only parsing confirmed all eight CR01 hashes, package identities/classes, import paths/MD5s, and WAV format/content. Static source inspection confirmed local string-load references and current cook configuration. No tests, Unreal build, cook, runtime session, Editor load, or audio audition ran. Full verification remains deferred; this is not milestone-final verification.
+- **Observable impact:** The review ledger records CR13-016 package coverage and RF134 evidence; runtime, configuration, audio assets, and player behavior are unchanged.
+- **Networking/authority:** These cues are local presentation driven by local context and owner-only result state; audio itself is not replicated. No authority, privacy, or persistence change was identified.
+- **Known limitations / remaining scope:** Static metadata and source inspection do not prove Unreal package loading, audible quality, device mixing, spatialization, or packaged playback. RF134 remains open for post-CR19 remediation; CR13 remains incomplete.
