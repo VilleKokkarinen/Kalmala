@@ -1431,3 +1431,19 @@ The current `docs/icon-provenance.md` has no item-specific WorkbenchKit or Workb
 The current `docs/icon-provenance.md` has no per-icon generation record for these status icons, and `Scripts/Data/status-icon-manifest.csv` records subjects and batches but no exact prompt text. The original PNG C2PA metadata identifies ChatGPT/gpt-image trained algorithmic media; a readable scan found no prompt text.
 
 - **Question:** Were the exact generation prompts for these eight status icons preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing prompts from the artwork.
+
+
+## RF184 extension — CR13-048 Wet status icon source record
+
+- **Related finding:** `RF184` in `BACKLOG.md`.
+- **Affected package:** `Wet.uasset` under `Content/Kalmala/UI/Icons/Status/`, with its matching prepared PNG under `Content/Kalmala/UI/Source/Icons/Status/`.
+- **Trigger:** The package records an absolute source PNG path under the removed `E:/dev/Kalmala/wt/m12-hud-feedback-rebuild` worktree; that path does not resolve in the current checkout.
+- **Impact:** The imported Wet texture remains usable, but source reimport is tied to a missing worktree file instead of the checked-in project-local prepared PNG.
+- **Evidence:** The package, original-PNG and prepared-PNG SHA-256 values match their CR01 coverage fingerprints. The package contains its expected `/Game/Kalmala/UI/Icons/Status/Wet` identity and `Texture2D` class; its embedded source `FileMD5` matches the prepared PNG. The recorded source path is absent. `Scripts/Validate-UIIcons.ps1 -Category Status -Id Wet` passed; the original and prepared PNGs were visually inspected and match the `Wet` manifest subject. `Scripts/Data/status-icon-manifest.csv`, `Source/KalmalaUI/Private/KalmalaStatusIconLibrary.cpp` and the static `Kalmala.UI.StatusHotbar.StatusIconCoverage` assertions in `Source/KalmalaUI/Private/Tests/KalmalaStatusHotbarTest.cpp` agree on the Wet-to-Wet mapping and `/Game/Kalmala/UI/Icons/Status/Wet.Wet` package path. `docs/07-development-setup.md` describes these textures as client-side presentation of owner status snapshots; no status ownership or gameplay behavior changed.
+- **Disposition:** Extend RF184 from 144 to 145 active affected textures. After CR19 acceptance, reimport this package from its checked-in project-local prepared PNG while preserving package identity, source pixels and texture settings; do not change assets during CR13.
+
+### CR13-048 open question — Wet status icon prompt retention
+
+The current `docs/icon-provenance.md` has no per-icon generation record for Wet, and `Scripts/Data/status-icon-manifest.csv` records its subject and batch but no exact prompt text. The original PNG C2PA metadata identifies ChatGPT/gpt-image trained algorithmic media; a readable scan found no prompt text.
+
+- **Question:** Was the exact Wet status icon generation prompt preserved outside the repository? If unavailable, later provenance work should record that rather than reconstructing the prompt from the artwork.
