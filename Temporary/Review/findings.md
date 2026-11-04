@@ -1820,3 +1820,27 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Observable impact:** Main-checkout review coverage now records the unchanged Home map as reviewed. The map and runtime behavior are unchanged.
 - **Networking/authority:** Review bookkeeping only. No runtime or network code changed; the menu context does not spawn a gameplay pawn.
 - **Known limitations / remaining scope:** This reconciliation did not perform a fresh Editor reload or packaged startup. SM15 packaged launch and menu/game round-trip acceptance remain outstanding; CR13 remains incomplete.
+
+## RF182 Finding: Correct stale Prototype game-default guidance
+
+- **Source:** CR13-025; `docs/07-development-setup.md:2124`, `docs/startmenu.md` SM03, and `Config/DefaultEngine.ini`.
+- **Severity:** P3. This is a developer-guidance mismatch; runtime map selection remains configured.
+- **Trigger:** A developer follows the setup guide's statement that `L_Prototype` is both the editor startup and game default.
+- **Impact:** The guide can lead developers to expect the prototype world at packaged startup and validate the wrong launch flow.
+- **Evidence:** Current `DefaultEngine.ini` sets `EditorStartupMap` to `/Game/Kalmala/Maps/Prototype/L_Prototype` and `GameDefaultMap` to `/Game/Kalmala/Maps/Menu/L_Menu`, while retaining `KalmalaGameMode` as the global default. `docs/startmenu.md` SM03 describes the same editor/packaged split. The current working copy of `DefaultGame.ini` adds both Home and Prototype to `MapsToCook`; cook inclusion does not change `GameDefaultMap`. Solo/host menu travel opens Prototype after launch. RF150 still covers packaged-cook and Home-to-game acceptance, which were not run in this review.
+- **Proposed repair:** After CR19 review acceptance, revise the setup sentence to identify Prototype as editor startup only and point packaged startup guidance to the start-menu contract. Do not change runtime or map configuration.
+- **Dependencies:** After CR19 acceptance; no game-document edits during CR13. RF182 already exists as an unchecked task in the pre-existing worktree `BACKLOG.md` edits; this review did not add a duplicate task.
+- **Focused validation:** Compare the setup guide with `DefaultEngine.ini` and the SM03 contract, then run `git diff --check` after the repair.
+
+## CR13-025 Prototype map review
+
+- **Reviewed input:** `Content/Kalmala/Maps/Prototype/L_Prototype.umap`. SHA-256 `fc01494705ef760139b851cbcbaca2af67f01e9368c689101eba3678ef1a11a6` matches the CR01 fingerprint and current `HEAD`; the worktree has no map diff.
+- **Package inspection:** The 30,894-byte package begins with the Unreal package tag `C1 83 2A 9E`. A raw string scan finds the map name, two PlayerStart object names, `KalmalaInteractionTestActor`, M1 fixture tags, the tagged environment sun/atmosphere/sky, and the `KalmalaEnvironmentPostProcess`/`PostProcessVolume` names. This is string-level reference evidence, not a fresh package deserialization or actor-property readback.
+- **Map contract:** The M1 roadmap calls for a two-player test map. `SetupM1TestMapCommandlet` creates the two tagged PlayerStarts and an interaction target; `Setup-PrototypeEnvironment.py` ensures the tagged sun, sky, atmosphere and global unbound post-process volume. The later L01f lighting record documents that volume; the earlier L01a “no post-process actor” scan predates L01f. L01h records a UE 5.8 PIE spawn/camera spot-check on this map, but no current Editor load was performed here.
+- **Open question, not a confirmed finding:** The M1 interaction target is in the playable Prototype map. Its class is a replicated 50 cm `BlockAll` sphere with no visual component and no editor-only marker, and the setup commandlet places it near the PlayerStarts. The roadmap explicitly calls this an M1 test map, so intent to retain or exclude this fixture from packaged gameplay is not established by current design evidence. No RF task was added without that product intent.
+- **Result:** Reconciled the earlier isolated CR13-025 report with current main, updated the aggregate and file coverage rows, and recorded RF182 evidence. No additional actionable map-content finding was confirmed. CR13 remains open; CR13-026 is next. `BACKLOG.md` was not changed by this run.
+- **Checks / limits:** Re-read `AGENTS.md`, the project-wide review instructions, relevant progress/review records, and project brief/design/architecture/roadmap/decision/setup/start-menu/lighting context. Confirmed the map hash against CR01/current `HEAD` and no worktree diff. Inspected the package tag and raw names, setup commandlets, M1 interaction actor implementation, current startup/cook settings, RF150/RF182, and prior map/editor evidence. No current Editor load, build, test, cook, automation, packaged launch, or gameplay session ran.
+- **Full verification:** Deferred; this is not milestone-final verification.
+- **Observable impact:** Main-checkout coverage now records the Prototype map review and RF182 evidence; the map and runtime behavior were not changed.
+- **Networking/authority:** Review bookkeeping only. No gameplay or network code changed; the M1 fixture's interaction count remains server-authoritative.
+- **Known limitations / remaining scope:** Static package strings do not prove current Unreal deserialization or exact actor properties. No packaged cook or Home-to-game launch ran; RF150 remains open. The packaged intent for the M1 test target remains an open question, and CR13 is incomplete.
