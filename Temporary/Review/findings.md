@@ -1546,3 +1546,85 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Evidence:** The item-detail widget displays the catalogue description. The A4 decision defers insulation/cold protection for the hide Boots and Cape, and the armor profile/runtime schema supplies Armor and condition behavior without a warmth effect.
 - **Proposed repair and dependency:** After CR19 acceptance, remove or qualify “warm” so the description does not promise cold protection. Adding warmth would require separately approved scope; no catalogue or gameplay changes during CR13.
 - **Acceptance and validation:** The displayed description no longer implies unsupported cold protection. Compare with item-detail presentation and the A4 decision; run the focused catalogue/detail checks and `git diff --check`. No Unreal build is required for a text-only correction.
+
+## RF120 — Reconcile stale weapon profile and combat summaries (P3)
+
+- **Source:** CR13-012; docs/02-technical-architecture.md:1036,1040,1042,1136; docs/07-development-setup.md:5162; schema-16 weapon profiles, attacks/attacks.json, item-level-up/rewards/item-stats.json, and KalmalaDamageProfileTest.cpp.
+- **Affected path:** A developer or reviewer uses current-looking architecture/setup summaries to understand weapon durability, profile damage channels, and effective Basic values.
+- **Trigger:** Architecture reports obsolete Stone starter values, Iron Knife/Pick/Spear values, Mace durability/channel claims, and effective Basic attack examples. The Mace setup passage says each tier uses knife durability and Crush exclusively, while Bronze/Iron Maces author Stab bonuses.
+- **Impact:** Readers can misunderstand current weapon statistics and channels or derive incorrect expected combat values.
+- **Evidence:** Schema-16 profiles author current durability and DamageBonuses; shared attack lists add Basic bonuses, and KalmalaDamageProfileTest.cpp asserts resulting combat values. The setup passage is presented as current guidance. This excludes the separate Mace reward disagreement (RF100), Iron Pick cost (RF122), and Bow status statement (RF125).
+- **Proposed repair:** Correct only the named profile, channel, durability, and effective Basic summaries against current profiles, attacks, and tests. Keep RF100's unresolved reward target separate; do not change catalogue values or runtime behavior.
+- **Dependencies:** After CR19 review acceptance; no documentation edits during CR13.
+- **Acceptance:** The named architecture/setup passages accurately distinguish profile bonuses, shared Basic bonuses, and current durability/channels while keeping RF100 separate; no runtime or catalogue behavior changes.
+- **Focused validation:** Compare each corrected value with the schema-16 profile, shared attack list, and focused damage-profile test; retain RF100's authority note and run git diff --check. No Unreal build is required.
+
+## RF121 — Qualify Bronze Spear's range description (P3)
+
+- **Source:** CR13-012; spears.json:15; KalmalaItemDetailWidget.cpp:21-44; KalmalaCombatComponent.h:64; KalmalaCombatComponent.cpp:174-200.
+- **Affected path:** A player reads Bronze Spear's carried-item details and chooses it based on combat reach.
+- **Trigger:** Its description calls it a "Long range weapon for keeping your enemies at a distance," but profiles have no per-weapon reach field and server melee uses a shared 220 cm range.
+- **Impact:** The wording can imply a reach advantage absent from the current profile and server combat contract.
+- **Evidence:** The carried-tool detail function falls back to the registered BronzeSpear profile description. Melee traces/sweeps use the shared AttackRange constant.
+- **Proposed repair:** Replace or qualify the range wording. Weapon-specific reach requires separate approved gameplay scope; no combat change during CR13.
+- **Dependencies:** After CR19 review acceptance; no catalogue/runtime edits during CR13.
+- **Acceptance:** The player-facing description does not promise a unique reach mechanic absent from the server contract; gameplay remains unchanged.
+- **Focused validation:** Compare revised text with the item-detail path, profile schema, and shared server range; run focused catalogue/detail checks when repaired and git diff --check.
+
+## RF122 — Correct stale Iron Pick Forge cost in architecture (P3)
+
+- **Source:** CR13-012; docs/02-technical-architecture.md:1040; Content/Data/GameCatalogues/recipes/stations/forge.json:63-78; docs/05-decision-log.md:11; schema-16 GameCatalogues.json.
+- **Affected path:** A developer follows architecture guidance to author or review the Iron Pick Forge recipe.
+- **Trigger:** Architecture says 4 Iron + 2 Wood + 2 Stone; the registered Forge row and user-directed decision set Forge level 1 at 10 Wood + 10 Iron.
+- **Impact:** The obsolete cost may produce incorrect implementation or regression expectations.
+- **Evidence:** The manifest registers the Forge recipe file; its IronPick row uses 10 Wood and 10 Iron, matching the 2026-10-20 decision-log target.
+- **Proposed repair:** Update only the architecture cost to the authorized recipe. Keep RF99's distinct setup paragraph separate; do not change data.
+- **Dependencies:** After CR19 review acceptance; no documentation edits during CR13.
+- **Acceptance:** Architecture, decision log, and registered Forge recipe state the same Iron Pick cost; runtime/data remain unchanged.
+- **Focused validation:** Compare the corrected sentence with forge.json, the manifest, and decision row; run git diff --check.
+
+## RF123 — Restore provenance records for existing weapon and material icons (P3)
+
+- **Source:** CR13-012; docs/icon-provenance.md; original/prepared/imported icons and canonical mappings for the twelve Stone/Bronze/Iron Axe, Knife, Pick, and Spear identities.
+- **Affected path:** A maintainer traces or prepares an existing weapon icon.
+- **Trigger:** The twelve older weapon originals and their canonical mappings/imported assets exist, but current provenance sources have no item-specific generation prompt/source records.
+- **Impact:** Artwork and runtime mappings are usable, but the provenance guide cannot verify or reproduce these icons' original generation sources.
+- **Evidence:** Catalogue and focused UI icon validators confirm files and mappings exist. The current provenance guide has no per-item records for these twelve identities. This is not a missing-art or missing-mapping finding.
+- **Proposed repair:** Add original prompt/source records where recoverable and explicitly record unavailable provenance otherwise. Do not replace or regenerate assets during CR13.
+- **Dependencies:** After CR19 review acceptance; no icon or documentation edits during CR13.
+- **Acceptance:** Each existing canonical icon has a source/prompt record or explicit unavailable-provenance disposition; assets and mappings remain intact. The current BACKLOG task consolidates the later material and ConstructionHammer scope under RF123; those later identities are outside this CR13-012 evidence section.
+- **Focused validation:** Resolve all assigned IDs to original/prepared/imported files and mappings and to provenance entries; run catalogue reference/icon validators and git diff --check.
+
+## RF125 — Remove stale Bow shooting status from architecture (P3)
+
+- **Source:** CR13-012; docs/02-technical-architecture.md:524; KalmalaBowCombat.cpp; KalmalaArrowProjectile.cpp; KalmalaBowDrawTest.cpp; item-level-up/rewards/item-stats.json.
+- **Affected path:** A developer follows the current Bow progression summary when reviewing ranged combat.
+- **Trigger:** Architecture says Bow has no damage reward "while shooting remains unimplemented." Bow's zero damage reward remains accurate, but shooting is implemented.
+- **Impact:** Current feature status is misrepresented and may misdirect future work or make implemented behavior appear deferred.
+- **Evidence:** Server Bow draw/release and projectile-damage paths exist, with a focused Bow draw test; the reward catalogue contains no Bow damage gain. RF61 is a separate feature-summary occurrence and RF99 is the setup paragraph.
+- **Proposed repair:** Remove the obsolete implementation-status rationale while retaining the accurate zero-damage-reward statement. Do not change shooting or reward data.
+- **Dependencies:** After CR19 review acceptance; no documentation edits during CR13.
+- **Acceptance:** Architecture no longer says Bow shooting is unimplemented and still states the zero damage reward accurately; runtime/data are unchanged.
+- **Focused validation:** Compare the revised statement with reward data, server Bow/projectile paths, and the focused test; run git diff --check.
+
+## RF126 — Resolve Stone Mace cost authority mismatch (P3)
+
+- **Source:** CR13-012; docs/02-technical-architecture.md:1034; Content/Data/GameCatalogues/recipes/stations/workbench.json:113-129; docs/05-decision-log.md.
+- **Affected path:** A developer or reviewer follows architecture and the Workbench recipe when assessing Stone Mace progression cost.
+- **Trigger:** Architecture says the Workbench Stone Mace recipe costs 1 Wood + 1 Stone; the registered StoneMace row costs 2 Wood + 2 Stone. No current decision-log authority for this discrepancy was found.
+- **Impact:** The intended cost is unclear; changing either source without direction risks an unsupported balance decision.
+- **Evidence:** The schema-16 manifest registers the Workbench file and its StoneMace row uses 2 Wood and 2 Stone at level 1. Architecture says 1 Wood and 1 Stone; the current decision log contains no StoneMace cost decision.
+- **Proposed repair:** Obtain or locate the authoritative intended cost, then align architecture and recipe as directed. Do not guess the target or change data during CR13.
+- **Dependencies:** Requires authoritative product direction before any data correction; no data or documentation edits during CR13.
+- **Acceptance:** An explicit decision establishes the intended cost and architecture/recipe agree with it; no unsupported balance target is inferred.
+- **Focused validation:** Compare both passages with the approved decision and schema-16 recipe after direction is available; run reference validation and git diff --check.
+
+## CR13-012 — Weapon profile catalogue review
+
+- **Reviewed inputs:** axes.json, bows.json, knives.json, maces.json, pickaxes.json, spears.json, and swords.json under items/equipment/weapons/. All seven current SHA-256 fingerprints match CR01 and all seven files remain registered in itemProfileFiles.
+- **Evidence:** Parsed 25 unique profiles; checked identity/stat constraints and cross-referenced acquisition, level-one cost, reward, and shared attack data. No structural or reference defect was confirmed. Server combat uses the shared 220 cm melee reach and combines profile DamageBonuses with shared Basic attack bonuses; Bow shooting and projectile damage are server-owned. The Bronze Spear wording, stale summaries, Iron Pick cost description, missing weapon-icon provenance, and Stone Mace cost mismatch are tracked by RF120-RF123, RF125, and RF126.
+- **Result:** The seven CR13-012 files and aggregate batch are reviewed. CR13-013 is next; CR13 remains unchecked. All six related RF tasks are already unchecked in BACKLOG. No gameplay, test, script, configuration, catalogue, asset, or game documentation was modified.
+- **Checks / limits:** Current-main checks confirmed all seven CR01 hashes and registrations, parsed 25 unique ItemIds, and reran Scripts/Validate-CatalogueReferences.py successfully for 61 registered JSON files, 152 unique item/buildable definitions, 776 resolved references, and 152 ledger-backed icon mappings. Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id passed individually for all 25 weapon identities, including the current WoodenClub package. Relevant project brief, game design, architecture, roadmap, decision log, setup guidance, feature summary, acceptance references, and icon provenance were reviewed. No tests, Unreal build, runtime session, Editor preview, or rendered icon inspection ran; full verification remains deferred and this is not milestone-final verification.
+- **Observable impact:** The main-checkout ledger now records CR13-012 coverage and its six finding handoffs; gameplay, data, assets, and player behavior are unchanged.
+- **Networking/authority:** Review bookkeeping only. Melee reach/damage and Bow projectile resolution remain server-owned; no runtime or network code changed.
+- **Known limitations / remaining scope:** Static inspection does not execute Unreal catalogue loading or combat. Icon validation was structural, not visual. RF123 provenance scope later expanded beyond the weapon identities; RF126 still needs authoritative direction before any cost correction. Later CR13 batches remain pending.
