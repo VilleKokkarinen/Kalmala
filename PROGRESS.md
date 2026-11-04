@@ -27529,3 +27529,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Review bookkeeping only. The previews are developer diagnostics with no runtime authority, replication, or persistence effect.
 - **Known limitations / remaining scope:** No fresh current commandlet render, Editor build, or runtime session ran; exact pixel-by-pixel reproduction remains queued under RF136/RF234. CR13 remains incomplete.
 - **Next eligible task:** CR13-024, review `Content/Kalmala/Maps/Menu/L_Menu.umap`.
+
+## Run 2026-11-04 — CR13-024 main-checkout reconciliation
+
+- **Selected task:** CR13-024 only: `Content/Kalmala/Maps/Menu/L_Menu.umap`.
+- **Work completed:** Reconciled the earlier isolated CR13-024 report with current main. The map SHA-256 matches CR01 and current `HEAD`, with no assigned-file worktree diff. Inspected its package tag and readable names, then cross-checked the saved-map Editor validation from SM14.1, the map-authoring validator, menu GameMode/controller defaults, startup/cook configuration and the SM03 Home-map contract. Updated the CR13-024 aggregate and file coverage rows. No new finding was confirmed.
+- **Files changed:** `Temporary/Review/coverage.md`, `Temporary/Review/findings.md`, and `PROGRESS.md`. `BACKLOG.md`, the map, source, tests, scripts, configuration and game documentation were not changed by this run.
+- **Ownership and preservation:** Worked in the main `E:/dev/Kalmala` checkout on `master` at `805ed398e4de0e4bdb75d89e27bd59f445693dcb`. The live-thread check found no other active Kalmala run for this checkout or shared destination; the older `notLoaded` task was stale and no index lock was present. Preserved the 23 pre-existing modified paths, including the existing `DefaultGame.ini` cook-list addition and earlier isolated progress records. No separate main-checkout handoff was needed.
+- **Checks:** Re-read `AGENTS.md`, the project-wide review instructions, relevant progress and review evidence, and project brief/design/architecture/roadmap/decision-log/setup/start-menu context. A read-only check confirmed the CR01/current map hash and no map diff. Static package inspection confirmed the Unreal tag and readable `L_Menu`, `WorldSettings`, `KalmalaMenuGameMode`, and `PersistentLevel` names. Source/config inspection confirmed the dedicated controller/no-pawn/no-HUD contract and Home startup/cook registrations. The prior SM14.1 record documents a saved-map reload with zero actors and zero Map Check errors/warnings. No tests, Unreal build, Editor load, cook, automation, packaged launch, or gameplay session ran.
+- **Full verification:** Deferred; this is not milestone-final verification.
+- **Observable impact:** Current-main CR13 coverage now records the unchanged Home map as reviewed; player-visible and runtime behavior are unchanged.
+- **Networking/authority:** Review bookkeeping only. No runtime authority, network, or persistence behavior changed.
+- **Known limitations / remaining scope:** No fresh current Editor load or packaged launch ran. SM15 launch and menu/game round-trip acceptance remain outstanding; CR13 is incomplete.
