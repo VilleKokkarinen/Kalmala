@@ -27709,3 +27709,16 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Review bookkeeping and authored presentation assets only. No gameplay, network, authority, privacy or persistence code changed.
 - **Known limitations / remaining scope:** Static PNG and visual inspection do not establish Unreal import, deserialization or runtime rendering. RF123 and RF232 repairs remain pending after review acceptance; CR13 remains incomplete.
 - **Next eligible task:** CR13-060, review the IronSpear, IronSword, JadeRing, LightBow, Lightwood, Lingonberry, LynxMantle and LynxPelt original icon PNGs.
+
+## Run 2026-11-05 - CR13-060 original icon review
+
+- **Selected task:** CR13-060 only: IronSpear, IronSword, JadeRing, LightBow, Lightwood, Lingonberry, LynxMantle and LynxPelt original icon PNGs.
+- **Work completed:** All eight originals match their CR01 SHA-256 fingerprints and current HEAD. Each is 1254x1254 RGBA with transparent alpha and a caBX C2PA record identifying ChatGPT/gpt-image generation; none has PNG text chunks or an embedded prompt. Visually inspected all eight and confirmed their subjects match the item identities. Exact prompts are recorded for IronSword, JadeRing, LightBow, Lingonberry, LynxMantle and LynxPelt. IronSpear and Lightwood source-prompt gaps remain under RF123. No new finding was confirmed.
+- **Files changed:** Temporary/Review/coverage.md and PROGRESS.md. BACKLOG.md remains unchanged because existing RF123 covers the two prompt gaps and CR13 remains incomplete. No source images, prepared icons, packages, game code or game documentation changed.
+- **Ownership and preservation:** Worked in the main E:/dev/Kalmala checkout on master, starting at a37727f99878f79fe45a2f2456c40df1cbb938be. The active-run and worktree checks found no other live Kalmala run modifying this checkout or shared destination; other registered checkouts are distinct. No index lock or staged changes were present. Preserved all 23 pre-existing modified paths. No separate handoff synchronization was needed.
+- **Checks:** Re-read AGENTS.md, active BACKLOG.md/PROGRESS.md context, review ledgers and relevant project brief, game design, architecture, roadmap, decision-log, development-setup and icon-provenance guidance. A read-only PNG parser confirmed all eight hashes, dimensions, RGBA channels, caBX/C2PA markers and absence of text chunks; Pillow confirmed transparent alpha; all eight originals were visually inspected. No Unreal build, editor load, test suite, cook or runtime session ran.
+- **Full verification:** Deferred; this is not milestone-final verification. Static PNG inspection does not establish Unreal import, package deserialization or runtime rendering.
+- **Observable impact:** Main-checkout coverage records CR13-060 and its eight source-image dispositions; original art and runtime behavior are unchanged.
+- **Networking/authority:** Review bookkeeping and authored presentation assets only. No gameplay, network, authority, privacy or persistence code changed.
+- **Known limitations / remaining scope:** The IronSpear and Lightwood source prompts remain undocumented under RF123. CR13 remains incomplete.
+- **Next eligible task:** CR13-061, review MeatStew, MendingScroll, Moonstone, MoonstoneRing, Onion, OnionSeed, OpalHelm and PeatHeart original icon PNGs.
