@@ -853,17 +853,21 @@
     **Acceptance:** Iron reads as a forged bar and is clearly distinguishable from IronOre at 64×64; source/prompt provenance is traceable or explicitly recorded as unavailable; catalogue IDs and runtime mapping remain intact.
     **Focused validation:** Run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id Iron` and `python Scripts/Validate-CatalogueReferences.py`; visually compare the prepared Iron/IronOre icons at 64×64. No Unreal build is required.
 
-  - [ ] **RF233 — Restore provenance records for active placed-object icons (P3; CR13-057).**
-    Content/Kalmala/UI/Source/IconOriginals/{FloorKit,ForgeAnvilKit,ForgeKit,FryingPanKit}.png;
+  - [ ] **RF233 — Restore provenance records for active placed-object icons (P3; CR13-035/057).**
+    Content/Kalmala/UI/Source/IconOriginals/{FloorKit,ForgeAnvilKit,ForgeKit,FryingPanKit,GrindingStoneKit}.png;
     Content/Kalmala/UI/Source/Icons/; Content/Kalmala/UI/Icons/Items/;
     Scripts/Data/catalogue-icon-manifest.csv; docs/icon-provenance.md.
     **Affected path:** A maintainer verifies or regenerates one of the placed-object
-    textures for Floor, ForgeAnvil, Forge, or FryingPan.
-    **Trigger:** These four active buildable icon textures have retained original
+    textures for Floor, ForgeAnvil, Forge, FryingPan, or Grinding Stone.
+    **Trigger:** These five active buildable icon textures have retained original
     and prepared PNGs and canonical runtime mappings, but no item-specific
     generation/source record appears in the current provenance/setup
     documentation. The originals identify generated media through C2PA markers
-    but contain no readable prompt text.
+    but contain no readable prompt text. CR13-035 confirms the same gap for the
+    GrindingStone buildable and its `GrindingStoneKit` texture: the original
+    contains C2PA generator metadata but no text prompt, and the provenance guide
+    has no item-specific source record. RF184 separately covers its stale import
+    path, while RF216 covers its stale inventory/pack manifest views.
     **Impact:** The buildables and their icons remain usable, but the authored
     source and intended visual constraints cannot be audited or reproduced from
     the repository.
@@ -875,20 +879,20 @@
     with no PNG text chunks or readable prompt strings. RF184 separately covers
     six stale package source paths; RF216 separately covers the buildable
     manifest role/view mismatch.
-    [Evidence and disposition](Temporary/Review/findings.md#rf233-finding-missing-prompt-provenance-for-four-placed-object-icon-textures).
+    [Evidence and disposition](Temporary/Review/findings.md#rf233-finding-missing-prompt-provenance-for-five-placed-object-icon-textures).
     **Proposed repair:** Recover and record authoritative original prompts or
     source notes where available; otherwise record provenance as unavailable.
     Do not invent prompts, regenerate icons, or change buildable data, recipes,
     IDs, or direct-material placement during CR13.
     **Dependencies:** After CR19 review acceptance; no icon or documentation
     edits during CR13.
-    **Acceptance:** Each of the four placed-object icon identities has an
+    **Acceptance:** Each of the five placed-object icon identities has an
     authoritative source record or explicit unavailable-provenance disposition;
     existing textures, mappings, buildable definitions, and direct-material
     recipes remain intact.
     **Focused validation:** Compare each source record with its original,
     prepared PNG, imported package, manifest mapping, and buildable definition;
-    run the four focused UI icon validators and
+    run the five focused UI icon validators and
     python -B Scripts/Validate-CatalogueReferences.py. No Unreal build is required.
 
   - [ ] **RF234 - Regenerate the stale world-generation scalar previews (P3; CR13-023).**
