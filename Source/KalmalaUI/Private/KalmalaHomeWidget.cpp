@@ -13,6 +13,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 #include "KalmalaSettingsWidget.h"
 #include "KalmalaThemedButton.h"
 #include "KalmalaUITheme.h"
@@ -168,6 +169,18 @@ void UKalmalaHomeWidget::RefreshTheme()
 }
 
 void UKalmalaHomeWidget::FocusPlay() { FocusAction(0); }
+void UKalmalaHomeWidget::FocusPlayNextTick()
+{
+    if (UWorld* World = GetWorld())
+    {
+        World->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]()
+        {
+            if (IsInViewport() && GetVisibility() == ESlateVisibility::Visible) FocusPlay();
+        }));
+        return;
+    }
+    FocusPlay();
+}
 void UKalmalaHomeWidget::FocusOptions() { FocusAction(1); }
 void UKalmalaHomeWidget::FocusSaveInformation() { FocusAction(2); }
 void UKalmalaHomeWidget::FocusCredits() { FocusAction(3); }

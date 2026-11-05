@@ -121,7 +121,7 @@ $requiredActionLabels = @(
     @{ Source = $playerFacingCrafting; Label = 'Crafting' },
     @{ Source = $playerFacingCrafting; Label = 'Craft one' },
     @{ Source = $playerFacingCrafting; Label = 'Build / place selected' },
-    @{ Source = $playerFacingCrafting; Label = 'Repair Reed Knife' },
+    @{ Source = $playerFacingCrafting; Label = 'Repair Stone Knife' },
     @{ Source = $playerFacingCrafting; Label = 'Inspect nearby chest' },
     @{ Source = $playerFacingCrafting; Label = 'Store one' },
     @{ Source = $playerFacingCrafting; Label = 'Take one' }

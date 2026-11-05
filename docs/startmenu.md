@@ -179,7 +179,9 @@ metadata, otherwise a seed-based label, seed, generator revision and compatibili
 status. Read through existing owners; no recursive arbitrary file browser and no
 rewriting saves while enumerating. Sort by existing last-played timestamp descending
 when available, then label ascending; missing timestamps sort last. Show an empty
-state with New world. Selecting a row never starts it automatically.
+state with New world. When world listing is available and there are no saved
+worlds, give New world initial keyboard focus; if listing is unavailable, keep
+Back as the available focus target. Selecting a row never starts it automatically.
 
 World details offers Play solo, Host co-op and Back. Play solo revalidates the
 selected seed and revision on the server, then opens the configured gameplay map

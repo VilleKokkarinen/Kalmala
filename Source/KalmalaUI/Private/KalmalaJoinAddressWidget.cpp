@@ -62,6 +62,21 @@ void UKalmalaJoinAddressWidget::NativeOnInitialized()
     AddressInput = WidgetTree->ConstructWidget<UEditableTextBox>();
     AddressInput->SetHintText(FText::FromString(TEXT("IP address or hostname[:port]")));
     AddressInput->OnTextCommitted.AddDynamic(this, &ThisClass::HandleAddressCommitted);
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const int32 TextScale = UKalmalaSettingsWidget::GetTextScalePercent();
+    const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
+    const FSlateColor TextColor(Theme.TextColor(false, Contrast));
+    FEditableTextBoxStyle InputStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
+    FTextBlockStyle TextStyle = InputStyle.TextStyle;
+    TextStyle.SetFont(Theme.MakeFont(Theme.BodySize + 4, false, TextScale));
+    TextStyle.SetColorAndOpacity(TextColor);
+    InputStyle.SetTextStyle(TextStyle)
+        .SetForegroundColor(TextColor)
+        .SetFocusedForegroundColor(TextColor)
+        .SetReadOnlyForegroundColor(TextColor);
+    InputStyle.SetBackgroundColor(FSlateColor(Contrast > 0
+        ? FLinearColor::Black : FLinearColor(.02f, .025f, .03f, 1.f)));
+    AddressInput->SetWidgetStyle(InputStyle);
     Content->AddChildToVerticalBox(AddressInput)->SetPadding(FMargin(0, 0, 0, 12));
 
     const auto AddAction = [this, Content](const TCHAR* LabelText)
@@ -115,16 +130,6 @@ void UKalmalaJoinAddressWidget::RefreshTheme()
     if (Title) Theme.ApplyText(*Title, Theme.EmphasisSize + 12, true, LastTextScale, LastContrast);
     if (Instructions) Theme.ApplyText(*Instructions, Theme.BodySize + 3, false, LastTextScale, LastContrast);
     if (Message) Theme.ApplyText(*Message, Theme.BodySize + 3, false, LastTextScale, LastContrast);
-    if (AddressInput)
-    {
-        FEditableTextBoxStyle InputStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
-        InputStyle.SetFont(Theme.MakeFont(Theme.BodySize + 4, false, LastTextScale));
-        InputStyle.SetForegroundColor(FSlateColor(Theme.TextColor(false, LastContrast)));
-        InputStyle.SetBackgroundColor(FSlateColor(LastContrast > 0
-            ? FLinearColor::Black : FLinearColor(.02f, .025f, .03f, 1.f)));
-        AddressInput->SetWidgetStyle(InputStyle);
-    }
-
     UKalmalaThemedButton* Buttons[] = {JoinButton.Get(), BackButton.Get(), CancelButton.Get()};
     for (UKalmalaThemedButton* Button : Buttons)
     {

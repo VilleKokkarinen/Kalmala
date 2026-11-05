@@ -4069,8 +4069,10 @@ launch a visible Win64 build:
 ```
 
 `Dev` selects Unreal's Development configuration and checks the startup log
-for engine initialization and the prototype map. `Prod` selects Shipping and
-checks that the packaged game process stays open. Each run gets a unique
+for engine initialization and the expected startup map. With no `-Map` value,
+this confirms the packaged Home map from `GameDefaultMap`; an explicit `-Map`
+checks that requested map instead. `Prod` selects Shipping and checks that the
+packaged game process stays open. Each run gets a unique
 directory under `%USERPROFILE%\KalmalaBuilds` by default, with the archive,
 fresh user profile, and log outside the source mirror. Both modes use
 `-pak -iostore`; no repository build-output directories are modified. Use
@@ -4088,9 +4090,12 @@ including local game content.
     & "C:/Program Files/Epic Games/UE_5.8/Engine/Build/BatchFiles/RunUAT.bat" BuildCookRun "-project=$projectMirror/Kalmala.uproject" -noP4 -platform=Win64 -clientconfig=Development -build -cook -stage -package -archive -pak -iostore "-archivedirectory=$archiveRoot/Archive" -unattended -utf8output
 
 Smoke-launch Archive/Windows/Kalmala.exe from its containing directory with a
-new empty UserDir, null rendering, and a unique absolute log path. Keep the
-process alive for at least 20 seconds and require the log to contain
-“Game Engine Initialized” and “Load map complete /Game/Kalmala/Maps/Prototype/L_Prototype”.
+new empty UserDir, null rendering, and a unique absolute log path. Do not pass
+a map argument for the normal-startup check. Keep the process alive for at least
+20 seconds and require the log to contain “Game Engine Initialized” and “Load
+map complete /Game/Kalmala/Maps/Menu/L_Menu”. A separate `-Map
+/Game/Kalmala/Maps/Prototype/L_Prototype` run verifies an explicit gameplay-map
+override; a map URL may include an explicit `?game=` GameMode override.
 The wrapper starts the actual game under Kalmala/Binaries/Win64; check that
 process before stopping the smoke run. Null rendering verifies startup and map
 loading only; it does not cover the player-facing co-op walkthrough.

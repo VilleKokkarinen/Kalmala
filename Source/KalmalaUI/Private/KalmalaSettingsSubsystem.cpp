@@ -140,10 +140,19 @@ void UKalmalaSettingsSubsystem::Tick(float DeltaTime)
 {
     if (GetLocalPlayer() == nullptr || GetWorld() == nullptr || !GetWorld()->IsGameWorld()) return;
     APlayerController* FoundController = GetLocalPlayer()->GetPlayerController(GetWorld());
-    if (LocalController != FoundController) ReleaseController();
+    const bool bControllerChanged = LocalController != FoundController;
+    if (bControllerChanged) ReleaseController();
     if (FoundController == nullptr || !FoundController->IsLocalController()) return;
     LocalController = FoundController;
-    if (!LocalController->IsA<AKalmalaMenuPlayerController>()) BindLocalInput(LocalController);
+    if (!LocalController->IsA<AKalmalaMenuPlayerController>())
+    {
+        if (bControllerChanged)
+        {
+            LocalController->SetInputMode(FInputModeGameOnly());
+            LocalController->SetShowMouseCursor(false);
+        }
+        BindLocalInput(LocalController);
+    }
     if (auto* Character = Cast<AKalmalaCharacter>(LocalController->GetPawn()))
     {
         const bool bEnabled = UKalmalaSettingsWidget::IsAutomaticPickupEnabled();
@@ -810,7 +819,8 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
     }
 
     DeveloperSettingsVerificationElapsed += DeltaTime;
-    if (DeveloperSettingsVerificationElapsed < 1.0f) return;
+    const float VerificationInterval = bDeveloperHomeFocusCueProbePending ? 0.25f : 1.0f;
+    if (DeveloperSettingsVerificationElapsed < VerificationInterval) return;
     DeveloperSettingsVerificationElapsed = 0.0f;
 
     if (DeveloperSettingsVerificationStage == 0)
@@ -877,8 +887,14 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
 
     if (DeveloperSettingsVerificationStage == 3)
     {
-        UKalmalaSettingsWidget::SetContrastMode(0);
-        SettingsWidget->SetVerificationTab(5);
+        if (!bDeveloperHomeFocusCueProbePending)
+        {
+            UKalmalaSettingsWidget::SetContrastMode(0);
+            SettingsWidget->SetVerificationTab(5);
+            bDeveloperHomeFocusCueProbePending = true;
+            return;
+        }
+        bDeveloperHomeFocusCueProbePending = false;
         const bool bTransparentHomeMenu = SettingsWidget->IsHomeMenuSurfaceTransparentForVerification();
         const bool bOnlyOptions = SettingsWidget->HasOnlyHomeMenuOptionsForVerification();
         const bool bFocusedOptionCue = SettingsWidget->HasVisibleFocusedHomeMenuOptionForVerification();
@@ -917,8 +933,14 @@ void UKalmalaSettingsSubsystem::RunDeveloperSettingsVerification(const float Del
 
     if (DeveloperSettingsVerificationStage == 5)
     {
-        UKalmalaSettingsWidget::SetContrastMode(1);
-        SettingsWidget->SetVerificationTab(5);
+        if (!bDeveloperHomeFocusCueProbePending)
+        {
+            UKalmalaSettingsWidget::SetContrastMode(1);
+            SettingsWidget->SetVerificationTab(5);
+            bDeveloperHomeFocusCueProbePending = true;
+            return;
+        }
+        bDeveloperHomeFocusCueProbePending = false;
         const bool bHomeRemainsOpaque = !SettingsWidget->IsHomeMenuSurfaceTransparentForVerification();
         const bool bHomeFocusCue = SettingsWidget->HasVisibleFocusedHomeMenuOptionForVerification();
         SettingsWidget->SetVerificationTab(1);

@@ -56,7 +56,7 @@ foreach ($relativePath in $requiredAssets) {
 $sourceContracts = @(
     @{ Label = 'accessibility-feedback'; Path = 'Source\KalmalaUI\Private\KalmalaAccessibilityFeedbackSubsystem.cpp'; Patterns = @('MarkerLine', 'COLOUR-INDEPENDENT FEEDBACK', 'GetLocalPlayer()', 'HitTestInvisible') },
     @{ Label = 'support-selection-retired'; Path = 'Source\KalmalaUI\Public\KalmalaSupportSelectionSubsystem.h'; Patterns = @('virtual bool IsTickable() const override { return false; }') },
-    @{ Label = 'action-notifications'; Path = 'Source\KalmalaUI\Private\KalmalaNotificationSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'ObserveCombat', 'ObserveSupport', 'ObserveDiscovery', 'HitTestInvisible') },
+    @{ Label = 'action-notifications'; Path = 'Source\KalmalaUI\Private\KalmalaNotificationSubsystem.cpp'; Patterns = @('GetLocalPlayer()', 'OwnerController.Get()', 'OwnerController = Controller', 'Queue.ObserveGains(', 'Queue.ObserveSupport(', 'Queue.ObserveDiscovery(', 'HitTestInvisible') },
     @{ Label = 'status-hotbar'; Path = 'Source\KalmalaUI\Private\KalmalaStatusHotbarWidget.cpp'; Patterns = @('HitTestInvisible', 'SetIsFocusable(false)', 'SetExplicitWrapSize', 'LoadTexture(Entry.StatusIconId)') },
     @{ Label = 'catalogue-icons'; Path = 'Source\KalmalaUI\Private\KalmalaIconWidget.cpp'; Patterns = @('FindCatalogueIcon', 'ConstructionHammer', 'MakeLines') },
     @{ Label = 'player'; Path = 'Source\KalmalaGameplay\Private\KalmalaPlayerModelComponent.cpp'; Patterns = @('M_GeneratedTerrain', 'MI_GeneratedWood', 'WoodMaterial', 'bTapered', 'CreateMeshSection_LinearColor') },

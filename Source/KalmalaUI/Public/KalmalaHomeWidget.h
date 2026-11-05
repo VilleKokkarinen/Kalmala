@@ -24,6 +24,7 @@ public:
     FKalmalaHomeActionRequested& OnActionRequested() { return ActionRequested; }
     // Call after adding the widget to the owning player's screen.
     void FocusPlay();
+    void FocusPlayNextTick();
     void FocusOptions();
     void FocusSaveInformation();
     void FocusCredits();

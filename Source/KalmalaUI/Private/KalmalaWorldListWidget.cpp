@@ -80,12 +80,12 @@ const TCHAR* UKalmalaWorldListWidget::SeedCheckResultMessage(
     }
 
     if (Availability == EKalmalaLocalWorldSaveListingAvailability::Unsupported)
-        return TEXT("The server could not check this seed safely. World listing may be unavailable or this request may not be authorized.");
+        return TEXT("This seed cannot be checked safely. World listing may be unavailable or this request may not be authorized.");
 
     switch (Decision)
     {
     case EKalmalaWorldSeedReuseDecision::NoKnownRecord:
-        return TEXT("No recognized save slot lists this seed. You can start a fresh world with Play solo.");
+        return TEXT("No recognized save slot lists this seed; nothing was created or changed. You can start a fresh world with Play solo.");
     case EKalmalaWorldSeedReuseDecision::ConfirmExisting:
         return TEXT("A matching current-revision record is listed, but its confirmation could not be opened. No save was changed.");
     case EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview:
@@ -290,14 +290,22 @@ void UKalmalaWorldListWidget::BuildNewWorldSeedEntry()
 
     SeedInput = WidgetTree->ConstructWidget<UEditableTextBox>();
     SeedInput->SetHintText(FText::FromString(TEXT("Decimal digits")));
-    FEditableTextBoxStyle InputStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
-    InputStyle.SetFont(FKalmalaUITheme::Get().MakeFont(
-        FKalmalaUITheme::Get().BodySize + 4, false, UKalmalaSettingsWidget::GetTextScalePercent()));
-    InputStyle.SetForegroundColor(FSlateColor(FKalmalaUITheme::Get().TextColor(
-        false, UKalmalaSettingsWidget::GetContrastMode())));
-    InputStyle.SetBackgroundColor(FSlateColor(FLinearColor(.02f, .025f, .03f, 1.f)));
-    SeedInput->SetWidgetStyle(InputStyle);
     SeedInput->OnTextCommitted.AddDynamic(this, &ThisClass::HandleSeedTextCommitted);
+    FEditableTextBoxStyle InputStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
+    const FKalmalaUITheme& Theme = FKalmalaUITheme::Get();
+    const int32 TextScale = UKalmalaSettingsWidget::GetTextScalePercent();
+    const int32 Contrast = UKalmalaSettingsWidget::GetContrastMode();
+    const FSlateColor TextColor(Theme.TextColor(false, Contrast));
+    FTextBlockStyle TextStyle = InputStyle.TextStyle;
+    TextStyle.SetFont(Theme.MakeFont(Theme.BodySize + 4, false, TextScale));
+    TextStyle.SetColorAndOpacity(TextColor);
+    InputStyle.SetTextStyle(TextStyle)
+        .SetForegroundColor(TextColor)
+        .SetFocusedForegroundColor(TextColor)
+        .SetReadOnlyForegroundColor(TextColor);
+    InputStyle.SetBackgroundColor(FSlateColor(Contrast > 0
+        ? FLinearColor::Black : FLinearColor(.02f, .025f, .03f, 1.f)));
+    SeedInput->SetWidgetStyle(InputStyle);
     Content->AddChildToVerticalBox(SeedInput)->SetPadding(FMargin(0, 0, 0, 10));
 
     CreationStatus = WidgetTree->ConstructWidget<UTextBlock>();
@@ -494,15 +502,6 @@ void UKalmalaWorldListWidget::RefreshTheme()
     if (HostingInfo) Theme.ApplyText(*HostingInfo, Theme.BodySize + 2, false, LastTextScale, LastContrast);
     if (SeedInputLabel) Theme.ApplyText(*SeedInputLabel, Theme.BodySize + 2, false, LastTextScale, LastContrast);
     if (WorldPicker) Theme.ApplyDropdown(*WorldPicker, LastContrast);
-    if (SeedInput)
-    {
-        FEditableTextBoxStyle InputStyle = FCoreStyle::Get().GetWidgetStyle<FEditableTextBoxStyle>("NormalEditableTextBox");
-        InputStyle.SetFont(Theme.MakeFont(Theme.BodySize + 4, false, LastTextScale));
-        InputStyle.SetForegroundColor(FSlateColor(Theme.TextColor(false, LastContrast)));
-        InputStyle.SetBackgroundColor(FSlateColor(LastContrast > 0
-            ? FLinearColor::Black : FLinearColor(.02f, .025f, .03f, 1.f)));
-        SeedInput->SetWidgetStyle(InputStyle);
-    }
     UKalmalaThemedButton* Buttons[] =
     {
         NewWorldButton.Get(), SeedCheckButton.Get(), DetailsButton.Get(), PlaySoloButton.Get(),
@@ -583,6 +582,7 @@ void UKalmalaWorldListWidget::FocusPrimary()
     else if (bShowingNewWorldSeedEntry) FocusWidget(SeedInput);
     else if (bShowingDetails) FocusWidget(PlaySoloButton ? static_cast<UWidget*>(PlaySoloButton.Get()) : BackButton.Get());
     else if (WorldPicker) FocusWidget(WorldPicker);
+    else if (NewWorldButton && NewWorldButton->GetIsEnabled()) FocusWidget(NewWorldButton);
     else FocusBack();
 }
 

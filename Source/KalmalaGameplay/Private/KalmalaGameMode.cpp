@@ -9671,7 +9671,7 @@ bool AKalmalaGameMode::TryReturnListenHostToHome(APlayerController* RequestingCo
     bool bFoundRequestingController = false;
     for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
     {
-        APlayerController* PlayerController = *Iterator;
+        APlayerController* PlayerController = Iterator->Get();
         if (!IsValid(PlayerController) || PlayerController->GetWorld() != World) return false;
 
         AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(PlayerController->GetPawn());

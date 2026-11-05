@@ -7,6 +7,7 @@
 #include "HAL/PlatformTime.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
+#include "TimerManager.h"
 #include "KalmalaHomeWidget.h"
 #include "KalmalaCreditsWidget.h"
 #include "KalmalaExitConfirmationWidget.h"
@@ -345,7 +346,7 @@ void UKalmalaHomeSubsystem::Tick(float)
             return;
         }
         HomeWidget->OnActionRequested().AddUObject(this, &ThisClass::HandleHomeAction);
-        HomeWidget->FocusPlay();
+        HomeWidget->FocusPlayNextTick();
     }
 }
 
@@ -719,14 +720,26 @@ void UKalmalaHomeSubsystem::HandleNewWorldRequested()
     if (!Coordinator) return;
     FKalmalaMenuFlow& Flow = Coordinator->GetFlow();
     if (Flow.GetScreen() != EKalmalaMenuScreen::Worlds || !Flow.Navigate(EKalmalaMenuScreen::NewWorld)) return;
-    if (!WorldList->ShowNewWorldSeedEntry())
+    GetWorld()->GetTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]()
     {
-        Flow.Navigate(EKalmalaMenuScreen::Worlds);
-        WorldList->ShowWorldList();
+        ULocalPlayer* LocalPlayer = GetLocalPlayer();
+        UWorld* World = GetWorld();
+        if (!WorldList || !HomeController || !LocalPlayer || !World
+            || LocalPlayer->GetPlayerController(World) != HomeController) return;
+
+        UKalmalaMenuFlowSubsystem* DeferredCoordinator = LocalPlayer->GetSubsystem<UKalmalaMenuFlowSubsystem>();
+        if (!DeferredCoordinator) return;
+        FKalmalaMenuFlow& DeferredFlow = DeferredCoordinator->GetFlow();
+        if (DeferredFlow.GetScreen() != EKalmalaMenuScreen::NewWorld) return;
+        if (!WorldList->ShowNewWorldSeedEntry())
+        {
+            DeferredFlow.Navigate(EKalmalaMenuScreen::Worlds);
+            WorldList->ShowWorldList();
+            WorldList->FocusPrimary();
+            return;
+        }
         WorldList->FocusPrimary();
-        return;
-    }
-    WorldList->FocusPrimary();
+    }));
 }
 
 void UKalmalaHomeSubsystem::HandleReturnToWorldsRequested()

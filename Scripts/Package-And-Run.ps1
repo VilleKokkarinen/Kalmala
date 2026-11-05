@@ -8,7 +8,7 @@ param(
 
     [string]$OutputRoot = (Join-Path $env:USERPROFILE "KalmalaBuilds"),
 
-    [string]$Map = "/Game/Kalmala/Maps/Prototype/L_Prototype",
+    [string]$Map = "",
 
     [ValidateRange(640, 7680)]
     [int]$Width = 1280,
@@ -124,6 +124,12 @@ $logPath = Join-Path $logRoot "Kalmala.log"
 $wrapperPath = Join-Path $packageRoot "Kalmala.exe"
 $gameExecutableName = if ($clientConfig -eq "Shipping") { "Kalmala-Win64-Shipping.exe" } else { "Kalmala.exe" }
 $gamePath = Join-Path $packageRoot "Kalmala\Binaries\Win64\$gameExecutableName"
+$expectedMap = if ([string]::IsNullOrWhiteSpace($Map)) {
+    "/Game/Kalmala/Maps/Menu/L_Menu"
+}
+else {
+    ($Map -split '[?#]', 2)[0]
+}
 
 foreach ($path in @($runRoot, $mirrorRoot, $archiveRoot, $packageRoot, $userDir, $logRoot, $logPath, $wrapperPath, $gamePath)) {
     $null = Assert-ShortPath $path
@@ -204,8 +210,11 @@ if (-not (Test-Path -LiteralPath $gamePath -PathType Leaf)) {
 
 $null = New-Item -ItemType Directory -Path $userDir
 $null = New-Item -ItemType Directory -Path $logRoot
-$launchArguments = @(
-    $Map,
+$launchArguments = @()
+if (-not [string]::IsNullOrWhiteSpace($Map)) {
+    $launchArguments += $Map
+}
+$launchArguments += @(
     "-game",
     "-windowed",
     "-ResX=$Width",
@@ -225,7 +234,7 @@ while ([DateTime]::UtcNow -lt $startupDeadline) {
     if ($Mode -eq "Dev" -and (Test-Path -LiteralPath $logPath -PathType Leaf)) {
         $logContents = Get-Content -LiteralPath $logPath -Raw -ErrorAction SilentlyContinue
         $developmentLogReady = $logContents -match "Game Engine Initialized" -and
-            $logContents -match "Load map complete /Game/Kalmala/Maps/Prototype/L_Prototype"
+            $logContents -match ("Load map complete " + [regex]::Escape($expectedMap))
     }
 
     if ($gameProcess -and ($Mode -eq "Prod" -or $developmentLogReady)) {
@@ -240,7 +249,7 @@ if (-not $gameProcess) {
 if ($Mode -eq "Dev" -and -not $developmentLogReady) {
     $tail = if (Test-Path -LiteralPath $logPath) { Get-Content -LiteralPath $logPath -Tail 30 -ErrorAction SilentlyContinue } else { @("No startup log was created.") }
     $tail | ForEach-Object { Write-Host $_ }
-    throw "Development startup log did not confirm engine initialization and prototype map load within 120 seconds."
+    throw "Development startup log did not confirm engine initialization and map load for $expectedMap within 120 seconds."
 }
 
 for ($second = 0; $second -lt 20; $second++) {
