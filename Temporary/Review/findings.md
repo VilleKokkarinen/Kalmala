@@ -1908,3 +1908,17 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Observable impact:** Main-checkout coverage now records the Prototype map review and RF182 evidence; the map and runtime behavior were not changed.
 - **Networking/authority:** Review bookkeeping only. No gameplay or network code changed; the M1 fixture's interaction count remains server-authoritative.
 - **Known limitations / remaining scope:** Static package strings do not prove current Unreal deserialization or exact actor properties. No packaged cook or Home-to-game launch ran; RF150 remains open. The packaged intent for the M1 test target remains an open question, and CR13 is incomplete.
+
+<a id="rf235-standing-light-description-and-torch-icon-mismatch"></a>
+
+## RF235 — Standing Light description and torch icon mismatch
+
+- **Source:** CR13-065; `Content/Data/GameCatalogues/items/buildItems/other.json:58-62`; `Content/Kalmala/UI/Source/IconOriginals/StandingLightKit.png`; `Scripts/Data/catalogue-icon-manifest.csv`; `docs/icon-provenance.md#standing-light-icon`.
+- **Severity:** P3. This is a player-facing construction description and presentation mismatch; no gameplay or authority defect was found.
+- **Trigger:** A player views the Standing Light buildable description alongside its construction icon.
+- **Impact:** The description identifies a brazier, but the icon presents a timber torch, so the two sources communicate different fixtures.
+- **Evidence:** The registered description is “A freestanding timber brazier that burns Wood for a small cosmetic light.” The current `StandingLightKit` original shows an upright torch with rope-bound burning kindling on a timber tripod. The retained provenance says the artwork was updated to replace the brazier with a wooden torch; its prompt explicitly excludes a bowl or brazier. The icon manifest maps this texture to the `StandingLight` buildable and construction views. The source PNG matches its CR01 and HEAD SHA-256 fingerprint.
+- **Proposed repair:** After CR19 acceptance, change the description to call it a freestanding timber torch. Preserve the buildable ID, direct-material recipe, fuel behavior, and construction-only identity.
+- **Dependencies:** After CR19 review acceptance; no catalogue or art changes during CR13.
+- **Acceptance:** The catalogue description matches the retained torch artwork and prompt while buildable identity, recipe, fuel behavior, and construction-only semantics remain unchanged.
+- **Focused validation:** Parse registered catalogue JSON and references, check the `StandingLight` icon alias and direct-material recipe, run the focused catalogue icon and reference validators, and run `git diff --check`. No Unreal build is required.

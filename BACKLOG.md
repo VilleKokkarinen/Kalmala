@@ -910,6 +910,19 @@
     **Acceptance:** Each tracked scalar preview matches current commandlet output for the documented defaults and retains the expected grayscale channel.
     **Focused validation:** Build the Editor, render to a short temporary directory, compare the four generated PPMs with the tracked assets, visually inspect them, and run `git diff --check`. Do not run broad regional-generation peers for this artifact-only repair.
 
+  - [ ] **RF235 — Align the Standing Light description with its torch icon (P3; CR13-065).**
+    `Content/Data/GameCatalogues/items/buildItems/other.json:58-62`;
+    `Content/Kalmala/UI/Source/IconOriginals/StandingLightKit.png`;
+    `Scripts/Data/catalogue-icon-manifest.csv`; `docs/icon-provenance.md#standing-light-icon`.
+    **Affected path:** A player reads the Standing Light description in the construction UI.
+    **Trigger:** The catalogue calls the object a timber brazier, while the retained icon and its current prompt specify a freestanding wooden torch and explicitly exclude brazier/bowl imagery.
+    **Impact:** The description and icon communicate different fixtures, weakening the placed object's identity in the construction UI.
+    **Evidence:** CR13-065 confirmed the original PNG matches its CR01 and HEAD fingerprint. Its tripod, upright timber shaft, rope-bound kindling and flame match the `StandingLight` buildable mapping and the retained prompt. The registered catalogue description still says “A freestanding timber brazier that burns Wood for a small cosmetic light.”
+    **Proposed repair:** After CR19 acceptance, describe the object as a freestanding timber torch. Preserve its buildable identity, direct-material recipe, fuel behavior and construction-only semantics.
+    **Dependencies:** After CR19 review acceptance; no catalogue or art changes during CR13.
+    **Acceptance:** The construction description calls the object a torch, consistent with its retained icon and prompt, while the existing buildable ID, recipe, fuel behavior and buildable-only role remain unchanged.
+    **Focused validation:** Parse the registered catalogues and references; compare the `StandingLight` buildable, direct-material recipe and icon alias; run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id StandingLightKit`, `python -B Scripts/Validate-CatalogueReferences.py`, and `git diff --check`. No Unreal build is required.
+
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
     children as findings arise; do not invent defects or placeholder fixes.
     Each child includes finding/source CR ID, severity, affected files, trigger,
