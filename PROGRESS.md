@@ -30089,3 +30089,14 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Review bookkeeping and presentation assets only. No gameplay, network, authority, privacy or persistence code changed.
 - **Known limitations / remaining scope:** Exact prompt retention remains an open question in CR13-046; package source paths remain queued under RF184 and manifest scope/role issues under RF216. CR13 remains incomplete.
 - **Next eligible task:** CR13-070, review the BearsVigor, Cold, DeerCall, HearthShield, Heat, Mending, SteadyMeal and Storm status-icon original PNGs.
+## Run 2026-11-11 — CR12-002 review handoff synchronized to master
+
+- **Selected scope:** Transfer the completed CR12-002 private-UI review evidence to master without importing unrelated changes from the divergent review branch.
+- **Work completed:** Preserved CR12 as complete in master. Recomputed all twelve assigned source-file SHA-256 values; every current master file matches its CR01 fingerprint. Marked the CR12-002 coverage batch and its twelve file rows reviewed, retained the existing RF80 handoff, and added confirmed findings RF298 and RF299. Inspected the master Home focus-flow changes; the direct world/GameMode calls remain. No implementation or runtime behavior changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Temporary/Review/coverage.md`, and `Temporary/Review/findings.md`. Existing user edits to master `BACKLOG.md` and `PROGRESS.md` were preserved and left unstaged.
+- **Checks:** Compared all twelve current source hashes with their CR01 coverage fingerprints; all matched. Inspected the review evidence and finding links. `git diff --check` passed after staging. No tests or builds ran.
+- **Full verification:** Deferred; this is a review-ledger handoff, not milestone-final verification. No Editor build, UBT, automation, rendered UI, multiplayer session, or runtime menu/prompt scenario ran.
+- **Observable impact:** Master now records CR12-002 and its twelve assignments as reviewed, with RF80, RF298, and RF299 available for CR19 disposition. CR12 remains checked. No source, test, asset, configuration, catalogue, or documentation behavior changed.
+- **Networking/authority:** Review bookkeeping only. No gameplay or network code changed. Crafting requests remain server-validated and Home launch remains server-gated; no authority bypass was observed.
+- **Known limitations / remaining scope:** Static inspection does not verify rendered text scaling, clipping, focus behavior, ambience, or prompt behavior. CR16 and CR19 remain open.
+- **Next eligible task:** CR16 — review the remaining tests, documentation, and project-owned files, beginning with pending coverage batch CR16-001.

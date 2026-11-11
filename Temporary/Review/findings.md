@@ -1922,3 +1922,31 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Dependencies:** After CR19 review acceptance; no catalogue or art changes during CR13.
 - **Acceptance:** The catalogue description matches the retained torch artwork and prompt while buildable identity, recipe, fuel behavior, and construction-only semantics remain unchanged.
 - **Focused validation:** Parse registered catalogue JSON and references, check the `StandingLight` icon alias and direct-material recipe, run the focused catalogue icon and reference validators, and run `git diff --check`. No Unreal build is required.
+
+<a id="rf298--apply-text-scale-to-the-accessibility-feedback-overlay-p2"></a>
+
+## RF298 — Apply text scale to the accessibility feedback overlay (P2)
+
+- **Source:** CR12-002; `Source/KalmalaUI/Private/KalmalaAccessibilityFeedbackSubsystem.cpp:31-48`; `docs/02-technical-architecture.md:2297-2298,2627-2629`.
+- **Severity:** P2. A local accessibility preference is ignored by the feedback overlay.
+- **Trigger:** A player uses nearby-hearth or construction feedback while the selected text-scale preference is not 100%.
+- **Impact:** This short-lived feedback remains fixed at 16 points and may be too small or too large for the player's selected scale.
+- **Evidence:** `NativeOnInitialized` assigns a fixed 16-point font. `SetFeedbackText` updates text and contrast but does not call the shared text-scale helper or read the configured text-scale percentage. The architecture requires local text-scale settings to affect presentation.
+- **Proposed repair:** Apply the shared local text-scale setting to the feedback text and preserve safe wrapping and bounds at the supported presets.
+- **Dependencies:** After CR19 review acceptance; no implementation during CR12 review.
+- **Acceptance:** The 50%, 75%, 100%, 125%, and 150% presets scale the feedback text, and the overlay remains readable without clipping in supported viewports.
+- **Focused validation:** After an Editor build, exercise all five presets and check wrapping and clipping in the relevant viewport sizes.
+
+<a id="rf299--keep-ui-paths-behind-world-facing-interfaces-p3"></a>
+
+## RF299 — Keep UI paths behind world-facing interfaces (P3)
+
+- **Source:** CR12-002; `docs/02-technical-architecture.md:559`; `Source/KalmalaUI/Private/KalmalaHomeSubsystem.cpp:623-624,806-814`; `Source/KalmalaUI/Private/KalmalaAmbientAudioSubsystem.cpp:180,1068-1090`; `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp:294-456`.
+- **Severity:** P3. Several UI flows depend directly on concrete world classes and GameMode APIs, contrary to the documented module boundary.
+- **Trigger:** Local ambience updates, interaction prompts, or Home launch/failure cleanup query or call world actors/GameMode from the UI module.
+- **Impact:** UI behavior is coupled to concrete world implementations and is harder to test or evolve behind the documented interface.
+- **Evidence:** Ambient-audio and Home paths cast or call concrete world-facing types from the UI module; crafting UI code also obtains a GameMode and invokes gameplay-facing functions. No player-visible failure or authority bypass was confirmed. Home launch remains server-validated.
+- **Proposed repair:** Route world snapshots and requests through components, interfaces, gameplay messages, or subsystem APIs while retaining server-side validation and owner-visible state.
+- **Dependencies:** After CR19 review acceptance; no implementation during CR12 review.
+- **Acceptance:** The affected UI flows use documented world-facing seams, and server validation and owner-only state behavior remain unchanged.
+- **Focused validation:** Add a source-boundary check and exercise prompt, ambience, and Home launch flows after an Editor build.

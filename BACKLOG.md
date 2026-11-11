@@ -3899,6 +3899,20 @@
     **Dependencies:** After CR19 review acceptance; no catalogue or art changes during CR13.
     **Acceptance:** The construction description calls the object a torch, consistent with its retained icon and prompt, while the existing buildable ID, recipe, fuel behavior and buildable-only role remain unchanged.
     **Focused validation:** Parse the registered catalogues and references; compare the `StandingLight` buildable, direct-material recipe and icon alias; run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id StandingLightKit`, `python -B Scripts/Validate-CatalogueReferences.py`, and `git diff --check`. No Unreal build is required.
+  - [ ] **RF298 — Apply text scale to the accessibility feedback overlay (P2; CR12-002).**
+    The optional nearby-hearth/construction feedback text stays at a fixed 16-point size.
+    Apply the shared local text-scale setting and keep the overlay readable at supported
+    scales and viewports. Focused validation: exercise all five text-scale presets and
+    check wrapping and clipping after an Editor build. Dependencies: after CR19 review
+    acceptance. Evidence:
+    [RF298 finding](Temporary/Review/findings.md#rf298--apply-text-scale-to-the-accessibility-feedback-overlay-p2).
+  - [ ] **RF299 — Keep UI paths behind world-facing interfaces (P3; CR12-002).**
+    Ambient audio, interaction prompts, and Home launch cleanup call concrete world
+    actors or GameMode methods from the UI module. Route those reads and requests through
+    components, interfaces, gameplay messages, or subsystem APIs. Focused validation:
+    add a source-boundary check and exercise prompt, ambience, and Home launch flows after
+    an Editor build. Dependencies: after CR19 review acceptance. Evidence:
+    [RF299 finding](Temporary/Review/findings.md#rf299--keep-ui-paths-behind-world-facing-interfaces-p3).
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
     children as findings arise; do not invent defects or placeholder fixes.
     Each child includes finding/source CR ID, severity, affected files, trigger,
