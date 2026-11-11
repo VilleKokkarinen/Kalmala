@@ -1,7 +1,7 @@
 # Project-wide review findings
 
 - **Baseline revision:** `fc83040078cb02284d7bc0b4ce2f960d873b648a` (`master`; captured 2026-10-30T17:17:26Z).
-- **Current state:** CR02 is complete; CR03 and CR04 review are in progress, with CR04 batches through CR04-048 reviewed. Confirmed findings RF01-RF57 are recorded in this ledger; other review children remain pending. No overall project-clean conclusion is implied.
+- **Current state:** CR16 is complete: all 54 batches and 362 assigned file rows are reviewed. All 42 CR16-sourced findings are recorded and have backlog tasks; RF300 records the master bookkeeping issue. Finding records RF02, RF34–RF62, RF102, RF120–RF123, RF125–RF126, RF130, RF133–RF134, RF160–RF176, RF181, RF183, RF195, RF206, RF210, RF231–RF232, RF235, RF272–RF287, RF298–RF300 are present. CR19 remains open; no overall project-clean conclusion is implied.
 - **Rule:** Add each confirmed actionable finding as a stable RF ID with source CR ID, severity, exact file/line or asset reference, trigger, impact, evidence, proposed repair, dependencies, acceptance criteria, and focused validation. Record questions separately and do not implement repairs during review runs.
 
 ## Reviewed batch results
@@ -1338,6 +1338,282 @@ Reviewed GameMode.cpp:8820-9045 against S02's reward-escrow contract, the popula
 - **Evidence:** All eight package SHA-256 values match their CR01 coverage fingerprints. Each package contains its expected `/Game/Kalmala/UI/Icons/Items/<asset>` object path and `Texture2D` class. Every embedded source `FileMD5` matches its checked-in prepared PNG, and all eight original and prepared PNGs exist. The four paths listed above fail the current-checkout existence check; IronKnife, IronMace, IronOre, and IronPick resolve to project-local prepared PNGs. All eight focused `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id <ID>` checks passed, as did `python Scripts/Validate-CatalogueReferences.py` for 152 registered definitions and canonical runtime icon mappings.
 - **Disposition:** Extend RF184 from 73 to 77 active affected textures. Reimport these packages only from the checked-in project-local prepared PNGs after CR19 acceptance; do not change packages during CR13.
 
+## RF133 — Align README dedicated-server build guidance (P3)
+
+- **Source:** CR16-001; `README.md:22-24`; `docs/05-decision-log.md:163-164`; and `docs/07-development-setup.md:2337-2345`.
+- **Affected path:** A developer follows the README build guidance while using the installed Epic Games Launcher UE 5.8.2 distribution.
+- **Trigger:** README identifies the Launcher engine installation, then instructs developers to build the editor and dedicated-server targets. The setup guide explicitly says the Launcher distribution does not support dedicated-server builds and says not to attempt that target with the installed engine.
+- **Impact:** The README directs developers toward an unsupported target and conflicts with the accepted engine limitation. This is documentation drift; no runtime defect was found.
+- **Evidence:** The dedicated-server section in `docs/07-development-setup.md` says a UE 5.8 source build or other server-capable distribution is required and marks the Launcher target build unsupported. The decision log records dedicated-server builds as deferred while the Epic Games Launcher engine is in use. The roadmap likewise makes dedicated-server acceptance conditional on server-capable engine availability.
+- **Proposed repair:** Clarify that the installed engine supports the editor workflow and that dedicated-server builds require a server-capable UE 5.8 installation, linking the setup guide's conditional instructions.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** README setup guidance agrees with the decision log and development setup: it does not direct Launcher-engine users to build the server target, and it preserves the future server-capable-engine path.
+- **Focused validation:** Compare the revised README statement with the decision log and dedicated-server section in the setup guide. Run the documentation contract checker if it covers this statement; no Unreal build is needed for a docs-only fix. No test was run during this review.
+
+## RF160 — Align current world-generation revision and distance guidance (P3)
+
+- **Source:** CR16-002 and CR10-006; `docs/04-roadmap.md:49`; `docs/05-decision-log.md:158,172`; `docs/07-development-setup.md:3671`; `docs/01-game-design.md:123`; `docs/02-technical-architecture.md:793,830,845`; `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp:328-330`; `Source/KalmalaWorld/Public/KalmalaRegionalTuning.h:91-92`; and `Source/KalmalaWorld/Private/Tests/KalmalaMasterMapTest.cpp:72`.
+- **Affected path:** A developer plans generation previews, biome-boundary checks, or compatibility expectations from the roadmap, decision log, or setup guide.
+- **Trigger:** The roadmap says revisions 1–6 remain compatible and revision 8 is an opt-in debug-stream identity; the September 11 decision row says preserve older layouts/schemas, assigns Mire a 2 km minimum, and repeats the revision-8 identity. The visualization example passes `-Revision=7`. The current consolidated architecture says generation compatibility versions/selectors and alternate stream-debug identity are removed and assigns Mire a 3–16 km range. The commandlet reads Seed, Size, and Extent but has no Revision parser; the live Mire minimum is 300,000 cm (3 km). Separately, `KalmalaMasterMapTest` labels its Mire assertion as a 2 km minimum while checking the 3 km tuning constant.
+- **Impact:** A preview silently ignores the documented revision argument, and developers receive conflicting layout-compatibility and Mire-boundary expectations; the test's failure message also reports the wrong boundary when the assertion fails. No runtime generator defect was found in this review.
+- **Proposed repair:** Align current roadmap, decision-log and setup guidance with the consolidated generator contract. Clearly label superseded historical revision decisions; remove the unsupported preview argument; state the 3 km Mire minimum; and update the test diagnostic to name the boundary it checks. Distinguish the remaining revision-7 save identity from a generator-layout selector.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** Current guidance consistently states there is one generator layout and no command-line compatibility selector, uses the 3 km Mire minimum, and describes revision 7 only in the persistence-identity context where applicable. The Mire test diagnostic names its enforced 3 km minimum. Historical decisions remain identifiable as historical rather than current compatibility promises.
+- **Focused validation:** Compare the updated docs with the commandlet's parsed arguments, the compiled regional tuning constants, and the consolidated architecture section. Run a documentation contract checker if it covers these claims; no Unreal build is needed for a docs-only repair. No test was run during this review.
+
+## RF161 — Reconcile M13/M14 acceptance summaries (P3)
+
+- **Source:** CR16-002 and CR16-003; `docs/01-game-design.md:174`; `docs/02-technical-architecture.md:773`; `docs/game-features.md:139-143`; `docs/README.md:16`; and `BACKLOG.md:1083-1084`.
+- **Affected path:** A developer or reviewer checks whether M13/M14 has integrated-main acceptance and decides whether to repeat work or rely on its recorded gate.
+- **Trigger:** The design summary says M14's separate isolated acceptance did not integrate its source; the architecture summary says M13 and integrated M14 acceptance are still open; `game-features.md` says M13/M14 integrated acceptance is pending; and the README describes M14 acceptance scope as remaining in the backlog. The active backlog records M13 integrated-main acceptance passed on 2026-10-11 and M14 integrated-main acceptance passed on 2026-10-12.
+- **Impact:** The project documents disagree about the integration and acceptance state of two milestones, weakening the handoff and potentially prompting the wrong verification decision. No runtime behavior was found to be affected.
+- **Proposed repair:** Update the design, architecture, feature summary and README to match the active M13/M14 records, or label older status text as historical. Distinguish M14's earlier isolated acceptance from integrated-main acceptance and point readers to verifiable current evidence.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** Current M13/M14 status summaries agree with the active backlog and available verifiable evidence; older isolated results are dated and distinguished from integrated-main acceptance. Missing evidence targets are handled by RF167.
+- **Focused validation:** Compare the revised status with the M13/M14 backlog rows and linked evidence. No Unreal build is needed for a documentation-only repair. No test was run during this review.
+
+## RF162 — Remove the superseded wetness-to-warmth effect (P3)
+
+- **Source:** CR16-002; `docs/01-game-design.md:130,155`; `docs/02-technical-architecture.md:668-672`.
+- **Affected path:** A designer or implementer uses the world-simulation table to determine whether player Wet reduces warmth.
+- **Trigger:** The design table says soaked wetness makes players lose warmth. The later M3 override explicitly supersedes warmth-derived Wet penalties and replaces the old continuous player wetness/warmth values with the server-owned Wet status, whose listed effects are movement and stamina costs. Cold-biome warmth pressure is described separately.
+- **Impact:** The earlier table can be read as an additional warmth penalty and can reintroduce the retired second player-moisture system. No current runtime defect was established.
+- **Proposed repair:** Update the earlier Wetness row to match the accepted Wet-status and separate cold-pressure contracts, or label it as superseded historical design text.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The design summary does not attribute warmth loss to Wet and agrees with the later design override and consolidated architecture while preserving separate cold/warmth behavior.
+- **Focused validation:** Compare the updated row with both Wet overrides and the current status/cold-pressure contracts. No Unreal build is needed for a documentation-only repair. No test was run during this review.
+
+## RF163 — Clarify the A9/I5 status in its acceptance handoff (P3)
+
+- **Source:** CR16-002; `docs/a9-acceptance.md:3,9,36-44`; `PROGRESS.md:9584-9609,19121-19129`.
+- **Affected path:** A reviewer uses the A9 handoff to determine whether the integrated I5 gate passed and which acceptance limitations remain.
+- **Trigger:** The opening summary says A9 and combined I5 are complete. The next source-decision paragraph says the independent verification increment does not close I4 or I5. Later dated history retains open-gate statements; later A10 progress also says full A9/I5 acceptance remains open.
+- **Impact:** The handoff does not distinguish a verified historical snapshot, the final integrated I5 result, and later broader A9/A10 audit limitations, so readers cannot determine which gate the open statements refer to.
+- **Proposed repair:** Reconcile the current A9/I5 statement with the dated verification records. Preserve historical snapshots, but label each as-of state and identify any later finding or reopened gate separately; do not overstate current acceptance.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The handoff clearly identifies the tested commit and its I5 result, dates superseded open-gate statements, and distinguishes completed I5 from any later broader audit or remediation still open.
+- **Focused validation:** Compare the revised handoff with the final I5 progress record and subsequent A10/review entries. No Unreal build is needed for a documentation-only repair. No test was run during this review.
+
+## RF164 — Reconcile the start-menu activation summary (P3)
+
+- **Source:** CR16-003; `docs/startmenu.md:15-17,435-463`; `Config/DefaultEngine.ini:4`; and `BACKLOG.md:977-978,1054-1057`.
+- **Affected path:** A developer follows the start-menu contract to determine whether packaged startup currently enters Home and whether final acceptance remains open.
+- **Trigger:** The document says the front-end flow is not active and later says normal startup is unchanged with no menu world wired, while its SM03 text says packaged startup uses `L_Menu`, `GameDefaultMap` points to that map, and backlog child SM14.5 is checked. The plan also says to leave normal startup unchanged until SM14, while SM15 final acceptance remains unchecked.
+- **Impact:** Current wiring, earlier implementation-stage statements, and remaining acceptance scope are mixed together, making the packaged launch contract difficult to determine. No runtime defect or change to actual startup behavior is asserted by this finding.
+- **Proposed repair:** Update the current summary to match the checked SM14.5 route, label statements that described earlier implementation stages as historical, and distinguish current launch wiring from the still-pending SM15 integrated acceptance.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The document consistently describes packaged startup routing, editor startup, and the pending SM15 acceptance gate without presenting earlier stage notes as current behavior.
+- **Focused validation:** Compare the updated text with `Config/DefaultEngine.ini`, SM14.5/SM15 backlog state, and the final acceptance criteria. No Unreal build is needed for a documentation-only repair. No test was run during this review.
+
+## RF165 — Restore or retarget the shared item-icon workflow link (P3)
+
+- **Source:** CR16-003; `AGENTS.md:135`; `docs/README.md:22-25`; `docs/icon-provenance.md:4-8`; and `docs/07-development-setup.md`.
+- **Affected path:** An agent or developer follows the mandatory item-icon authoring/import workflow before adding a gameplay item.
+- **Trigger:** The rules, documentation index, and provenance guide link to `docs/material-icons.md`, but that file is absent from the checkout and tracked docs. The setup guide's historical batch commands do not provide the linked shared workflow as a maintained guide.
+- **Impact:** The mandatory icon-generation and integration workflow cannot be reached through its canonical reference, making a required item-addition step difficult to follow.
+- **Proposed repair:** Restore a concise maintained workflow guide at the referenced path or retarget all current references to an existing authoritative guide that covers the complete current process.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** Every current mandatory workflow reference resolves to an existing guide that covers icon preparation, provenance, import, runtime mapping, and catalogue validation.
+- **Focused validation:** Check all references to the shared workflow and verify that the target explains the current icon pipeline. No Unreal build is needed for a documentation-only repair. No test was run during this review.
+
+## RF166 — Update creature-catalogue implementation status and schema wording (P3)
+
+- **Source:** CR16-003; `docs/creature-catalogues.md:21-30`; `Content/Data/GameCatalogues.json:2,75`; `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp:406-407`; and the Monster S01–S35 verification handoff in `PROGRESS.md`.
+- **Affected path:** A designer or implementer reads the creature catalogue guide to determine whether creature behavior remains future work and which schema the runtime item/tool loader accepts.
+- **Trigger:** The guide places defensive triggers, swarm behavior, AI movement, spawning/pack rules, and reward safety in a later engine implementation, and calls the loader schema-15. Monster S01–S35 final verification is recorded complete; the manifest and loader use schema 16. Creature catalogue files remain authoring data and are not parsed by the item/tool loader, so the repair must preserve that distinction.
+- **Impact:** The guide can make completed behavior appear unimplemented and gives a stale schema version, while also risking confusion between authoring data and runtime loader support.
+- **Proposed repair:** Describe verified S01–S35 behavior as implemented, identify only genuinely outstanding design decisions as deferred, and state that the schema-16 item/tool loader does not consume the `creatureFiles` category.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The current guide agrees with the completed S01–S35 handoff, schema-16 manifest/loader, and authoring-only creature-data contract without claiming that creature JSON is runtime-loaded.
+- **Focused validation:** Compare the revised summary with the creature manifest, loader category handling, relevant current gameplay code, and S01–S35 final-verification record. No Unreal build is needed for a documentation-only repair. No test was run during this review.
+
+## RF167 — Repair missing M13/M14 evidence links (P3)
+
+- **Source:** CR16-003; `docs/README.md:16`; `BACKLOG.md:1083-1084`; and the referenced `docs/evidence/m13/README.md` and `docs/evidence/m14/main-integration.md` paths.
+- **Affected path:** A reviewer follows the M13/M14 integrated-main acceptance record to inspect the claimed verification evidence.
+- **Trigger:** Both evidence targets are absent from the checkout and Git index, while the README calls M13 evidence retained and the backlog links both targets for passed integrated-main acceptance.
+- **Impact:** The acceptance records cannot be independently followed through their cited evidence paths, weakening the verification handoff.
+- **Proposed repair:** Restore the evidence records if retained elsewhere or retarget the links to existing verifiable records; revise any claim that evidence is retained if no such record is available.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** Every M13/M14 evidence link resolves to a retained record that supports the listed acceptance result, or the acceptance row clearly describes the available evidence and remaining limitation.
+- **Focused validation:** Resolve every updated evidence link and compare the target contents with the listed M13/M14 acceptance claims. No Unreal build is needed for a documentation-only repair. No test was run during this review.
+
+## RF168 — Use a registered food automation path in acceptance (P2)
+
+- **Source:** CR16-005; `Scripts/Tests/Acceptance/AutomatedAcceptance.ps1:18-31,74-76`; and `Source/KalmalaGameplay/Private/Tests/KalmalaCookingHeatContractTest.cpp:18-20`.
+- **Affected path:** A developer runs the M7 automated acceptance wrapper and expects its headless automation queue to complete.
+- **Trigger:** The wrapper requests `Kalmala.Gameplay.Food.CampfireProcessing`, but no current source test registers that path. The current food contract registers `Kalmala.Gameplay.Food.CookingStationHeat`. The wrapper later requires a `Result={Success}` record for every configured path.
+- **Impact:** The acceptance wrapper cannot satisfy its own per-test success check with the current source registrations, so the gate fails even when all registered automation tests pass.
+- **Proposed repair:** Replace the stale path with the intended current registered food test and verify every configured automation path against current registrations.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** Every name configured by `AutomatedAcceptance.ps1` resolves to a registered automation test; the food entry matches the intended current test and the success loop accepts its result.
+- **Focused validation:** Compare the configured list with current `IMPLEMENT_SIMPLE_AUTOMATION_TEST` registrations and run the focused automation queue when the remediation is implemented. No test was run during this review.
+
+## RF169 — Apply the selected Editor path to every acceptance scenario (P3)
+
+- **Source:** CR16-005; `Scripts/Tests/Acceptance/AutomatedAcceptance.ps1:4,85-116`; `Scripts/Tests/Inventory/InventoryReconnect.ps1:1,12-13`; `Scripts/Tests/Construction/Crafting.ps1:1,9-10`; `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1:1`; and `Scripts/Tests/Progression/DiscoveryPeer.ps1:1,8`.
+- **Affected path:** A developer invokes the acceptance wrapper with `-Editor` pointing to a valid nondefault Unreal installation.
+- **Trigger:** The wrapper uses the selected path for its automation executable and passes it to `EnemyPeers.ps1`, but omits it for `ExposureRecoveryPeers.ps1`; the inventory, crafting, and discovery scripts also launch their own hardcoded default executable and do not expose an override.
+- **Impact:** The wrapper's `-Editor` option does not select one engine installation for the complete run. On a machine where the default path is missing or differs from the requested executable, the initial automation can start with one installation and later scenarios fail to launch or use another.
+- **Proposed repair:** Thread the selected executable through all child scenarios, adding child parameters where needed, or reject a nondefault override before running a partial suite.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** Every process launched by one acceptance run uses the selected Unreal installation, or an unsupported override fails before any scenario starts with a clear diagnostic.
+- **Focused validation:** Statically trace the selected executable into every child process launch and run a narrow wrapper smoke check with a nondefault executable path when the remediation is implemented. No test was run during this review.
+
+## RF170 — Require an exact world seed in peer acceptance (P2)
+
+- **Source:** CR16-007, extended CR16-008, CR16-009, CR16-011, CR16-012, CR16-013, CR16-014, CR16-016, and CR16-017; `Scripts/Tests/Combat/EnemyPeers.ps1:219-220`; all five scripts under `Scripts/Tests/Construction`; `Scripts/Tests/Inventory/Inventory.ps1:251`; `InventoryMenu.ps1:60`; `InventoryReconnect.ps1:46`; `ItemPeers.ps1:127-128`; `Scripts/Tests/Presentation/InteractionPrompt.ps1:52`; `PlayerControls.ps1:66`; `SettingsAccessibility.ps1:260`; `Scripts/Tests/Progression/DiscoveryPeer.ps1:32`; `ExplorationRewards.ps1:36`; `Schema2CandidateReconnect.ps1:82`; `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1:37`; `PersistedCampRestart.ps1:59`; `Scripts/Tests/Travel/OceanSkiffDiscoveryDisembark.ps1:129`; `OceanSkiffIntegratedReconnectJourney.ps1:139,150,162,183,197`; `OceanSkiffJourney.ps1:64`; `OceanTravel.ps1:39`; `Swimming.ps1:39`; `Scripts/Tests/World/MapAwareness.ps1:36`; `Scripts/Tests/World/WorldProfile.ps1:33`; `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp:121-123`; and `docs/02-technical-architecture.md:280,795`.
+- **Affected path:** A developer runs an enemy, construction, inventory, presentation, progression, Survival, Travel, map-awareness, or bounded world-profile peer scenario and expects each remote client to use the server's immutable generated-world seed.
+- **Trigger:** `EnemyPeers.ps1` builds its seed check with `'(?!\\d)'`. PowerShell single-quoted strings preserve both backslashes, so the .NET regex looks for a literal backslash followed by `d` instead of rejecting a following digit. The reviewed Construction, Inventory, Presentation, progression, Survival, and Travel runners accept `Seed=418` as a substring, which also accepts `Seed=4180`. `MapAwareness.ps1` and `WorldProfile.ps1` make the same substring-only identity check and their other completion gates do not establish an exact numeric seed token.
+- **Impact:** A peer scenario can pass its shared identity gate even though a client reports a different numeric world seed, weakening the same-world multiplayer acceptance check.
+- **Proposed repair:** Make all peer-runner checks match a complete numeric seed token and reject any following digit.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** Every peer runner accepts the exact server seed and rejects a different numeric seed, including expected `41` vs. `418` and expected `418` vs. `4180`.
+- **Focused validation:** Add exact-versus-prefix assertions for every changed peer gate and parser-check the runners; when implemented, run `-ListScenarios` where supported and controlled enemy, construction, inventory, presentation, and progression peer scenarios. No test was run during this review.
+
+## RF171 — Enable reduced motion in the Crafting acceptance runner (P3)
+
+- **Source:** CR16-008; `Scripts/Tests/Construction/Crafting.ps1:1-2,16-19,25,33`; `docs/07-development-setup.md:4465-4474,4498-4503`; and `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp:5622-5625`.
+- **Affected path:** A developer runs the documented second rendered Crafting/Favorites check at 1024x768, 150% text scale, high contrast, and reduced motion.
+- **Trigger:** The setup guide passes `-ReducedMotion`, but `Crafting.ps1` does not declare or consume that option and builds host/client arguments with only text-scale and contrast settings. The runtime developer setting is applied through `-KalmalaUIDeveloperReducedMotion=`; the runner never passes it.
+- **Impact:** The documented run does not enable reduced motion for either peer, so it cannot establish the reduced-motion presentation condition that the setup procedure claims to check.
+- **Proposed repair:** Add a supported reduced-motion option to the runner and pass the corresponding developer setting to both peers; assert the resulting state in the evidence gate.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The documented reduced-motion invocation enables the setting for host and client, and the acceptance output confirms the state for both peers.
+- **Focused validation:** Compare the parameter and launch-argument paths, parser-check the script, then run the documented rendered mode and inspect its retained host/client evidence. No test was run during this review.
+
+## RF172 — Align inventory notification baseline expectations (P2)
+
+- **Source:** CR16-009; `Scripts/Tests/Inventory/Inventory.ps1:234-240`; `Scripts/Tests/Inventory/InventoryReconnect.ps1:42`; and `Source/KalmalaUI/Private/KalmalaNotificationSubsystem.cpp:275,329`.
+- **Affected path:** A developer runs the documented inventory baseline, rendered notification review, or two-visit reconnect acceptance.
+- **Trigger:** Both inventory runners require `Notification owner baseline: ... Sources=5`; `Inventory.ps1 -NotificationReview` also requires the reconnect baseline with `Sources=5`. The current notification subsystem logs `Sources=4` for both markers. The exact predicates cannot match: Inventory.ps1 fails its post-scenario owner-baseline check (and its notification-review reconnect check also mismatches), while InventoryReconnect never satisfies its loop completion condition and times out.
+- **Impact:** The documented inventory acceptance scenarios fail despite successful underlying inventory and notification fixtures, blocking review of those behaviors.
+- **Evidence:** The two scripts contain literal `Sources=5` expectations. The current owner-baseline and reconnect-baseline `UE_LOG` format strings in `KalmalaNotificationSubsystem.cpp` emit literal `Sources=4`; no alternate matching source marker exists in the reviewed project sources. No live scenario was run.
+- **Proposed repair:** Align the Inventory runner's owner and reconnect baseline predicates with the current fixture marker contract, preserving checks that the baseline is silent and has zero rows. If the intended source count is actually five, update the fixture and its semantics consistently instead.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The documented `Inventory.ps1`, rendered `-NotificationReview`, and `InventoryReconnect.ps1` runs accept the current intended source count, still require `Silent=1` and `Rows=0`, and pass only when their other peer predicates are satisfied.
+- **Focused validation:** Compare every runner's required baseline string with the registered fixture log format, then run the focused inventory reconnect and rendered notification scenarios after the remediation. No test was run during this review.
+
+## RF173 — Bound constrained-performance evidence paths (P3)
+
+- **Source:** CR16-010; `Scripts/Tests/Performance/ConstrainedPerformance.ps1:4,6,41-45,95`; `Scripts/Tests/Travel/OceanSkiffDiscoveryDisembark.ps1:19-27`; and `docs/07-development-setup.md:4979`.
+- **Affected path:** A developer runs a constrained-performance profile with a custom `-OutputDirectory` for the retained profile JSON, scenario transcript, host/client logs, shader working directories, and frame-time CSVs.
+- **Trigger:** The wrapper converts the supplied output root to a full path and creates it without checking its length, then passes `<root>\Peers` to the nested runner. That runner appends `\Host\ShaderWorkingDir` and `\Client\ShaderWorkingDir` and creates those directories without a MAX_PATH check. The suffix from the wrapper root through the host shader directory is 28 characters; a valid 232-character root therefore reaches 260 characters. Other generated paths beneath the peers can be longer still.
+- **Impact:** A custom root can pass the wrapper's initial path handling but fail when the nested runner or Unreal tries to create shader/config/capture paths under traditional Windows path limits. The run leaves a partial evidence directory and depends on long-path support that the project rules prohibit assuming.
+- **Evidence:** `ConstrainedPerformance.ps1` accepts arbitrary `OutputDirectory` values and has no path-length predicate before `New-Item`; it passes `Join-Path $output 'Peers'` to the nested runner. The nested runner creates the host/client shader directories with no length check. The documented procedure requires a fresh output directory but sets no maximum path length. The default root measured 143 characters in this environment, yielding a 171-character direct shader path; no scenario was run.
+- **Proposed repair:** Resolve the output root and validate every derived wrapper and peer path needed for directory creation and Unreal-generated files before creating any evidence directory. Reject overlong custom roots with the exact offending path and a short-root instruction.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** A custom root whose derived output path would reach 260 characters is rejected before any directory or peer process is created; supported roots keep all required paths below 260 and retain the same evidence layout.
+- **Focused validation:** Add boundary checks for the longest derived path immediately below and at 260 characters; parser-check both runners and verify the diagnostic occurs before output creation. No test was run during this review.
+
+## RF174 — Reconcile map pin-entry help with the M12 input-label rule (P3)
+
+- **Source:** CR16-011; `Scripts/Tests/Presentation/MenuInputCopy.ps1:31-32`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp:1309-1313`; `docs/02-technical-architecture.md:308`; `docs/04-roadmap.md:731-742`; and `docs/07-development-setup.md:1879-1891`.
+- **Affected path:** A player enters a label for a personal map pin and sees save/cancel key names, while reviewers use the M12 input-label contract and copy audit to check where key names appear.
+- **Trigger:** The widget draws `Optional label · Enter saves · Escape cancels`; the copy audit removes that exact text before checking its forbidden copy list. The architecture documents this behavior, while the M12 roadmap and setup text say input-binding/key names appear only in Options and that the expanded map omits them.
+- **Impact:** The current source and audit permit a key-name prompt in the map, but other current contracts forbid it. Acceptance does not establish a consistent rule for this player-facing prompt.
+- **Evidence:** `MenuInputCopy.ps1` replaces the key-name substring with `Optional label` before joining the world-map source into its audit corpus. `KalmalaWorldMapWidget.cpp` passes the original text to `DrawMapLabel` when `bPinLabelEntry` is true. The architecture lists Enter as the save action, but M12 roadmap/setup wording sets an Options-only boundary. No rendered scenario was run.
+- **Proposed repair:** Resolve whether pin-label entry is an explicit exception to the M12 key-name rule. Align the prompt, roadmap/setup contract, and static audit; if the exception remains, document and assert that narrow scope rather than silently removing it from the audit.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** The architecture, M12 roadmap/setup wording, map prompt, and `MenuInputCopy.ps1` agree on the pin-label key-name behavior, and the test explicitly checks the resolved rule.
+- **Focused validation:** Compare the prompt text and all relevant contract statements, then run the copy audit and inspect the rendered pin-label prompt after the accepted change. No test was run during this review.
+
+## RF175 — Match complete input-key values in the baseline check (P2)
+
+- **Source:** CR16-011; `Scripts/Tests/Presentation/LocalInputContract.ps1:62-74`; `Config/DefaultInput.ini:114`; and `docs/07-development-setup.md:1871-1875,3244-3248`.
+- **Affected path:** A developer checks that the default local WorldMap action remains bound to `M` and that the other required keyboard/controller input mappings remain present.
+- **Trigger:** The generated action pattern ends at `Key=M` without requiring the end of the key token. A mapping line `ActionName="WorldMap",Key=MouseX` therefore satisfies the required `M` test. The current default config has `Key=M`.
+- **Impact:** The no-build input contract can accept a changed or removed required mapping when another key value starts with the expected key name, weakening the default-controls regression check.
+- **Evidence:** Reconstructed the WorldMap pattern from the script and evaluated it against `ActionName="WorldMap",Key=MouseX`; the regex matched. The current config line maps WorldMap to `M`. No test script or game scenario was run.
+- **Proposed repair:** Parse active `AxisMappings` and `ActionMappings` entries and compare the complete `Key` value against each required key, or otherwise enforce a key-token boundary.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The current WorldMap `M` and all required mappings pass, while replacing `M` with `MouseX` fails; prefix collisions in required axis/controller values are also rejected.
+- **Focused validation:** Add a narrow config-fixture or parser assertion for exact key-token matching, then run `LocalInputContract.ps1` against the normal and altered fixtures. No test was run during this review.
+
+## RF176 — Report the SettingsAccessibility capture count accurately (P3)
+
+- **Source:** CR16-011; `Scripts/Tests/Presentation/SettingsAccessibility.ps1:202-209,337`; and `docs/02-technical-architecture.md:2682-2697`.
+- **Affected path:** A developer uses the final PASS output to locate and understand the retained SettingsAccessibility evidence.
+- **Trigger:** The script lists and validates eight PNG paths for each of two peers (sixteen total), but its final PASS message says fourteen PNG captures were retained.
+- **Impact:** Successful-run output understates the actual evidence count and conflicts with the contract's sixteen host/client images, making the handoff summary inaccurate.
+- **Evidence:** Counted the capture array entries and compared them with the final output literal and architecture acceptance statement. No scenario was run.
+- **Proposed repair:** Derive the reported number from the validated capture array or change the literal to sixteen.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** The PASS output count matches the number of distinct PNGs the runner verifies for the two peers.
+- **Focused validation:** Statically count the capture paths and verify the output derives or reports the same count; parser-check the runner after the change. No scenario was run during this review.
+
+## RF181 — Bound generated test evidence paths (P3)
+
+- **Source:** CR16-012, extended CR16-013, CR16-014, CR16-015, CR16-016, and CR16-017; `Scripts/Tests/Progression/DiscoveryPeer.ps1:1,8-14`; `ExplorationRewards.ps1:1,8-16`; `Schema2CandidateReconnect.ps1:12-13,59-82`; `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1:10-18`; `PersistedCampRestart.ps1:8-21,32,41,75-77,96`; `Scripts/Tests/Travel/OceanSkiffDiscoveryDisembark.ps1:19-27,49-51,145-146`; `OceanSkiffIntegratedReconnectJourney.ps1:14-15,33-35`; `OceanSkiffJourney.ps1:12-24`; `OceanTravel.ps1:9-12`; `Swimming.ps1:9-12`; `Scripts/Tests/World/BiomeExpansion.ps1:341-351`; `MapAwareness.ps1:9-17`; `Minimap.ps1:13-25`; `RegionalGeneration.ps1:10-16`; `WorldMap.ps1:19,36-42,55-63`; `WorldMapExport.ps1:7-10,26-27,50`; `WorldProfile.ps1:9-17`; and `docs/07-development-setup.md:2177-2183,2208-2236,2867,4332-4344,4381,4400`.
+- **Affected path:** A developer runs Progression, Survival, Travel, BiomeExpansion, or World map/export acceptance under a long temporary root or supplies a long custom output root, expecting the runners to retain logs, isolated Unreal user data, shader working directories, screenshots, exported maps, and optional frame-time CSVs.
+- **Trigger:** The three reviewed Progression peer runners, `ExposureRecoveryPeers.ps1`, the five Travel runners, integrated `BiomeExpansion.ps1`, and six World runners append generated names under `%TEMP%` or custom roots. They do not check all resulting absolute paths before `New-Item`, process launch, or output writing. `OceanSkiffDiscoveryDisembark.ps1` is also the nested runner in RF173; RF181 covers its direct/default-root paths.
+- **Impact:** A valid temporary or custom root below 260 characters can produce a required path at or above 260 characters, causing directory creation, Unreal launch, or evidence writing to fail after partial setup. At a valid 200-character `%TEMP%` root, the WorldProfile server log measures 264 characters. Other World path examples remain 264 characters for the MapAwareness server log, 259 for the Minimap server log, 270 for the RegionalGeneration `User-automation` directory, 268 for the WorldMap `host.png` in the `2560x1080` case, and 275 for the WorldMapExport `MasterLandWater.png`; the Minimap log reaches 260 characters with a 201-character root. Previously recorded Progression, Survival, Travel, and BiomeExpansion examples remain as above. This environment's `%TEMP%` is 92 characters; measurements are static path arithmetic only, and no overlong directory was created.
+- **Evidence:** Compared path construction with the existing preflight in `GemMiningTreasurePeer.ps1:7-9` and full derived-path validation in `FreshStartBronzeAndIron.ps1:32-46`. The seventeen affected runners do not preflight all derived output paths before creating directories, launching processes, or writing evidence. Lengths are static string arithmetic only. RF173 separately records the ConstrainedPerformance wrapper's custom-root path through the DiscoveryDisembark runner.
+- **Proposed repair:** Resolve each output root and preflight every derived log, user-data, screenshot, image, and report path, including required Unreal-generated descendants, before creating the evidence directory or starting a process; reject paths at or above 260 characters with the exact offending path and a short-root instruction.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** Roots producing any required path at or above 260 characters are rejected before directory creation or process launch; supported roots keep all logs, user directories, and required generated descendants below the limit across the seventeen runners.
+- **Focused validation:** Check roots producing longest derived paths just below and exactly at 260 characters for all seventeen scripts, then parser-check the runners and confirm rejection occurs before `New-Item`/`Start-Process`. No runner or test was executed during this review.
+
+## RF183 — Require cross-world restore completion before accepting rejection (P2)
+
+- **Source:** CR16-013; `Scripts/Tests/Survival/PersistedCampRestart.ps1:95-100`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:935-956`; `Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp:590-615`; and `docs/07-development-setup.md:4330-4344`.
+- **Affected path:** The final seed-419 cross-world construction-reuse rejection check in `PersistedCampRestart.ps1`.
+- **Trigger:** The runner starts the server and sleeps for a fixed twelve seconds, then kills it if it is still running. It accepts the negative case whenever `cross-world.log` does not contain `Construction restored:`; it does not wait for listen readiness, inspect process/log failures, or require the persisted-camp verification fixture to report completion. If startup or fixture execution has not reached restoration by the fixed delay, the absence of the marker is treated as a successful rejection.
+- **Impact:** The combined persistence runner can print PASS without proving the seed-419 server completed the mismatched-world restore check. A startup delay, missing player, or early fixture failure can therefore make the documented cross-world save rejection appear verified when it was never observed.
+- **Evidence:** `RestorePersistedConstruction` returns without emitting restoration records when the saved world identity does not match. The restore fixture reports its server result only after a character is available and verification elapsed time exceeds three seconds, logging `Persisted camp restore server: Passed=... Constructions=... StorageWood=...`. The runner's cross-world branch checks only for the absence of construction-record log lines after an unconditional twelve-second sleep, so it cannot distinguish the intended completed zero-construction outcome from an incomplete fixture. The setup guide requires the combined scenario to reject cross-world reuse.
+- **Proposed repair:** Wait for server readiness and a bounded explicit completed result from the seed-419 restore fixture; require the reported zero constructions and zero storage result and no restored-record lines. Fail on timeout, process exit before the result, fatal/assertion/error markers, or an unexpected restore.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** The runner reports PASS only after a seed-419 server has reached the fixture's completed restore result with zero constructions and no storage, and it fails when that result is absent, delayed past the deadline, or accompanied by process/log errors or any restored construction.
+- **Focused validation:** After an Editor build, run the combined fixture and confirm that the same-identity restart still restores all ten expected construction IDs while the seed-419 phase emits its explicit completed zero-construction/zero-storage result. Exercise a delayed or absent completion marker and verify the runner fails instead of printing PASS. No runner or test was executed during this review.
+
+## RF195 — Keep successful peer checks from timing out at the deadline (P3)
+
+- **Source:** CR16-014, extended CR16-015, CR16-016, and CR16-017; `Scripts/Tests/Travel/OceanTravel.ps1:27-39`; `Swimming.ps1:26-39`; `Scripts/Tests/World/BiomeExpansion.ps1:89-95,263-267,351-359`; `MapAwareness.ps1:18-35`; `Minimap.ps1:26-45`; `WorldMap.ps1:56-62,64-95,125-145`; `WorldProfile.ps1:18-24,27-36`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1107-1110,1170-1181,1235-1241`; and `docs/07-development-setup.md:2177-2183`.
+- **Affected path:** The final success/timeout gates for the host/client OceanTravel and Swimming peers, BiomeExpansion host-readiness, forest-delivery, and integrated-automation loops, plus MapAwareness, Minimap, WorldMap, and WorldProfile host-readiness and peer/profile-completion loops.
+- **Trigger:** These scripts break from verification loops when host/client success markers or required presentation state are present, then unconditionally throw if the current clock is at or beyond the deadline. If processing crosses the deadline after a loop observes success but before its post-loop clock check, a completed operation is reported as timed out. WorldMap repeats this pattern during host restart and saved-coverage checks.
+- **Impact:** A completed travel, swimming, map-awareness, minimap, world-map, world-profile, host-startup, forest-delivery, or integrated automation check can be reported as timed out at the deadline boundary, producing a false failure and unnecessary reruns.
+- **Evidence:** OceanTravel and Swimming break after both peer predicates pass but then check only the clock. BiomeExpansion's host readiness, forest-delivery, and integrated automation loops do the same after their success markers. MapAwareness and Minimap have host-readiness and peer success loops with post-loop clock-only gates; WorldMap repeats the pattern for viewport host readiness, peer presentation, restarted-host readiness, and saved fog coverage. WorldProfile checks for listen readiness or both profile/identity markers inside its loops, then performs the same clock-only timeout checks after the loop. The relevant markers are in the reviewed runner checks; no runtime scenario was executed.
+- **Proposed repair:** Track completion or test the final success predicates after each loop, and raise the timeout only when a required completion marker remains missing.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** Each loop passes when it observes all required completion markers before its deadline even if the post-loop clock reaches the deadline; it times out only when a required marker is missing at the end of the allowed window.
+- **Focused validation:** Exercise successful completion just before the deadline while advancing the clock past the deadline before the post-loop gate for the Travel and BiomeExpansion loops; confirm success remains a pass. Confirm missing markers still fail at timeout. No runner or test was executed during this review.
+
+## RF206 — Verify requested metadata in rendered biome baseline captures (P2)
+
+- **Source:** CR16-015 and CR16-033; `Scripts/Tests/World/BiomeBaselineCapture.ps1:156-191`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10806-10811`; `Scripts/Tests/World/BiomeBaseline418419.csv`; `docs/biome-height-rework.md:424-452`; `docs/valheim-like-lighting-plan.md:704,766`; and the four assigned FireDusk/ForestShade raw GPU CSVs under `TestResults/L03c`.
+- **Affected path:** Acceptance of fixed-site, rendered biome baseline capture images.
+- **Trigger:** The runner checks PNG dimensions and pixel diversity, and checks only `Seed`, `Site`, and `Condition` in the runtime log (with separate quality and sky-fill checks). It does not compare the logged `LightingVariant`, requested `Xcm`, `Ycm`, and `ViewZcm`, temporal frame count/interval, GPU frame count, or comparison flag with the capture request. For GPU captures it accepts any positive `GPUTime` sample count, even if the CSV contains fewer samples than the requested `GpuCaptureFrames` value.
+- **Impact:** A capture made with a different lighting variant, view pose, temporal/GPU sampling setup, or comparison mode can still be accepted as evidence for the requested baseline. A truncated GPU CSV can also produce a successful summary from fewer samples than the documented capture count.
+- **Evidence:** The runner enumerates requested capture values and validates image appearance, but its metadata predicate covers only the three listed identity/condition fields. `TryCaptureBiomeBaselineView` logs the omitted request metadata, so it is available for explicit comparison. In the GPU path, the runner returns the count as `Frames` but rejects only when the number of positive `GPUTime` samples is zero; it does not compare that count with `GpuCaptureFrames`. The four CR16-033 raw captures each currently contain 120 positive samples and their means match the documented FireDusk/ForestShade values, so no incomplete artifact was observed. The older RF31 finding concerns malformed direct coordinate tokens and does not cover this runner's metadata/sample-count acceptance gap.
+- **Proposed repair:** Compare each applicable logged request field against its fixed CSV/parameter values before accepting the image, including lighting variant, pose, frame counts/interval, and comparison flag. Require the count of positive GPU CSV `GPUTime` rows to equal the requested `GpuCaptureFrames` value.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** A capture with any requested lighting, pose, or frame-setting mismatch is rejected with the site and mismatched field identified; a GPU CSV with fewer or more positive `GPUTime` samples than requested is rejected; valid baseline requests with the exact expected sample count still pass.
+- **Focused validation:** Alter each logged/requested metadata field independently and truncate or extend a copied GPU CSV's positive `GPUTime` rows; confirm the runner rejects each mismatch, then verify fixed-site captures with matching metadata and sample counts. No runner or test was executed during this review.
+
+## RF210 — Match numeric biome profile outputs to their input identities (P2)
+
+- **Source:** CR16-015, extended CR16-016; `Scripts/Tests/World/BiomeHillProfiles.ps1:22-27,81-103`; `BiomeFloorProfiles.ps1:218-231` and its output-profile grouping checks; `BiomeMireProfiles.ps1:31-67,160-171,305-314`; `BiomeRollingProfiles.ps1:38-59,186-245`; `BiomeWoodProfiles.ps1:33-77,165-200`; the Hill, Floor, Mire, Rolling, and Wood input fixtures; `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp:136-239`; and `docs/biome-height-rework.md:714-754,843-895`.
+- **Affected path:** Numeric Hill, Floor, Mire, Rolling, and Wood biome profile sweeps and their acceptance summaries.
+- **Trigger:** Hill and Floor do not match output identity fields row-by-row to their fixtures. Mire compares each trial's identities with the nominal output but does not compare nominal output identities with the input fixture. Rolling and Wood validate the fixed inputs, output row counts, numeric fields, and selected controls/grouping, but do not compare every output `Seed`, `Site`, `Xcm`, and `Ycm` tuple with its corresponding input row.
+- **Impact:** Stale or incorrectly keyed commandlet output can retain the expected row count, finite measurements, and plausible grouping/control results while representing different seeds, sites, or coordinates; the runner can summarize it as the requested fixed profile sweep. Mire's cross-trial identity check does not catch a consistently mis-keyed set of outputs.
+- **Evidence:** The five fixtures define fixed profile rows and coordinates: 88 Hill, 400 Floor, 252 Mire, 264 Rolling, and 66 Wood samples. Their runners contain the output checks cited above, but not a complete per-row input/output identity comparison. The commandlet currently copies identity fields from parsed input rows, but the runners do not enforce that output contract if the exporter regresses or emits stale data.
+- **Proposed repair:** Compare every output `Seed`, `Site`, `Xcm`, and `Ycm` value to its corresponding input row before aggregating results, using exact seed/site checks and the established coordinate tolerance; validate each fixture's fixed groups, seeds, and coordinates.
+- **Dependencies:** After CR19 review acceptance; this handoff does not authorize implementation during the review-only phase.
+- **Acceptance:** Any missing, reordered, duplicated, or mismatched output identity is rejected before a profile summary is printed; all five profile outputs match their corresponding fixed input rows.
+- **Focused validation:** Exercise output with a changed seed, site, X, or Y and with reordered or duplicated rows for every fixture; confirm each mismatch fails, then check correctly keyed profile output. No runner or test was executed during this review.
+
+## RF231 — Require all world profile metrics in the acceptance gate (P3)
+
+- **Source:** CR16-017; `Scripts/Tests/World/WorldProfile.ps1:30-37`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8300-8305`; `docs/07-development-setup.md:2155-2159`; and `docs/02-technical-architecture.md:884`.
+- **Affected path:** A developer runs the bounded generated-world profile and treats its PASS result as evidence that generation time, memory, actor, terrain/population, serialized-save, and late-join metrics were captured.
+- **Trigger:** The runner's server-log regex requires `InitialGenerationMs=`, `SaveSerialized=1`, and `LateJoinPlayers=2`, but its `.*` wildcard does not require `UsedPhysicalMB`, `AvailablePhysicalMB`, `Actors`, `ReplicatedActors`, `TerrainPatches`, `PopulationKeys`, or `SaveBytes`. It also does not validate `InitialGenerationMs` or the other metrics as numeric values. The current GameMode log emits every field, but a partial or malformed report can still satisfy the runner's gate.
+- **Impact:** A profile with omitted or invalid memory, actor-count, terrain/population, or save-size metrics can print PASS and appear complete, weakening the diagnostic evidence used to assess generated-world load and late-join cost.
+- **Evidence:** The setup guide lists the server's time, physical-memory, actor, terrain-patch, population-key, and serialized-save-byte metrics. `KalmalaGameMode.cpp` emits those named values on one line. `WorldProfile.ps1` checks only the generation field name, save-serialization flag, and player count; its wildcard permits the other fields to be absent or malformed. No log fixture or runtime scenario was executed during this review.
+- **Proposed repair:** Require every documented metric field in the server report and validate finite non-negative decimal values for time/memory and non-negative integer values for counts/bytes. Retain the existing exact save-serialization and two-player gates; do not add performance thresholds absent from the diagnostic contract.
+- **Dependencies:** After CR19 review acceptance; no repair during the review-only phase.
+- **Acceptance:** A missing or malformed metric field prevents PASS with the field identified; a valid complete report with successful serialization and two players still passes. No new performance threshold is introduced.
+- **Focused validation:** Check a complete valid report, then remove or corrupt each metric field independently and confirm the runner rejects it; parser-check the runner after repair. No runner or test was executed during this review.
+
 ## RF232 — Make the Iron material icon read as a forged bar (P3; CR13-036)
 
 - **Source:** CR13-036.
@@ -1923,6 +2199,206 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Acceptance:** The catalogue description matches the retained torch artwork and prompt while buildable identity, recipe, fuel behavior, and construction-only semantics remain unchanged.
 - **Focused validation:** Parse registered catalogue JSON and references, check the `StandingLight` icon alias and direct-material recipe, run the focused catalogue icon and reference validators, and run `git diff --check`. No Unreal build is required.
 
+## RF272 — Pin the approved Dodge Roll contract in regression tests (P3)
+
+- **Source:** CR16-022; `Source/KalmalaGameplay/Private/Tests/KalmalaDodgeRollTest.cpp:14-42`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h:96-100`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1273-1327`; `Scripts/Tests/Combat/EnemyPeers.ps1:133-146`; and `docs/01-game-design.md:93-95`.
+- **Affected path:** `Kalmala.Gameplay.Movement.DodgeRollAuthorityAndCost` and the `MosquitoCounterplay` peer scenario.
+- **Trigger:** An approved Dodge Roll value changes, or the server action stops applying the expected stamina payment or forward launch while preserving its accepted-request and mosquito-counterplay signals.
+- **Impact:** The isolated test supplies `DodgeRollStaminaCost` to the eligibility helper as the expected cost, so it does not pin the approved 25-stamina value. The peer scenario confirms one accepted request, one rejected repeat and the two-second mosquito escape window, but does not assert the stamina delta, forward movement/speed, 0.35-second active duration or one-second cooldown. Those behavior or tuning regressions can evade the current test gates.
+- **Evidence:** The game-design contract specifies 25 stamina before active modifiers, a 620 cm/s forward roll lasting 0.35 seconds, and a 1-second cooldown. The runtime constants currently match those values. `KalmalaDodgeRollTest.cpp` passes the configured cost constant in its helper cases and checks only the 2-second repel constant numerically. The peer runner's marker gates request counts and counterplay state; it does not parse roll movement or stamina. No mismatch in current runtime behavior was established.
+- **Proposed repair:** Pin the approved numeric contract with independent expected values and add a focused server-action assertion for actual stamina payment, forward launch and roll/cooldown timing. Keep the owner-client peer counterplay scenario as the network-path check.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** Changing an approved cost, speed, duration or cooldown, or omitting the server-side cost/launch effect, causes focused regression coverage to fail; current documented values and behavior pass.
+- **Focused validation:** Exercise the focused test with each approved constant changed independently and with cost/launch side effects suppressed; confirm each mutation fails while the current action passes. No test was executed during this review.
+
+## RF273 — Exercise the server-only campfire relight action in the client-role test (P3)
+
+- **Source:** CR16-023; `Source/KalmalaGameplay/Private/Tests/KalmalaHearthStateTest.cpp:42-48`; `Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp:139-141,237`; `Source/KalmalaGameplay/Private/KalmalaCampfire.cpp:125-137`; and `docs/02-technical-architecture.md:569`.
+- **Affected path:** `AKalmalaCampfire::TryLightFromServer`.
+- **Trigger:** A regression removes or weakens the campfire actor's authority guard in the explicit relight action while the automatic state-advance guard and static `IsLightingAllowed` policy continue to pass.
+- **Impact:** The test labeled “Client cannot reignite” does not call `TryLightFromServer`; it only verifies simulated-proxy rejection from `AdvanceFromServer`. A change to the explicit actor action's authority check can therefore evade this client-role regression test. No current runtime authority flaw was found.
+- **Evidence:** `KalmalaCampfire::TryLightFromServer` currently checks campfire authority, character validity/authority, interaction permission, extinguished state, positive finite fuel, and dry-fuel policy before setting the hearth Lit. The hearth test switches the campfire to `ROLE_SimulatedProxy`, invokes `AdvanceFromServer`, then restores authority. The interaction authority test invokes the pure `IsLightingAllowed(false, 0)` policy, which does not cover actor authority or state mutation. Architecture states that only a validated server interaction may light dry fuel.
+- **Proposed repair:** In the simulated-proxy case, prepare a valid character and an eligible, paid, dry, extinguished campfire, call `TryLightFromServer`, and assert rejection with hearth state and fuel unchanged. Keep the existing authority-role relight case as the positive control.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The client-role actor rejects the explicit relight action without changing state or fuel, while the otherwise equivalent authority-role case can relight the campfire.
+- **Focused validation:** Run the focused hearth/interaction automation with the campfire role switched to `ROLE_SimulatedProxy` for the explicit action and confirm it fails if that authority guard is removed; verify the authority positive control still passes. No test was executed during this review.
+
+## RF274 — Pin the approved M9 exploration candidate rewards in the catalogue test (P3)
+
+- **Source:** CR16-024; `Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardCatalogueTest.cpp:25-68`; `Source/KalmalaGameplay/Private/KalmalaM9ExplorationRewardCatalogue.cpp:44-54`; `docs/02-technical-architecture.md:1283-1284`; and `docs/07-development-setup.md:4364-4368`.
+- **Affected path:** The canonical M9 land-discovery definition table and `Kalmala.Gameplay.M9.ExplorationRewardCatalogue`.
+- **Trigger:** A candidate ID, presentation identity, reward item or quantity changes while the definitions remain internally valid and use distinct existing materials.
+- **Impact:** The test gets its expectations from `GetDefinitions()` and calls `IsValidDefinition()`, which finds the same definition in that same table. It checks uniqueness and the generic one-to-two reward bound, so the approved Rillstone/Leeward candidate-to-reward mapping can drift without failing the catalogue test. No current runtime mismatch was found.
+- **Evidence:** The architecture table specifies `lakes-rillworn-marker` / Three-Run Rillstone → Stone x2 and `mountains-leeward-grain` / Leeward Grain → Wood x2. Current production definitions match. The test asserts exactly two definitions, self-consistency, valid catalogue grants and distinct candidate/presentation/reward IDs, but does not compare those fields with independent expected values; setup documentation describes the test as checking canonical rewards.
+- **Proposed repair:** Add independent expected rows for the two candidate IDs, presentation IDs, reward item IDs and quantities, then compare the catalogue definitions exactly while retaining the placement, bounds and sparse-identity checks.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** Missing, extra, renamed or mismatched candidate/presentation/reward IDs and changed reward quantities fail the focused catalogue regression; the current two approved rows pass.
+- **Focused validation:** Mutate each canonical candidate or presentation ID, swap the two reward item IDs, and change either quantity independently; confirm each mutation fails while the current architecture-aligned definitions pass. No test was executed during this review.
+
+## RF275 — Pin the documented M9 source-loot hash input in regression tests (P3)
+
+- **Source:** CR16-024; `Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceLootContractTest.cpp:83-124`; `Source/KalmalaGameplay/Private/KalmalaM9SourceLootContract.cpp:37-53`; and `docs/02-technical-architecture.md:1012-1017`.
+- **Affected path:** `FKalmalaM9SourceLootContract::BuildHarvestRewardQuantity` and the canonical M9 source bonus-yield calculation.
+- **Trigger:** The loot key's domain tag, world seed, generator revision, source ID or population spawn ID is omitted, reordered or formatted incorrectly while the hash function and repeated-query behavior remain deterministic.
+- **Impact:** The test checks a standard FNV-1a string vector, repeats identical queries, bounds results to one or two, and searches world seeds for both outcomes. It does not pin any expected hash or yield for a complete documented `m9-loot-v1` input, so an incorrect key composition can pass those checks. No current runtime mismatch was found.
+- **Evidence:** The architecture specifies the exact key `m9-loot-v1|<world-seed>|<generator-revision>|<source-id>|<population-spawn-id>` and awards the bonus only when its FNV-1a 64-bit hash is divisible by four. Production code currently constructs that complete key and applies the documented divisor. The test's `HashAscii("hello")` vector covers the primitive but not composition.
+- **Proposed repair:** Add independent known hash/yield vectors for complete documented inputs, including different seeds and source/population identities, so the domain tag, field order and every required field are covered.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The current complete key produces the independently specified hash and one/two-unit result; changing or omitting any key component or changing the bonus divisor fails the focused regression.
+- **Focused validation:** Run the source-loot contract test with the current vectors, then confirm mutations to the domain tag, generator revision, source ID, population spawn ID, field order or bonus divisor each fail. No test was executed during this review.
+
+## RF276 — Compare full tool-progression outputs after rejection (P3)
+
+- **Source:** CR16-025; `Source/KalmalaGameplay/Private/Tests/KalmalaM9ToolStationProgressionTest.cpp:206-220`; `Source/KalmalaGameplay/Private/KalmalaToolProgressionContract.cpp:372-488`; and `docs/07-development-setup.md:4603-4605`.
+- **Affected path:** Rejected calls to `FKalmalaToolProgressionContract::BuildServerUpgrade` and its `OutTools` / `OutInventory` candidate outputs.
+- **Trigger:** A failure path mutates an existing tool or inventory stack while preserving the output array length.
+- **Impact:** The focused progression regression can pass despite same-length changes to an item ID, level, durability, instance GUID, stack quantity, or stack identity after a rejected request.
+- **Evidence:** `RejectWithoutMutation` copies the pre-call output arrays, but its two assertions compare only `Num()`. Production currently builds local candidates and assigns `OutTools` and `OutInventory` only after all validation and payment checks succeed, so no runtime mutation was established. The setup guide explicitly says this automation covers unchanged candidates after rejection.
+- **Proposed repair:** Compare every field of both output arrays with the pre-call copies after each rejected progression request; keep the existing rejection reasons and accepted-path assertions.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** Each rejection case detects any change to tool identity, level, durability, GUID, inventory item, quantity, or unit GUID even when array lengths remain unchanged; successful acquisitions and upgrades still pass.
+- **Focused validation:** Run `Kalmala.Gameplay.M9.ToolStationProgression` after an Editor build, then verify a same-length candidate mutation makes the regression fail. No test was executed during this review.
+
+## RF277 — Test Workbench exclusion from camp-sphere suppression (P3)
+
+- **Source:** CR16-027; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp:123-128`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6381-6413`; and `docs/monster-spawning.md:380-392`.
+- **Affected path:** S24 camp-source classification in `AKalmalaGameMode::DoesPopulationPointOverlapCampSphere`.
+- **Trigger:** A regression adds WorkbenchKit as an S24 spherical source, or otherwise conflates the S23 station cylinder with the separate S24 sphere, while the current Forge-only negative case continues to pass.
+- **Impact:** Wildlife could be rejected in the extra 12–18 m vertical band around a Workbench even though S23 defines only an 18 m horizontal by 12 m vertical cylinder and S24 excludes unlisted stations. Current production correctly admits only Camp Bed, eligible Standing Light, and lit fuelled Campfire sources to the sphere query; no runtime defect was found.
+- **Evidence:** The S24 test creates an initialized `ForgeKit` actor and calls the sphere query, but the assertion text says “Workbench and Forge stations” without creating a Workbench fixture. The documented S24 contract excludes unlisted stations; S23 handles Workbench/Forge separately. The production helper's construction loop currently checks only `CampBedKit` and eligible `StandingLightKit`, then checks Campfire actors in a separate loop.
+- **Proposed repair:** Add a distinct initialized `WorkbenchKit` fixture at a point outside all existing camp sources and assert that the direct S24 sphere query returns false. Keep the Forge negative and current eligible-source positive controls; rename or split the existing assertion so its diagnostic matches the fixture.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** `Kalmala.Gameplay.Population.SphericalCampSuppression` independently proves WorkbenchKit and ForgeKit are excluded from S24 while the existing Camp Bed, eligible Standing Light, and eligible Campfire positive controls continue to pass.
+- **Focused validation:** Run `Kalmala.Gameplay.Population.SphericalCampSuppression` after an Editor build. No test was executed during this review.
+
+## RF278 — Reconcile current storage architecture contracts (P2)
+
+- **Source:** CR16-028; `docs/02-technical-architecture.md:664,1640-1646`; `Source/KalmalaGameplay/Private/Tests/KalmalaReinforcedChestTest.cpp:10-62`; and `Source/KalmalaGameplay/Private/Tests/KalmalaStorageTest.cpp:10-151`.
+- **Affected path:** Current implementation guidance for supported storage buildables, capacities, and saved storage schema.
+- **Trigger:** A developer follows the unqualified paragraph that says the normal Chest is the sole storage construction and current storage schema is 2.
+- **Impact:** The architecture source of truth directs new work toward a retired single-chest/schema-2 contract even though the current supported design includes Reinforced Chest and storage schema 3.
+- **Evidence:** The paragraph at line 664 states “sole storage construction” and “Current storage schema 2.” The later current contract at lines 1640-1646 specifies sixteen stacks for standard Chest, twenty-four for Reinforced Chest, and storage schema 3. The assigned Reinforced Chest and Storage tests exercise that newer contract. No runtime defect was found.
+- **Proposed repair:** Replace the stale current-tense storage claims with the standard and Reinforced Chest capacities and schema-3 identity-validation contract. Retain the still-current food-processing, hearth-fuel, and construction-save facts in that paragraph.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The architecture describes both supported storage constructions and current schema 3 consistently, with no unqualified current-tense claim that the normal Chest is the sole storage construction or that storage schema 2 is current.
+- **Focused validation:** After the documentation repair, compare its storage summary with the current schema and capacity assertions in the assigned tests and search for contradictory current-tense storage claims. No documentation was changed during this review.
+
+## RF279 — Pin resource source families independently in the gate test (P3)
+
+- **Source:** CR16-028; `Source/KalmalaGameplay/Private/Tests/KalmalaResourceFamilyGateTest.cpp:10-42`; `Source/KalmalaGameplay/Private/Tests/KalmalaToolLifecycleContractTest.cpp:29-116`; `Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp:358-412`; and `docs/02-technical-architecture.md:3270`.
+- **Affected path:** Mapping of each server resource source ID to Woodcutting, Mining, or Gathering before tool-family validation.
+- **Trigger:** A source ID is assigned to the wrong action while the family gate continues to use the returned action consistently.
+- **Impact:** A tree or ore source could become usable by the wrong tool family while the current family test still passes its expected-family comparison.
+- **Evidence:** For each source, `KalmalaResourceFamilyGateTest` sets `bFamilyMatches` from `Definition->Action == Selection.Action`, where `Selection.Action` is returned by production `BuildServerSelection`, then uses that value as the expected outcome. The test therefore verifies agreement with production's classification, not whether all twelve source IDs have their documented action. Other assigned selection assertions cover only part of the source set. The architecture states axes apply to Woodcutting resources, picks to Mining resources, and knives to Gathering sources. Current production mapping matches that contract; no runtime defect was found.
+- **Proposed repair:** Add an independent expected-action table for the twelve source IDs and assert each `BuildServerSelection` result against it before retaining the existing six-tool tier/family matrix and altered-action rejection checks.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** Every listed source has an independently asserted action (and corresponding skill family), and the existing cross-family rejection matrix still covers all six axe/pick identities.
+- **Focused validation:** Run `Kalmala.Gameplay.Harvest.ResourceFamilyGates` and `Kalmala.Gameplay.Tools.LifecycleContract` after an Editor build. No test was executed during this review.
+
+## RF280 — Verify rain pauses Standing Light fuel at the actor boundary (P3)
+
+- **Source:** CR16-028; `Source/KalmalaGameplay/Private/Tests/KalmalaStandingLightTest.cpp:42-55`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSphericalSuppressionTest.cpp:76-87`; `Source/KalmalaGameplay/Private/KalmalaConstructionActor.cpp:143-155`; and `docs/05-decision-log.md:7`.
+- **Affected path:** Server Standing Light tick, rain exposure check, and fuel persistence.
+- **Trigger:** The actor tick regresses to advance or persist fuel while the light is exposed to rain.
+- **Impact:** A rain-exposed light can consume its stored Wood despite the approved rain-pause behavior, shortening its usable light time.
+- **Evidence:** The decision log specifies a cosmetic light with Wood fuel and rain pause. Production currently returns from `Tick` before advancing or persisting fuel when `bRainBlocked` is true. `StandingLightTest` directly exercises the state helper's active-time arithmetic, while the spherical-suppression test checks only that a rain-exposed light is not an eligible flame source; neither verifies actor fuel remains unchanged through a rainy tick and resumes afterward. No runtime defect was found.
+- **Proposed repair:** Add an authoritative actor-level regression with an initialized fuelled Standing Light and controlled weather, asserting exposed-rain ticks leave live and persisted fuel unchanged and that a subsequent dry or roofed tick consumes the expected active time.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The focused automation fails if rain-exposed ticks change live or saved fuel, and passes when dry/roofed active ticks consume the expected fuel while the rain-blocked presentation remains unlit.
+- **Focused validation:** Run the Standing Light contract and focused rain integration automation after an Editor build. No test was executed during this review.
+
+## RF281 — Require wildlife reward claims to survive reload assertions (P3)
+
+- **Source:** CR16-029 and CR16-030; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBadgerTest.cpp:132-149`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeDeathAdderTest.cpp:213-227`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeMoonBearTest.cpp:104-124`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeRatTest.cpp:81-96`; and `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifePeatHuskTest.cpp:249-282`.
+- **Affected path:** Badger, Death Adder, Moon Bear, Rat and Peat Husk pending reward claims after population-save serialization and reload.
+- **Trigger:** A valid reload loses one or more pending reward rows while returning a non-null population save.
+- **Impact:** The tests skip the post-reload identity, owner and idempotency checks when the claim list is empty, so a reward-persistence regression can pass without reporting the lost claim.
+- **Evidence:** All five tests check only that the reloaded pointer is non-null before guarding subsequent claim checks with `!Reloaded->GetPendingWildlifeRewards().IsEmpty()`. Their pre-save queues contain one claim for Badger, Death Adder, Moon Bear and Rat, and two for Peat Husk. Current production behavior was not shown to lose claims; the finding is a false-pass gap in the regression tests.
+- **Proposed repair:** Assert the exact reloaded queue size (one for Badger, Death Adder, Moon Bear and Rat; two for Peat Husk) before indexing or searching rows. Retain the defeated identity, claim ID, credited owner and applicable same-owner retry / other-owner rejection assertions.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** All five focused tests fail if a valid reload drops or duplicates a pending row and verify the expected identity, owner binding and idempotent retry when it survives.
+- **Focused validation:** Run the five species contract automations after an Editor build, then verify that empty and undersized reloaded queues fail their exact-count assertions. No automation was run during this review.
+
+## RF282 — Pin the documented tree-fall duration independently (P3)
+
+- **Source:** CR16-029; `Source/KalmalaGameplay/Private/Tests/KalmalaTreeFellingTest.cpp:23-24,44-45`; `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h:60`; `docs/01-game-design.md:182`; and `docs/02-technical-architecture.md:3264`.
+- **Affected path:** The server-timed Falling phase and late-peer progress reconstruction for felled trees.
+- **Trigger:** `TreeFallSeconds` changes while the test and implementation continue to agree on half of that changed duration.
+- **Impact:** The automation would pass if the Falling phase drifted from the documented 1.2 seconds, allowing the gameplay timing contract and both design documents to diverge without a regression failure.
+- **Evidence:** Both half-progress checks calculate elapsed time using `AKalmalaHarvestNode::TreeFallSeconds * 0.5`; the only exact 1.2-second value is the production constant itself. The design and architecture specify a 1.2-second Falling phase. Current production matches that duration; no runtime defect was found.
+- **Proposed repair:** Assert the duration constant against the independently documented 1.2-second value and exercise half progress at 0.6 seconds, so the test oracle does not derive the expected timing from production.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The tree-felling automation fails if the duration changes from 1.2 seconds, while still verifying the expected midpoint pose, clamping and phase transitions.
+- **Focused validation:** Run `Kalmala.Gameplay.Harvest.TreeFelling` after an Editor build and verify that changing the production duration alone makes its independent duration assertion fail. No test was executed during this review.
+
+## RF283 — Check every authored wildlife model in the winding regression (P3)
+
+- **Source:** CR16-029; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBehaviourTest.cpp:112-205`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:4089,4199,4314,4364,4496,4558,4660,4899`; and `docs/07-development-setup.md:421-425`.
+- **Affected path:** Procedural wildlife model triangle winding, vertex normals and degenerate-face validation.
+- **Trigger:** A species-specific model branch changes index order, normals or mesh construction while the existing checked species continue to pass.
+- **Impact:** One-sided materials can cull an affected model's exterior or expose its interior, and invalid or degenerate geometry can ship without the actual-mesh regression detecting it.
+- **Evidence:** `SurfaceWinding` applies its checks to the player and Boar, Deer, Mireling, Moon Bear, Viper, Giant Snake, Death Adder, Peat Husk and Wolf. `BuildArchetypePresentation` also has authored model branches for Rat, Badger, Polar Bear, Horned Goat, Thunder Sentinel, Reef Maw, Lynx and Mosquito Swarm, none of which are constructed by that regression. The setup guide likewise describes only the original three creature models. No current model defect was established.
+- **Proposed repair:** Add actual presentation fixtures for Rat, Badger, Polar Bear, Horned Goat, Thunder Sentinel, Reef Maw, Lynx and Mosquito Swarm, then apply the existing section, winding, finite-normal and non-degenerate-face checks to each.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** `Kalmala.Gameplay.Presentation.SurfaceWinding` creates and checks all eight currently omitted authored models alongside its existing player and wildlife fixtures.
+- **Focused validation:** Run `Kalmala.Gameplay.Presentation.SurfaceWinding` after an Editor build and confirm each model fixture produces a procedural section that passes the existing checks. No automation was run during this review.
+
+## RF284 — Verify Rat claim cleanup on the reloaded save (P3)
+
+- **Source:** CR16-030; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeRatTest.cpp:81-100`.
+- **Affected path:** Rat pending reward cleanup following population-save serialization and reload.
+- **Trigger:** Delivery removes the pending row from the original in-memory population object while a reloaded save still retains the row.
+- **Impact:** The test reports successful delivery cleanup without establishing that the durable/reloaded escrow row was cleared.
+- **Evidence:** The test reloads the serialized save into `Reloaded` and inspects its defeated identity and claim fields at lines 87-96. It then calls `Population->RemovePendingWildlifeReward` and checks `Population` at lines 97-100, so the cleanup assertions target the pre-serialization object. No production cleanup defect was established.
+- **Proposed repair:** Model delivery on `Reloaded`, remove the expected claim there, then assert that its queue is empty; retain an independent assertion for the original object's state only if needed to test that contract.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The Rat save test fails if delivery clears only the original object while leaving the reloaded claim pending, and passes when cleanup clears the reloaded escrow row.
+- **Focused validation:** Run the Rat wildlife reward persistence automation and verify it fails when reloaded-claim removal is omitted. No automation was run during this review.
+
+## RF285 — Pin wildlife optional-drop odds at the roll seam (P3)
+
+- **Source:** CR16-030; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifePeatHuskTest.cpp:162-169`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeWolfTest.cpp:190-236`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeThunderSentinelTest.cpp:109-156`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeReefMawTest.cpp:102-148`; and the Lynx reward test from CR16-029 at `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeLynxTest.cpp:101-151`. Production roll sites are `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8809,8853,8897,8991,9035`; documented odds are in `docs/creature-catalogues.md:127-149,158` and `docs/biome-enemies.md:171-179`.
+- **Affected path:** Server-side optional Peat Heart, Wolf Fang, Lynx Pelt, Thunder Core and Reef Tooth outcomes persisted in owner-bound wildlife reward claims.
+- **Trigger:** A production random-roll threshold changes or the roll outcome stops being copied into the durable claim while the queue helper continues to accept manually supplied `true` and `false` outcomes.
+- **Impact:** The documented optional-drop odds or persisted outcome can regress without the claim-construction tests detecting it.
+- **Evidence:** Current production uses `FMath::FRand()` thresholds of 25% for Peat Heart, Wolf Fang and Thunder Core and 50% for Lynx Pelt and Reef Tooth. Assigned wildlife tests exercise claim serialization and manually supply both outcomes to queue/model helpers; they do not pin the production thresholds or deterministically test their boundary and propagation into the claim. Existing RF18/RF46 describe callback integration gaps and were not duplicated; this finding is limited to odds and stored outcome coverage. No current runtime defect was established.
+- **Proposed repair:** Extract or expose a deterministic probability predicate/roll seam that can be tested with controlled samples. Pin each documented threshold, exercise samples on either side of the boundary, and verify the resulting optional item flag is retained through the durable owner claim.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** Focused wildlife reward tests fail if any of the five documented thresholds changes or if a selected optional outcome is lost before claim persistence; tests cover both roll outcomes deterministically without flaky randomness.
+- **Focused validation:** Run Peat Husk, Wolf, Lynx, Thunder Sentinel and Reef Maw reward contract automations after an Editor build, including deterministic below/at/above-threshold samples. No automation was run during this review.
+
+## RF286 — Pin the Wolf pack formation radius independently (P3)
+
+- **Source:** CR16-030; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeWolfTest.cpp:105-115`; `Source/KalmalaGameplay/Public/KalmalaWolfPackContract.h:16,23-31`; and `docs/creature-catalogues.md:140`.
+- **Affected path:** Seed-rotated three-member Wolf pack formation offsets.
+- **Trigger:** `FormationRadiusCentimetres` changes while both `GetMemberOffset` and the test continue to use the changed constant.
+- **Impact:** The test can pass when pack spacing drifts from the documented 240 cm radius.
+- **Evidence:** The test compares each offset size directly with `FKalmalaWolfPackContract::FormationRadiusCentimetres`; the production helper multiplies its unit vector by that same constant. The creature catalogue independently specifies a 240 cm radius. No current production defect was found.
+- **Proposed repair:** Add an independent assertion that the formation-radius constant is 240 cm and retain the per-member offset geometry checks.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The Wolf pack test fails if the documented radius changes from 240 cm even when helper output and the production constant change together.
+- **Focused validation:** Run the Wolf pack contract automation and verify that changing the production radius alone fails the independent 240 cm assertion. No automation was run during this review.
+
+## RF287 — Pin mosquito fire-repelling radii independently (P3)
+
+- **Source:** CR16-030; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeMosquitoTest.cpp:84-98`; `Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h:183-184`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:3395-3417`; `docs/05-decision-log.md:38`; and `docs/biome-enemies.md:561-562,597-598`.
+- **Affected path:** Server mosquito repulsion around eligible torch and campfire flames.
+- **Trigger:** A production avoidance-radius constant drifts while the test supplies that same current constant to the predicate.
+- **Impact:** The test can continue to pass although the approved 300 cm torch or 500 cm campfire exclusion radius has changed.
+- **Evidence:** The test checks repulsion at 300 cm and 500 cm but passes `MosquitoTorchAvoidanceCentimetres` and `MosquitoCampfireAvoidanceCentimetres` as the predicate's radius arguments. Production uses these constants for the corresponding active flame sources. Current constants are 300 cm and 500 cm, matching the decision and biome contracts. No runtime defect was established.
+- **Proposed repair:** Independently assert the constants against 300 cm and 500 cm, and check that active flames just outside each radius do not repel; retain authority and inactive-flame controls.
+- **Dependencies:** After CR19 review acceptance; this finding does not authorize implementation during CR16.
+- **Acceptance:** The Mosquito test fails when either approved radius changes even if the helper and the passed test argument remain aligned, and pins the just-outside boundary for both source types.
+- **Focused validation:** Run the Mosquito wildlife contract automation and verify that changing either production radius alone fails its independent constant assertion. No automation was run during this review.
+
+### CR17-001 — Gathered resources to camp save/reload integration
+
+- **Reviewed revision:** `codex/cr16-chat` at `fa71290f`.
+- **Scope:** Server-authoritative generated harvest, crafting, direct-material Campfire placement, world save owners, and same-world restore.
+- **Evidence:** `UKalmalaCraftingComponent::PlaceConstructionFromServer` dispatches `CampfireKit` to `PlaceFromServer` (`Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp:504-528`). `PlaceFromServer` validates the recipe plus raw ignition fuel, spawns `AKalmalaCampfire`, commits payment and initializes the actor, but does not write a world record (`.../KalmalaCraftingComponent.cpp:457-501`). `AKalmalaGameMode::TrySaveWorldFromLocalHost` writes population, construction, storage and player records (`Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9588-9614`); `RestorePersistedConstruction` restores each construction record as `AKalmalaConstructionActor` and never creates a Campfire actor (`.../KalmalaGameMode.cpp:935-956`). `AKalmalaCampfire` owns replicated fuel and hearth state (`Source/KalmalaGameplay/Public/KalmalaCampfire.h:26,46-55,76-88`). The roadmap says existing saved Campfires must restore correctly (`docs/04-roadmap.md:648-661`). The combined restart runner checks construction IDs and storage after restart but has no Campfire restoration assertion (`Scripts/Tests/Survival/PersistedCampRestart.ps1:83-87`). Its lower-level CampfireKit save-model round trip does not cover the runtime placement or restore path (`Source/KalmalaGameplay/Private/Tests/KalmalaConstructionSaveGameTest.cpp:75-80`).
+- **Result:** Confirmed RF288. Existing RF16, RF23, RF273 and RF183 were reviewed for overlap; they cover other depletion, save-return test, relight-authority, and cross-world-runner concerns. No duplicate Campfire persistence finding was present.
+- **Limits:** Static inspection only; no test, build, runtime save/reload or injected write failure was run. The roadmap does not define whether remaining fuel and lit/smouldering state must persist, so no such behavior is assumed here.
+
 <a id="rf298--apply-text-scale-to-the-accessibility-feedback-overlay-p2"></a>
 
 ## RF298 — Apply text scale to the accessibility feedback overlay (P2)
@@ -1950,3 +2426,17 @@ The active buildable definitions Floor, ForgeAnvil, Forge, and FryingPan resolve
 - **Dependencies:** After CR19 review acceptance; no implementation during CR12 review.
 - **Acceptance:** The affected UI flows use documented world-facing seams, and server validation and owner-only state behavior remain unchanged.
 - **Focused validation:** Add a source-boundary check and exercise prompt, ambience, and Home launch flows after an Editor build.
+
+<a id="rf300--restore-valid-list-markers-in-review-records-p3"></a>
+
+## RF300 — Restore valid list markers in review records (P3)
+
+- **Source:** CR16 master handoff review; `BACKLOG.md` and `PROGRESS.md` in the current master working tree.
+- **Severity:** P3. Several review-record list markers are malformed.
+- **Trigger:** A reader opens the affected backlog tasks or CR09 progress entry in a Markdown renderer.
+- **Impact:** The RF160 task and seven progress bullets render as ordinary text, while RF162 is joined to RF161's final paragraph. The intended task/report structure is not reliably visible.
+- **Evidence:** `BACKLOG.md` prefixes RF160 with a literal `+` and places the RF162 task heading on the same line as RF161's final sentence. `PROGRESS.md` has seven consecutive CR09 report lines prefixed with literal `+` characters.
+- **Proposed repair:** Remove the stray plus characters, put RF162 on its own list line, and preserve the existing text.
+- **Dependencies:** After CR19 review acceptance; no gameplay or runtime repair is involved.
+- **Acceptance:** RF160 and RF162 render as separate backlog tasks, and the seven affected progress entries render as independent bullets with their text intact.
+- **Focused validation:** Inspect the exact diff, render or parse the Markdown, and run `git diff --check`. No runtime test applies.

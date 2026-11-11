@@ -137,7 +137,7 @@
       `VSTestAdapterCommandlet.h`; see the CR15-014 coverage result and RF190–RF194.
     - [x] **CR15-015 — Review VisualStudioTools public interface.**
       `Plugins/VisualStudioTools/Source/VisualStudioTools/Public/VisualStudioTools.h`; see the CR15-015 coverage result and RF209.
-  - [ ] **CR16 — Review tests, documentation and all remaining files.** Check
+  - [x] **CR16 — Review tests, documentation and all remaining files.** Check
     assertions against real contracts, missing regressions, stale commands,
     acceptance claims and provenance; reconcile every file outside CR02–CR15.
   - [x] **CR17 — Review integration and performance risks.** Trace complete
@@ -1088,6 +1088,21 @@
       save failures, retry, and state rollback; then run a listen-server
       remote-owner scenario with existing harvest/gemstone coverage after an
       Editor build.
+
+  - [ ] **RF47 — Exercise finite-world movement bounds through remote prediction (P3; CR04-022/CR16-031).**
+    `KalmalaWorldBoundaryMovementTest` currently checks an authority pawn and
+    manually invokes the movement update; the peer runner does not approach
+    the finite edge with a remote owner. Extend the listen-server movement
+    scenario with an owner near the boundary and an observer. Drive outward
+    through normal input and verify the server and owner converge within the
+    radius-minus-capsule margin while tangential and vertical movement remain
+    available. Acceptance: neither owner nor server crosses the radius after
+    correction; outward velocity is removed, tangential/vertical components
+    remain, and the observer sees the same bounded transform. Dependencies:
+    after CR19 review acceptance. Focused validation: build the Editor target,
+    run `Kalmala.Gameplay.Movement.WorldBoundary`, and run the extended remote
+    owner/observer scenario through `Scripts/Tests/Presentation/PlayerControls.ps1`.
+    Evidence: `Temporary/Review/findings.md#rf47--exercise-finite-world-movement-bounds-through-remote-prediction-p3`.
 
   - [ ] **RF51 — Bound repeated arrow-preference RPC work (P3; CR04-032).**
     `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:1431`,
@@ -3899,6 +3914,117 @@
     **Dependencies:** After CR19 review acceptance; no catalogue or art changes during CR13.
     **Acceptance:** The construction description calls the object a torch, consistent with its retained icon and prompt, while the existing buildable ID, recipe, fuel behavior and buildable-only role remain unchanged.
     **Focused validation:** Parse the registered catalogues and references; compare the `StandingLight` buildable, direct-material recipe and icon alias; run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id StandingLightKit`, `python -B Scripts/Validate-CatalogueReferences.py`, and `git diff --check`. No Unreal build is required.
+
+  - [ ] **RF272 — Pin the approved Dodge Roll regression contract (P3; CR16-022).**
+    `KalmalaDodgeRollTest.cpp` feeds the current cost constant into its own
+    helper expectation; the peer gate does not check stamina payment or launch
+    movement. Pin approved values and cover the server action's payment, launch
+    and timing.
+    Evidence and acceptance:
+    [RF272 finding](Temporary/Review/findings.md#rf272-pin-the-approved-dodge-roll-contract-in-regression-tests-p3).
+
+  - [ ] **RF273 — Exercise the server-only campfire relight action in the client-role test (P3; CR16-023).**
+    The hearth client-role case calls `AdvanceFromServer`, not the explicit
+    `TryLightFromServer` action; the static lighting-policy check does not cover
+    actor authority or state mutation. Call the action with an eligible, paid,
+    dry, extinguished campfire under `ROLE_SimulatedProxy` and assert rejection
+    without state or fuel changes; retain the authority-role positive control.
+    Evidence and acceptance:
+    [RF273 finding](Temporary/Review/findings.md#rf273-exercise-the-server-only-campfire-relight-action-in-the-client-role-test-p3).
+
+  - [ ] **RF274 — Pin the approved M9 exploration candidate rewards in the catalogue test (P3; CR16-024).**
+    The reward-catalogue test checks its definitions against the same table it
+    reads them from and asserts only uniqueness plus a general quantity bound.
+    Pin the two architecture-approved candidate/presentation/reward mappings
+    and quantities independently.
+    Evidence and acceptance:
+    [RF274 finding](Temporary/Review/findings.md#rf274-pin-the-approved-m9-exploration-candidate-rewards-in-the-catalogue-test-p3).
+
+  - [ ] **RF275 — Pin the documented M9 source-loot hash input in regression tests (P3; CR16-024).**
+    The source-loot test validates the FNV primitive and repeatability, but no
+    expected output for a complete documented `m9-loot-v1` key. Add independent
+    vectors that pin the domain tag, seed, revision, source and spawn identity.
+    Evidence and acceptance:
+    [RF275 finding](Temporary/Review/findings.md#rf275-pin-the-documented-m9-source-loot-hash-input-in-regression-tests-p3).
+
+  - [ ] **RF276 — Compare full tool-progression outputs after rejection (P3; CR16-025).**
+    The progression test snapshots candidate outputs but checks only array
+    lengths after rejected requests. Compare all tool and inventory fields so
+    same-length mutations fail.
+    Evidence and acceptance:
+    [RF276 finding](Temporary/Review/findings.md#rf276-compare-full-tool-progression-outputs-after-rejection-p3).
+
+  - [ ] **RF277 — Test Workbench exclusion from camp-sphere suppression (P3; CR16-027).**
+    The spherical-suppression test creates a Forge but labels the assertion as
+    covering both Forge and Workbench. Add an initialized Workbench negative
+    control for the S24 sphere and make the assertion diagnostic match its fixture.
+    Evidence and acceptance:
+    [RF277 finding](Temporary/Review/findings.md#rf277-test-workbench-exclusion-from-camp-sphere-suppression-p3).
+
+  - [ ] **RF278 — Reconcile current storage architecture contracts (P2; CR16-028).**
+    The architecture still calls the normal Chest the sole storage construction
+    and schema 2 current, while later contracts and tests specify Reinforced Chest
+    and schema 3. Evidence and acceptance:
+    [RF278 finding](Temporary/Review/findings.md#rf278-reconcile-current-storage-architecture-contracts-p2).
+
+  - [ ] **RF279 — Pin resource source families independently in the gate test (P3; CR16-028).**
+    The expected family is derived from the source action returned by production,
+    so misclassified source IDs can agree with the test oracle. Add independent
+    expected actions for all twelve sources. Evidence and acceptance:
+    [RF279 finding](Temporary/Review/findings.md#rf279-pin-resource-source-families-independently-in-the-gate-test-p3).
+
+  - [ ] **RF280 — Verify rain pauses Standing Light fuel at the actor boundary (P3; CR16-028).**
+    Current tests cover fuel arithmetic and rain-based flame eligibility separately,
+    but not whether a rainy actor tick leaves live and saved fuel unchanged.
+    Evidence and acceptance:
+    [RF280 finding](Temporary/Review/findings.md#rf280-verify-rain-pauses-standing-light-fuel-at-the-actor-boundary-p3).
+
+  - [ ] **RF281 — Require wildlife reward claims to survive reload assertions (P3; CR16-029/030).**
+    Badger, Death Adder, Moon Bear, Rat and Peat Husk tests can skip reloaded
+    claim checks when a valid reload returns an empty queue. Assert the expected
+    count (one claim, or two for Peat Husk) before checking persisted claims.
+    Evidence and acceptance:
+    [RF281 finding](Temporary/Review/findings.md#rf281-require-wildlife-reward-claims-to-survive-reload-assertions-p3).
+
+  - [ ] **RF282 — Pin the documented tree-fall duration independently (P3; CR16-029).**
+    The midpoint test derives elapsed time from `TreeFallSeconds`, so duration
+    drift can pass. Independently pin 1.2 seconds and sample at 0.6 seconds.
+    Evidence and acceptance:
+    [RF282 finding](Temporary/Review/findings.md#rf282-pin-the-documented-tree-fall-duration-independently-p3).
+
+  - [ ] **RF283 — Check every authored wildlife model in the winding regression (P3; CR16-029).**
+    The actual-mesh winding test omits eight authored wildlife models. Add them
+    to the fixtures and apply the existing mesh checks to each.
+    Evidence and acceptance:
+    [RF283 finding](Temporary/Review/findings.md#rf283-check-every-authored-wildlife-model-in-the-winding-regression-p3).
+
+  - [ ] **RF284 — Verify Rat claim cleanup on the reloaded save (P3; CR16-030).**
+    The Rat test validates a reloaded claim but removes the claim from the
+    pre-serialization object. Perform delivery cleanup and the empty-queue
+    assertion on the reloaded save.
+    Evidence and acceptance:
+    [RF284 finding](Temporary/Review/findings.md#rf284-verify-rat-claim-cleanup-on-the-reloaded-save-p3).
+
+  - [ ] **RF285 — Pin wildlife optional-drop odds at the roll seam (P3; CR16-030).**
+    Wildlife claim tests feed preselected outcomes into queue helpers without
+    pinning the documented server roll thresholds. Exercise threshold boundaries
+    independently and verify the result stored in each durable claim.
+    Evidence and acceptance:
+    [RF285 finding](Temporary/Review/findings.md#rf285-pin-wildlife-optional-drop-odds-at-the-roll-seam-p3).
+
+  - [ ] **RF286 — Pin the Wolf pack formation radius independently (P3; CR16-030).**
+    The formation test compares each offset with the same production radius
+    constant used by the helper. Assert the documented 240 cm value separately.
+    Evidence and acceptance:
+    [RF286 finding](Temporary/Review/findings.md#rf286-pin-the-wolf-pack-formation-radius-independently-p3).
+
+  - [ ] **RF287 — Pin mosquito fire-repelling radii independently (P3; CR16-030).**
+    Boundary tests pass production radius constants back into the helper, so
+    radius drift can pass. Assert 300 cm and 500 cm independently and test just
+    outside each boundary.
+    Evidence and acceptance:
+    [RF287 finding](Temporary/Review/findings.md#rf287-pin-mosquito-fire-repelling-radii-independently-p3).
+
   - [ ] **RF298 — Apply text scale to the accessibility feedback overlay (P2; CR12-002).**
     The optional nearby-hearth/construction feedback text stays at a fixed 16-point size.
     Apply the shared local text-scale setting and keep the overlay readable at supported
@@ -3913,6 +4039,19 @@
     add a source-boundary check and exercise prompt, ambience, and Home launch flows after
     an Editor build. Dependencies: after CR19 review acceptance. Evidence:
     [RF299 finding](Temporary/Review/findings.md#rf299--keep-ui-paths-behind-world-facing-interfaces-p3).
+
+  - [ ] **RF300 — Restore valid list markers in review records (P3; CR16 handoff).**
+    `BACKLOG.md` has a literal plus before the RF160 task and joins RF162 to the
+    RF161 paragraph; `PROGRESS.md` has seven report bullets with literal plus
+    prefixes. These lines render as ordinary text or a merged paragraph instead
+    of independent list entries. Restore the list markers and place RF162 on its
+    own bullet while preserving all text.
+    **Dependencies:** After CR19 review acceptance; this is a bookkeeping repair.
+    **Acceptance:** RF160 and RF162 render as separate backlog tasks, and all
+    seven affected progress entries render as list items with their text intact.
+    **Focused validation:** Inspect the exact diff, run an available Markdown
+    parser or renderer, and run `git diff --check`; no gameplay test applies.
+
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
     children as findings arise; do not invent defects or placeholder fixes.
     Each child includes finding/source CR ID, severity, affected files, trigger,
