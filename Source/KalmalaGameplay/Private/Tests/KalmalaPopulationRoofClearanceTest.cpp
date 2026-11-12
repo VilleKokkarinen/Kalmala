@@ -4,6 +4,7 @@
 #include "KalmalaGameMode.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaWolfPackContract.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "Components/BoxComponent.h"
 #include "Engine/World.h"
 #include "Misc/AutomationTest.h"
@@ -147,6 +148,21 @@ bool FKalmalaPopulationRoofClearanceTest::RunTest(const FString& Parameters)
     }
     TestTrue(TEXT("Snake roof origin is above every active profile component"),
         FMath::IsNearlyEqual(SnakeBodyTop.Z, ExpectedSnakeTop));
+    TestTrue(TEXT("Giant Snake top preserves its offset capsule X position"),
+        FMath::IsNearlyEqual(SnakeBodyTop.X, 4978.0));
+
+    TArray<FVector> SnakeBodyTopPositions;
+    TestTrue(TEXT("Giant Snake keeps one roof-trace start per active shape"),
+        AKalmalaGameMode::TryGetPopulationBodyTopPositions(
+            SnakeShapes, FVector(5000.0, 0.0, 100.0), FRotator::ZeroRotator,
+            SnakeBodyTopPositions));
+    TestEqual(TEXT("Every active Giant Snake shape supplies a top position"),
+        SnakeBodyTopPositions.Num(), SnakeShapes.Num());
+    TestTrue(TEXT("The offset capsule top is kept separately from the actor-origin sphere top"),
+        SnakeBodyTopPositions.ContainsByPredicate([](const FVector& BodyTop)
+            { return FMath::IsNearlyEqual(BodyTop.X, 4978.0); })
+        && SnakeBodyTopPositions.ContainsByPredicate([](const FVector& BodyTop)
+            { return FMath::IsNearlyEqual(BodyTop.X, 5000.0); }));
 
     TArray<FKalmalaWildlifeBodyCollisionShape> WolfShapes;
     TestTrue(TEXT("Wolf exposes its actual S22a profile"),
@@ -167,6 +183,101 @@ bool FKalmalaPopulationRoofClearanceTest::RunTest(const FString& Parameters)
     InvalidDescriptor.Kind = EKalmalaWorldPopulationKind::HarvestNode;
     TestFalse(TEXT("The descriptor roof predicate rejects non-wildlife inputs"),
         Mode->DoesPopulationDescriptorPassRoofClearance(InvalidDescriptor));
+
+    FKalmalaWorldPopulationSpawn SnakeDescriptor;
+    bool bFoundValidSnakeDescriptor = false;
+    for (uint64 SearchSeed = 418; SearchSeed < 450 && !bFoundValidSnakeDescriptor; ++SearchSeed)
+    {
+        Mode->WorldGenerationConfig.WorldSeed = SearchSeed;
+        for (int32 Y = -16; Y <= 16 && !bFoundValidSnakeDescriptor; ++Y)
+        {
+            for (int32 X = -16; X <= 16 && !bFoundValidSnakeDescriptor; ++X)
+            {
+                const FIntPoint SpatialKey(X, Y);
+                for (const FKalmalaWorldPopulationSpawn& HarvestSpawn
+                    : FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(
+                        Mode->WorldGenerationConfig, SpatialKey,
+                        EKalmalaWorldPopulationKind::HarvestNode))
+                {
+                    if (HarvestSpawn.ContentId != TEXT("lakes-tin-shore-gravel")) continue;
+                    if (FVector2D(HarvestSpawn.Location).SizeSquared() < FMath::Square(10000.0)) continue;
+
+                    FKalmalaWorldPopulationSpawn Candidate = HarvestSpawn;
+                    Candidate.Kind = EKalmalaWorldPopulationKind::Wildlife;
+                    Candidate.SpawnSeed = 9;
+                    Candidate.ContentId = NAME_None;
+                    EKalmalaWildlifeArchetype CandidateArchetype;
+                    if (!Mode->DoesPopulationDescriptorPassSpeciesHabitat(
+                            Candidate, &CandidateArchetype)
+                        || CandidateArchetype != EKalmalaWildlifeArchetype::GiantSnake)
+                    {
+                        continue;
+                    }
+
+                    SnakeDescriptor = MoveTemp(Candidate);
+                    bFoundValidSnakeDescriptor = true;
+                    break;
+                }
+            }
+        }
+    }
+    if (!TestTrue(TEXT("A valid Shimmering Lakes Giant Snake descriptor is found"),
+        bFoundValidSnakeDescriptor)) return false;
+    EKalmalaWildlifeArchetype FoundSnakeArchetype;
+    if (!TestTrue(TEXT("The found snake descriptor passes the species habitat gate"),
+        Mode->DoesPopulationDescriptorPassSpeciesHabitat(
+            SnakeDescriptor, &FoundSnakeArchetype))) return false;
+    TestEqual(TEXT("The descriptor resolves to the Giant Snake archetype"),
+        FoundSnakeArchetype, EKalmalaWildlifeArchetype::GiantSnake);
+
+    FVector SnakeActorLocation;
+    if (!TestTrue(TEXT("The valid snake descriptor receives its collision-supported actor origin"),
+        Mode->TryGetPopulationActorPlacementLocation(
+            SnakeDescriptor, EKalmalaWildlifeArchetype::GiantSnake,
+            SnakeShapes, SnakeActorLocation))) return false;
+    TArray<FVector> DescriptorSnakeTopPositions;
+    if (!TestTrue(TEXT("The valid snake descriptor supplies actual shape-top positions"),
+        AKalmalaGameMode::TryGetPopulationBodyTopPositions(
+            SnakeShapes, SnakeActorLocation, FRotator::ZeroRotator,
+            DescriptorSnakeTopPositions))) return false;
+    const FKalmalaWildlifeBodyCollisionShape* SnakeCapsule = SnakeShapes.FindByPredicate(
+        [](const FKalmalaWildlifeBodyCollisionShape& Shape)
+            { return Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule; });
+    if (!TestTrue(TEXT("Giant Snake profile has its offset capsule"), SnakeCapsule != nullptr)) return false;
+    const FVector CapsuleTop = DescriptorSnakeTopPositions.Last();
+    TestTrue(TEXT("The snake capsule top is offset from the actor origin"),
+        FMath::IsNearlyEqual(CapsuleTop.X,
+            SnakeActorLocation.X + SnakeCapsule->RelativeLocation.X));
+    TestTrue(TEXT("A valid snake descriptor passes without a RoofKit"),
+        Mode->DoesPopulationDescriptorPassRoofClearance(SnakeDescriptor));
+
+    const FVector OriginBodyTop(SnakeActorLocation.X, SnakeActorLocation.Y, CapsuleTop.Z);
+    const FVector CapsuleTraceEnd = CapsuleTop + FVector::UpVector * TraceDistanceCm;
+    AKalmalaConstructionActor* OffsetSnakeRoof = SpawnConstruction(
+        TEXT("RoofKit"), TEXT("roof-offset-snake-top"),
+        FVector(SnakeActorLocation.X - AKalmalaConstructionActor::GetCollisionExtent(TEXT("RoofKit")).X - 1.0,
+            SnakeActorLocation.Y, CapsuleTop.Z + RoofHalfHeightCm + 1.0));
+    if (!TestNotNull(TEXT("Offset RoofKit over the snake capsule top created"), OffsetSnakeRoof)) return false;
+    TestFalse(TEXT("Offset RoofKit misses the actor-origin trace"),
+        AKalmalaGameMode::DoesSolidConstructionRoofIntersectSegment(
+            World, OriginBodyTop, OriginBodyTop + FVector::UpVector * TraceDistanceCm));
+    TestTrue(TEXT("Offset RoofKit intersects the actual snake capsule-top trace"),
+        AKalmalaGameMode::DoesSolidConstructionRoofIntersectSegment(
+            World, CapsuleTop, CapsuleTraceEnd));
+    TestFalse(TEXT("The descriptor roof gate rejects a RoofKit over only the offset snake top"),
+        Mode->DoesPopulationDescriptorPassRoofClearance(SnakeDescriptor));
+
+    OffsetSnakeRoof->Destroy();
+    TestTrue(TEXT("Removing the offset RoofKit restores valid snake admission"),
+        Mode->DoesPopulationDescriptorPassRoofClearance(SnakeDescriptor));
+    AKalmalaConstructionActor* BeyondSnakeRoof = SpawnConstruction(
+        TEXT("RoofKit"), TEXT("roof-offset-snake-beyond"),
+        FVector(SnakeActorLocation.X - AKalmalaConstructionActor::GetCollisionExtent(TEXT("RoofKit")).X - 1.0,
+            SnakeActorLocation.Y, CapsuleTop.Z + TraceDistanceCm + RoofHalfHeightCm + 4.0));
+    if (!TestNotNull(TEXT("RoofKit beyond the snake 24 m trace created"), BeyondSnakeRoof)) return false;
+    TestTrue(TEXT("A roof beyond 24 m leaves the valid snake descriptor eligible"),
+        Mode->DoesPopulationDescriptorPassRoofClearance(SnakeDescriptor));
+
     FKalmalaPopulationSpawnGateResults GateResults;
     GateResults.bSchedulerBudgetAvailable = true;
     GateResults.bSeededAdmissionRollPassed = true;

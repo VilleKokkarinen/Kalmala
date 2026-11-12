@@ -32649,3 +32649,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production aquatic placement remains server-authoritative and unchanged. The injection hook exists only with `WITH_DEV_AUTOMATION_TESTS` and changes no gameplay state.
 - **Known limitations / remaining scope:** The valid-descriptor search and focused automation have not been executed in Unreal. The separate CR remediation goal remains open.
 - **Next eligible task:** RF05 — Trace offset snake body tops for roof clearance.
+
+## Run 2026-11-12 — RF05 offset snake roof clearance
+
+- **Selected task:** RF05, trace the actual uppermost position of each active body shape for every proposed wildlife actor, including each Wolf member.
+- **Work completed:** Added a body-top-position helper that preserves each shape's world-space X/Y and vertical support. The S22b roof predicate now traces from every active shape top per actor descriptor. Extended the focused automation with a valid Shimmering Lakes Giant Snake descriptor and a RoofKit that covers its offset capsule top while missing the actor-origin trace; it also checks admission with no roof and with a roof beyond 24 m.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRoofClearanceTest.cpp`.
+- **Lightweight checks:** `git diff --check` and static inspection of shape support math, per-member iteration, fixture geometry, and server-authoritative gate ordering. The focused automation and Unreal build were not run.
+- **Full verification:** Deferred; RF05 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.RoofClearance` automation remain unexecuted.
+- **Observable impact:** A solid roof over the actual offset snake capsule top now rejects the proposed spawn even when the actor-origin trace misses it. Wolf member checks remain per member.
+- **Networking/authority:** Roof queries remain on the authoritative GameMode path; no client authority or replication behavior changed.
+- **Known limitations / remaining scope:** The focused fixture has not been executed in Unreal. Remaining CR remediation tasks are incomplete.
+- **Next eligible task:** RF06 — Exercise valid body-clearance descriptor composition.

@@ -248,7 +248,7 @@
     descriptor-level predicate. Focused validation: run
     Kalmala.Gameplay.Population.AquaticSurface after an Editor build. Evidence
     and repair: Temporary/Review/findings.md#rf04--reef-maw-whole-body-surface-loop-lacks-descriptor-path-test-p3.
-  - [ ] **RF05 — Trace offset snake body tops for roof clearance (P3; CR03-001b-80).**
+  - [x] **RF05 — Trace offset snake body tops for roof clearance (P3; CR03-001b-80).**
     Affected: KalmalaGameMode.cpp:6217-6235,6583-6636; KalmalaWildlifeSpawn.cpp:3645-3692;
     KalmalaConstructionActor.cpp:416-435; KalmalaPopulationRoofClearanceTest.cpp:130-169.
     Trigger: a snake body top is beneath a RoofKit whose footprint misses the actor origin.

@@ -265,6 +265,9 @@ private:
     static bool TryGetPopulationBodyVerticalSupportOffset(
         const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector SurfaceNormal,
         double& OutVerticalSupportOffset);
+    static bool TryGetPopulationBodyTopPositions(
+        const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, FVector ActorLocation,
+        FRotator ActorRotation, TArray<FVector>& OutBodyTopPositions);
     static bool TryGetPopulationBodyTop(const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes,
         FVector ActorLocation, FRotator ActorRotation, FVector& OutBodyTop);
     static bool DoesSolidConstructionRoofIntersectSegment(UWorld* World, FVector TraceStart,

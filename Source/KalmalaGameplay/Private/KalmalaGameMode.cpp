@@ -6244,21 +6244,24 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassRoofClearance(
     for (const FKalmalaWorldPopulationSpawn& ActorDescriptor : ActorDescriptors)
     {
         FVector ActorLocation;
-        FVector BodyTop;
+        TArray<FVector> BodyTopPositions;
         if (!TryGetPopulationActorPlacementLocation(
                 ActorDescriptor, Archetype, BodyShapes, ActorLocation)
-            || !TryGetPopulationBodyTop(
-                BodyShapes, ActorLocation, FRotator::ZeroRotator, BodyTop))
+            || !TryGetPopulationBodyTopPositions(
+                BodyShapes, ActorLocation, FRotator::ZeroRotator, BodyTopPositions))
         {
             return false;
         }
 
-        const FVector TraceEnd = BodyTop + FVector::UpVector
-            * FKalmalaMonsterSpawnTuning::PopulationRoofClearanceTraceDistanceCm;
-        if (DoesSolidConstructionRoofIntersectSegment(
-                World, BodyTop, TraceEnd, ProposedActorToIgnore))
+        for (const FVector& BodyTop : BodyTopPositions)
         {
-            return false;
+            const FVector TraceEnd = BodyTop + FVector::UpVector
+                * FKalmalaMonsterSpawnTuning::PopulationRoofClearanceTraceDistanceCm;
+            if (DoesSolidConstructionRoofIntersectSegment(
+                    World, BodyTop, TraceEnd, ProposedActorToIgnore))
+            {
+                return false;
+            }
         }
     }
 
@@ -6607,11 +6610,11 @@ bool AKalmalaGameMode::TryGetPopulationBodyVerticalSupportOffset(
     return FMath::IsFinite(OutVerticalSupportOffset);
 }
 
-bool AKalmalaGameMode::TryGetPopulationBodyTop(
+bool AKalmalaGameMode::TryGetPopulationBodyTopPositions(
     const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, const FVector ActorLocation,
-    const FRotator ActorRotation, FVector& OutBodyTop)
+    const FRotator ActorRotation, TArray<FVector>& OutBodyTopPositions)
 {
-    OutBodyTop = FVector::ZeroVector;
+    OutBodyTopPositions.Reset();
     if (BodyShapes.IsEmpty() || !FMath::IsFinite(ActorLocation.X)
         || !FMath::IsFinite(ActorLocation.Y) || !FMath::IsFinite(ActorLocation.Z)
         || !FMath::IsFinite(ActorRotation.Pitch) || !FMath::IsFinite(ActorRotation.Yaw)
@@ -6621,7 +6624,8 @@ bool AKalmalaGameMode::TryGetPopulationBodyTop(
     }
 
     const FQuat ActorRotationQuat = ActorRotation.Quaternion();
-    double BodyTopZ = -TNumericLimits<double>::Max();
+    TArray<FVector> BodyTopPositions;
+    BodyTopPositions.Reserve(BodyShapes.Num());
     for (const FKalmalaWildlifeBodyCollisionShape& Shape : BodyShapes)
     {
         if (!FMath::IsFinite(Shape.RadiusCentimetres)
@@ -6640,31 +6644,57 @@ bool AKalmalaGameMode::TryGetPopulationBodyTop(
 
         const FVector ShapeLocation = ActorLocation
             + ActorRotationQuat.RotateVector(Shape.RelativeLocation);
-        double VerticalSupport = 0.0;
+        FVector ShapeTop;
         if (Shape.Type == EKalmalaWildlifeBodyShapeType::Sphere)
         {
-            VerticalSupport = Shape.RadiusCentimetres;
+            ShapeTop = ShapeLocation + FVector::UpVector * Shape.RadiusCentimetres;
         }
         else if (Shape.Type == EKalmalaWildlifeBodyShapeType::Capsule)
         {
             const FVector CapsuleAxis = (ActorRotationQuat * Shape.RelativeRotation.Quaternion())
                 .RotateVector(FVector::UpVector).GetSafeNormal();
-            VerticalSupport = Shape.RadiusCentimetres
-                + (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres) * FMath::Abs(CapsuleAxis.Z);
+            const double TopEndpointSign = CapsuleAxis.Z < 0.0 ? -1.0 : 1.0;
+            ShapeTop = ShapeLocation
+                + CapsuleAxis * (TopEndpointSign
+                    * (Shape.HalfHeightCentimetres - Shape.RadiusCentimetres))
+                + FVector::UpVector * Shape.RadiusCentimetres;
         }
         else
         {
             return false;
         }
 
-        const double ShapeTopZ = ShapeLocation.Z + VerticalSupport;
-        if (!FMath::IsFinite(ShapeTopZ)) return false;
-        BodyTopZ = FMath::Max(BodyTopZ, ShapeTopZ);
+        if (!FMath::IsFinite(ShapeTop.X) || !FMath::IsFinite(ShapeTop.Y)
+            || !FMath::IsFinite(ShapeTop.Z))
+        {
+            return false;
+        }
+        BodyTopPositions.Add(ShapeTop);
     }
 
-    if (!FMath::IsFinite(BodyTopZ)) return false;
-    OutBodyTop = FVector(ActorLocation.X, ActorLocation.Y, BodyTopZ);
-    return !OutBodyTop.ContainsNaN();
+    if (BodyTopPositions.IsEmpty()) return false;
+    OutBodyTopPositions = MoveTemp(BodyTopPositions);
+    return true;
+}
+
+bool AKalmalaGameMode::TryGetPopulationBodyTop(
+    const TArray<FKalmalaWildlifeBodyCollisionShape>& BodyShapes, const FVector ActorLocation,
+    const FRotator ActorRotation, FVector& OutBodyTop)
+{
+    OutBodyTop = FVector::ZeroVector;
+    TArray<FVector> BodyTopPositions;
+    if (!TryGetPopulationBodyTopPositions(
+            BodyShapes, ActorLocation, ActorRotation, BodyTopPositions))
+    {
+        return false;
+    }
+
+    OutBodyTop = BodyTopPositions[0];
+    for (const FVector& BodyTop : BodyTopPositions)
+    {
+        if (BodyTop.Z > OutBodyTop.Z) OutBodyTop = BodyTop;
+    }
+    return true;
 }
 
 bool AKalmalaGameMode::DoesSolidConstructionRoofIntersectSegment(
