@@ -32625,3 +32625,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Added checks run only on Development clients and do not mutate gameplay state. Existing replicated fields remain `COND_OwnerOnly`; claim validation remains server-authoritative.
 - **Known limitations / remaining scope:** Runtime replication behavior and the intentional exposed-field regression have not been exercised. The review findings remediation goal remains open.
 - **Next eligible task:** RF03 — Cover all Wolf land-surface samples.
+
+## Run 2026-11-12 — RF03 Wolf land-surface sample coverage
+
+- **Selected task:** RF03, verify the Wolf pack land-surface gate checks the pack anchor and all three generated member positions.
+- **Work completed:** Expanded the helper fixture's passing Wolf sample set to four values. Added a development-automation-only sample-result hook that preserves the real generated surface evaluation, then added descriptor-level coverage with a valid Tundra Wolf formation. The test records the anchor and all three generated member locations, checks their order and identity, and independently forces each of the four results to fail through `DoesPopulationDescriptorPassLandSurface`.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLandSurfaceTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the test-only hook, the descriptor-level production gate, Wolf member construction, and the four-sample assertions. No Unreal build or automation test was run.
+- **Full verification:** Deferred; RF03 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.LandSurface` automation remain unexecuted.
+- **Observable impact:** The focused automation now detects a missing or ignored anchor or any one of the three generated Wolf member surface results.
+- **Networking/authority:** The production gate remains server-authoritative and its sampling behavior is unchanged. The result hook exists only with `WITH_DEV_AUTOMATION_TESTS` and changes no gameplay state.
+- **Known limitations / remaining scope:** The focused automation has not been executed in Unreal. The separate CR remediation goal remains open.
+- **Next eligible task:** RF04 — Exercise Reef Maw aquatic footprint validation.

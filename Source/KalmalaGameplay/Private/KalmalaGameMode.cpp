@@ -5982,8 +5982,15 @@ bool AKalmalaGameMode::DoesPopulationLandPositionPassSurface(const FVector& Loca
     const FVector SurfaceNormal = FKalmalaTerrainHeightSampler::SampleSurfaceNormal(
         WorldGenerationConfig, Position);
 
-    return IsPopulationLandSurfaceSampleAllowed(true,
+    const bool bSampleAllowed = IsPopulationLandSurfaceSampleAllowed(true,
         FMath::IsFinite(GroundHeight) && FMath::IsFinite(Location.Z), bIsDry, SurfaceNormal);
+#if WITH_DEV_AUTOMATION_TESTS
+    if (PopulationLandSurfaceSampleForTests)
+    {
+        return PopulationLandSurfaceSampleForTests(Location, bSampleAllowed);
+    }
+#endif
+    return bSampleAllowed;
 }
 
 bool AKalmalaGameMode::IsPopulationLandSurfaceSampleAllowed(const bool bWithinBounds,

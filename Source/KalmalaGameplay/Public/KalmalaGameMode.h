@@ -184,6 +184,7 @@ private:
 
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
+    TFunction<bool(const FVector&, bool)> PopulationLandSurfaceSampleForTests;
     // Isolate the final disk boundary while exercising the real depletion callback.
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
     // Force the player-slot write boundary to fail after a candidate save is prepared.

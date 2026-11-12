@@ -223,7 +223,7 @@
     `Scripts/Tests/Progression/DiscoveryPeer.ps1` and `ExplorationRewards.ps1`
     after an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf02--discovery-peer-privacy-probe-checks-the-local-pawn-p2`.
-  - [ ] **RF03 — Cover all Wolf land-surface samples (P3; CR03-001b-78).**
+  - [x] **RF03 — Cover all Wolf land-surface samples (P3; CR03-001b-78).**
     `KalmalaGameMode.cpp:5928-5953` checks the pack anchor and all three actual
     member locations. `KalmalaPopulationLandSurfaceTest.cpp:39-52` claims its
     success case covers the center and all three members, but supplies only
