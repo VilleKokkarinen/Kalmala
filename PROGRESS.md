@@ -32697,3 +32697,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** S25 and source checks remain server-authoritative. The radius override is compiled only with `WITH_DEV_AUTOMATION_TESTS`; production suppression radii and replicated state are unchanged.
 - **Known limitations / remaining scope:** The focused automation has not been executed in Unreal. The separate CR remediation goal remains open.
 - **Next eligible task:** RF09 — Cover lazy pruning of stale live-creature entries.
+
+## Run 2026-11-12 — RF09 lazy live-creature registry pruning
+
+- **Selected task:** RF09, prove the live-creature count query prunes stale invalid and defeated weak entries while preserving healthy current-position counts.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.LiveCreatureRegistry` to reinsert an invalid destroyed-actor weak handle and a defeated-actor weak handle directly into the registry after their normal lifecycle cleanup. A subsequent count excludes both, removes both entries, and retains the healthy actor and its existing radius count behavior.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationLiveCreatureRegistryTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the lazy-prune branch, explicit defeat/EndPlay unregister paths, stale weak-entry setup, registry-size assertions, and healthy actor count checks. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF09 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.LiveCreatureRegistry` automation remain unexecuted.
+- **Observable impact:** The focused automation now detects loss of count-time cleanup for an invalid handle or a defeated actor left in the long-running server registry, without changing valid count semantics.
+- **Networking/authority:** The count query remains server-authoritative and read-only with respect to gameplay state; the test directly injects stale registry entries in its isolated server world.
+- **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The separate CR remediation goal remains open.
+- **Next eligible task:** RF10 — Verify population unload against every living player.

@@ -318,7 +318,7 @@
     Focused validation: run `Kalmala.Gameplay.Population.PhysicalPlacementGate`
     after an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf08--s25-camp-suppression-lacks-wolf-member-composition-coverage-p3`.
-  - [ ] **RF09 — Cover lazy pruning of stale live-creature entries (P3; CR03-001b-84).**
+  - [x] **RF09 — Cover lazy pruning of stale live-creature entries (P3; CR03-001b-84).**
     Affected: `KalmalaGameMode.cpp:6829-6864` and
     `KalmalaPopulationLiveCreatureRegistryTest.cpp:58-84`. The count query
     removes invalid, foreign-world, non-authoritative, defeated and dead weak
