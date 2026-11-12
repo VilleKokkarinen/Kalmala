@@ -298,7 +298,7 @@
     Focused validation: run `Kalmala.Gameplay.Population.MovementSupport` after
     an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf07--movement-support-descriptor-composition-lacks-a-focused-test-p3`.
-  - [ ] **RF08 — Exercise S25 camp suppression for every Wolf member origin (P3; CR03-001b-82).**
+  - [x] **RF08 — Exercise S25 camp suppression for every Wolf member origin (P3; CR03-001b-82).**
     Affected: `KalmalaGameMode.cpp:6416-6480`,
     `KalmalaPopulationPhysicalPlacementGateTest.cpp:24-76`,
     `KalmalaPopulationStationCylinderTest.cpp:35-79`, and

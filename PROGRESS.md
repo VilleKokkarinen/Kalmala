@@ -32685,3 +32685,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production movement-support evaluation remains in the server-authoritative GameMode gate. The observation seam exists only with `WITH_DEV_AUTOMATION_TESTS`; no runtime behavior or replicated state changed.
 - **Known limitations / remaining scope:** The deterministic fixtures and new automation have not been executed in Unreal. The Review findings remediation goal remains open.
 - **Next eligible task:** RF08 — Exercise S25 camp suppression for every Wolf member origin.
+
+## Run 2026-11-12 — RF08 S25 Wolf-member camp suppression
+
+- **Selected task:** RF08, prove valid S25 admission without sources and rejection when each actual Wolf member origin overlaps a Workbench, Forge, or eligible Camp Bed source while the pack anchor stays outside that source field.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.PhysicalPlacementGate` with a deterministic valid Tundra Wolf pack and per-member source cases for Workbench, Forge, and Camp Bed. Each case checks the source point predicate, verifies the pack anchor and other members are outside the isolated field, rejects through S25, removes the source, and confirms admission returns. Added a Development-automation-only radius override for this fixture: production fields are 1800 cm while Wolf members are only 240 cm from the pack anchor, so a smaller 200 cm test field is needed to isolate member checks. Existing station and camp point tests continue to cover production-radius behavior.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPhysicalPlacementGateTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the existing rejection-order assertions, S25 member iteration, deterministic Wolf descriptor construction, source eligibility checks, and the test-only radius override. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF08 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.PhysicalPlacementGate` automation remain unexecuted.
+- **Observable impact:** Focused S25 coverage now detects omission of Workbench, Forge, or Camp Bed suppression for any generated Wolf member, while retaining no-source admission and the existing earlier-gate rejection assertions.
+- **Networking/authority:** S25 and source checks remain server-authoritative. The radius override is compiled only with `WITH_DEV_AUTOMATION_TESTS`; production suppression radii and replicated state are unchanged.
+- **Known limitations / remaining scope:** The focused automation has not been executed in Unreal. The separate CR remediation goal remains open.
+- **Next eligible task:** RF09 — Cover lazy pruning of stale live-creature entries.

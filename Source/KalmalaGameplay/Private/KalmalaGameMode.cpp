@@ -6357,7 +6357,14 @@ bool AKalmalaGameMode::DoesPopulationPointOverlapStationCylinder(const FVector& 
         return true;
     }
 
-    const double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
+    double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (FMath::IsFinite(PopulationSuppressionRadiusCmForTests)
+        && PopulationSuppressionRadiusCmForTests >= 0.0)
+    {
+        Radius = PopulationSuppressionRadiusCmForTests;
+    }
+#endif
     const double RadiusSquared = Radius * Radius;
     constexpr double HalfHeight = FKalmalaMonsterSpawnTuning::PopulationStationCylinderHalfHeightCm;
     for (TActorIterator<AKalmalaConstructionActor> Iterator(World); Iterator; ++Iterator)
@@ -6402,7 +6409,14 @@ bool AKalmalaGameMode::DoesPopulationPointOverlapCampSphere(const FVector& Candi
         return true;
     }
 
-    const double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
+    double Radius = FKalmalaMonsterSpawnTuning::CampSuppressionRadiusCm;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (FMath::IsFinite(PopulationSuppressionRadiusCmForTests)
+        && PopulationSuppressionRadiusCmForTests >= 0.0)
+    {
+        Radius = PopulationSuppressionRadiusCmForTests;
+    }
+#endif
     const double RadiusSquared = Radius * Radius;
     const auto IsWithinCampSphere = [CandidateLocation, RadiusSquared](const FVector& Origin)
     {
