@@ -32661,3 +32661,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Roof queries remain on the authoritative GameMode path; no client authority or replication behavior changed.
 - **Known limitations / remaining scope:** The focused fixture has not been executed in Unreal. Remaining CR remediation tasks are incomplete.
 - **Next eligible task:** RF06 — Exercise valid body-clearance descriptor composition.
+
+## Run 2026-11-12 — RF06 valid body-clearance composition
+
+- **Selected task:** RF06, prove valid land wildlife passes S22a and an intersecting body blocker rejects through the descriptor predicate, including every generated Wolf member.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.BodyClearance` to find deterministic land-valid Boar and Tundra Wolf descriptors. Both pass `DoesPopulationDescriptorPassBodyClearance` without blockers. A blocker then rejects the Boar and each generated Wolf member in turn; moving it away restores admission after every case.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationBodyClearanceTest.cpp`.
+- **Lightweight checks:** `git diff --check` and static inspection of the descriptor search, land/habitat checks, Wolf member builder, blocker placement, and descriptor-level assertions. No Unreal build or automation test was run.
+- **Full verification:** Deferred; RF06 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.BodyClearance` automation remain unexecuted.
+- **Observable impact:** The focused automation now detects a fail-closed regression for valid wildlife, a missing body-overlap rejection, or omission of any Wolf member from the descriptor composition.
+- **Networking/authority:** Production body clearance remains server-authoritative and unchanged. Fixtures mutate only the isolated test world.
+- **Known limitations / remaining scope:** The focused automation has not been executed in Unreal. Remaining CR remediation tasks are incomplete.
+- **Next eligible task:** RF07 — Exercise movement-support descriptor composition.

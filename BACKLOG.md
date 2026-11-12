@@ -263,7 +263,7 @@
     actor-origin trace; no roof and roofs beyond 24 m remain eligible. Focused
     validation: run Kalmala.Gameplay.Population.RoofClearance after an Editor build.
     Evidence and repair: Temporary/Review/findings.md#rf05--snake-roof-clearance-traces-only-the-actor-center-p3.
-  - [ ] **RF06 — Exercise valid body-clearance descriptor composition (P3; CR03-001b-80).**
+  - [x] **RF06 — Exercise valid body-clearance descriptor composition (P3; CR03-001b-80).**
     Affected: KalmalaGameMode.cpp:6103-6169; KalmalaPopulationBodyClearanceTest.cpp:281-286;
     KalmalaPopulationPhysicalPlacementGateTest.cpp:24-49.
     Trigger: a regression in full descriptor body validation denies valid wildlife or

@@ -2,7 +2,12 @@
 
 #include "KalmalaGameMode.h"
 #include "KalmalaWildlifeSpawn.h"
+#include "KalmalaBiomeClassifier.h"
+#include "KalmalaTerrainHeightSampler.h"
 #include "KalmalaWorldBounds.h"
+#include "KalmalaWorldFieldSampler.h"
+#include "KalmalaWorldPopulationLayout.h"
+#include "KalmalaWolfPackContract.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -284,6 +289,162 @@ bool FKalmalaPopulationBodyClearanceTest::RunTest(const FString& Parameters)
     InvalidPosition.Location.X = std::numeric_limits<double>::quiet_NaN();
     TestFalse(TEXT("The authoritative body-clearance predicate rejects nonfinite descriptors"),
         Mode->DoesPopulationDescriptorPassBodyClearance(InvalidPosition));
+
+    FKalmalaWorldGenerationConfig CompositionConfig;
+    CompositionConfig.WorldSeed = 418;
+    Mode->WorldGenerationConfig = CompositionConfig;
+    const FVector ClearBlockerLocation(0.0, 0.0, -100000.0);
+    Blocker->SetActorLocation(ClearBlockerLocation);
+    BlockerCollision->SetBoxExtent(FVector(10.0));
+
+    FKalmalaWorldPopulationSpawn BoarDescriptor;
+    FKalmalaWorldPopulationSpawn WolfPack;
+    TArray<FKalmalaWorldPopulationSpawn> WolfMemberDescriptors;
+    bool bFoundClearBoar = false;
+    bool bFoundClearWolfPack = false;
+    constexpr int32 SearchSpacingCentimetres = 25000;
+    const int32 SearchExtentCentimetres = static_cast<int32>(FKalmalaWorldBounds::Radius);
+    const FVector2D ExistingCreatureFixtureCenter(21500.0, 20000.0);
+    for (int32 Y = -SearchExtentCentimetres + SearchSpacingCentimetres;
+        Y < SearchExtentCentimetres && (!bFoundClearBoar || !bFoundClearWolfPack);
+        Y += SearchSpacingCentimetres)
+    {
+        for (int32 X = -SearchExtentCentimetres + SearchSpacingCentimetres;
+            X < SearchExtentCentimetres && (!bFoundClearBoar || !bFoundClearWolfPack);
+            X += SearchSpacingCentimetres)
+        {
+            const FVector2D Position(X, Y);
+            if (!FKalmalaWorldBounds::Contains(CompositionConfig, Position)
+                || Position.SizeSquared() < FMath::Square(30000.0)
+                || FVector2D::DistSquared(Position, ExistingCreatureFixtureCenter)
+                    < FMath::Square(30000.0))
+            {
+                continue;
+            }
+
+            const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+                FKalmalaWorldFieldSampler::Sample(CompositionConfig, Position));
+            const bool bPotentialBoar = !bFoundClearBoar
+                && (Biome == EKalmalaBiome::Meadows || Biome == EKalmalaBiome::ShimmeringLakes
+                    || Biome == EKalmalaBiome::Elderwood);
+            const bool bPotentialWolf = !bFoundClearWolfPack
+                && Biome == EKalmalaBiome::FreezingTundra;
+            if (!bPotentialBoar && !bPotentialWolf) continue;
+
+            const float GroundHeight = FKalmalaTerrainHeightSampler::SampleHeight(
+                CompositionConfig, Position);
+            if (!FMath::IsFinite(GroundHeight)) continue;
+
+            if (bPotentialBoar)
+            {
+                FKalmalaWorldPopulationSpawn Candidate;
+                Candidate.Kind = EKalmalaWorldPopulationKind::Wildlife;
+                Candidate.SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(Position);
+                Candidate.SpawnSeed = 0;
+                Candidate.Location = FVector(Position.X, Position.Y, GroundHeight);
+                EKalmalaWildlifeArchetype CandidateArchetype;
+                if (Mode->DoesPopulationDescriptorPassSpeciesHabitat(
+                        Candidate, &CandidateArchetype)
+                    && CandidateArchetype == EKalmalaWildlifeArchetype::Boar
+                    && Mode->DoesPopulationDescriptorPassLandSurface(Candidate)
+                    && Mode->DoesPopulationDescriptorPassBodyClearance(Candidate))
+                {
+                    BoarDescriptor = MoveTemp(Candidate);
+                    bFoundClearBoar = true;
+                }
+            }
+
+            if (bPotentialWolf)
+            {
+                FKalmalaWorldPopulationSpawn Candidate;
+                Candidate.Kind = EKalmalaWorldPopulationKind::Wildlife;
+                Candidate.SpatialKey = FKalmalaWorldPopulationLayout::GetSpatialKey(Position);
+                Candidate.SpawnSeed = 5;
+                Candidate.Location = FVector(Position.X, Position.Y, GroundHeight);
+                EKalmalaWildlifeArchetype CandidateArchetype;
+                if (!Mode->DoesPopulationDescriptorPassSpeciesHabitat(
+                        Candidate, &CandidateArchetype)
+                    || CandidateArchetype != EKalmalaWildlifeArchetype::Wolf)
+                {
+                    continue;
+                }
+
+                TArray<FKalmalaWorldPopulationSpawn> CandidateMembers;
+                CandidateMembers.Reserve(FKalmalaWolfPackContract::MemberCount);
+                bool bAllMembersBuild = true;
+                for (int32 MemberIndex = 0;
+                    MemberIndex < FKalmalaWolfPackContract::MemberCount; ++MemberIndex)
+                {
+                    FKalmalaWorldPopulationSpawn MemberSpawn;
+                    EKalmalaWildlifeArchetype MemberArchetype;
+                    if (!FKalmalaWolfPackContract::TryBuildMemberSpawn(
+                            CompositionConfig, Candidate, MemberIndex, MemberSpawn)
+                        || !Mode->DoesPopulationDescriptorPassSpeciesHabitat(
+                            MemberSpawn, &MemberArchetype)
+                        || MemberArchetype != EKalmalaWildlifeArchetype::Wolf)
+                    {
+                        bAllMembersBuild = false;
+                        break;
+                    }
+                    CandidateMembers.Add(MoveTemp(MemberSpawn));
+                }
+
+                if (bAllMembersBuild
+                    && Mode->DoesPopulationDescriptorPassLandSurface(Candidate)
+                    && Mode->DoesPopulationDescriptorPassBodyClearance(Candidate))
+                {
+                    WolfPack = MoveTemp(Candidate);
+                    WolfMemberDescriptors = MoveTemp(CandidateMembers);
+                    bFoundClearWolfPack = true;
+                }
+            }
+        }
+    }
+    if (!TestTrue(TEXT("A valid clear Boar descriptor passes body-clearance composition"),
+        bFoundClearBoar)) return false;
+    if (!TestTrue(TEXT("A generated three-member Wolf descriptor passes body-clearance composition"),
+        bFoundClearWolfPack)) return false;
+    TestEqual(TEXT("The passing Wolf descriptor includes all generated members"),
+        WolfMemberDescriptors.Num(), FKalmalaWolfPackContract::MemberCount);
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> BoarShapes;
+    if (!TestTrue(TEXT("Boar exposes its active body profile"),
+        AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(
+            EKalmalaWildlifeArchetype::Boar, BoarShapes))) return false;
+    FVector BoarActorLocation;
+    if (!TestTrue(TEXT("The valid Boar descriptor has a supported actor origin"),
+        Mode->TryGetPopulationActorPlacementLocation(
+            BoarDescriptor, EKalmalaWildlifeArchetype::Boar, BoarShapes,
+            BoarActorLocation))) return false;
+    TestTrue(TEXT("The valid Boar descriptor passes with no intersecting body blocker"),
+        Mode->DoesPopulationDescriptorPassBodyClearance(BoarDescriptor));
+    Blocker->SetActorLocation(BoarActorLocation);
+    TestFalse(TEXT("A blocker on the Boar body rejects through descriptor composition"),
+        Mode->DoesPopulationDescriptorPassBodyClearance(BoarDescriptor));
+    Blocker->SetActorLocation(ClearBlockerLocation);
+    TestTrue(TEXT("The Boar descriptor passes again after its blocker is moved away"),
+        Mode->DoesPopulationDescriptorPassBodyClearance(BoarDescriptor));
+
+    TArray<FKalmalaWildlifeBodyCollisionShape> WolfShapes;
+    if (!TestTrue(TEXT("Wolf exposes its active body profile"),
+        AKalmalaWildlifeSpawn::GetBodyCollisionShapesForArchetype(
+            EKalmalaWildlifeArchetype::Wolf, WolfShapes))) return false;
+    TestTrue(TEXT("The valid Wolf pack passes with no intersecting body blocker"),
+        Mode->DoesPopulationDescriptorPassBodyClearance(WolfPack));
+    for (int32 MemberIndex = 0; MemberIndex < WolfMemberDescriptors.Num(); ++MemberIndex)
+    {
+        FVector MemberActorLocation;
+        if (!TestTrue(FString::Printf(TEXT("Wolf member %d has a supported actor origin"), MemberIndex),
+            Mode->TryGetPopulationActorPlacementLocation(
+                WolfMemberDescriptors[MemberIndex], EKalmalaWildlifeArchetype::Wolf,
+                WolfShapes, MemberActorLocation))) return false;
+        Blocker->SetActorLocation(MemberActorLocation);
+        TestFalse(FString::Printf(TEXT("A blocker on generated Wolf member %d rejects the whole pack"),
+            MemberIndex), Mode->DoesPopulationDescriptorPassBodyClearance(WolfPack));
+        Blocker->SetActorLocation(ClearBlockerLocation);
+        TestTrue(FString::Printf(TEXT("Wolf pack passes again after member %d blocker is removed"),
+            MemberIndex), Mode->DoesPopulationDescriptorPassBodyClearance(WolfPack));
+    }
 
     FKalmalaPopulationSpawnGateResults PlacementResults;
     PlacementResults.bSchedulerBudgetAvailable = true;
