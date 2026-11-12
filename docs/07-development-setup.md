@@ -2232,8 +2232,12 @@ generated-terrain collision recovery guidance.
 with a short isolated host/owner phase that checks distinct server-published
 messages. Both local HUD text paths must show their own result, while the
 owner's client copy of the host pawn must retain no feedback. The runner then
-starts its journey/reconnect scenario. This headless check verifies owner-only
-replication and message text, not a rendered viewport or live launch trace.
+starts its journey/reconnect scenario. Its underway and resumed late-join
+checks inspect both original Host and Helm pawn replicas for empty discovery
+feedback, serial zero, an empty label, and no private inventory stacks; the
+runner accepts the late-join result only after those checks pass. This headless
+check verifies owner-only replication and message text, not a rendered viewport
+or live launch trace.
 
 ## M8 ocean weather navigation pressure
 
@@ -2502,9 +2506,13 @@ only that normal server descriptor, and uses the existing payload-free
 interaction path. The scenario rejects a distant remote claimant, records one
 entitled-player acknowledgement, and rejects the duplicate without creating a
 second discovery. The client must receive the server identity while retaining
-no owner-only feedback for the other player's undiscovered content. This
-development-only fixture sends no descriptor, target, reward, identity, or
-progression payload from client to server and does not expose a discovery list.
+no owner-only feedback for the other player's undiscovered content. Its
+development-only client probe also samples the nonlocal Host replica through
+server fixture completion and requires empty feedback, serial zero, an empty
+label, and no private inventory stacks. The runner fails on an exposed field
+and requires a probe after the server accepts the duplicate check. This fixture
+sends no descriptor, target, reward, identity, or progression payload from
+client to server and does not expose a discovery list.
 
 ## Support-magic foundation regression
 
@@ -4389,7 +4397,10 @@ walks up from the category folder to locate `Kalmala.uproject`; keep the helper
 alongside the categorized runners in the mirror. The host/client fixture requires the server to accept the
 exact reward for each player while rejecting distant, forged, duplicate, and
 replayed claims, and checks that owner-only feedback and inventory state do not
-leak to the other peer. Claims now persist in the authenticated player's
+leak to the other peer. The Remote client's recurring privacy probe inspects
+the nonlocal Host replica through fixture completion for feedback, serial,
+label, and private inventory stacks; the runner requires a passing sample
+after server acceptance. Claims now persist in the authenticated player's
 schema-2 save; reward materials remain session-only because ordinary inventory
 is not saved. The fixture uses the null renderer, so it does not review the
 discovery's visual presentation in-world.

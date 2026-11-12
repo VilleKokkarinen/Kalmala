@@ -199,7 +199,7 @@
     keys while preserving live rain accumulation; validate repeated destroyed
     characters/disconnects and unchanged Wet timing. Evidence and acceptance:
     `Temporary/Review/findings.md#rf01--prune-stale-per-character-rain-timers-p3`.
-  - [ ] **RF02 — Check discovery privacy on the remote client
+  - [x] **RF02 — Check discovery privacy on the remote client
     (P2; CR03-001b-62, CR03-001b-64).** Affected files:
     `KalmalaCharacter.cpp:736-750`, `KalmalaGameMode.cpp:4992-4999, 5201-5290`,
     `Scripts/Tests/Progression/DiscoveryPeer.ps1:23-28`, and

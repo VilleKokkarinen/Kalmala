@@ -150,6 +150,7 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyIntegratedJourneyLateJoinRep
 	const AKalmalaWorldGenerationGameState* State = GetWorld()->GetGameState<AKalmalaWorldGenerationGameState>();
 	const UKalmalaInventoryComponent* Inventory = Character->GetInventoryComponent();
 	const UKalmalaDiscoveryProgressComponent* Discovery = Character->GetDiscoveryProgressComponent();
+	const bool bOriginalOwnerDiscoveryStateHidden = AreOriginalOwnerDiscoveryStatesHiddenFrom(Character);
 	const bool bAccepted = HasSingleReconnectSkiff() && State != nullptr
 		&& State->GetWorldGenerationConfig().WorldSeed == 418
 		&& TestSkiff->GetMode() == EKalmalaOceanSkiffMode::Underway
@@ -157,11 +158,12 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyIntegratedJourneyLateJoinRep
 		&& TestSkiff->GetHelmOccupant()->GetPlayerState() == HelmPlayerState
 		&& TestSkiff->GetPassengerOccupant()->GetPlayerState() == PassengerPlayerState
 		&& Character->GetAttachParentActor() == nullptr && Inventory != nullptr && Discovery != nullptr
+		&& bOriginalOwnerDiscoveryStateHidden
 		&& Inventory->GetQuantity(ExpectedRewardItemId) == 0
 		&& Discovery->GetFeedback() == EKalmalaDiscoveryFeedback::None;
 	if (!bAccepted)
 	{
-		Fail(TEXT("late owner did not observe the underway vessel without attachment or private discovery state"));
+		Fail(TEXT("late owner observed private discovery state or did not observe the underway vessel without attachment"));
 		return;
 	}
 

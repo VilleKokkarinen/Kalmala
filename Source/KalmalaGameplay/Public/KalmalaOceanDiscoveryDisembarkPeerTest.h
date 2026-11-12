@@ -20,6 +20,7 @@ private:
 	bool PrepareReconnectScenario(bool bResume);
 	void VerifyReconnectLateJoin(bool bResume);
 	void VerifyReconnectLocalReplica(const FString& Phase);
+	bool AreOriginalOwnerDiscoveryStatesHiddenFrom(const class AKalmalaCharacter* Observer) const;
 	bool FindReconnectDiscovery(struct FKalmalaOceanDiscoveryDescriptor& OutDescriptor) const;
 	bool HasSingleReconnectSkiff() const;
 	void FailReconnect(const TCHAR* Reason);

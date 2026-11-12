@@ -548,6 +548,38 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyReconnectLateJoin(const bool
 		bResume ? TEXT("resume") : TEXT("seed"), LateJoinHash);
 }
 
+bool AKalmalaOceanDiscoveryDisembarkPeerTest::AreOriginalOwnerDiscoveryStatesHiddenFrom(
+	const AKalmalaCharacter* Observer) const
+{
+	if (!IsValid(GetWorld()) || !IsValid(Observer)) return false;
+
+	APlayerState* OwnerStates[] = { HelmPlayerState.Get(), PassengerPlayerState.Get() };
+	for (APlayerState* OwnerState : OwnerStates)
+	{
+		if (!IsValid(OwnerState)) return false;
+		AKalmalaCharacter* OwnerCharacter = nullptr;
+		for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+		{
+			if (It->GetPlayerState() == OwnerState)
+			{
+				OwnerCharacter = *It;
+				break;
+			}
+		}
+
+		if (!IsValid(OwnerCharacter) || OwnerCharacter == Observer) return false;
+		const UKalmalaInventoryComponent* Inventory = OwnerCharacter->GetInventoryComponent();
+		const UKalmalaDiscoveryProgressComponent* Discovery = OwnerCharacter->GetDiscoveryProgressComponent();
+		if (Inventory == nullptr || Discovery == nullptr || !Inventory->GetStacks().IsEmpty()
+			|| Discovery->GetFeedback() != EKalmalaDiscoveryFeedback::None
+			|| Discovery->GetFeedbackSerial() != 0 || !Discovery->GetFeedbackLabel().IsEmpty())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyReconnectLocalReplica(const FString& Phase)
 {
 	APlayerController* Controller = GetWorld() != nullptr ? GetWorld()->GetFirstPlayerController() : nullptr;
@@ -594,14 +626,20 @@ void AKalmalaOceanDiscoveryDisembarkPeerTest::VerifyReconnectLocalReplica(const 
 	uint32 LocalIdentityHash = 0;
 	const bool bLocalIsAuthenticatedLateJoin = GetIdentityHash(LocalState, LocalIdentityHash)
 		&& LocalIdentityHash == LateJoinIdentityHash;
-	if (bLateJoinOutcomePublished && bLocalIsAuthenticatedLateJoin
-		&& Character->GetAttachParentActor() == nullptr
-		&& IsValid(TestSkiff->GetHelmOccupant()) && IsValid(TestSkiff->GetPassengerOccupant())
-		&& TestSkiff->GetHelmOccupant()->GetPlayerState() == HelmPlayerState
-		&& TestSkiff->GetPassengerOccupant()->GetPlayerState() == PassengerPlayerState
-		&& Inventory->GetQuantity(ExpectedRewardItemId) == 0
-		&& Discovery->GetFeedback() == EKalmalaDiscoveryFeedback::None)
+	if (bLateJoinOutcomePublished && bLocalIsAuthenticatedLateJoin && bSkiffState
+		&& Character->GetAttachParentActor() == nullptr)
 	{
+		if (!AreOriginalOwnerDiscoveryStatesHiddenFrom(Character))
+		{
+			FailReconnect(TEXT("late join observed original owners' private discovery feedback or reward inventory"));
+			return;
+		}
+		if (Inventory->GetQuantity(ExpectedRewardItemId) != 0
+			|| Discovery->GetFeedback() != EKalmalaDiscoveryFeedback::None)
+		{
+			FailReconnect(TEXT("late join observed private discovery feedback or reward in its own state"));
+			return;
+		}
 		UE_LOG(LogTemp, Display,
 			TEXT("Ocean skiff reconnect %s late-join peer passed: Authority=0 Seed=418 VesselActors=1 Seats=OriginalPeers LatePlayerAttached=0 RewardLeak=0"),
 			bResume ? TEXT("resume") : TEXT("seed"));

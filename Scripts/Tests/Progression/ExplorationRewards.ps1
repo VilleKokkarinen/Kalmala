@@ -10,6 +10,9 @@ New-Item -ItemType Directory -Path $output -Force | Out-Null
 $serverLog = Join-Path $output 'server.log'
 $clientLog = Join-Path $output 'client.log'
 $common = '-game -nullrhi -nosound -unattended -nosplash -DDC-ForceMemoryCache -forcelogflush -KalmalaM9ExplorationRewardPeerTest'
+$serverPassedPattern = 'M9 exploration reward verification server: Passed=1 Deterministic=1 DistantRejected=1 ForgedRejected=1 ActorReplayRejected=1 DirectReplayRejected=1 IndependentPlayer=1 OwnerOnlyState=1'
+$privacyProbePattern = 'Peer owner-only state probe: Test=M9 Passed=1'
+$privacyProbeCountAtServerPass = -1
 $server = $null
 $client = $null
 try {
@@ -29,17 +32,21 @@ try {
         if ($server.HasExited -or $client.HasExited) { throw 'An M9 exploration reward peer exited before verification.' }
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
-        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|M9 exploration reward verification FAILED:|M9 exploration reward verification server: Passed=0') {
+        if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|M9 exploration reward verification FAILED:|M9 exploration reward verification server: Passed=0|Peer owner-only state probe: Test=M9 Passed=0') {
             throw 'M9 exploration reward peer verification failed; inspect retained logs.'
         }
-        $ready = $serverText -match 'M9 exploration reward verification server: Passed=1 Deterministic=1 DistantRejected=1 ForgedRejected=1 ActorReplayRejected=1 DirectReplayRejected=1 IndependentPlayer=1 OwnerOnlyState=1'
+        $serverPassed = $serverText -match $serverPassedPattern
+        $privacyProbeCount = [regex]::Matches($clientText, [regex]::Escape($privacyProbePattern)).Count
+        if ($serverPassed -and $privacyProbeCountAtServerPass -lt 0) { $privacyProbeCountAtServerPass = $privacyProbeCount }
+        $privacyProbeAfterServerPass = $serverPassed -and $privacyProbeCountAtServerPass -ge 0 -and $privacyProbeCount -gt $privacyProbeCountAtServerPass
+        $ready = $serverPassed -and $privacyProbeAfterServerPass
         $ready = $ready -and $clientText -match 'Client received world-generation identity: Seed=418'
         if ($ready) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
 
     if (!$ready) { throw 'M9 exploration reward peer scenario timed out.' }
-    Write-Output 'PASS: deterministic land reward placement; distant, forged, and replayed claims rejected; exact owner rewards and separate co-op claims verified.'
+    Write-Output 'PASS: deterministic land reward and claim checks passed; after server completion the client observed no host feedback, serial, label, or private reward inventory.'
 }
 finally {
     foreach ($peer in @($client, $server)) {

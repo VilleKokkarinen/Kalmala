@@ -32613,3 +32613,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Cleanup runs in the server-owned GameMode update. No client-controlled inputs or replicated state changed.
 - **Known limitations / remaining scope:** The focused Unreal automation has not been executed, and runtime Wet timing remains to be verified during final remediation verification. The review findings remediation goal remains open.
 - **Next eligible task:** RF02 — Check discovery privacy on the remote client.
+
+## Run 2026-11-12 — RF02 remote discovery privacy probes
+
+- **Selected task:** RF02, make peer checks observe owner-private discovery state on non-owner clients.
+- **Work completed:** Added a recurring Development-only probe of nonlocal player replicas during DiscoveryPeer and M9 exploration-reward sessions. It requires empty feedback, serial zero, an empty label, and no inventory stacks. Both progression runners now reject probe failures and require a passing sample after the server reports fixture completion. The Ocean reconnect late-join replicas now inspect both original Host and Helm pawn states before emitting their existing pass markers.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/07-development-setup.md`, `Scripts/Tests/Progression/DiscoveryPeer.ps1`, `Scripts/Tests/Progression/ExplorationRewards.ps1`, `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`, `Source/KalmalaGameplay/Public/KalmalaCharacter.h`, `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp`, `Source/KalmalaGameplay/Private/KalmalaOceanIntegratedReconnectPeerTest.cpp`, and `Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryDisembarkPeerTest.h`.
+- **Lightweight checks:** PowerShell AST parsing passed for both modified progression runners; `git diff --check` passed. Inspected the owner-only replication conditions and the server and client fixture gates. No Unreal build, peer runner, or intentional exposed-field regression was run.
+- **Full verification:** Deferred; RF02 is not the final remediation task. The Editor build, both progression peer runs, Ocean reconnect runs, and negative replication regression remain unexecuted.
+- **Observable impact:** The peer scenarios now fail when another player's discovery feedback, serial, label, or inventory stacks become visible, and require a client observation after server-side claims complete.
+- **Networking/authority:** Added checks run only on Development clients and do not mutate gameplay state. Existing replicated fields remain `COND_OwnerOnly`; claim validation remains server-authoritative.
+- **Known limitations / remaining scope:** Runtime replication behavior and the intentional exposed-field regression have not been exercised. The review findings remediation goal remains open.
+- **Next eligible task:** RF03 — Cover all Wolf land-surface samples.

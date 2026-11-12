@@ -748,6 +748,40 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
             UE_LOG(LogTemp, Error, TEXT("Discovery verification client received undiscovered remote progress feedback."));
         }
     }
+
+    const bool bDiscoveryPeerPrivacyTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest"));
+    const bool bExplorationRewardPeerPrivacyTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest"));
+    const APlayerState* ReplicatedPlayerState = GetPlayerState();
+    if (!HasAuthority() && !IsLocallyControlled() && ReplicatedPlayerState != nullptr
+        && (bDiscoveryPeerPrivacyTest || bExplorationRewardPeerPrivacyTest)
+        && GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= OwnerOnlyPrivacyProbeNextTime)
+    {
+        OwnerOnlyPrivacyProbeNextTime = GetWorld()->GetTimeSeconds() + 0.5f;
+        const UKalmalaDiscoveryProgressComponent* Progress = GetDiscoveryProgressComponent();
+        const UKalmalaInventoryComponent* InventoryState = GetInventoryComponent();
+        const bool bLabelEmpty = Progress != nullptr && Progress->GetFeedbackLabel().IsEmpty();
+        const bool bFeedbackClear = Progress != nullptr
+            && Progress->GetFeedback() == EKalmalaDiscoveryFeedback::None
+            && Progress->GetFeedbackSerial() == 0;
+        const int32 InventoryStackCount = InventoryState != nullptr ? InventoryState->GetStacks().Num() : INDEX_NONE;
+        const bool bPrivateInventoryEmpty = InventoryState != nullptr && InventoryStackCount == 0;
+        const bool bPassed = bFeedbackClear && bLabelEmpty && bPrivateInventoryEmpty;
+        const int32 Feedback = Progress != nullptr ? static_cast<int32>(Progress->GetFeedback()) : INDEX_NONE;
+        const uint32 FeedbackSerial = Progress != nullptr ? Progress->GetFeedbackSerial() : 0;
+        const TCHAR* TestName = bDiscoveryPeerPrivacyTest ? TEXT("Discovery") : TEXT("M9");
+        if (bPassed)
+        {
+            UE_LOG(LogTemp, Display,
+                TEXT("Peer owner-only state probe: Test=%s Passed=1 PlayerId=%d Feedback=%d Serial=%u LabelEmpty=%d InventoryStacks=%d"),
+                TestName, ReplicatedPlayerState->GetPlayerId(), Feedback, FeedbackSerial, bLabelEmpty, InventoryStackCount);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error,
+                TEXT("Peer owner-only state probe: Test=%s Passed=0 PlayerId=%d Feedback=%d Serial=%u LabelEmpty=%d InventoryStacks=%d"),
+                TestName, ReplicatedPlayerState->GetPlayerId(), Feedback, FeedbackSerial, bLabelEmpty, InventoryStackCount);
+        }
+    }
 #endif
 
     if (IsLocallyControlled() && Controller && Controller->IsMoveInputIgnored())
