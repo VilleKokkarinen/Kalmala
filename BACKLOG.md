@@ -192,7 +192,7 @@
     this parent unchecked until these review acceptance criteria are satisfied.
 
 - [ ] Review findings remediation — implement fixes recorded by CR01–CR19.
-  - [ ] **RF01 — Prune stale character rain timers (P3; CR03-001b-02).**
+  - [x] **RF01 — Prune stale character rain timers (P3; CR03-001b-02).**
     GameMode.cpp:435 adds weak-key timers; GameMode.h:610 retains them with no
     production pruning (only test-fixture removal). Repeated pawn replacement
     or reconnects grows the map until world teardown. After CR19, remove expired

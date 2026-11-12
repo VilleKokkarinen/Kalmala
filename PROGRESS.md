@@ -32601,3 +32601,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Review bookkeeping only; no gameplay or networking code changed and no peer session was run. Existing findings retain server-authority/privacy expectations for later repair.
 - **Known limitations / remaining scope:** The review does not claim unresolved findings are fixed, nor that unperformed builds, tests, rendered UI checks, or runtime peer scenarios passed. The separate remediation goal remains open with RF01 first.
 - **Next eligible task:** Review findings remediation — RF01, prune stale character rain timers.
+
+## Run 2026-11-12 — RF01 stale character rain accumulator cleanup
+
+- **Selected task:** RF01, remove expired per-character rain accumulators while preserving live Wet accumulation.
+- **Work completed:** The server environmental update now prunes invalid weak character keys before processing players. Added a focused GameMode automation fixture that repeats 32 controller disconnect and pawn destruction cycles, checks the map stays bounded, and confirms a live character's accumulated rain time is preserved. Existing rain-trigger behavior was not changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaUnroofedRainAccumulatorTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the server update call site, weak-key pruning, and regression fixture. No Unreal build or automation test was run.
+- **Full verification:** Deferred; this is not the final remediation task. The new `Kalmala.Gameplay.Exposure.RainAccumulatorCleanup` automation and existing rain-trigger coverage remain unexecuted.
+- **Observable impact:** Stale rain-time entries are removed during the one-second server exposure update; live player accumulation and Wet thresholds remain unchanged.
+- **Networking/authority:** Cleanup runs in the server-owned GameMode update. No client-controlled inputs or replicated state changed.
+- **Known limitations / remaining scope:** The focused Unreal automation has not been executed, and runtime Wet timing remains to be verified during final remediation verification. The review findings remediation goal remains open.
+- **Next eligible task:** RF02 — Check discovery privacy on the remote client.

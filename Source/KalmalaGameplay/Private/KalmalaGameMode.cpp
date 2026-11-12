@@ -396,8 +396,21 @@ void AKalmalaGameMode::UpdateInteractionGrid()
     }
 }
 
+void AKalmalaGameMode::PruneExpiredRainAccumulators()
+{
+    for (auto Iterator = UnroofedRainSecondsByCharacter.CreateIterator(); Iterator; ++Iterator)
+    {
+        if (!Iterator.Key().IsValid())
+        {
+            Iterator.RemoveCurrent();
+        }
+    }
+}
+
 void AKalmalaGameMode::UpdatePlayerExposure(const float DeltaSeconds)
 {
+    PruneExpiredRainAccumulators();
+
     const AKalmalaWorldGenerationGameState* WorldGenerationState = GetGameState<AKalmalaWorldGenerationGameState>();
     if (WorldGenerationState == nullptr)
     {

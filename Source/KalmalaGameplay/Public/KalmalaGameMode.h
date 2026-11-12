@@ -155,6 +155,7 @@ public:
 
 private:
     friend class AKalmalaCharacter;
+    friend class FKalmalaUnroofedRainAccumulatorTest;
     friend class FKalmalaForestPatchLifecycleTest;
     friend class FKalmalaTundraForestPatchLifecycleTest;
     friend class FKalmalaForestRestartTest;
@@ -315,6 +316,7 @@ private:
     void LogExposureInspection(const AActor* Occupant) const;
     void LogCampConditionInspection(const AActor* Occupant) const;
     void LogBiomeFeatureInspection(const AActor* Occupant) const;
+    void PruneExpiredRainAccumulators();
     void UpdatePlayerExposure(float DeltaSeconds);
     void UpdateInteractionGrid();
     void DriveCampChoiceTest();
