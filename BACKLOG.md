@@ -12,7 +12,7 @@
   - Lightweight presentation checks passed; Unreal build and live
     create/save/logout/reopen acceptance remain deferred. Review tasks unchanged.
 
-- [ ] Project-wide code review — review every project-owned file and integration.
+- [x] Project-wide code review — review every project-owned file and integration.
   - **Goal:** Produce a complete, traceable review of the current project against
     AGENTS.md and the brief, design, architecture, roadmap and decision log.
   - **Run instructions:** Complete the first unchecked, unblocked child in order,
@@ -72,7 +72,7 @@
   - [x] **CR12 — Review UI and accessibility.** Check Home/gameplay transitions,
     input/focus/cursor ownership, settings apply/revert, HUD, menus, map, scaling,
     labels, empty/error states and exposure of private information.
-  - [ ] **CR13 — Review catalogues and authored content.** Check every JSON and
+  - [x] **CR13 — Review catalogues and authored content.** Check every JSON and
     manifest reference, recipes/stats/attacks, icon mappings/provenance, maps,
     materials, meshes, textures, audio and Blueprint wiring against runtime use.
   - [x] **CR14 — Review Editor tools and scripts.** Check commandlets, previews,
@@ -165,7 +165,7 @@
     lifetime risks.** Assess bounded work from source structure, trace actor and
     timer teardown, and cross-reference domain findings; do not claim runtime
     performance without a profile.  
-  - [ ] **CR18 — Close coverage and prioritize findings.** Reconcile the ledger
+  - [x] **CR18 — Close coverage and prioritize findings.** Reconcile the ledger
     against the current tree, re-review changed files and eliminate unexplained
     gaps. Give each confirmed finding a concrete unchecked repair task with
     acceptance criteria and dependencies under Review findings remediation, or
@@ -177,11 +177,11 @@
       user disposition; record exact open batches, stale review assignments,
       missing evidence, and any evidence artifacts created after CR01. Keep all
       unreviewed or changed assignments explicitly open.
-    - [ ] **CR18-002 — Re-review stale previously reviewed assignments.**
+    - [x] **CR18-002 — Re-review stale previously reviewed assignments.**
       Re-review the bounded file batches identified by CR18-001 whose current
       hashes no longer match CR01, update the evidence with the reviewed hashes,
       and queue any newly confirmed findings. Preserve the CR01 fingerprints.
-  - [ ] **CR19 — Complete review acceptance.** Every in-scope file/batch has a
+  - [x] **CR19 — Complete review acceptance.** Every in-scope file/batch has a
     recorded result, exclusions have reasons, all findings have dispositions,
     and a final report lists reviewed revision/local changes, coverage totals,
     evidence, unresolved defects and limits. Perform lightweight checks per
@@ -236,7 +236,7 @@
     Focused validation: run `Kalmala.Gameplay.Population.LandSurface` after an
     Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf03--wolf-land-surface-test-omits-one-required-pack-location-p3`.
-  - [ ] **RF04 - Exercise Reef Maw aquatic footprint validation (P3; CR03-001b-79).**
+  - [ ] **RF04 — Exercise Reef Maw aquatic footprint validation (P3; CR03-001b-79).**
     KalmalaGameMode.cpp:6010-6102 validates the center and sampled sphere
     footprint. The dedicated test covers helper geometry, but its only
     descriptor-level call uses an out-of-bounds input at
@@ -248,7 +248,7 @@
     descriptor-level predicate. Focused validation: run
     Kalmala.Gameplay.Population.AquaticSurface after an Editor build. Evidence
     and repair: Temporary/Review/findings.md#rf04--reef-maw-whole-body-surface-loop-lacks-descriptor-path-test-p3.
-  - [ ] **RF05 - Trace offset snake body tops for roof clearance (P3; CR03-001b-80).**
+  - [ ] **RF05 — Trace offset snake body tops for roof clearance (P3; CR03-001b-80).**
     Affected: KalmalaGameMode.cpp:6217-6235,6583-6636; KalmalaWildlifeSpawn.cpp:3645-3692;
     KalmalaConstructionActor.cpp:416-435; KalmalaPopulationRoofClearanceTest.cpp:130-169.
     Trigger: a snake body top is beneath a RoofKit whose footprint misses the actor origin.
@@ -263,7 +263,7 @@
     actor-origin trace; no roof and roofs beyond 24 m remain eligible. Focused
     validation: run Kalmala.Gameplay.Population.RoofClearance after an Editor build.
     Evidence and repair: Temporary/Review/findings.md#rf05--snake-roof-clearance-traces-only-the-actor-center-p3.
-  - [ ] **RF06 - Exercise valid body-clearance descriptor composition (P3; CR03-001b-80).**
+  - [ ] **RF06 — Exercise valid body-clearance descriptor composition (P3; CR03-001b-80).**
     Affected: KalmalaGameMode.cpp:6103-6169; KalmalaPopulationBodyClearanceTest.cpp:281-286;
     KalmalaPopulationPhysicalPlacementGateTest.cpp:24-49.
     Trigger: a regression in full descriptor body validation denies valid wildlife or
@@ -433,10 +433,11 @@
     Focused validation: run the new GameMode hazard-materialization test after
     an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf14--generated-hazard-materialization-and-permanent-depletion-lack-integration-coverage-p3`.
-  - [ ] **RF15 — Recycle active population keys during traversal (P1; CR03-001b-94).**
-    Affected: `KalmalaGameMode.cpp:8311, 5365-5450, 7922, 8619`;
+  - [ ] **RF15 — Recycle active population keys during traversal (P1; CR03-001b-63/66/94).**
+    Affected: `KalmalaGameMode.cpp:5093-5184, 5364-5450, 7922, 8311, 8479-8622`;
     `KalmalaPopulationSpatialKeyUnionTest.cpp:42-133`;
     `KalmalaPopulationSchedulerCadenceTest.cpp:75-119`; and
+    `KalmalaM9ExplorationRewardCatalogueTest.cpp:20-165`;
     `Scripts/Tests/Progression/ExplorationRewards.ps1:12-42`. Trigger: the
     server visits nine distinct spatial keys, then a player enters a new key.
     `ActivatePopulationKey` rejects new keys at the nine-key limit, while
@@ -451,18 +452,29 @@
     preserving living-creature unload cooldowns, sparse depletion, per-player
     discovery claims and server authority. Acceptance: a focused server test
     activates nine keys, moves into a tenth, and proves the new cell becomes
-    active without exceeding nine; reactivation neither duplicates actors nor
-    restores depleted sources or accepted claims. Focused validation: run the
-    new key-turnover GameMode automation after an Editor build. Evidence and
+    active without exceeding nine. A deterministic eligible Thunder Mountains
+    key must produce its canonical M9 reward actor through normal activation,
+    without fixture-side key insertion or actor spawning. Reactivation must not
+    duplicate actors or restore depleted sources or accepted claims. Focused
+    validation: run the new key-turnover GameMode automation after an Editor
+    build. Evidence and
     repair: `Temporary/Review/findings.md#rf15--active-population-keys-never-turn-over-p1`.
   - [ ] **RF16 — Recover failed population depletion writes (P2; CR03-001b-95).**
-    `KalmalaGameMode.cpp:8623-8655` ignores failed harvest/defeat population-slot writes after live depletion is committed. A restart before a later successful save can recreate the source or defeated hazard. Add a retryable, server-owned depletion transaction and prevent a failed harvest write from duplicating a durable player grant. Acceptance: injected write failure is retried or rolled back safely; a fresh load never treats a failed write as durable. Focused validation: run new harvest/death write-failure automations and the forest restart regression after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf16--failed-population-depletion-writes-are-silently-abandoned-p2`.
-  - [ ] **RF17 — Keep Rat defeat rejection atomic (P2; CR03-001b-95).**
-    `KalmalaGameMode.cpp:8658-8671` marks the spawn defeated before the owner-bound reward queue can reject; `KalmalaWildlifeSpawn.cpp:478-491` then aborts the actor defeat when the callback returns false. A later activation/save can suppress a Rat whose defeat and reward claim were never accepted. Queue on a candidate save or otherwise leave the live ledger unchanged on rejection. Acceptance: queue rejection leaves the live and serialized defeated sets unchanged, and a valid retry accepts exactly one owner-bound claim. Focused validation: run a new Rat GameMode rejection regression and the existing Rat peer reward/reconnect regression after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf17--rat-reward-queue-rejection-leaves-a-false-defeated-ledger-entry-p2`.
+    `KalmalaGameMode.cpp:8623-8655` ignores failed harvest and generic wildlife/hazard defeat population-slot writes after live depletion is committed. A restart before a later successful save can recreate the source or defeated spawn. Add a retryable, server-owned depletion transaction and prevent a failed harvest write from duplicating a durable player grant. Acceptance: injected write failure is retried or rolled back safely; accepted wildlife/hazard defeats remain scheduled until their stable IDs are durable; a fresh load never treats a failed write as durable. Focused validation: run new harvest/death write-failure automations and the forest restart regression after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf16--failed-population-depletion-writes-are-silently-abandoned-p2`.
+  - [ ] **RF17 — Keep wildlife defeat callback failures atomic (P2; CR03-001b-95/96).**
+    `KalmalaGameMode.cpp:8658-8671,8820-9042` and `KalmalaWildlifeSpawn.cpp:478-583` leave partial state on two failure paths: Rat marks defeated before a reward queue can reject, while six species callbacks queue/mark before a failed slot write returns false. The actor then aborts defeat after the lethal hit has already reduced health to zero. Stage the save mutation and reward claim until the slot write succeeds, and roll back or retain an explicit retryable actor transaction on failure. Acceptance: Rat queue rejection and species slot-write failure leave live and serialized defeated IDs/claims unchanged and do not leave an unaccepted zero-health actor; a valid retry accepts exactly one owner-bound claim with its stable outcome. Focused validation: add a GameMode failure-injection regression for queue rejection and species slot-write failure, then run the six species contract automations and the Rat peer reward/reconnect regression after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf17--wildlife-defeat-callback-failures-leave-partial-actor-save-state-p2`.
   - [ ] **RF18 — Cover Wolf-to-Reef Maw GameMode reward callbacks (P3; CR03-001b-96).**
     `KalmalaGameMode.cpp:8820-9045` has six species reward handlers, but their focused tests exercise the save-game claim helpers rather than the GameMode callbacks. The live peer scenarios check attacks/replication; only Rat's shared scenario checks reward escrow. A callback wiring, owner, stored-roll or defeated-ledger regression could pass current species tests. Add isolated GameMode/DefeatServer coverage for Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw. Acceptance: each actual species path creates one authenticated owner-bound claim with its stable member ID and persisted optional-roll outcome, and retry does not reroll or reassign. Focused validation: run the new callback automation and the six existing species contract automations after an Editor build. Evidence and repair: `Temporary/Review/findings.md#rf18--species-defeat-reward-callbacks-lack-focused-gamemode-coverage-p3`.
-  - [ ] **RF19 — Correct the wildlife peer-runner instructions (P3; CR03-001b-96).**
-    `docs/07-development-setup.md:2680-2783` names six per-species `*Peer.ps1` files that are absent from `Scripts/Tests/Combat`; the current runner is `EnemyPeers.ps1` with `WolfPack`, `LynxLeap`, `PolarBearCharge`, `HornedGoatPush`, `ThunderSentinelSlam` and `ReefMawBite` scenarios. Following the documented commands fails before the live peer checks start. Update those commands to the current runner and scenario names while preserving seed 445. Acceptance: every documented wildlife peer command resolves and selects the matching scenario. Focused validation: run `EnemyPeers.ps1 -ListScenarios` and parser-check the setup documentation after editing. Evidence and repair: `Temporary/Review/findings.md#rf19--wildlife-peer-test-docs-reference-missing-scripts-p3`.
+  - [ ] **RF19 — Correct wildlife peer-runner instructions and M4 scenario claims (P3; CR03-001b-58/96, CR18-002 batch 105).**
+    **Source:** CR03-001b-58/96, CR04-022, and CR18-002 batch 105; `docs/07-development-setup.md:2541-2564,2680-2783`; `docs/04-roadmap.md:38-48`; `Scripts/Tests/Acceptance/VerticalSlice.ps1:1-53`; `Scripts/Tests/Combat/EnemyPeers.ps1:4,20-22`.
+    **Affected path:** Wildlife peer command examples and the M4 support/boss-scroll verification instructions.
+    **Trigger:** A developer follows the standalone `*Peer.ps1` commands or treats the documented M4 `VerticalSlice.ps1` run as Mireling/boss-scroll coverage.
+    **Impact:** Referenced per-species scripts do not exist, and the M4 section claims a Mireling two-peer scenario that the runner does not execute. The setup guide also retains a rendered two-player boss-reward requirement that conflicts with the current M4 roadmap acceptance.
+    **Evidence:** `Scripts/Tests/Combat` contains only `EnemyPeers.ps1`. Its `-Scenario` set includes `SharedCombat`, `PeatHuskSweep`, `WolfPack`, `LynxLeap`, `PolarBearCharge`, `HornedGoatPush`, `ThunderSentinelSlam` and `ReefMawBite`, but no Mireling scenario. `VerticalSlice.ps1` invokes only `SharedCombat` (whose native flag selects the Rat fixture), `BoarCharge`, `DeerHerd`, and `PlayerScopedPersistence`; it does not invoke the development-only `KalmalaMirelingPeerTest` flag and does not inspect a boss-scroll entitlement. The setup section says this harness runs a Mireling peer scenario and that a rendered boss-reward scenario remains part of M4, while `docs/04-roadmap.md` says a rendered two-player acceptance scenario is not required. No production defect was established.
+    **Proposed repair:** Replace absent standalone script paths with `EnemyPeers.ps1` and the valid scenario names while preserving authored seeds. Correct the M4 setup text to describe only the scenarios the harness actually runs and align its acceptance wording with the roadmap; if boss-scroll runtime validation is later needed, point to the dedicated recovery regression tracked by RF29 rather than this baseline harness.
+    **Dependencies:** After CR19 review acceptance; no setup-doc or runner repair during CR03 or CR18.
+    **Acceptance:** Every documented wildlife peer command resolves to the current runner and matching scenario, and M4 setup no longer claims the harness exercises Mireling or a rendered boss-scroll journey that it does not run or that the roadmap does not require. Boss-scroll coverage is claimed only when a dedicated boss-scroll check is present.
+    **Focused validation:** Run `Scripts/Tests/Combat/EnemyPeers.ps1 -ListScenarios`, parser-check the updated setup documentation, and verify its M4 harness description matches the actual `VerticalSlice.ps1` scenario calls and roadmap acceptance.
   - [ ] **RF20 — Correct Mireling gemstone claim delivery (P2; CR03-001b-97).**
     KalmalaGameMode.cpp:9104-9118 removes 12 characters from the
     mireling-gem| claim prefix although it is 13 characters. The saved
@@ -720,8 +732,10 @@
       world-canonical scroll and learned effect once, reconnect retains the entitlement, replay does not
       duplicate it, and other peers receive no private reward state.
     **Focused validation:** Add a GameMode/wildlife two-peer boss-scroll recovery regression with injected
-      player-save outcomes; run `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` and the M4
-      combat/boss-reward acceptance after an Editor build.
+      player-save outcomes; run it, `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`, and
+      `Scripts/Tests/Acceptance/VerticalSlice.ps1` after an Editor build. The vertical-slice runner is a broad
+      combat/support baseline and must not be counted as boss-scroll coverage unless it is extended to assert
+      that path.
 
   - [ ] **RF30 — Cover M9 exploration reward rollback on player-save failure (P3; CR03-001b-104).**
     **Source:** CR03-001b-104; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10208-10293`,
@@ -750,32 +764,22 @@
       `Kalmala.Gameplay.M9.ExplorationRewardCatalogue`, `Scripts/Tests/Progression/ExplorationRewards.ps1`, and
       `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` after an Editor build.
 
-  - [ ] **RF31 — Reject malformed biome baseline capture coordinates (P3; CR03-001b-105).**
-    **Source:** CR03-001b-105; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10382-10393, 10472-10479`,
-      `Scripts/Tests/World/BiomeBaselineCapture.ps1:15-18`, and the installed UE 5.8
-      `Engine/Source/Runtime/Core/Private/Misc/Parse.cpp:678-686` plus
-      `Engine/Source/Runtime/Core/Public/Microsoft/MicrosoftPlatformString.h:164-167`.
-    **Affected path:** Direct non-Shipping process launches using `-KalmalaBiomeBaselineCapture` and the
-      required `KalmalaBiomeBaselineXcm`, `Ycm`, or `ViewZcm` arguments.
-    **Trigger:** A required coordinate token is present but contains non-numeric text.
-    **Impact:** The float `FParse::Value` overload reports that the token was found, then converts it through
-      `FCString::Atof` without validating full numeric consumption. Invalid text converts to zero; the GameMode
-      checks only finiteness, so it accepts the value and activates terrain/relocates the local pawn at a wrong
-      coordinate. This can generate a misleading fixed-site baseline capture. The checked-in PowerShell runner
-      uses mandatory `[double]` parameters and rejects malformed coordinates before launching, so its normal
-      path is protected.
+  - [ ] **RF31 — Reject malformed biome baseline capture numeric arguments (P3; CR03-001b-105, CR18-002 batch 106).**
+    **Source:** CR03-001b-105 and CR18-002 batch 106; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10382-10410, 10472-10479, 10668-10678`,
+      `Scripts/Tests/World/BiomeBaselineCapture.ps1:9-18,73-87`, installed UE 5.8
+      `Engine/Source/Runtime/Core/Private/Misc/Parse.cpp:678-687,709-718`,
+      `Engine/Source/Runtime/Core/Public/Microsoft/MicrosoftPlatformString.h:154-167`, and
+      `docs/valheim-like-lighting-plan.md:1224-1230`.
+    **Affected path:** Direct non-Shipping `-KalmalaBiomeBaselineCapture` launches with coordinates or temporal/GPU frame settings.
+    **Trigger:** A numeric command-line token contains non-numeric text or a valid numeric prefix followed by junk.
+    **Impact:** Numeric `FParse::Value` overloads report that the token was found and convert through `FCString::Atof`/`Atoi` without checking full-token consumption. Malformed X/Y/view-Z can become zero or a parsed prefix; finiteness alone then allows terrain activation and local pawn relocation at the wrong site. Temporal and GPU settings can likewise accept a parsed prefix; a wholly invalid GPU frame token becomes zero, which is within the allowed range and can silently omit requested profiling. The checked-in PowerShell runner uses typed numeric parameters and range validation, protecting its normal path.
     **Evidence:** Full evidence:
-      Temporary/Review/findings.md#rf31--reject-malformed-biome-baseline-capture-coordinates-p3.
-    **Proposed repair:** Parse each required coordinate with a strict full-token conversion and reject malformed
-      values before terrain activation or pawn relocation. Keep valid signed decimal and exponent forms
-      supported by the capture runner.
+      Temporary/Review/findings.md#rf31--reject-malformed-biome-baseline-capture-numeric-arguments-p3.
+    **Proposed repair:** Strictly convert every numeric capture argument as a full token and reject malformed values before terrain activation, pawn relocation, or capture scheduling. Preserve valid signed/scientific coordinates and supported timing/frame bounds.
     **Dependencies:** After CR19 review acceptance; this finding is review handoff only and does not authorize
       implementation in CR03.
-    **Acceptance:** Direct capture launches reject malformed X, Y, or view-Z tokens with an explicit error and
-      produce no screenshot or scene relocation; valid numeric tokens retain their exact requested coordinates.
-    **Focused validation:** Add a narrow capture-argument regression for invalid X/Y/view-Z tokens and valid
-      signed/scientific values; verify rejection occurs before terrain activation, pawn movement, or screenshot
-      output. Run the baseline capture runner on a valid fixed site after an Editor build.
+    **Acceptance:** Direct launches reject non-numeric and trailing-junk tokens for X/Y/view-Z, temporal frame count/interval, and GPU frame count before terrain activation, pawn movement, or capture scheduling. Valid supported coordinates and frame settings retain their requested values, and malformed GPU settings cannot silently disable profiling.
+    **Focused validation:** Add a narrow parser regression covering malformed and trailing-junk tokens for each numeric argument plus valid signed/scientific coordinates and supported frame boundaries. Verify rejection precedes scene changes and image/profile output; run the baseline capture runner on a valid fixed site after an Editor build.
 
   - [ ] **RF32 — Reject incomplete per-site lighting comparison fixtures (P3; CR03-001b-106).**
     **Source:** CR03-001b-106; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10622-10645`,
@@ -1089,6 +1093,103 @@
       remote-owner scenario with existing harvest/gemstone coverage after an
       Editor build.
 
+  - [ ] **RF44 — Add remote Opal Helm Forge-maintenance coverage (P3; CR04-018).**
+    **Source:** CR04-018; `Source/KalmalaGameplay/Private/Tests/KalmalaOpalHelmTest.cpp:13-79`;
+      `Source/KalmalaGameplay/Private/KalmalaOpalHelm.cpp:59-89`;
+      `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp:407-415`;
+      `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h:37-45`;
+      `Scripts/Tests/Inventory/ItemPeers.ps1:4-48`; `Scripts/Tests/Progression/GemMiningTreasurePeer.ps1:33`;
+      `docs/07-development-setup.md:4932-4935`.
+    **Affected path:** An owning remote client upgrading or repairing its equipped Opal Helm at a Forge while
+      the server maintains the gear level and owner-only result.
+    **Trigger:** Treating the standalone `Kalmala.Gameplay.Inventory.OpalHelm` fixture as evidence for the
+      client RPC route. It calls `MaintainOpalHelmFromServer` and inventory methods directly, not
+      `ServerUpgradeOpalHelm` or `ServerRepairOpalHelm`. The existing item-peer scenario list has no Opal Helm
+      route; the A9 peer case checks accessory stats, and the setup guide specifies an Opal inventory render for
+      the maintenance controls.
+    **Impact:** Regressions in remote RPC ownership routing, the crafting request cadence, owner result
+      delivery, or the level update through owner-only equipped gear can go undetected. The inspected server
+      path validates authority, exact equipped GUID, same-world visible Forge/range/level, material costs, and a
+      200 ms request cadence; no current authority bypass was found.
+    **Evidence:** Full evidence:
+      Temporary/Review/findings.md#rf44--add-remote-opal-helm-forge-maintenance-coverage-p3.
+    **Proposed repair:** Add a listen-server scenario with a remote owner and observer that invokes the actual
+      upgrade and repair RPCs. Reuse the local test's catalogue/cost checks while exercising Forge level,
+      range/visibility, exact GUID, insufficient-material, and 200 ms cadence rejection through the network
+      path. Verify owner feedback and updated level/condition, and retain the existing observer assertion that
+      equipped gear stays private.
+    **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize
+      implementation during CR04.
+    **Acceptance:** The remote owner upgrades with the authored payment at the matching Forge level and repairs
+      worn Opal Helm for free at a valid Forge. Wrong or foreign GUID, wrong Forge level, distant/occluded
+      Forge, insufficient material, and too-rapid repeat requests do not change level, condition, or payment.
+      The owner receives the updated gear and one owner-only result; the observer receives no private
+      equipped-gear data.
+    **Focused validation:** Build the Editor target; run `Kalmala.Gameplay.Inventory.OpalHelm`, the new
+      three-role Opal Helm peer scenario, and the existing `Scripts/Tests/Inventory/Inventory.ps1` owner-only
+      inventory check.
+
+  - [ ] **RF45 — Verify detailed skill replication privacy with an observer (P3; CR04-020).**
+    **Source:** CR04-020; `Source/KalmalaGameplay/Private/KalmalaSkillProgressionComponent.cpp:46-67`,
+      `Source/KalmalaGameplay/Private/Tests/KalmalaSkillProgressionReplicationTest.cpp:11-46`, and
+      `Scripts/Tests/Construction/Crafting.ps1:22-46`.
+    **Affected path:** The server-owned `UKalmalaSkillProgressionComponent` on a replicated player pawn.
+    **Trigger:** A regression changes the replication condition for `DetailedProgression` or stops delivering
+      its detailed ledger to the owning player while retaining the aggregate `PeerPresentation`.
+    **Impact:** Other relevant players could receive another player's per-skill experience, levels and unlocks,
+      or the owner could lose progression detail while the public badge still looks correct. The current
+      component uses `COND_OwnerOnly` for `DetailedProgression`; no existing disclosure was observed.
+    **Evidence:** Full evidence:
+      Temporary/Review/findings.md#rf45--verify-detailed-skill-replication-privacy-with-an-observer-p3.
+    **Proposed repair:** Add a listen-host, remote-owner and observer scenario that earns skill experience
+      through an accepted server action. Verify that the owner receives the exact detailed ledger, the observer
+      receives no per-skill entries or experience, and both relevant peers receive only the aggregate badge.
+    **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize
+      implementation during CR04.
+    **Acceptance:** In a three-role peer run, accepted progression updates the remote owner's detailed six-skill
+      state; the observer has no detailed state for that pawn; both peers receive only the validated
+      highest-level/unlock presentation; no client-authored skill outcome is accepted.
+    **Focused validation:** Build the Editor target, run `Kalmala.Gameplay.Progression.ReplicationContract` and
+      `Kalmala.Gameplay.Progression.SkillContract`, then run the new three-role skill privacy scenario and the
+      existing crafting owner presentation check.
+
+  - [ ] **RF46 — Cover remaining wildlife defeat reward callbacks (P3; CR04-021 and CR04-022).**
+    **Source:** CR04-021 and CR04-022; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-583`;
+      `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8677-8814`;
+      `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBadgerTest.cpp:91-147`;
+      `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeMoonBearTest.cpp:97-120`;
+      `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeGiantSnakeTest.cpp:102-179`;
+      `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeDeathAdderTest.cpp:124-227`;
+      `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifePeatHuskTest.cpp:160-169`;
+      `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeViperTest.cpp:89-95,148-150`;
+      `Scripts/Tests/Combat/EnemyPeers.ps1:4-33,156-166`; `docs/07-development-setup.md:2401-2493,2612-2660`.
+    **Affected path:** Badger, Moon Bear, Giant Snake, Death Adder, Peat Husk and Viper defeat dispatch through
+      `AKalmalaWildlifeSpawn::DefeatServer`, their GameMode reward callbacks, owner-bound pending claims and
+      persistent defeated-spawn state.
+    **Trigger:** A callback mapping or handler change omits a species reward, supplies the wrong stable spawn ID
+      or authenticated owner, or persists defeat before the claim is safely queued. Focused source tests still
+      pass because they call `TryQueuePending*Reward` directly.
+    **Impact:** A species can be defeated without the expected owner-bound reward claim or correct persistent
+      defeat record, while its helper-level contract remains green. The shared Rat peer scenario covers generic
+      reward retry, persistence and peer privacy but not these six callback mappings. RF18 tracks the same test
+      gap for Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw. The inspected server path
+      validates authority and identity; no current bypass or live failure was established.
+    **Evidence:** Full evidence:
+      Temporary/Review/findings.md#rf46--cover-remaining-wildlife-defeat-reward-callbacks-p3.
+    **Proposed repair:** Add isolated GameMode/`DefeatServer` automation for the six species using a test save
+      writer or isolated save root. Assert stable spawn identity, authenticated owner, exact claim outcome,
+      queue-before-defeat persistence order, retry idempotency and rejection of mismatched identity/world cases.
+    **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize
+      implementation during CR04.
+    **Acceptance:** Each of the six actual species defeat dispatches creates one owner-bound claim with the
+      expected persistent spawn ID and outcome, then persists the matching defeated ID. Retry is idempotent and
+      preserves any optional roll; invalid world, identity or queue cases create no misplaced claim and do not
+      write a false defeat record.
+    **Focused validation:** Build the Editor target, run the new isolated callback automation and the six
+      existing species contract automations. Use the existing Rat peer scenario for the shared
+      delivery/restart/privacy path; a separate per-species peer scenario is not required for those shared
+      checks.
+
   - [ ] **RF47 — Exercise finite-world movement bounds through remote prediction (P3; CR04-022/CR16-031).**
     `KalmalaWorldBoundaryMovementTest` currently checks an authority pawn and
     manually invokes the movement update; the peer runner does not approach
@@ -1103,6 +1204,99 @@
     run `Kalmala.Gameplay.Movement.WorldBoundary`, and run the extended remote
     owner/observer scenario through `Scripts/Tests/Presentation/PlayerControls.ps1`.
     Evidence: `Temporary/Review/findings.md#rf47--exercise-finite-world-movement-bounds-through-remote-prediction-p3`.
+
+  - [ ] **RF48 — Reject ineligible melee requests before target traces (P3; CR04-023).**
+    **Source:** CR04-023; Source/KalmalaGameplay/Public/KalmalaCombatComponent.h:25,47-60;
+      Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp:15-20,34-56,171-203; RF42 covers the separate
+      ServerRequestInteract trace path.
+    **Affected path:** A remote owning client's reliable ServerRequestAttack request and the server's melee
+      target selection.
+    **Trigger:** A client sends stale-sequence requests, or fresh requests while an action is already
+      unavailable. The handler resolves the held item and calls FindServerTarget() before IsAttackRequestAllowed
+      checks server authority, sequence freshness, idle/bow state and swing availability. FindServerTarget() can
+      execute both a visibility line trace and a 60 cm lower sphere sweep; the attack is rejected only
+      afterward. The unavailable-feedback timer limits feedback publication, not these scene queries.
+    **Impact:** Rejected reliable RPCs can still consume authoritative scene-query work. A client able to send a
+      burst can amplify server CPU cost. The inspected ordering does not allow the request to choose a target or
+      bypass hit/damage validation; no combat authority bypass was established.
+    **Evidence:** Full evidence:
+      Temporary/Review/findings.md#rf48--reject-ineligible-melee-requests-before-target-traces-p3.
+    **Proposed repair:** Run the inexpensive authority, sequence, action-phase, bow-draw and swing-availability
+      checks before target selection. Only eligible requests should perform the target trace/sweep; preserve the
+      existing server-side target validation and impact-time checks. Add request cadence only if the reordered
+      admission still permits unbounded query work.
+    **Dependencies:** After CR19 review acceptance; this finding is a review handoff only and does not authorize
+      implementation during CR04.
+    **Acceptance:** Stale, busy, bow-drawing, unavailable-swing and non-authority requests perform no target
+      trace or sweep. A fresh eligible request performs the expected target query, and subsequent impact still
+      accepts only a server-validated target with canonical damage.
+    **Focused validation:** Extend the combat request contract test to assert trace count for rejected versus
+      eligible requests. After an Editor build, run the combat action/item acceptance tests and a remote-owner
+      burst with a server trace counter; verify ordinary attack timing and target/damage gates remain intact.
+
+  - [ ] **RF49 — Bound repeated Home-return persistence attempts after save failure (P3; CR04-023).**
+    **Source:** CR04-023; Source/KalmalaGameplay/Public/KalmalaCharacter.h:299-303;
+      Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1645-1661;
+      Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9520-9585,9635-9654;
+      docs/02-technical-architecture.md:324-335; docs/startmenu.md:5-13.
+    **Affected path:** A remote client's reliable ServerRequestReturnToHome request while the server cannot
+      persist that player's current state.
+    **Trigger:** TryReturnNetworkClientToHomeFromServer adds the controller to PendingNetworkHomeReturns,
+      synchronously calls PersistPlayerStateFromServer, then removes the marker when persistence fails so the
+      documented client retry can work. A subsequent request repeats copying the current save through
+      SaveGameToMemory/LoadGameFromMemory, rebuilding and validating the candidate, and attempting
+      SaveGameToSlot. There is no per-controller retry interval on this failure branch.
+    **Impact:** During a persistent storage failure, a client request burst can repeatedly perform serialization
+      and disk-write work on the authoritative server and send repeated failure replies, increasing host CPU/I/O
+      pressure. The first successful request remains protected by the pending-return marker. No save ownership
+      bypass was established, and the documented retry behavior is valid.
+    **Evidence:** Full evidence:
+      Temporary/Review/findings.md#rf49--bound-repeated-home-return-persistence-attempts-after-save-failure-p3.
+    **Proposed repair:** Keep the first save attempt immediate and preserve eventual client retry, but apply a
+      server-owned per-controller backoff to repeated attempts after failure. Return a lightweight rejection
+      during the backoff without rebuilding or writing another save candidate.
+    **Dependencies:** After CR19 review acceptance; this is a review handoff only and does not authorize
+      implementation during CR04.
+    **Acceptance:** The first request attempts persistence and a failed write leaves the client connected.
+      Repeated requests inside the retry interval do not repeat candidate serialization or slot writes; a later
+      request can retry, and success retains the existing one-return guard.
+    **Focused validation:** Add a save-failure automation that counts candidate/write attempts across repeated
+      requests, verifies one later retry succeeds, and confirms successful returns remain idempotently guarded.
+      Then run the existing client Home-return peer path with injected failure and recovery after an Editor
+      build.
+
+  - [ ] **RF50 — Retire the remaining map-sharing RPC (P3; CR04-025).**
+    **Source:** CR04-025; `Source/KalmalaGameplay/Public/KalmalaMapAwarenessComponent.h:24-71`;
+      `Source/KalmalaGameplay/Private/KalmalaMapAwarenessComponent.cpp:12-15,48-62,143-172`;
+      `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp:330-334,457-464`;
+      `docs/02-technical-architecture.md:310`.
+    **Affected path:** A remote owning client invokes `ServerSetSharingEnabled` on its replicated
+      player-controller component; the server writes `bMapSharingEnabled` on that player's state and forces an
+      update to peers.
+    **Trigger:** A client repeatedly invokes the reliable RPC, including with the current value. The handler
+      checks authority and player eligibility but has no cadence or duplicate-state gate and calls
+      `ForceNetUpdate` on every request. The RPC and globally replicated flag remain in production code even
+      though the current map contract excludes co-op sharing controls/status and remote pawn markers.
+    **Impact:** A client can drive unnecessary server work and repeated PlayerState replication scheduling
+      through a stale map-sharing endpoint. The old marker/status API still derives peer pawn positions and
+      exposes a co-op status string. The current map widget only submits and draws temporary pings and does not
+      consume those APIs, so no current player-visible marker/status disclosure was established. Request-flood
+      impact was not measured.
+    **Evidence:** Full evidence: Temporary/Review/findings.md#rf50--retire-the-remaining-map-sharing-rpc-p3.
+    **Proposed repair:** Remove the obsolete sharing RPC, replicated consent flag, peer-marker/status helpers,
+      and their old test expectations while retaining the independent validated ping path. If a future approved
+      feature restores location sharing, define its privacy contract and server-owned request cadence before
+      adding a client request surface.
+    **Dependencies:** After CR19 review acceptance; this finding is a review handoff only and does not authorize
+      implementation during CR04.
+    **Acceptance:** Current builds expose no client-callable map-sharing RPC or globally replicated sharing
+      state, and the map presents only bounded temporary pings. A remote-client check confirms no remote marker
+      or co-op status is exposed while valid pings still use the existing two-second cooldown, lifetime, inbox
+      bound and owner-only delivery.
+    **Focused validation:** Update the map-awareness automation to remove the legacy sharing scenario and assert
+      the current no-sharing contract. After an Editor build, run `Scripts/Tests/World/MapAwareness.ps1` and a
+      remote-owner/observer map check for ping validation, cooldown, expiry, inbox bounds and owner-only
+      delivery; statically confirm no production call sites remain for sharing APIs.
 
   - [ ] **RF51 — Bound repeated arrow-preference RPC work (P3; CR04-032).**
     `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:1431`,
@@ -2636,7 +2830,7 @@
     **Focused validation:** Compare the reconciled passages and data with the
     manifest, runtime reward validation/formula, decision record, and focused
     test references; run git diff --check. No Unreal build is required.
-  - [ ] **RF101 - Reconcile the PotatoSeed use description (P3; CR13-008).**
+  - [ ] **RF101 — Reconcile the PotatoSeed use description (P3; CR13-008).**
     Content/Data/GameCatalogues/items/crops.json; docs/02-technical-architecture.md:512,946-953; docs/07-development-setup.md:144-147,2002-2018; Source/KalmalaGameplay/Public/KalmalaConstructionSaveGame.h:225-245; Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp:390; Source/KalmalaGameplay/Private/Tests/KalmalaM9SourceAcceptanceTest.cpp:937-1000.
     **Affected path:** A player or developer reads the PotatoSeed item detail or tries to use the registered seed in current Garden Plot progression.
     **Trigger:** The registered PotatoSeed definition says "Seeds to grow potatoes," but the approved Garden Plot contract uses one Potato tuber for planting and returns Potatoes; the A0 potato source grants Potatoes and explicitly grants no PotatoSeed. No production planting or acquisition route uses PotatoSeed.
@@ -2646,7 +2840,7 @@
     **Dependencies:** After CR19 review acceptance; separate scope approval is required before adding a PotatoSeed source or planting behavior.
     **Acceptance:** The registered item no longer implies a currently supported acquisition/planting path unless that route is separately approved and implemented; the deferred-use contract remains explicit and no unsupported source is added.
     **Focused validation:** Compare the item definition with the manifest, Garden Plot payment/harvest helpers, A0 source and M9 acceptance; run catalogue/reference validation and git diff --check after the repair. No Unreal build is required for a text-only correction.
-  - [ ] **RF102 - Reconcile architecture meal and cooking catalogue summaries (P3; CR13-008/015).**
+  - [ ] **RF102 — Reconcile architecture meal and cooking catalogue summaries (P3; CR13-008/015).**
     docs/02-technical-architecture.md:751,757,1062-1077; Content/Data/GameCatalogues.json; Content/Data/GameCatalogues/items/food.json; Content/Data/GameCatalogues/recipes/stations/{cauldron,cooking-rack,frying-pan}.json; Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp:126-153; Source/KalmalaGameplay/Private/Tests/KalmalaPlayerStatusTest.cpp:166-258; Source/KalmalaGameplay/Private/Tests/KalmalaItemCatalogueTest.cpp:522-737.
     **Affected path:** A developer uses the architecture meal-use list to determine which prepared food items can invoke the server-owned Steady Meal transaction.
     **Trigger:** The architecture meal allowlist names seven outputs plus Lingonberry and ForestChanterelle, while the current server also accepts RoastedBadger, PeatHeartStew and WolfStew. Its “Current food recipes” section still calls seven rows the active cooking catalogue and omits those three meals; the adjacent Cauldron summary also omits current recipe rows.
@@ -2656,7 +2850,7 @@
     **Dependencies:** After CR19 review acceptance; no documentation edits during CR13.
     **Acceptance:** The architecture meal allowlist and current cooking summaries match the registered meal recipes and server allowlist; the recipe overview accounts for current station outputs and keeps draught/tonic/Antidote effects separate. No runtime or item data changes.
     **Focused validation:** Compare the revised sections with IsKnownFoodItem, all manifest-registered cooking recipes and focused status/catalogue tests; run git diff --check. No Unreal build is required.
-  - [ ] **RF103 - Restore traceability for legacy crop and food icon provenance (P3; CR13-008).**
+  - [ ] **RF103 — Restore traceability for legacy crop and food icon provenance (P3; CR13-008).**
     docs/icon-provenance.md; Scripts/Data/catalogue-icon-manifest.csv; Content/Kalmala/UI/Source/IconOriginals/; Content/Kalmala/UI/Source/Icons/; Content/Kalmala/UI/Icons/Items/.
     **Affected path:** A maintainer needs to trace the origin and approved visual constraints before revising or reimporting legacy crop/food item icons.
     **Trigger:** Seventeen current crop/food identities (Carrot, Potato, Rutabaga, Onion and their four seed items; BoarMeat, DeerMeat, CookedBoarMeat, CookedDeerMeat, HearthBroth, MeatStew, RootVegetableSoup, RoastedRootVegetables and DeerRootRoast) have retained original PNG files and icon-manifest/runtime mappings, but no generation record or provenance reference in the current or historical repository icon-provenance sources. Their original PNGs contain no embedded text provenance.
@@ -2991,7 +3185,6 @@
     **Focused validation:** Add pure path tests for exact root, child, sibling
     sharing a prefix, case variation, and a different drive without creating
     cache directories.
-
 
   - [ ] **RF120 — Reconcile stale weapon profile and combat summaries (P3; CR13-012).**
     `docs/02-technical-architecture.md:1036,1040,1042,1136`;
@@ -3790,6 +3983,69 @@
     **Focused validation:** Search the architecture document for storage schema
     references and compare each present-tense claim with the schema constant and
     `MatchesWorld` guard. No runtime or save-compatibility test ran during review.
+  - [ ] **RF212 — Reject combined combat peer fixture selectors (P3; CR03-001b-12).**
+    `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1241-1264,1307-1310`.
+    **Affected path:** Non-Shipping combat peer fixtures launched with more
+    than one `Kalmala*PeerTest` command-line flag.
+    **Trigger:** A caller combines otherwise recognized scenarios, such as
+    `KalmalaBoarPeerTest` and `KalmalaDeerPeerTest`.
+    **Impact:** The admission gate accepts some ambiguous combinations. The
+    fixture can report/select Boar by its priority chain while selecting the
+    Deer-specific StoneKnife and enabling both scenario branches, so a manual
+    peer run may exercise or report a composite scenario rather than the
+    requested isolated case. The supported `EnemyPeers.ps1` runner supplies a
+    single flag; no production gameplay impact was found.
+    **Evidence:** The gate requires any recognized flag and rejects only
+    selected conflicts, not every multi-flag combination. Boar precedes Deer
+    in `VerificationName` and `ExpectedArchetype`, while `ServerWeaponId`
+    chooses StoneKnife whenever the Deer flag is present.
+    **Proposed repair:** Require exactly one recognized scenario flag before
+    stage setup, or define and test an explicit supported combination matrix.
+    Emit a clear failure for unsupported combinations.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during
+    CR03 or CR18.
+    **Acceptance:** Every supported single-flag scenario remains admitted;
+    every unsupported multi-flag combination is rejected before participant
+    setup with an actionable diagnostic. Existing runner scenarios retain
+    their current behavior.
+    **Focused validation:** Add a narrow admission check for each supported
+    flag and representative multi-flag combinations, then run the affected
+    `Scripts/Tests/Combat/EnemyPeers.ps1` scenarios after an Editor build.
+    No runtime test ran during review.
+  - [ ] **RF213 — Search for a target in the CombatFeedback fixture (P3; CR03-001b-13).**
+    `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1264,1336-1339,1374-1385`,
+    `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:940-978`, and
+    `Scripts/Tests/Combat/EnemyPeers.ps1:11,37-39`.
+    **Affected path:** The non-Shipping `CombatFeedback` peer scenario.
+    **Trigger:** The runner selects `KalmalaCombatPeerTest`, which falls back to
+    Mireling as `ExpectedArchetype`, but the bounded search gate omits
+    `bCombatPeerTest`. If the host's starting spatial key has no Mireling
+    descriptor, the fixture skips nearby-key search and immediately reaches the
+    missing-descriptor terminal failure. This can occur for a Meadow-only key;
+    Meadows descriptors are Boar, Deer, or Rat, while Mireling is reserved for
+    Mossy Mire. The runner also permits a `-WorldSeed` override.
+    **Impact:** The fixture can fail before producing the hit/defeat cues that
+    `CombatFeedback` is intended to verify. No production gameplay impact was
+    found.
+    **Evidence:** `ExpectedArchetype` defaults to Mireling for this flag. The
+    search condition includes the separate Mireling flag and other species or
+    reward flags, but not `bCombatPeerTest`; `ExpectedDescriptor == nullptr`
+    then sets stage 99. The biome selector only creates Mirelings in Mossy Mire.
+    **Proposed repair:** Give `CombatFeedback` a consistent target-selection
+    path: either search a bounded set of keys for the required Mireling or select
+    a target archetype that the scenario can find in its configured area. Keep
+    the fixture on ordinary generated descriptors.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during
+    CR03 or CR18.
+    **Acceptance:** The default `CombatFeedback` seed and a representative
+    alternate seed with no Mireling in the start key reach the intended hit,
+    defeat, unavailable-text, and remote-privacy checks through a bounded,
+    deterministic target search. No test-only wildlife actor is introduced.
+    **Focused validation:** Add narrow coverage for `CombatFeedback` target
+    selection when its start key lacks a Mireling, then run
+    `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario CombatFeedback` after an
+    Editor build with the default and alternate seed. No runtime test ran during
+    review.
   - [ ] **RF216 — Reclassify legacy buildable icon manifest rows (P3; CR13-031).**
     `Scripts/Data/catalogue-icon-manifest.csv:11-22`;
     `Content/Data/GameCatalogues/items/buildItems/`;
@@ -3886,7 +4142,7 @@
     run the five focused UI icon validators and
     python -B Scripts/Validate-CatalogueReferences.py. No Unreal build is required.
 
-  - [ ] **RF234 - Regenerate the stale world-generation scalar previews (P3; CR13-023).**
+  - [ ] **RF234 — Regenerate the stale world-generation scalar previews (P3; CR13-023).**
     `Content/Kalmala/Developer/WorldGeneration/{Elevation,Flora,Humidity,Temperature}.ppm`;
     `Source/KalmalaEditor/Private/RenderWorldGenerationVisualizationCommandlet.cpp`;
     `Source/KalmalaWorld/Public/KalmalaWorldFieldSampler.h`,
@@ -3901,7 +4157,6 @@
     **Acceptance:** Each tracked scalar preview matches current commandlet output for the documented defaults and retains the expected grayscale channel.
     **Focused validation:** Build the Editor, render to a short temporary directory, compare the four generated PPMs with the tracked assets, visually inspect them, and run `git diff --check`. Do not run broad regional-generation peers for this artifact-only repair.
 
-
   - [ ] **RF235 — Align the Standing Light description with its torch icon (P3; CR13-065).**
     `Content/Data/GameCatalogues/items/buildItems/other.json:58-62`;
     `Content/Kalmala/UI/Source/IconOriginals/StandingLightKit.png`;
@@ -3914,6 +4169,455 @@
     **Dependencies:** After CR19 review acceptance; no catalogue or art changes during CR13.
     **Acceptance:** The construction description calls the object a torch, consistent with its retained icon and prompt, while the existing buildable ID, recipe, fuel behavior and buildable-only role remain unchanged.
     **Focused validation:** Parse the registered catalogues and references; compare the `StandingLight` buildable, direct-material recipe and icon alias; run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id StandingLightKit`, `python -B Scripts/Validate-CatalogueReferences.py`, and `git diff --check`. No Unreal build is required.
+  - [ ] **RF236 — Thicken the Light Bow icon limbs to meet its recorded prompt (P3; CR13-082).**
+    `Content/Kalmala/UI/Source/IconOriginals/LightBow.png`;
+    `Content/Kalmala/UI/Source/Icons/LightBow.png`;
+    `Content/Kalmala/UI/Icons/Items/LightBow.uasset`;
+    `docs/icon-provenance.md#light-bow-icon`;
+    `Scripts/Data/catalogue-icon-manifest.csv`;
+    `Source/KalmalaUI/Private/KalmalaIconWidget.cpp`.
+    **Affected path:** A player scans the Light Bow in carried-tool, detail,
+    repair, or recipe-result UI at its prepared 64×64 size.
+    **Trigger:** The prepared bow remains identifiable, but its curved wooden
+    stave and limbs read as a narrow stroke at 64×64 instead of the broad,
+    sturdy silhouette required by its retained prompt.
+    **Impact:** The icon is less legible at inventory scale and does not meet
+    its recorded visual target; no gameplay or mapping defect was found.
+    **Evidence:** CR13-082 confirmed that the original, prepared PNG, and
+    imported package match their CR01 fingerprints. The source is a 1254×1254
+    RGBA image and the prepared icon is 64×64 RGBA. The prompt explicitly
+    requires thick sturdy limbs, clearly visible wood at 64px, and no hair-thin
+    lines. Visual inspection of the prepared 64×64 icon shows a very slender
+    stave despite the recognizable bow shape. The registered catalogue uses
+    `LightBow`; the manifest and canonical runtime alias map it to the Bow
+    icon. Its package source path resolves to the project-local prepared PNG.
+    **Proposed repair:** After CR19 review acceptance, revise the source artwork
+    to give the wood limbs a clearly broader silhouette at 64×64 while keeping
+    the compact arc, central grip, separated taut string, no-arrow constraint,
+    established style, and existing item identity. Reprepare and reimport the
+    icon without changing gameplay or runtime mapping.
+    **Dependencies:** After CR19 acceptance; no art or package edits during
+    CR13.
+    **Acceptance:** The prepared 64×64 icon has clearly visible sturdy wooden
+    limbs and a broad recognizable bow silhouette, while the string remains
+    visibly separate; the LightBow ID, manifest role, and runtime mapping stay
+    unchanged.
+    **Focused validation:** Visually inspect the original and prepared icon at
+    native 64×64 size; check dimensions, transparency, and LightBow package
+    identity; run `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id
+    LightBow`, the catalogue-reference validator, and `git diff --check`. No
+    Unreal build is required.
+  - [ ] **RF237 — Attribute snake bite observations to the selected target (P3; CR03-001b-19).**
+    `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1388-1394,1610-1622,1679-1700`;
+    `Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp:353-377`;
+    `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:3299-3320`.
+    **Affected path:** The non-Shipping Viper and Giant Snake peer-verification
+    flags retained by `AKalmalaGameMode::DriveCombatPeerTest`.
+    **Trigger:** During stages 1–2, any weak-poison status latches the Viper
+    observation, and any attacker health below 100 latches the Giant Snake bite
+    observation. Either branch then disables ticking on the selected target,
+    without tying the event to that actor.
+    **Evidence:** Setup activates the selected key's wildlife population and
+    retains only the expected target; it does not isolate or silence other
+    spawned wildlife in that key.
+    Viper detection checks only the attacker's shared WeakPoison entry. Giant
+    Snake setup restores health but does not clear pre-existing poison, whose
+    server tick can reduce health; another active attacker can also do so. The
+    success result later prints the latched boolean as `Bite=1`. No accepted
+    bite source, damage type, or target spawn ID is checked before latching.
+    **Impact:** A retained species fixture can report a successful selected
+    snake bite and stop that target even when unrelated damage/status caused the
+    signal. No production gameplay impact was found.
+    **Proposed repair:** Tie observation to a server-accepted snake bite from
+    the selected target's persistent spawn ID. Do not infer bite source from
+    aggregate player health or status; retain the current species and privacy
+    assertions.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during
+    CR03 or CR18.
+    **Acceptance:** Only an accepted bite from the selected Viper or Giant Snake
+    can latch its bite result or pause that target. Pre-existing poison, a
+    sibling creature's attack, and unrelated health loss do not produce a pass.
+    A valid selected-target bite still reaches the existing success path.
+    **Focused validation:** Add a narrow development regression that injects
+    pre-existing poison or non-target damage while the selected snake is unable
+    to attack and proves the fixture does not pass; then enable a selected-target
+    bite and prove only that event passes. Run the focused poison and snake
+    contracts after an Editor build. The current consolidated peer runner does
+    not include these legacy species flags; record any runner change separately.
+  - [ ] **RF238 — Check every observer in retained Badger/Moon Bear escrow and retry modes (P3; CR03-001b-22,24).**
+    `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1818-1861,1887-1892`.
+    **Affected path:** Development-only Badger and Moon Bear pending-reward full-pack escrow and retry predicates.
+    **CR03-001b-24 source:** KalmalaGameMode.cpp lines 1971–2017.
+    **Trigger:** With an owner, the selected remote peer, and another observer, the retry delivers the expected reward to the owner but also grants Bone Fragment or Badger Fur/Meat to the observer. The generic `bExpectedReward` branch checks only `RemoteInventory`; it does not require any reward to be absent from the other peers, yet the success log reports `OwnerOnly=1`.
+    **Evidence:** The fixture enumerates all other player characters and accumulates `OtherPeerBoneFragment`, but uses that count only in the Rat/Viper/Giant Snake branches. It does not accumulate other-peer Badger Fur/Meat at all. The Badger/Moon Bear branch checks the selected Remote inventory and then reaches the same `Passed=1 ... OwnerOnly=1` result without checking the remaining observers. The current consolidated runner uses Rat `SharedCombat`; these legacy modes have no current runner scenario.
+    **Impact:** A retained Development fixture can report owner-only retry success while an additional non-owner peer holds a duplicate reward. No production reward leak was established.
+    **Proposed repair:** Aggregate each expected reward item across every non-owner inventory and require all such totals to remain zero during escrow and retry; keep the owner's exact reward counts and owner-bound claim check. If the legacy modes remain callable, do not emit `OwnerOnly=1` until every observer is checked.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **CR03-001b-24 evidence:** The full-pack escrow predicate enumerates other peers but only checks their totals when bTwoItemRewardPeerTest is true, which excludes Badger and Moon Bear. It does not accumulate other-peer Badger Fur/Meat. A third peer can hold Bone Fragment or a relevant Badger reward while the owner and selected remote remain clean.
+    **Expanded acceptance:** A relevant reward injected into either non-owner during full-pack escrow or after retry makes the fixture fail before the corresponding pass marker. The owner receives the exact expected reward only after space is freed. The existing focused validation applies to both phases.
+    **Acceptance:** For Badger and Moon Bear with an owner and two non-owner peers, normal retry grants the exact reward only to the owner. An injected duplicate Bone Fragment, Badger Fur, or Badger Meat on either non-owner makes the fixture fail. Existing Rat `SharedCombat` assertions remain intact.
+    **Focused validation:** Add a narrow Development regression for both retained modes that injects a duplicate reward into the second observer during retry and verifies no pass marker is emitted. Run it after an Editor build; no per-species live reward runner is required.
+  - [ ] **RF239 — Require accepted attacks before retained reward fixture completion (P3; CR03-001b-23).**
+    `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1240,1756-1765,1910-1959,1887-1892`.
+    **Affected path:** Retained Development Badger and Moon Bear pending-reward retry modes.
+    **Trigger:** One of the four attack requests is rejected while the fixture's request counter still advances to four. The Badger/Moon Bear path then skips any accepted-action-serial check, applies fixture-only damage or direct defeat, finds the owner claim, and can later emit a success marker with the literal `ActionSerial=4`.
+    **Evidence:** `CombatPeerTestSequence` increments before the void server RPC. `ServerRequestAttack_Implementation` returns before incrementing `ActionSerial` when the request is not allowed. The stage-two gate checks the attempt count and Idle phase; only Viper/Giant Snake require four action serials here, while Rat fails unless its natural single-hit defeat occurred. Badger/Moon Bear can reach the bounded server-damage/`DefeatServer` fallback and owner-claim lookup without accepted-action evidence. Their retained retry success output does not recheck the serial and prints four as a constant.
+    **Impact:** A retained Development fixture can report its four-attack reward setup passed even when one or more player attack requests were rejected. This does not establish a production combat or reward defect; the current runner exercises the Rat path.
+    **Proposed repair:** Before fixture-only defeat or owner-claim success, require the actual server `ActionSerial` to equal `ExpectedAttackCount` for Badger and Moon Bear as well as the already-checked snake modes. Keep Rat's natural-defeat gate and report the actual serial in the result.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** In both retained modes, four accepted attacks allow the existing bounded fixture defeat and reward retry. If an attack request is rejected but the attempt counter still reaches four, the fixture fails before fixture-only damage/claim success and emits no pass marker. Rat and snake assertions remain intact.
+    **Focused validation:** Add a narrow Development regression for Badger and Moon Bear that forces one attack rejection during the four-request sequence and proves the fixture fails before reward setup; verify four accepted requests still reach the current completion path. Run after an Editor build. The current consolidated runner does not include these legacy species modes.
+  - [ ] **RF240 — Check every peer in active Boar/Deer combat reward acceptance (P3; CR03-001b-26).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:1288-1290,2057-2086; Scripts/Tests/Combat/EnemyPeers.ps1:50-69,218-221,276-282.
+    **Affected path:** The current BoarCharge and DeerHerd peer scenarios' final combat reward predicates.
+    **Trigger:** The host has the expected reward and the selected first remote has zero relevant items, while the second remote has a duplicate BoarMeat, BoarHide, BoneFragment, DeerMeat, DeerHide, or DeerSinew. The final bRewardValid check does not inspect that second remote, so the fixture can still emit Passed=1.
+    **Evidence:** CombatPeerTestAttacker is the local server player and CombatPeerTestRemote is only the first remote actor. Boar/Deer stage-zero setup does not require the second remote; the minimum-two-remote gate applies only to bTwoItemRewardPeerTest. The final predicate checks attacker counts and zero counts in RemoteInventory, with no additional-player inventory aggregation. EnemyPeers starts a client and then a separately named observer for both scenarios. Its case checks combat/replication outcomes, not observer inventory, and a final server pass marker is not invalidated if it was emitted before observer arrival.
+    **Impact:** An active Development combat scenario can pass its reward predicate while another non-owner holds a duplicate reward. No production reward leak was established.
+    **Proposed repair:** Require the two non-owner peers used by the current BoarCharge/DeerHerd runner before fixture progression, then aggregate the applicable Boar or Deer reward IDs over every non-owner inventory and require zero totals before the final pass marker. Preserve exact attacker quantities, action-serial gating, and the Deer herd-alert check.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** Existing BoarCharge and DeerHerd runs wait for two non-owner peers, then pass only when the host has the exact expected rewards and both remotes have zero relevant items. A relevant reward injected into the second remote, or a missing second remote, prevents Passed=1; the existing attack, health-replication and Deer herd assertions remain intact.
+    **Focused validation:** Add narrow Development fixtures for both scenarios that confirm no pass marker is emitted before two non-owner peers are present, inject each relevant reward into the second remote, and verify failure. Run after an Editor build using the current EnemyPeers runner.
+  - [ ] **RF241 — Verify Mosquito dodge cooldown after the active roll ends (P3; CR03-001b-30).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2312-2337; Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:136-143,1273-1311,1331-1342; Scripts/Tests/Combat/EnemyPeers.ps1:133-143.
+    **Affected path:** The current MosquitoCounterplay fixture's accepted-roll and rejected-retry sequence.
+    **Trigger:** The fixture receives one accepted roll, immediately asks the owner client to send another request, then counts one rejection as the cooldown result while the first roll can still be active.
+    **Evidence:** ServerRequestDodgeRoll_Implementation starts a 0.35-second active roll and a 1-second cooldown. The admission helper checks !bAlreadyRolling before checking that the cooldown has expired. The second request is sent without waiting for the active roll to end, and both rejection paths increment the same counter. Stage four and the runner only require one rejected request; they do not distinguish an active-roll rejection from a cooldown rejection.
+    **Impact:** MosquitoCounterplay can pass without proving that the cooldown gate rejects a retry. No production dodge defect was established.
+    **Proposed repair:** Send the cooldown probe after the 0.35-second roll window but before the 1-second cooldown expires, with the other request preconditions valid, and record or assert that the cooldown gate is the rejection reason.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** The fixture records one accepted roll, waits until the active roll has ended while cooldown remains, then sends the owner request. It fails if the request is accepted or rejected by another gate and passes only on an expired-roll/positive-cooldown rejection; the existing mosquito escape and flame assertions remain intact.
+    **Focused validation:** Add a narrow Development regression for the expired-roll/positive-cooldown case and a control case with cooldown expired and all other gates valid. Confirm the peer scenario cannot pass when the cooldown gate is bypassed. Run after an Editor build using EnemyPeers MosquitoCounterplay.
+  - [ ] **RF242 — Verify the full two-second Mosquito repel window (P3; CR03-001b-31).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2350-2353,2416-2420; Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:146-151,1314-1318; Source/KalmalaGameplay/Private/Tests/KalmalaDodgeRollTest.cpp:41-42; Scripts/Tests/Combat/EnemyPeers.ps1:133-139.
+    **Affected path:** The current MosquitoCounterplay fixture's dodge escape-window verification.
+    **Trigger:** The implementation shortens the applied swarm-repel interval (for example, to 1.5 seconds) while keeping the documented/configured constant at 2 seconds.
+    **Evidence:** Stage five requires repelling only after at least 1.25 seconds. Stage six does not check expiry until at least 2.05 seconds, when it expects repelling to have ended. A 1.5-second interval satisfies both samples. The focused dodge automation checks the constant equals 2.0, while the peer fixture samples the applied state only at those coarse bounds; the runner only requires RollExpired=1.
+    **Impact:** The peer fixture can pass while the server ends the documented two-second Mosquito escape window early. No current production timing defect was established.
+    **Proposed repair:** Observe the authoritative repel state near the two-second boundary and again just after expiry, using the server acceptance/expiry timestamp and a defined tolerance so a materially shortened interval fails.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** The test fails when the applied repel window is materially shorter than two seconds, confirms it remains active near the end of the documented window, and confirms it is inactive shortly after expiry. Existing roll, cooldown and held-flame checks remain intact.
+    **Focused validation:** Add a narrow timed Development regression that verifies the applied server expiry against the accepted-roll timestamp, including a shortened-window control that must fail. Run after an Editor build and retain the MosquitoCounterplay peer check.
+  - [ ] **RF243 — Verify Mosquito bites around a paid, unlit campfire (P3; CR03-001b-33).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2463-2484,2485-2503; Source/KalmalaGameplay/Private/KalmalaCampfire.cpp:69-72,205-214; Source/KalmalaGameplay/Private/Tests/KalmalaHearthStateTest.cpp:24-30; Scripts/Tests/Combat/EnemyPeers.ps1:133-139; docs/biome-enemies.md:562-570.
+    **Affected path:** The current non-Shipping MosquitoCounterplay fixture's unlit placed-campfire assertion.
+    **Trigger:** The campfire is spawned and checked for no flame eligibility before `InitializePaidFromServer`; the fixture then waits for a bite while it is still unfuelled and initializes and lights it consecutively after the bite.
+    **Evidence:** Stage seven spawns the campfire and checks only its default unlit/flame-ineligible state. Stage eight repeats the checks and waits for a bite before `InitializePaidFromServer`, then immediately calls `TryLightFromServer`. The flame query requires authority, lit state, positive finite fuel and positive finite warmth. Initialization sets owner and fuel without lighting the campfire, so the fixture can observe bites in a valid paid-unlit state before ignition.
+    **Impact:** The Mosquito peer scenario can report `CampfireUnlitNoProtection=1` without proving that a fueled, extinguished placed campfire permits bites. No production campfire or mosquito defect was established.
+    **Proposed repair:** Initialize/pay the campfire while keeping it extinguished, assert positive fuel and no flame eligibility, then require a selected-swarm bite before lighting it. Preserve the later lit-fire no-bite assertion.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** The peer fixture cannot pass its unlit-campfire check until it observes a selected-swarm bite while the campfire is owned, fueled, extinguished and flame-ineligible. Skipping initialization or lighting before the bite fails; the existing lit-fire repel assertion remains intact.
+    **Focused validation:** Add a narrow Development regression or peer-fixture check for the paid, extinguished state, including an unfuelled control and the lit-fire transition. Run after an Editor build with `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario MosquitoCounterplay`.
+  - [ ] **RF244 — Require weak poison on the bitten owner peer (P3; CR03-001b-35).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2136-2144,2530-2551; Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp:99-103,493-507; Scripts/Tests/Combat/EnemyPeers.ps1:133-152,276-283; docs/07-development-setup.md:2592-2607.
+    **Affected path:** The current non-Shipping MosquitoCounterplay peer privacy acceptance.
+    **Trigger:** The bitten-owner client has no replicated weak-poison status, while the observer client logs one; the two results are exclusive, so the runner's XOR passes.
+    **Evidence:** The GameMode assigns the first remote pawn as bitten Host and the second as observer. The runner starts the client and waits for its join before starting the observer. The server checks that the bitten Host has at least eight seconds of weak poison. However, the final runner predicate accepts either `$clientPoison` or `$observerPoison` through XOR, so observer-only delivery passes even though setup requires the owner to receive poison and the observer not to receive it.
+    **Impact:** The peer scenario can pass if poison is missing from its intended owner or appears only on the observer, leaving owner-only delivery unverified. No production privacy leak was established.
+    **Proposed repair:** Require poison in the designated bitten-owner client log and reject any poison in the observer log. Include explicit role or pawn identity in the observation if needed to keep the association unambiguous.
+    **Dependencies:** After CR19 review acceptance; no runner repair during CR03 or CR18.
+    **Acceptance:** Only owner-client poison with no observer poison passes. Owner-only absence, observer-only delivery, delivery to both peers, or delivery to neither peer fails; public-health checks and the server poison-duration assertion remain intact.
+    **Focused validation:** Add a narrow check for all four owner/observer Boolean combinations, then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario MosquitoCounterplay` after an Editor build.
+  - [ ] **RF245 — Select Peat Husk fixtures from the activated population budget (P3; CR03-001b-36).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2612-2661,8320-8380; Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:102-130; Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h:43-62.
+    **Affected path:** The non-Shipping PeatHuskPeerTest stage-zero descriptor selection and activation.
+    **Trigger:** A Mossy Mire key has multiple generated wildlife descriptors, its 70% budget truncates the tail, and the first undefeated Peat Husk descriptor is in that discarded tail.
+    **Evidence:** Stage zero searches the complete BuildSpawnDescriptors result and stores the first matching Peat Husk ID. ActivatePopulationKey rebuilds that array, then truncates it to ApplyPopulationBudget before spawning; the Mossy Mire wildlife multiplier is 0.70. The later fixture stage searches for the stored ID and times out if it was discarded. The Mosquito peer selector already applies the same biome budget before searching.
+    **Impact:** The Development peer fixture can stop at an actor that cannot spawn and later report a missing-target failure, even when a later key in the bounded search has a retained eligible Peat Husk. No production spawn or gameplay defect was established.
+    **Proposed repair:** Apply the activation path's biome budget truncation to the descriptor array before selecting the Peat Husk, keeping saved-defeat and hard-enemy-distance checks against the retained descriptors.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** The fixture stores only the ID of a descriptor retained by activation. A trimmed-tail candidate does not stop the bounded search; it continues until a retained undefeated eligible Peat Husk is found or all keys are exhausted, then reports no candidate at stage zero if necessary. No discarded ID can produce a stage-one timeout.
+    **Focused validation:** Add a narrow Development regression with a trimmed-tail candidate in an earlier key and a retained eligible candidate in a later key, plus a no-retained-candidate case. Then run Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario PeatHuskSweep -WorldSeed 445 after an Editor build. No test was run during this review.
+  - [ ] **RF246 — Tie Peat Husk telegraph observations to the selected actor (P3; CR03-001b-37).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2791-2823; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:5143-5152,5318-5323; Scripts/Tests/Combat/EnemyPeers.ps1:156-166.
+    **Affected path:** The PeatHuskSweep peer scenario's replicated-telegraph acceptance.
+    **Trigger:** Another Peat Husk actor emits a telegraph marker to both clients while the selected fixture target's telegraph is absent from one or both client logs.
+    **Evidence:** The server fixture stores the selected Target weak reference and logs its SpawnId on success, but client-side OnRep handlers emit an identical marker with no spawn ID for any Peat Husk that enters Telegraph. The runner checks only for that generic marker in each remote log and does not correlate it with the server's selected SpawnId.
+    **Impact:** PeatHuskSweep can pass without proving that both remote clients observed the selected target's replicated telegraph. No production replication defect was established.
+    **Proposed repair:** Include the persistent spawn ID in each client telegraph marker, parse the selected fixture ID, and require that same ID in both client logs.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** Only the selected target's telegraph observation on both designated remote clients satisfies the peer cue gate; a marker from any other Peat Husk does not.
+    **Focused validation:** Inject or fixture a second Peat Husk telegraph while suppressing the selected target's marker on one client and verify failure; verify matching selected-ID markers on both clients pass. Run Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario PeatHuskSweep -WorldSeed 445 after an Editor build.
+  - [ ] **RF247 — Continue fixture search when a Peat Husk has no dry approach (P3; CR03-001b-37).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2612-2649,2735-2770; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:837-840; Scripts/Tests/Combat/EnemyPeers.ps1:156-166.
+    **Affected path:** The PeatHuskPeerTest candidate-to-host placement setup.
+    **Trigger:** The first activation-retained Peat Husk has no direction among the 16 tested angles with three dry Mossy Mire samples along the 120 cm approach, while a later bounded-search key has another activation-retained candidate that does.
+    **Evidence:** Stage zero selects by archetype, start distance, stable ID and saved-defeat status without testing the fixture's approach geometry. Stage one tests the 16 directions only after selecting and activating that target; if none passes, it terminates the fixture instead of searching another candidate.
+    **Impact:** The Development peer fixture can fail on an unsuitable first spawn even when another activation-retained Peat Husk in a later key can support the sweep. No production spawn or attack defect was established.
+    **Proposed repair:** After activation-budget filtering, require a viable fixture approach while selecting candidates, or continue the bounded search when the first target has no supported approach. Report no suitable fixture only after exhausting eligible candidates.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** An activation-retained candidate with no valid sampled dry approach does not stop the search when a later activation-retained candidate has one; the fixture arms only after selecting and placing a target with a validated approach. If none qualifies, it reports no suitable candidate without an activation timeout.
+    **Focused validation:** Add a narrow Development regression with an earlier no-approach Peat Husk and a later valid approach, plus a no-valid-approach case. Then run Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario PeatHuskSweep -WorldSeed 445 after an Editor build.
+  - [ ] **RF248 — Select Wolf peer fixtures only from activation-admitted packs (P3; CR03-001b-39).**
+    Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2897-2930,2963-2987,3068-3095,8308-8337,8390-8407; Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:85-122; Source/KalmalaWorld/Public/KalmalaBiomeExpansionContract.h:43-62; Source/KalmalaGameplay/Public/KalmalaWolfPackContract.h:15-20; Scripts/Tests/Combat/EnemyPeers.ps1:71-84.
+    **Affected path:** The non-Shipping WolfPack peer fixture's stage-zero selection and population-key activation.
+    **Trigger:** The first complete undefeated Wolf pack with a valid host approach lies beyond the 65% Tundra descriptor prefix, or earlier wildlife slots consume enough of the per-key actor budget that the selected pack cannot fit, while another activation-admitted pack exists in the bounded search.
+    **Evidence:** Stage zero searches the full BuildSpawnDescriptors result, checks the three member IDs/defeat states and host approach, then stores that pack without applying Tundra's population budget or simulating actor-budget admission. ActivatePopulationKey rebuilds the array, truncates Tundra wildlife with ApplyPopulationBudget (multiplier 0.65), and skips a Wolf pack if previously spawned actors leave fewer than three actor slots. The fixture then waits for the selected member IDs and reports a missing-member failure after 20 seconds instead of searching for another pack. No production Wolf spawn defect was established.
+    **Impact:** The Development peer fixture can select members that activation will not spawn and fail despite another complete eligible pack being available. This is the WolfPack selector path; RF245 records the separate Peat Husk selector case.
+    **Proposed repair:** Select only a pack whose descriptor survives the same Tundra prefix and whose three actors fit the activation actor budget after preceding eligible slots; continue the bounded search when a candidate would be omitted or skipped. Report no suitable pack at stage zero only after exhausting eligible candidates.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** The fixture never stores member IDs for a pack that activation omits or skips. A tail or over-budget candidate does not stop the bounded search when a later activation-admitted pack exists; if none qualifies, the fixture fails clearly at stage zero rather than timing out on absent members.
+    **Focused validation:** Add narrow Development regressions for a tail Wolf pack before a later retained pack, a retained pack skipped because earlier actors consume its three-member budget before a later admissible pack, and no admissible pack. Then run Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario WolfPack -WorldSeed 445 after an Editor build.
+  - [ ] **RF249 — Place Wolf peer fixture pawns above sampled terrain (P3; CR03-001b-40).**
+    **Source:** CR18-002, CR03-001b-40; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:2989-3003`; neighboring fixture helpers at `KalmalaGameMode.cpp:1492-1501,2104-2115`; normal pawn placement at `KalmalaGameMode.cpp:11754-11761`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h:52-52`; Wolf bite validation at `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:1674-1696`.
+    **Affected path:** The non-Shipping WolfPack peer fixture's listen-host and observer placement before pack activation.
+    **Trigger:** The fixture reaches stage zero with a listen host and two remote observers, finds an undefeated pack, and calls `PlaceOnTerrain` for each pawn.
+    **Evidence:** `AKalmalaCharacter` derives from `ACharacter`, whose actor location is the capsule center. `PlaceOnTerrain` replaces Z with sampled terrain height and teleports with sweep disabled, then stops and disables character movement; it never adds capsule half-height or verifies a grounded/collision-safe final location. Neighboring fixture helpers add `GetSimpleCollisionHalfHeight() + 1.0f`, and normal pawn placement adds capsule height plus clearance. Host approach eligibility is computed from sampled surface locations with a 170 cm margin, while `TryApplyWolfBite` checks the final actor-to-actor 3D distance against 180 cm; any height correction must preserve that actual bite range.
+    **Impact:** The Development fixture can leave host and observer capsules intersecting the ground, making placement and the subsequent Wolf bite/peer acceptance unreliable. No production gameplay defect or live fixture failure was established.
+    **Proposed repair:** Place each pawn using sampled ground height plus capsule half-height and a small clearance (or a validated ground placement query), verify the resulting location, and re-evaluate the host's actual 3D distance to the selected Wolf after placement.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** Host and observers finish with capsule bottoms above sampled terrain, including on the steepest accepted fixture approach; placement success is confirmed; the placed host remains within the Wolf's actual 180 cm 3D bite boundary; and both observers remain outside the 3 m acquisition range in world bounds.
+    **Focused validation:** Add a narrow Development regression for flat and steep accepted terrain that checks capsule clearance, final location and post-placement 3D bite reach, then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario WolfPack -WorldSeed 445` after an Editor build.
+  - [ ] **RF250 — Validate Lynx, Polar Bear, Horned Goat, and Thunder Sentinel fixture capsule placement on accepted Tundra and Mountain slopes (P3; CR03-001b-42/46/50/52/54).**
+    **Source:** CR18-002, CR03-001b-42/46/50/52/54; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:3198-3212,3248-3257,3553-3578,3791,3843,3862,3929-3954,4079-4082,4128,4174,4190-4193,4284-4325,4476,4524,4553`; `Source/KalmalaGameplay/Public/KalmalaCharacter.h:52`; capsule use at `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:793-795`; peer contracts at `docs/07-development-setup.md:2711-2780`; composite acceptance at `Scripts/Tests/Combat/EnemyPeers.ps1:1-5,86-129,169-170`.
+    **Affected path:** The non-Shipping LynxLeap, PolarBearCharge, HornedGoatPush, and ThunderSentinelSlam fixture placement of the listen host and observers.
+    **Trigger:** A fixture places a pawn on a dry Tundra or Thunder Mountains sample whose center normal passes the `Z >= 0.82` gate while terrain rises across the capsule footprint.
+    **Evidence:** All four fixtures accept Tundra or Mountain surface normals down to Z 0.82. Their `PlaceOnTerrain` helpers raise the capsule center by `GetSimpleCollisionHalfHeight() + 1 cm` above a center-point terrain sample, teleport with sweep disabled, and do not verify final capsule clearance. The Goat and Sentinel path helpers sample their centerlines at intervals of at most 80 cm, but do not query the capsule's horizontal extent; direct host and observer placement calls use the same unvalidated helper. On an uphill slope across a finite-radius capsule, center-point clearance does not prove the full capsule is clear. No specific seed or live collision failure was established.
+    **Impact:** Any of the four Development fixtures can start with a host or observer capsule intersecting sloped terrain, blocking or occluding the selected attack approach or observer placement and making peer acceptance unreliable. No production gameplay defect was established.
+    **Relationship to existing findings:** RF249 covers the separate Wolf fixture helper that omits capsule half-height even on flat terrain. RF250 covers the Lynx, Polar Bear, Horned Goat, and Thunder Sentinel helpers that add center-point clearance but do not validate the full capsule. RF19 already covers stale standalone peer-script commands, including HornedGoatPeer.ps1; RF251 covers already-active-key handling for LynxLeap, PolarBearCharge, HornedGoatPush and ThunderSentinelSlam, RF252 covers selected-attack outcome attribution for all four peer fixtures, and RF253 covers the Goat observer-distance assertion gap.
+    **Proposed repair:** Validate the complete capsule against terrain with a collision-aware placement query or sweep and confirm the final location. Skip unsafe host ring/approach candidates before activation where possible, and fail before stage-two arming if final host or observer placement is not collision-clear. Ensure the final placed host remains within each selected attack's actual reach.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** None of the four fixtures proceeds to attack/peer acceptance after any pawn placement overlaps terrain; hosts and observers finish collision-clear on flat ground and the steepest accepted Tundra or Mountain slope; unsafe host ring/approach candidates are skipped or rejected before activation, invalid final placements fail before stage-two arming, and the placed host remains within each fixture's documented attack reach.
+    **Focused validation:** Add narrow Development regressions for all four fixtures covering flat terrain, a slope near normal-Z 0.82, and obstructed capsule placement. Confirm final placement and actual host-to-target distance, then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario LynxLeap -WorldSeed 445`, `-Scenario PolarBearCharge -WorldSeed 445`, `-Scenario HornedGoatPush -WorldSeed 445`, and `-Scenario ThunderSentinelSlam -WorldSeed 445` after an Editor build.
+  - [ ] **RF251 — Handle already-active keys before arming Lynx, Polar Bear, Horned Goat, and Thunder Sentinel peer fixtures (P3; CR03-001b-44/47/48/51/52/54/55/56).**
+    **Source:** CR18-002, CR03-001b-44/47/48/51/52/54/55/56; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:3428-3459,3580-3609,3628-3777,3791-3831,3986-4116,4129-4159,4356,4369-4464,4477-4509,7880-7923,8308-8313,8366-8380,8618-8620`; `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:454-465`; `Scripts/Tests/Combat/EnemyPeers.ps1:86-113,169-170`; `docs/07-development-setup.md:2764-2770`.
+    **Affected path:** The non-Shipping LynxLeap, PolarBearCharge, HornedGoatPush, and ThunderSentinelSlam fixtures' stage-zero selected-target activation and stage-one selected-actor wait.
+    **Trigger:** A fixture waits for its two observers while normal Tick activates the host's current key, then its bounded selector chooses a descriptor in that already-active key but no live actor with that persistent ID exists. The Sentinel selector does not exclude active keys, and its key-capacity rejection applies only to new keys.
+    **Evidence:** Tick calls peer-fixture drivers before periodic player-key activation. Stage zero returns while fewer than two observers are present; the Sentinel observer wait is at line 4356. During that wait, the ordinary path can activate the host key using the default `bAllowLegacyWildlifeForVerification=false`, marking it active without legacy wildlife materialization. The Sentinel selector at lines 4369-4464 does not skip active keys; its check at 4458-4463 allows an already-active key even when the key budget is full. The later `ActivatePopulationKey(key, true)` call returns at the `ActivePopulationSpatialKeys.Contains` guard before the verification-only wildlife branch, and stage one waits up to 20 seconds for the exact persistent ID. The ordinary scheduler may materialize that descriptor later, but its five-second cadence, seeded admission roll and other gates do not guarantee it before timeout. The Lynx, Polar Bear and Goat fixtures have the same active-key false-failure path. No specific seed or live failure was established.
+    **Impact:** Any of the four Development peer fixtures can wait 20 seconds and report that its selected wildlife actor did not materialize after direct fixture activation became a no-op. No production wildlife spawning defect was established.
+    **Relationship to existing findings:** RF245 and RF248 cover descriptor-budget/ordered-admission mismatches in other peer selectors. RF250 covers pawn placement in the four peer fixtures; RF252 covers selected-attack outcome attribution in all four peer fixtures; RF253 is the separate Goat observer-distance assertion gap. RF251 concerns a selected target missing after an already-active-key activation no-op.
+    **Proposed repair:** Before staging, accept a matching live selected actor already present; otherwise avoid selecting an already-active key that lacks the selected actor, continue the bounded search to an activatable candidate, or use an explicit fixture-only activation path with a verified result. Do not publish stage one after a no-op activation without a guaranteed target.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** Regressions pre-activate a candidate key through the ordinary path while the selected Lynx, Polar Bear, Goat, or Sentinel is absent. Each fixture either finds a different key it can activate or fails clearly before staging; none proceeds into the 20-second wait on a target whose key activation was a no-op. A matching live selected actor in an already-active key remains eligible.
+    **Focused validation:** Add narrow Development regressions for the pre-activated-key and matching-live-actor cases, then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario LynxLeap -WorldSeed 445`, `-Scenario PolarBearCharge -WorldSeed 445`, `-Scenario HornedGoatPush -WorldSeed 445`, and `-Scenario ThunderSentinelSlam -WorldSeed 445` after an Editor build.
+  - [ ] **RF252 — Require selected-attack outcome attribution for Lynx, Polar Bear, Horned Goat, Thunder Sentinel, and Reef Maw peer acceptance (P3; CR03-001b-45/49/53/57/61).**
+    **Source:** CR18-002, CR03-001b-45/49/53/57/61; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:3412-3551,3779-3927,4118-4275,4582-4628,4933-4978,8308-8621`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:1734-1867,1920-1925,1957-2194,2362-2448,2479-2511,2558-2666,2715-2720,2777-2956`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:320-359`; `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:61-69`; `Scripts/Tests/Combat/EnemyPeers.ps1:86-129,169-209`; `docs/07-development-setup.md:2744-2759,2769-2795`.
+    **Affected path:** The non-Shipping LynxLeap, PolarBearCharge, HornedGoatPush, ThunderSentinelSlam, and ReefMawBite fixtures' server-side success predicates.
+    **Trigger:** A fixture activates a wildlife key, the selected actor emits enough cues and movement evidence to reach Recovery but its attack misses, and another admitted wildlife actor supplies the host damage or other aggregate outcomes used for acceptance. HornedGoatPush additionally measures host-wide displacement and stagger without associating either with the selected Goat.
+    **Evidence:** The Lynx fixture captures its host-health baseline before staging and activation; the Polar Bear fixture sets its baseline to 300 before activation. New-key activation materializes the admitted wildlife descriptors for the whole 6,400 cm key rather than isolating the selected target. Those fixtures latch the selected actor's cues but accept any positive total host-health loss; Lynx enters Recovery after both a hit and a miss, and Polar Bear proceeds to Recovery after its charge distance/time expires even if `TryApplyPolarBearCharge` returned false. HornedGoatPush likewise activates the key with `ActivatePopulationKey(..., true)`; stage two latches Telegraph/Recovery from only the selected Goat but samples aggregate host health, total 2D displacement, and the host-wide stagger flag. `UpdateHornedGoatAttack` ignores the return from `TryApplyHornedGoatCharge` and publishes Recovery after Telegraph even when the selected hit is rejected. The fixture succeeds on any positive health delta, at least 50 cm displacement and a 0.65–0.95 s stagger; the runner also checks the selected SpawnId and its telegraph on both clients but does not associate damage or effects with that attacker. Another admitted wildlife actor can therefore supply the measured host outcomes while the selected attack misses.  For ThunderSentinelSlam, key activation materializes the selected key's admitted wildlife descriptors; UpdateThunderSentinelAttack publishes Lunge and ignores the result of TryApplyThunderSentinelSlam. The peer fixture latches that selected Sentinel's cues and step, but measures only total host-health loss and accepts 299–301 damage. The runner pairs the selected SpawnId's cues with aggregate damage without a source-specific receipt. Another actor, including a second Sentinel possible under RF254's cap bypass, can therefore supply the measured host damage while the selected Sentinel misses. For ReefMawBite, stage two latches the selected SpawnId's Telegraph/Lunge/Recovery cues and stores its distance on first observed Lunge, but accepts only aggregate 50-point host-health loss. UpdateReefMawAttack ignores TryApplyReefMawBite's return and proceeds to Recovery after a miss; the runner matches selected-SpawnId client cues with aggregate damage and has no source-specific receipt. Verification materialization creates all admitted descriptors in the whole key, and RF254 documents that it can bypass Reef Maw's one-per-96-m cap. Another admitted Maw that reaches the host can therefore supply measured damage while the selected Maw supplies cues. No specific seed or live false pass was established.
+    **Impact:** Any of the five Development fixtures can report success for the selected attack when another wildlife actor supplied the aggregate host outcome. No production combat defect was established.
+    **Relationship to existing findings:** RF251 is the distinct false-failure case where activation of an already-active key does not materialize the selected target; RF254 concerns a separate area-cap bypass that can allow a second Sentinel or Reef Maw. RF250 concerns capsule placement and RF253 observer-distance assertions; RF255 concerns runtime resistance-profile acceptance. RF256 concerns Recovery duration. This finding concerns false success from host-wide outcomes paired with selected-actor cues.
+    **Proposed repair:** Gate acceptance on a server-side hit receipt keyed to the selected attacker and Host, and associate the expected damage, displacement and stagger with that hit; alternatively isolate the host from every other wildlife source during the acceptance window. Keep aggregate health, movement, stagger and replicated cue observations as supporting checks.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** In all five fixtures, a selected attack miss plus another actor supplying the measured host outcomes cannot report Passed. A selected Lynx leap, Polar Bear charge, Horned Goat push, Thunder Sentinel slam, or Reef Maw bite with server-confirmed applied damage and its required movement/effects, cue evidence, distance gate and existing peer observations can pass.
+    **Focused validation:** Add Development regressions for each fixture where the selected attack misses while another admitted wildlife source damages the host (and, for HornedGoatPush, supplies displacement/stagger), and verify each fixture fails. Add corresponding selected-attack hit cases. Then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario LynxLeap -WorldSeed 445`, `-Scenario PolarBearCharge -WorldSeed 445`, `-Scenario HornedGoatPush -WorldSeed 445`, `-Scenario ThunderSentinelSlam -WorldSeed 445`, and `-Scenario ReefMawBite -WorldSeed 445` after an Editor build.
+  - [ ] **RF253 — Assert Horned Goat and Reef Maw observer placement before peer acceptance (P3; CR03-001b-52/60).**
+    **Source:** CR18-002, CR03-001b-52/60; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4177-4219,4764-4779,4859-4915`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:5287-5304`; `Scripts/Tests/Combat/EnemyPeers.ps1:116-129,190-209`; `docs/07-development-setup.md:2744-2759,2780-2793`.
+    **Affected path:** HornedGoatPush and ReefMawBite stage-one remote-observer placement and replicated-cue acceptance.
+    **Trigger:** One or both observers are not at their intended fixture locations, or a Reef Maw observer is not in the selected deep-Ocean lane, but can still receive the selected actor's replicated cue.
+    **Evidence:** HornedGoatPush calls `PlaceOnTerrain` and marks observers placed without reading their final positions; the runner checks selected-Goat cues but not observer distances. ReefMawBite selects deep-Ocean lane positions for the host and observers, calls `PlaceSwimmingCharacter`, and later checks only that each observer is unattached and has `IsSwimmingInGeneratedOcean()` movement mode. That helper teleports and sets the movement mode, while the mode predicate reports only the movement enum; stage one does not check the final observer coordinates or resample Ocean depth/lake/path. The server log records only `Observers=2`. The client `OnRep_ReefMawAttackCue` logs the selected SpawnId's cue without checking observer location, and the composite runner checks these logs and host distance but no observer positions or depth. Thus both scenarios can pass without proving the intended observer placement or, for Reef Maw, the selected deep-Ocean lane. No specific seed or runtime false pass was established.
+    **Impact:** HornedGoatPush can pass without proving its documented 10 m and 15 m observer spacing, and ReefMawBite can pass without proving both observers occupied the intended deep-Ocean positions when they received the cues. No production replication defect was established.
+    **Relationship to existing findings:** RF250 concerns capsule clearance at fixture placements; RF251 concerns already-active-key target materialization; RF252 concerns attack outcome attribution; RF254 concerns species-area caps. RF253 concerns peer-observer placement and cue acceptance.
+    **Proposed repair:** After placement, record server-authoritative final observer positions. For HornedGoatPush, require the documented 1000 cm and 1500 cm distances within tolerance. For ReefMawBite, verify each observer remains at its selected Ocean lane position and the actual position passes the deep non-lake Ocean predicate. Have the composite runner assert these scenario-specific measurements in addition to matching each selected SpawnId's cues.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** Stage two is not armed and the scenario cannot pass unless the Goat peers meet their documented 10 m and 15 m observer bands and both Reef Maw peers remain at their assigned deep-Ocean lane positions. The two remote logs in each scenario must still contain the selected actor's cues, and the Goat host remains within the existing 180 cm reach check.
+    **Focused validation:** Add Development regressions that move an observer outside its Goat slot or Reef Maw lane while keeping it close enough to receive the cue; each runner must reject the case. Retain intended placements, then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario HornedGoatPush -WorldSeed 445` and `-Scenario ReefMawBite -WorldSeed 445` after an Editor build.
+  - [ ] **RF254 — Respect Reef Maw and Thunder Sentinel area caps in peer-fixture admission (P3; CR03-001b-55/56/59).**
+    **Source:** CR18-002, CR03-001b-55/56/59; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4392-4419,4458-4509,4711-4810,6867-6890,6971-7001,7182-7184,7534-7539,8308-8313,8366-8458,8618-8620`; `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:451-468`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp:52-55`; `docs/monster-spawning.md:230-244`; `docs/07-development-setup.md:2764-2768,2780-2790`; `Scripts/Tests/Combat/EnemyPeers.ps1:169-170,190-192`.
+    **Affected path:** The non-Shipping ThunderSentinelSlam and ReefMawBite descriptor selectors and their verification-only population-key materialization.
+    **Trigger:** A generated Sentinel or Reef Maw candidate otherwise passes its biome/descriptor, start-distance, defeat, per-key actor-budget and fixture-specific terrain/lane checks while another living or reserved same-species actor is already within the documented 96 m species-cap radius.
+    **Evidence:** Both selectors track the candidate key's `WildlifeActorBudget` but do not call `DoesPopulationDescriptorPassCaps` or count nearby live/pending actors of the selected species. The Reef Maw selector uses the full Ocean descriptor list, applies the hard-enemy start exclusion and undefeated filter, then accepts a descriptor with a safe sampled Ocean lane; it does not check the Reef Maw area cap. Normal admission calls the cap gate, whose area-cap value is one for both Thunder Sentinel and Reef Maw and whose count includes live actors and pending reservations within 96 m. For a new key, `ActivatePopulationKey(key, true)` directly materializes the verification descriptors using the key-local budget without that area-cap gate. Thus either fixture can stage and accept an additional same-species actor even when ordinary admission rejects it. No specific seed or runtime over-cap case was established.
+    **Impact:** ThunderSentinelSlam or ReefMawBite can report peer acceptance with an actor that normal population admission would reject, so the fixture does not prove the documented one-per-species area cap. No production population-cap defect was established.
+    **Relationship to existing findings:** RF245 and RF248 concern descriptor-prefix and per-key actor-budget mismatches; this finding concerns the distinct live/pending species-area cap. RF251 concerns false failure after an already-active key makes direct activation a no-op; RF250 concerns pawn capsule placement.
+    **Proposed repair:** Apply the normal species-area admission check to both fixture selectors and ensure verification-only materialization cannot bypass it for the selected actor. If the cap is full, continue the bounded search or fail before staging rather than spawning an over-cap target.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** With a living or reserved same-species actor inside a candidate's 96 m area, neither fixture materializes a second actor or reports Passed using one. Each either selects a candidate whose normal area-cap check passes or fails clearly before stage one. Under-cap cases retain the documented generated peer acceptance.
+    **Focused validation:** Add Development regressions with an existing live Sentinel and Reef Maw inside 96 m of generated candidates and verify neither fixture materializes or accepts a second same-species actor; also retain under-cap passing cases. Then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario ThunderSentinelSlam -WorldSeed 445` and `-Scenario ReefMawBite -WorldSeed 445` after an Editor build.
+  - [ ] **RF255 — Assert spawned Reef Maw and Thunder Sentinel resistance profiles in peer acceptance (P3; CR03-001b-56/60).**
+    **Source:** CR18-002, CR03-001b-56/60; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4511-4515,4843-4846`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:161-163,297-300,326-330,689-697`; `Source/KalmalaGameplay/Public/KalmalaResistanceComponent.h:10-21`; `Source/KalmalaGameplay/Private/KalmalaResistanceComponent.cpp:9-13`; `docs/07-development-setup.md:2765-2773,2788-2793`; `Scripts/Tests/Combat/EnemyPeers.ps1:169-186,190-209`.
+    **Affected path:** ThunderSentinelSlam's stage-one 75-Armor check and ReefMawBite's stage-one 2-Armor check for their materialized wildlife actors.
+    **Trigger:** The archetype Armor mapping remains at the expected 75 or 2 while the selected actor's `UKalmalaResistanceComponent::Profile.Armor` is absent or differs because runtime component setup regressed.
+    **Evidence:** Both fixtures check the selected actor's archetype and health, but their Armor conditions call static `GetArmorForArchetype(Target->GetArchetype())` instead of reading that actor's resistance component. Each scenario measures damage dealt by the wildlife actor to the host; neither applies a hit to the selected actor, so the outcome does not exercise its own Armor. Spawn initialization separately assigns the mapping into `Defenses->Profile.Armor`, and server damage resolution consumes the component profile. The component is a default subobject with a public profile, so the actual runtime value is directly checkable. A regression in component creation or assignment can leave the mapping at the documented value while either fixture's Armor check passes. The current spawn initialization makes the assignment; no live failure or production defect was established.
+    **Impact:** Either Development peer case can pass without proving its generated wildlife actor received the documented runtime Armor profile. No current gameplay defect was established.
+    **Relationship to existing findings:** RF250 concerns fixture pawn placement; RF251 and RF254 concern key activation and population-cap fidelity; RF253 concerns observer placement. RF255 concerns runtime resistance-profile acceptance.
+    **Proposed repair:** Check the materialized target's resistance-component profile and fail before stage two if the component is missing or Armor differs from the expected archetype value: 75 for Thunder Sentinel or 2 for Reef Maw. Where practical, also exercise server-side resolution with a narrow known-damage profile check.
+    **Dependencies:** After CR19 review acceptance; no fixture repair during CR03 or CR18.
+    **Acceptance:** A generated Sentinel or Reef Maw whose archetype mapping is correct but whose runtime resistance profile is missing or differs from its expected Armor value cannot arm its peer fixture; initialized 75-Armor and 2-Armor targets remain eligible.
+    **Focused validation:** Add Development regressions that change or omit runtime component Armor while leaving each archetype mapping correct and verify both fixtures reject the mismatch; retain initialized-profile cases, then run `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario ThunderSentinelSlam -WorldSeed 445` and `-Scenario ReefMawBite -WorldSeed 445` after an Editor build.
+  - [ ] **RF256 — Assert the Thunder Sentinel's documented recovery duration in peer acceptance (P3; CR03-001b-57).**
+    **Source:** CR18-002, CR03-001b-57; Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4592-4612,4617-4624; Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:2633-2666; Source/KalmalaGameplay/Public/KalmalaWildlifeSpawn.h:256; docs/07-development-setup.md:2771-2773; Scripts/Tests/Combat/EnemyPeers.ps1:174-186.
+    **Affected path:** ThunderSentinelSlam's server-side Recovery cue acceptance and composite peer predicate.
+    **Trigger:** The selected Sentinel exposes Recovery for at least one sampled frame but exits it before the documented 1.2 seconds.
+    **Evidence:** Stage two only latches bThunderSentinelPeerTestSawRecovery when the cue equals Recovery; success requires that boolean, and the server log emits Recovery=1. The composite runner requires that flag but reads no duration. Runtime behavior currently assigns ThunderSentinelRecoverySeconds (1.2 seconds) on entry and clears Recovery when its timer expires, but the fixture never measures entry-to-exit time. A shortened duration lasting at least one sample can therefore satisfy the acceptance check. No current runtime duration defect was established.
+    **Impact:** The generated Sentinel peer case can pass after a Recovery shorter than the documented duration. No current gameplay defect was established.
+    **Relationship to existing findings:** RF252 concerns attribution of the selected Sentinel's damage; RF255 concerns whether the materialized actor has the expected runtime Armor profile. RF256 concerns only the temporal duration of its Recovery cue.
+    **Proposed repair:** Measure the server-observed Recovery interval or authoritative timer, include it in the success log and require it to meet the documented 1.2-second duration with an explicit sampling tolerance.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** The fixture cannot report Passed when the selected Sentinel remains in Recovery for less than the documented duration, while the authored 1.2-second Recovery passes within documented sampling tolerance.
+    **Focused validation:** Add a Development regression with Recovery shortened below 1.2 seconds and verify the fixture rejects it; retain the authored-duration pass and run Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario ThunderSentinelSlam -WorldSeed 445 after an Editor build.
+  - [ ] **RF257 — Exercise normal interaction paths in the Discovery, Ocean Discovery, and M9 peer fixtures (P3; CR03-001b-62/64, CR18-002 batch 104).**
+    **Source:** CR18-002, CR03-001b-62/64 and batch 104; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:4980-5091,5207-5268,10085-10153`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1576-1598,1687-1716,1968-1972`; `Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp:142-161`; `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp:424,469-472,790-791`; `Scripts/Tests/Progression/DiscoveryPeer.ps1:8-35`; `Scripts/Tests/Progression/ExplorationRewards.ps1:12-42`; `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1`; `docs/07-development-setup.md:2495-2508,4164-4180,4361-4391`.
+    **Affected path:** DiscoveryPeer, Ocean discovery disembark/reconnect, and ExplorationRewards peer-fixture distant rejection, entitled claim, duplicate/replay claim and peer acceptance.
+    **Trigger:** The ordinary owning-pawn `ServerRequestInteract` trace or discovery-actor dispatch stops reaching world, Ocean, or M9 discovery actors while direct server calls still succeed.
+    **Evidence:** `DriveDiscoveryPeerTest` checks distance with direct `CanInteract_Implementation(Remote)` and `ClaimDiscovery(Remote, Descriptor)` calls, then invokes `Actor->Interact_Implementation(Entitled)` directly for the first and duplicate claims. In the M9 fixture, `bDistantRejected` combines `!Actor->CanInteract_Implementation(Remote) && !ClaimM9ExplorationReward(Remote, Descriptor)`; when the expected actor range check rejects the 1,000 cm Remote, C++ short-circuiting skips the GameMode claim call. M9 accepted/replay interactions also call `Interact_Implementation` directly; forged and replay helper checks call `ClaimM9ExplorationReward` directly. In the Ocean peer fixture, replay, both seated owners' accepted claims, and the integrated-journey claim call `GameMode->ClaimOceanDiscovery` directly; neither the fixture nor its runner sends an ordinary pawn interaction request. `AKalmalaDiscoveryActor::Interact_Implementation` does dispatch an Ocean descriptor to that handler, and normal play reaches the actor through `RequestInteract` -> `ServerRequestInteract` -> server trace -> `Execute_CanInteract`/`Execute_Interact`. The setup guide explicitly says focused checks do not replace a live client interaction trace in the later journey acceptance. No current production interaction failure was established.
+    **Impact:** None of the three peer scenarios proves that a player can claim through the ordinary networked interaction route; a routing or server-trace regression could escape while direct handler or actor calls continue to succeed. No production defect was established.
+    **Relationship to existing findings:** RF02 separately covers the missing Remote-client observation of the nonlocal Host's private feedback and reward inventory. Current fields remain owner-only; this finding concerns request/target dispatch. RF265 separately covers Ocean actor refresh materialization and cleanup, and RF28 covers the Ocean claim transaction rollback path. The M9 distant expression also does not independently exercise the GameMode claim method's distance guard, but the actor's own range rejection is expected and remains server-authoritative.
+    **Proposed repair:** Have all three fixtures submit ordinary payload-free interaction intents through the owning pawn's `ServerRequestInteract` path and retain server-side trace/target selection. Keep direct descriptor-forgery and duplicate/replay helper checks as supplemental assertions; separate the M9 helper-distance assertion so short-circuiting cannot skip it. Keep independent privacy assertions.
+    **Dependencies:** After CR19 review acceptance; no fixture or runner repair during CR03 or CR18.
+    **Acceptance:** DiscoveryPeer, Ocean discovery, and ExplorationRewards cannot pass unless owning players send ordinary interaction requests without a target, discovery ID, reward or identity payload, the server selects actors through normal trace/dispatch, and accepted, distant-rejected and duplicate/replay outcomes are observed. Both Ocean owners receive exactly one owner-scoped reward through interaction; the M9 direct-claim distance check is independently exercised, and the privacy check remains independently required.
+    **Focused validation:** Add a Development regression that disables or bypasses normal discovery dispatch and verify all three peer scenarios fail; then run `Scripts/Tests/Progression/DiscoveryPeer.ps1`, `Scripts/Tests/Progression/ExplorationRewards.ps1`, and the Ocean discovery/reconnect journey after an Editor build.  - [ ] **RF258 — Assert the Y tie-break in due population-key ordering (P3; CR03-001b-68).**
+    **Source:** CR18-002, CR03-001b-68; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:5364-5425,5469-5488`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp:26-29,91-100`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp:22-60`; `docs/monster-spawning.md:145-165`.
+    **Affected path:** S06 lexicographic due-key ordering and S07 selection of at most four keys for each scheduler wake.
+    **Trigger:** Multiple simultaneously due active keys share X but have different Y values, and insertion or hash iteration order differs from ascending Y order.
+    **Evidence:** `GetDuePopulationSpatialKeys` currently compares X and then Y, so the implementation provides the documented lexicographic order. The cadence fixture adds loaded keys `(1,0)` then `(0,0)`, but `GetPopulationSpatialKeyCandidates` sorts the candidate union before schedule update; its due assertion only distinguishes X values. The scheduler-budget test uses six `(Index,0)` keys and also checks X order. No focused automation supplies same-X keys with different Y values. If the Y tie-break is removed, both tests can continue to pass while equivalent-X keys are left in TSet-derived order. With more due keys than the four-key wake cap, that can change which keys are serviced. No current production defect was established.
+    **Impact:** The focused scheduler checks can miss a regression that stops honoring the Y tie-break for keys sharing X, allowing the bounded wake to choose a different set of due keys.
+    **Proposed repair:** Extend the cadence or scheduler-budget automation with simultaneously due keys sharing X and having distinct Y values, insert them in reverse Y order, and assert ascending-Y output and the stable bounded wake selection.
+    **Dependencies:** After CR19 review acceptance; no scheduler test or runtime behavior change during CR03 or CR18.
+    **Acceptance:** A focused Development regression fails when the Y tie-break is removed or reversed, passes with same-X keys inserted in an order different from lexicographic Y order, and preserves the existing X-order and wake-budget assertions.
+    **Focused validation:** Run `Kalmala.Gameplay.Population.SchedulerCadence` and `Kalmala.Gameplay.Population.SchedulerWakeBudget` after an Editor build.
+  - [ ] **RF259 — Cover scheduler wake attempt-gate-to-transaction integration (P3; CR03-001b-70, CR03-001b-74).**
+    **Source:** CR18-002, CR03-001b-70, CR03-001b-74; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:5510-5575,5793-5818`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerBudgetTest.cpp:8-69`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp:12-175`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp:7-123`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp:7-178`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp:12-118`; `docs/monster-spawning.md:163-166,270-281`.
+    **Affected path:** A due natural-population key through the bounded server wake, descriptor selection, ordered attempt gates and successful server creation transaction.
+    **Trigger:** A regression disconnects or misorders an attempt gate, omits ring membership from the per-attempt distance result, or stops submitting a fully eligible scheduled attempt to the transaction, while scheduler-budget, gate-helper and direct transaction rejection tests continue to pass.
+    **Evidence:** The current wake builds descriptors, selects bounded candidates, applies player-distance, habitat, time, weather, progression, cap and physical-placement gates, then submits attempts whose rejection reason remains `None`. The scheduler-budget automation checks work counts, key and candidate limits, ordering and hitch behavior; the ring-selector automation checks candidate/ordinal behavior; the gate-evaluator automation checks helper ordering; and the creation-lifecycle automation calls `TryCreatePopulationSpawnTransaction` only with default failing gates before manually creating its lifecycle fixtures. No focused test drives one fully eligible attempt from the normal scheduler wake through all gates and verifies successful actor creation/registration. Existing RF12 covers transaction internals and RF13 covers Tick-to-scheduler wiring; neither covers this wake-to-transaction handoff. The selector fixture retains an accepted-roll descriptor outside the ring, but no test passes it through the distance gate and asserts `PlayerDistance`; because wake dispatches by rejection reason, removing the ring conjunct could leave it without distance rejection and eligible for dispatch if later gates pass. No production defect was established.
+    **Impact:** A wiring regression could leave eligible natural population attempts uncreated while the scheduler, gate and transaction helper checks still pass.
+    **Relationship to existing findings:** RF12 covers successful transaction internals and partial Wolf rollback; RF13 covers real GameMode Tick sequence. RF259 covers the distinct bounded-wake attempt-gate-to-transaction integration.
+    **Proposed repair:** Add a Development integration fixture that drives a deterministic eligible descriptor through the scheduler wake and all ordered gates, then verifies the created actor and live registration. Include a deterministic accepted-roll, out-of-ring descriptor retained by selection; verify the distance gate records `PlayerDistance` and the wake creates no actor for that attempt. Force one other gate to reject in a companion case and verify no actor is created.
+    **Dependencies:** After CR19 review acceptance; no scheduler pipeline or runtime behavior change during CR03 or CR18.
+    **Acceptance:** A fully eligible due attempt reaches successful actor creation and registration through `UpdatePopulationSchedulerWake`; the retained accepted-roll, out-of-ring attempt receives `PlayerDistance` and creates no actor; a forced gate rejection creates no actor; existing wake and candidate budgets remain respected.
+    **Focused validation:** Run the new scheduler-admission integration regression together with `Kalmala.Gameplay.Population.SchedulerWakeBudget` after an Editor build.
+  - [ ] **RF260 — Verify horizontal spawn-ring behavior across elevation (P3; CR03-001b-72).**
+    **Source:** CR18-002, CR03-001b-72; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:5698-5736`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp:24-67,83-91`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp:44-54,79-116`; `docs/monster-spawning.md:168-190`.
+    **Affected path:** S08 inclusive horizontal 32–96 m population ring membership for wildlife descriptors.
+    **Trigger:** A future change computes ring membership in 3D while the player and candidate share an elevation in existing tests, so all current boundary and multi-player assertions still pass.
+    **Evidence:** IsDescriptorInSpawnRing currently computes squared distance from X/Y only, matching S08. The ring-selector fixture places its player and every candidate at Z=0; the player-distance fixture likewise uses Z=0 for both players and candidates. Neither test would detect a 3D-distance regression. No production defect was established.
+    **Impact:** Ring membership could depend on terrain elevation, incorrectly admitting a horizontally too-close descriptor or rejecting an in-ring descriptor at a different height. No current production defect was found.
+    **Relationship to existing findings:** RF259 covers scheduler wake-to-transaction integration; this finding covers the separate horizontal-versus-3D ring predicate contract.
+    **Proposed repair:** Extend the Development ring-selector regression with same-world candidates whose horizontal distances are inside and outside the ring while their vertical offsets would move their 3D distances across the ring thresholds.
+    **Dependencies:** After CR19 review acceptance; no ring behavior or test changes during CR03 or CR18.
+    **Acceptance:** The regression fails if Z contributes to ring distance; an in-ring horizontal candidate remains selected despite a large vertical offset, and a horizontally too-close candidate remains excluded despite a vertical offset that would put its 3D distance above 32 m. Existing inclusive 32 m and 96 m boundary assertions remain intact.
+    **Focused validation:** Run `Kalmala.Gameplay.Population.RingCandidateSelector` and `Kalmala.Gameplay.Population.PlayerDistanceGate` after an Editor build.
+  - [ ] **RF261 — Verify horizontal player exclusion across elevation (P3; CR03-001b-75).**
+    **Source:** CR18-002, CR03-001b-75; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:5820-5854`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationPlayerDistanceGateTest.cpp:44-54,79-123`; `docs/monster-spawning.md:183-190`.
+    **Affected path:** S09's strict 36 m horizontal exclusion against every current-world living player, composed with S08 ring membership.
+    **Trigger:** A regression changes `IsDescriptorOutsidePlayerExclusion` to 3D distance while player and candidate Z values remain equal in the existing player-distance fixture.
+    **Evidence:** The production predicate correctly compares X/Y only, as required by S09. The focused fixture places both players and all descriptors at Z=0; its 35 m rejection uses a candidate at `(6500,0,0)` and a second player at `(10000,0,0)`, while the first player at `(0,0,0)` keeps the candidate inside S08's 32–96 m horizontal ring. A 3D-distance regression would still reject this fixture. No production defect was found.
+    **Impact:** A 3D-distance regression could admit a wildlife spawn less than 36 m from a player horizontally when their vertical separation raises 3D distance above the threshold. The current implementation remains horizontal.
+    **Relationship to existing findings:** RF260 covers elevation-independent S08 ring membership at the 32 m and 96 m thresholds; RF261 covers the separate S09 all-player 36 m exclusion.
+    **Proposed repair:** Extend `Kalmala.Gameplay.Population.PlayerDistanceGate` with a descriptor 35 m horizontally from the second player and a vertical offset large enough to exceed 36 m in 3D, while remaining in the horizontal S08 ring from the first player. Assert that S09 still rejects it and records `PlayerDistance`.
+    **Dependencies:** After CR19 review acceptance; no distance behavior or test changes during CR03 or CR18.
+    **Acceptance:** The focused test fails if Z contributes to S09 exclusion; the elevated 35 m horizontal candidate is rejected with `PlayerDistance`, an exactly 36 m horizontal candidate still passes, and S08 ring membership remains a separate horizontal condition.
+    **Focused validation:** Run `Kalmala.Gameplay.Population.PlayerDistanceGate` after an Editor build.
+  - [ ] **RF262 — Cover species-habitat rejection and hard-enemy classification through GameMode (P3; CR03-001b-76/77).**
+    **Source:** CR18-002, CR03-001b-76/77; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:169-185,5856-5898`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:460-467`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationRingCandidateSelectorTest.cpp:132-150`; `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerAdmissionTest.cpp:178-191`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSpawnGateEvaluatorTest.cpp:34-57`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeGiantSnakeTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeMoonBearTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifePeatHuskTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifePolarBearTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeThunderSentinelTest.cpp`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeReefMawTest.cpp:21-44,97-99`; `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeThunderSentinelTest.cpp:100-106`; `docs/monster-spawning.md:278-284`; `docs/biome-enemies.md:304-317,347-381`.
+    **Affected path:** Seed/biome-derived archetype mapping, hard-enemy classification, generated-start distance evaluation, ordered `SpeciesHabitat` rejection, and candidate filtering through `ApplyPopulationSpeciesHabitatGate`.
+    **Trigger:** A regression omits one hard-enemy archetype from the GameMode classifier or bypasses/hardcodes the population species-habitat result while the generic gate-order test, species-selection fixtures and direct boolean-policy helper tests continue to pass.
+    **Evidence:** The production predicate correctly maps each descriptor from the generation configuration, classifies Giant Snake, Moon Bear, Peat Husk, Polar Bear, Thunder Sentinel and Reef Maw as hard enemies, measures horizontal distance from the generated start, and delegates the finite inclusive 15000 cm boundary to the shared helper. The generic evaluator uses synthetic booleans; species fixtures test seed/biome selection but do not exercise the GameMode classifier; the configured-source case asserts only a passing result before cap rejection; and the ring-selector fixture reaches this wrapper with an empty candidate list while preserving an earlier roll failure. The two focused helper tests pass `bHardEnemy` as true explicitly, so they do not prove the GameMode classifies every hard species. No production defect was found.
+    **Impact:** A classifier or wrapper wiring regression could admit a hard enemy within the documented 150 m generated-start exclusion. The current predicate and classifier remain correct.
+    **Relationship to existing findings:** RF259 covers the broader scheduler-to-transaction path; RF261 covers the separate S09 player-distance exclusion. RF262 combines the focused GameMode classifier and population-result gaps because one data-driven wrapper fixture can cover both.
+    **Proposed repair:** Add focused Development automation with deterministic seed/biome descriptors for each of the six hard-enemy archetypes and a generated start. Drive each descriptor through `ApplyPopulationSpeciesHabitatGate` and assert that each inside-150 m attempt receives `SpeciesHabitat` and is removed from candidates. Retain a passing ordinary-species case, an exact-150 m hard-enemy boundary case, and a companion earlier-failure attempt to prove first-rejection preservation.
+    **Dependencies:** After CR19 review acceptance; no gate behavior or test changes during CR03 or CR18.
+    **Acceptance:** The focused regression detects both a bypassed/hardcoded population species-habitat result and omission of any of the six hard archetypes from classification; each near-start hard enemy is rejected through the GameMode wrapper and filtered from candidates. It retains ordinary-species admission, the inclusive 150 m boundary, first-rejection ordering, and existing direct helper assertions.
+    **Focused validation:** Run the new `Kalmala.Gameplay.Population.SpeciesHabitatGate` automation after an Editor build.
+  - [ ] **RF263 — Cover horizontal circle semantics in population caps (P3; CR03-001b-85).**
+    **Source:** CR18-002, CR03-001b-85; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:6929-6941,6947-6965`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAreaCapsTest.cpp:65-92`; `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationWolfReservationTest.cpp:43-89`; `docs/monster-spawning.md:230-233`.
+    **Affected path:** S11 same-species area-cap counts for live actor positions and pending reservations within the inclusive 96 m horizontal radius.
+    **Trigger:** A regression includes Z in cap distance or substitutes an axis-aligned radius while current actor, reservation and candidate fixtures remain level and near an axis.
+    **Evidence:** Both production loops correctly use finite X/Y and compare `DeltaX * DeltaX + DeltaY * DeltaY` to the squared radius. The area-cap fixture checks current movement and the exact/outside radius only along X; its other live actors remain at Z=0. The Wolf reservation fixture uses Z=0 and axis-aligned pack members. No focused cap test places a same-XY actor or reservation at a different elevation or checks a diagonal point outside the horizontal circle but inside its bounding square. The existing tests would therefore miss a 3D-distance or square-distance regression. No production defect was found.
+    **Impact:** A 3D-distance regression could stop charging an elevated same-species actor or reservation and admit excess wildlife in the same horizontal area; a square-distance regression could charge a diagonal actor outside the documented circle and reject otherwise admissible wildlife.
+    **Relationship to existing findings:** RF260 and RF261 cover elevation independence in the separate S08/S09 player-distance gates. RF254 concerns peer-fixture admission bypassing the species-area gate. RF263 concerns test coverage of S11's shared cap-count geometry.
+    **Proposed repair:** Extend `Kalmala.Gameplay.Population.AreaCaps` and `Kalmala.Gameplay.Population.WolfPackReservations` with elevated live/reserved members at the candidate's same X/Y and diagonal members beyond the circular radius but within its square bounds. Assert that elevation does not remove cap charges and that out-of-circle diagonal members do not consume nearby species capacity.
+    **Dependencies:** After CR19 review acceptance; no cap behavior or test changes during CR03 or CR18.
+    **Acceptance:** Focused automation fails if Z contributes to S11 distance or the radius becomes axis-aligned, proves the same-XY elevated live and reserved members count, excludes the diagonal out-of-circle members, and retains existing boundary, movement, reservation and budget assertions.
+    **Focused validation:** Run `Kalmala.Gameplay.Population.AreaCaps` and `Kalmala.Gameplay.Population.WolfPackReservations` after an Editor build.
+  - [ ] **RF264 — Verify both seat references on the remote skiff replica (P3; CR03-001b-92).**
+    **Source:** CR18-002, CR03-001b-92; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8194-8195,8255-8259`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:687-712`; `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp:83-84`; `Scripts/Tests/Travel/OceanSkiffJourney.ps1:46-50`; `docs/02-technical-architecture.md:1226`; `docs/07-development-setup.md:2255-2264`.
+    **Affected path:** Replication of both skiff occupant references and attached player pawns to the remote client's view during the two-peer ocean crossing.
+    **Trigger:** A regression prevents the remote client from receiving the passenger occupant reference or the listen-host passenger's skiff attachment while the server state and locally controlled helm replica remain correct.
+    **Evidence:** The skiff registers `HelmOccupant` and `PassengerOccupant` for replication, and the server journey fixture checks both occupants and attachments. The character probe runs only for locally controlled characters. `OceanSkiffJourney.ps1` requires the listen host's authoritative passenger travel plus the remote client's local helm attach/travel/stop, but does not assert that the remote client's skiff replica points to the host passenger or that the host passenger replica remains attached. The existing focused skiff test has no occupant-reference assertions. No production defect was established.
+    **Impact:** A remote-only replication regression for passenger occupancy or attachment could pass the current crossing runner while that client presents incomplete two-seat state. Production currently registers both references for replication.
+    **Relationship to existing findings:** RF59 concerns public blockage-detail replication; it does not cover the two seat references or passenger attachment. This finding is limited to remote-replica regression coverage.
+    **Proposed repair:** Extend the non-shipping client journey probe and runner to assert that the remote client sees the server-selected helm and passenger occupant references and that the host passenger replica is attached to the same skiff during travel.
+    **Dependencies:** After CR19 review acceptance; no journey fixture or replication changes during CR03 or CR18.
+    **Acceptance:** The two-peer journey regression fails if either occupant reference or the host passenger attachment is missing on the remote client, while retaining server seat/attachment checks and the remote helm's attach, underway, and moored assertions.
+    **Focused validation:** Run `Scripts/Tests/Travel/OceanSkiffJourney.ps1` after an Editor build.
+  - [ ] **RF265 — Cover Ocean discovery refresh materialization and cleanup (P3; CR03-001b-98).**
+    **Source:** CR18-002, CR03-001b-98; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:7910,9314-9391`; `Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp:95-113,142-160`; `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryDisembarkPeerTest.cpp:260-275,706-791`; `Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryClaimTest.cpp:24-80`; and `docs/04-roadmap.md:330`.
+    **Affected path:** Server tick refresh of canonical Ocean discovery actors for the desired nearby spatial keys in the two-player M8 experience.
+    **Trigger:** The refresh call, key selection, actor spawn/initialization, or stale-key cleanup regresses while the catalogue and direct claim helper continue to pass.
+    **Evidence:** GameMode Tick calls `RefreshOceanDiscoveries`, which derives desired keys from player positions, removes actors for departed keys, builds canonical descriptors, and spawns initialized `AKalmalaDiscoveryActor` instances. The catalogue and claim contract tests cover deterministic descriptors and sparse-claim behavior. The Ocean peer fixture independently builds a descriptor through the catalogue and calls `ClaimOceanDiscovery` directly; it never asserts that refresh materialized or removed a world actor, so it can pass if the marker lifecycle fails. M8 acceptance requires players to find an optional sea discovery. No production defect was established. RF257 concerns ordinary interaction dispatch in the DiscoveryPeer and M9 fixtures, not Ocean actor refresh/materialization.
+    **Impact:** A regression could leave Ocean discovery markers absent or stale in normal play while existing claim tests still pass.
+    **Proposed repair:** Extend the Ocean GameMode peer fixture to observe the production tick-driven refresh, assert the expected canonical marker is materialized for an active player neighborhood and removed after the neighborhood is left, and retain its existing claim and disembark checks.
+    **Dependencies:** After CR19 review acceptance; no refresh, actor, fixture, or runner changes during CR03 or CR18.
+    **Acceptance:** The two-player seed-418 regression fails if the normal GameMode refresh does not materialize the expected canonical discovery marker for an active spatial key or fails to remove stale markers after both players leave that neighborhood. The existing descriptor, owner-claim, and disembark checks remain in place.
+    **Focused validation:** Run the Ocean discovery catalogue and claim contract automations and `Scripts/Tests/Travel/OceanSkiffDiscoveryDisembark.ps1` after an Editor build.
+  - [ ] **RF266 — Correct weather-transition screenshot cadence in evidence (P3; CR03-001b-107, CR18-002 batch 108).**
+    **Source:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10715-10720,10778-10789`, `Scripts/Tests/World/BiomeBaselineCapture.ps1:11-15,30-43`, `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp:194-202`, `docs/valheim-like-lighting-plan.md:1538`, and the L06e record in `PROGRESS.md`.
+    **Affected path:** The fixed-view weather-transition evidence and its summary in the lighting plan.
+    **Trigger:** Readers interpret the four onset/release images as samples taken every 0.5 seconds.
+    **Impact:** The reported temporal evidence is denser and more regular than the fixture produced, overstating what the fixed images establish about transition smoothness.
+    **Evidence:** The runner requires `TemporalFrames=1` for `WeatherTransition`; its 0.5-second interval is not used for that mode. GameMode schedules one-shot screenshots at 5.00, 11.25, 11.75, and 17.75 seconds. The local material-response logger runs from the subsystem update and emits only when the rounded response decile changes, not on a fixed 0.5-second interval. The lighting-plan sentence therefore mislabels the screenshot cadence.
+    **Proposed repair:** Describe the four fixed screenshot times relative to fixture start and distinguish them from the variable response-change log samples. Keep conclusions about visible popping limited to those four selected views.
+    **Dependencies:** After CR19 review acceptance; this evidence correction is a handoff only and does not authorize edits during CR03 or CR18.
+    **Acceptance:** The lighting plan states the four scheduled screenshot times, explains that the default temporal interval does not govern `WeatherTransition`, and does not imply fixed-rate response telemetry.
+    **Focused validation:** Compare the corrected evidence text with the GameMode one-shot timers, runner constraints, and available L06e records; if quantitative cadence claims remain, support them with timestamped samples at that cadence.
+  - [ ] **RF267 — Exclude traversal, reconnect, and ocean-travel test hooks from Shipping builds (P2; CR03-001b-111/001c; CR18-002 batches 112/115).**
+    **Source:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:631,636-640,669-696,11374-11647`; `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:450-482,759-887,889-950`; `Source/KalmalaGameplay/Private/KalmalaCharacterMovementComponent.cpp:118-126`; `docs/07-development-setup.md:2181-2183,2347-2353`.
+    **Affected path:** Shipping listen/dedicated servers and player pawns launched with developer-only traversal, reconnect, or ocean-travel verification switches.
+    **Trigger:** A Shipping process receives `-KalmalaTraversalTest`, any nonempty `-KalmalaReconnectVerification=...` value, or `-KalmalaOceanTravelTest`.
+    **Evidence:** ConfigureTraversalTest and RunReconnectVerification parse and execute the traversal/reconnect switches without a Shipping compile guard. BeginPlay invokes traversal setup and spawns a verification pawn outside its `#if !UE_BUILD_SHIPPING` regions. Character BeginPlay/Tick derives the traversal target and applies autonomous host-pawn movement without a Shipping guard; RunReconnectVerification can persist a generated harvest to the world population save and calls RequestExit after verification or unknown-mode handling. Separately, Character BeginPlay parses `-KalmalaOceanTravelTest` and unconditionally changes each spawned character's `ECC_Pawn` and `ECC_WorldStatic` responses to Ignore. The GameMode fixture spawner is compiled out in Shipping, but that collision change still runs when the flag is present. The setup guide describes the ocean-travel fixture and the other switches as development verification.
+    **Impact:** A stale launch option can steer a listen-host character, spawn a verification pawn, mutate a persistent world population record, and terminate a Shipping server. The ocean-travel flag can also disable pawn and generated-terrain collision for characters in a Shipping process.
+    **Proposed repair:** Compile out or otherwise disable traversal, reconnect, and ocean-travel flag parsing, activation, and their movement, collision, save, and exit side effects in Shipping builds; keep the documented Development behavior.
+    **Dependencies:** After CR19 review acceptance; this finding is a handoff only and does not authorize implementation during CR03 or CR18.
+    **Acceptance:** A Shipping launch with any of these flags follows normal gameplay, does not steer a pawn, change pawn/terrain collision, spawn a verification pawn, mutate a population save, or exit; documented Development traversal, reconnect, and ocean-travel checks remain functional.
+    **Focused validation:** Build Development and Shipping targets. Run the documented traversal check, `Scripts/Tests/Survival/PersistedCampRestart.ps1`, and `Scripts/Tests/Travel/OceanTravel.ps1` in Development; launch Shipping with each flag using isolated user data and verify normal movement/collision, no test markers, no save mutation, and no forced exit.
+  - [ ] **RF268 — Retry treasure preparation after an initial save failure (P3; CR03-001b-113).**
+    **Source:** CR03-001b-113; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:11972-11994`,
+      `Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp:79-93,156-163`, and
+      `docs/02-technical-architecture.md:3498`.
+    **Affected path:** A9 treasure attached to a canonical point-of-interest actor when its first
+      population-save write fails.
+    **Trigger:** `PrepareWorldTreasure` returns null if its candidate state cannot be durably saved.
+      `InitializeServer` sets `bWorldTreasure` only after a non-null result, then completes ordinary
+      discovery setup. Later interaction calls `ClaimWorldTreasure` only when `bWorldTreasure` is true;
+      no other path retries preparation for that initialized actor.
+    **Impact:** A valid point of interest remains without its shared treasure while this actor remains
+      initialized, even if storage recovers. This occurs before the claim-time feedback and rollback
+      cases in RF36.
+    **Evidence:** The only `PrepareWorldTreasure` call sites are discovery initialization and
+      `ClaimWorldTreasure`; the latter is reached from the actor only behind the `bWorldTreasure` gate.
+      The initialization write-failure branch returns null without setting that flag or scheduling a
+      retry.
+    **Proposed repair:** Keep initial preparation retryable after a failed population-save write, while
+      exposing the chest and allowing claims only after the deterministic treasure record is durable.
+    **Dependencies:** After CR19 review acceptance; this finding is a handoff only and does not
+      authorize implementation during CR03 or CR18. RF36 remains the separate claim-time capacity and
+      inventory-receipt handoff.
+    **Acceptance:** Inject a failed first preparation write for an eligible canonical point of interest,
+      then restore storage and retry preparation without restarting the server. The same deterministic
+      treasure record is saved once, the chest becomes claimable only after that write, and no reroll or
+      duplicate record occurs.
+    **Focused validation:** Add a narrow discovery/GameMode write-failure retry test and run the A9
+      treasure peer scenario after an Editor build.
+  - [ ] **RF269 — Avoid weak object pointers as GameMode set elements (P3; CR03-002; CR18-002 batch 116).**
+    **Source:** `Source/KalmalaGameplay/Public/KalmalaGameMode.h:573-574,590,627-628`; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10821-10830,11665-11715`; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:199-211`; [Epic UE 5.8 Object Pointers](https://dev.epicgames.com/documentation/en-us/unreal-engine/object-pointers-in-unreal-engine).
+    **Affected path:** Development traversal tracking and the GameMode's pending-return and live-creature registries.
+    **Trigger:** A controller, pawn, or wildlife actor becomes invalid while its `TWeakObjectPtr` remains a `TSet` element. In particular, the traversal started/completed sets are not cleared when a pawn logs out; `DriveTraversalTest` retains those entries for the life of the GameMode.
+    **Evidence:** Unreal Engine 5.8 documents that `TWeakObjectPtr` is not supported as a `TSet` element. The UE 5.8 `FWeakObjectPtr` equality treats two pointers whose `Get()` returns null as equal regardless of their original objects, while its hash remains derived from their object index and serial number. The traversal sets add pawns and have no matching cleanup in `Logout`; repeated pawn destruction can leave stale keys in a container whose key equality/hash behavior is unsupported. The live-creature registry removes actors from `EndPlay`, and the pending-return sets remove controllers during `Logout`; those ordinary cleanup paths were not independently shown to fail.
+    **Impact:** Repeated disconnect/respawn during a Development traversal run can retain stale tracking keys and make membership operations on invalid weak keys unsupported, reducing confidence in traversal-test tracking. No production gameplay failure was reproduced.
+    **Proposed repair:** Use a supported stable object-key design for set membership and remove traversal entries at pawn logout, while keeping weak pointers only as validated values or transient references.
+    **Dependencies:** After CR19 review acceptance; this finding is a handoff only and does not authorize implementation during CR03 or CR18.
+    **Acceptance:** A pawn destroyed during traversal leaves no stale tracking entry; a rejoining pawn is tracked independently. All GameMode weak-pointer registries use supported key semantics, with live-creature counts and listen-host return behavior preserved.
+    **Focused validation:** Build Development and add a focused GameMode automation that destroys/logs out a tracked pawn, exercises cleanup and rejoin, and verifies independent membership and live-creature counts. Inspect each remaining container against the UE 5.8 object-pointer contract.
+  - [ ] **RF270 — Bind generated harvest tool requests to the active Main Hand item (P3; CR04-010; CR18-002 batch 117).**
+    **Source:** Source/KalmalaGameplay/Public/KalmalaCharacter.h:296-297; Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1485-1552,1687-1716,2060-2068,2149-2219; Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp:335-365; Source/KalmalaGameplay/Private/KalmalaToolLifecycleContract.cpp:492-538; docs/02-technical-architecture.md:1464-1465.
+    **Affected path:** Reliable ServerRequestInteract requests for generated non-tree, non-gemstone, non-hand-gatherable tool harvest sources.
+    **Trigger:** An owning client submits the ID of a suitable carried tool while a different Main Hand item is active.
+    **Evidence:** Normal local interaction sends the active Main Hand item as harvest intent, and the architecture contract says the active tool supplies that intent. The server independently traces its own view and selects the target, but forwards ClientItemId and ClientAction to the harvest node. Tool-gated sources call CommitToolHarvestFromServer, which looks up durability by the submitted ID; when that ID is not active, FindToolDurabilityFromServer searches the carried-tool list. Server validation derives the source and reward from the node and checks tool definition, action, source suitability, skill, durability, capacity, persistence, range and node availability, but neither the character commit path nor ApplyServerUse binds the submitted ID or instance GUID to Inventory->GetActiveItem() and GetActiveInstanceGuid(). A modified client can therefore use a stowed suitable tool.
+    **Impact:** Harvesting can consume durability from and receive the server-selected yield for a stowed tool that the player did not select in Main Hand. The tool must still be carried, suitable, durable, and meet server skill checks; no arbitrary target or reward input was found.
+    **Proposed repair:** Resolve the selected server-side Main Hand item and instance GUID for this interaction and reject a tool-harvest intent that does not match them before committing reward, durability, depletion or persistence.
+    **Dependencies:** After CR19 review acceptance; this finding is a handoff only and does not authorize implementation during CR03 or CR18. RF42 covers the separate repeated-interaction cadence gap.
+    **Acceptance:** With a qualifying higher-tier tool stowed and a different item active in Main Hand, a request naming the stowed tool is rejected without changing inventory, tool durability, harvest state or saved state. A request using the active suitable tool still succeeds through the existing server transaction.
+    **Focused validation:** Add a focused owning-client/listen-server scenario that submits a modified ServerRequestInteract payload naming a stowed tool. Verify no reward, durability, node-depletion or save change; then verify the active-tool path and its existing persistence rollback behavior.
+  - [ ] **RF271 — Keep world-map verification hooks out of Shipping (P3; CR04-035; CR18-002 batch 129).**
+    **Source:** `Source/KalmalaUI/Private/KalmalaWorldMapSubsystem.cpp:27-33`; `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp:213-263,876-880,900-905,1340-1362`; `Source/KalmalaGameplay/Private/KalmalaMapAwarenessComponent.cpp:77-118`; `Scripts/Tests/World/WorldMap.ps1:42-46`; `docs/07-development-setup.md:3450-3455`.
+    **Affected path:** A Shipping game process with a local player and possessed pawn launched with map-verification flags.
+    **Trigger:** `-KalmalaWorldMapVerification` automatically opens the map after local exploration is recorded. Adding `-KalmalaWorldMapAcceptanceEvidence` runs acceptance evidence that commits synthetic pins and submits a test ping. The documented Development runner uses these flags.
+    **Evidence:** The subsystem and widget parse and execute these hooks without a Shipping guard. The evidence routine creates two pins through `CommitPinPlacement` and `PersistPins`, then calls the ordinary map-ping request. The ping still passes server authority, requester, finite/in-world position, and cooldown checks before acceptance and temporary relay.
+    **Impact:** A Shipping client started with explicit verification flags can open test UI, persist synthetic pins in its local world map save, and submit a test ping that may be relayed to connected peers. No authority bypass is established.
+    **Proposed repair:** Compile out or disable verification flag parsing, automatic test activation, and synthetic pin/ping injection in Shipping while preserving normal manual map, personal-pin, and ping behavior.
+    **Dependencies:** After CR19 review acceptance; this finding is a handoff only and does not authorize implementation during CR03 or CR18.
+    **Acceptance:** Shipping with the verification/evidence flags does not open test UI, modify the personal pin save, or submit a test ping. Normal manual map, pin, and ping use remains functional, and the documented Development acceptance runner still passes.
+    **Focused validation:** Build Development and Shipping. Run `Scripts/Tests/World/WorldMap.ps1 -AcceptanceEvidence` in Development; launch Shipping with isolated user data and each verification flag, verify no test activation, pin-save change, or peer ping, then smoke-test ordinary manual map and ping interactions.
 
   - [ ] **RF272 — Pin the approved Dodge Roll regression contract (P3; CR16-022).**
     `KalmalaDodgeRollTest.cpp` feeds the current cost constant into its own
@@ -4024,6 +4728,113 @@
     outside each boundary.
     Evidence and acceptance:
     [RF287 finding](Temporary/Review/findings.md#rf287-pin-mosquito-fire-repelling-radii-independently-p3).
+  - [ ] **RF288 — Restore placed Campfires after world reload (P2; CR17-001).**
+    Affected files: `KalmalaCraftingComponent.cpp`, `KalmalaGameMode.cpp`,
+    `KalmalaCampfire.h`, and `PersistedCampRestart.ps1`. Trigger: place a
+    Campfire, save/reopen the same world, and inspect the restored camp. The
+    Build-menu path creates a paid `AKalmalaCampfire` but does not add a world
+    save record; host save writes the population, construction, storage and
+    player save owners, while construction restore creates generic actors.
+    Add a validated world-owned Campfire record and restore path. Preserve direct
+    material payment, create no portable Campfire item, and roll back placement
+    and payment if the record cannot be saved. Define required fire-state fields
+    from the approved contract instead of inventing new behavior.
+    Dependencies: after CR19 review acceptance. Acceptance: after same-world
+    host save/reload, each accepted Campfire is restored once as a functional
+    actor at its saved transform; another world does not load it; and a failed
+    write neither reports success nor consumes materials. The restart regression
+    also asserts that no Campfire inventory item exists. Focused validation:
+    extend the Campfire restart and write-failure coverage, then run the
+    construction save, Crafting, and `PersistedCampRestart.ps1` regressions.
+    Evidence:
+    [RF288 finding](Temporary/Review/findings.md#rf288-restore-placed-campfires-after-world-reload-p2).
+  - [ ] **RF289 — Preserve Boar and Deer drops when the pack is full (P2; CR09-001).**
+    `KalmalaWildlifeSpawn.cpp:5398-5434` separately grants each Boar/Deer
+    drop and ignores failed `TryGrantFromServer` results. `bDefeatRewardProcessed`
+    is set before capacity checks, then the actor is defeated and hidden, so a
+    full pack loses the bundle and partial space can produce partial rewards.
+    Add stable owner-bound claims, persist Deer's one-time Sinew outcome, and
+    atomically deliver the complete awarded bundle when capacity returns.
+    Acceptance: full-pack and partial-capacity attempts preserve all rewards;
+    retry after space is freed or after same-world reload delivers the exact
+    bundle once to the credited owner, without rerolling Sinew or allowing a
+    second owner to claim it. Focused validation: add a GameMode/wildlife claim
+    regression and run the Boar/Deer peer scenarios plus wildlife claim
+    automation after an Editor build. Dependencies: after CR19 review acceptance.
+    Evidence:
+    [RF289 finding](Temporary/Review/findings.md#rf289-preserve-boar-and-deer-drops-when-the-pack-is-full-p2).
+  - [ ] **RF290 — Abort gameplay after rejecting menu launch identity (P2; CR10-005).**
+    `KalmalaWorldGenerationGameState.cpp:30-74` logs rejected menu launch
+    options but leaves its default seed active. `KalmalaGameMode.cpp:520-621`
+    then loads or creates world saves and activates gameplay for that seed.
+    Carry explicit rejection state into GameMode and abort before save
+    side-effects, player-start creation, or terrain activation. Preserve valid
+    menu launches and marker-free `WorldSeed=` startup. Acceptance: malformed,
+    incomplete, stale-revision, or mode-mismatched menu identity performs no
+    world save load/create or gameplay activation; valid Solo/HostCoop uses the
+    selected seed. Focused validation: GameState identity coverage and a
+    GameMode no-side-effects startup regression, plus valid Solo/HostCoop and
+    command-line cases. Dependencies: after CR19 review acceptance.
+    Evidence:
+    [RF290 finding](Temporary/Review/findings.md#rf290-abort-gameplay-after-rejecting-menu-launch-identity-p2).
+  - [ ] **RF291 — Pin rejection of unknown M7 sparse-delta kinds (P3; CR10-006).**
+    `KalmalaM7PersistenceContractTest` accepts each current delta kind but does
+    not exercise a casted unknown enum value. Acceptance: the focused contract
+    test proves `AddSparseDelta` rejects an unknown kind without changing the
+    accepted sparse-delta count. Focused validation: run the M7 persistence
+    contract automation after an Editor build. Dependencies: after CR19 review
+    acceptance. Evidence:
+    [RF291 finding](Temporary/Review/findings.md#rf291--pin-rejection-of-unknown-m7-sparse-delta-kinds-p3).
+  - [ ] **RF292 — Cover every approved gemstone replacement rate (P3; CR10-006).**
+    `KalmalaGemstoneTest` measures Quartz and Jade replacement only for Tin.
+    Acceptance: deterministic assertions pin the approved replacement rate
+    and eligible source/biome for Copper Quartz, Tin Quartz/Jade, Iron Amethyst,
+    slate Tourmaline, and Frost Salt Star Opal, including wrong-biome rejection.
+    Focused validation: run the gemstone contract automation after an Editor
+    build. Dependencies: after CR19 review acceptance. Evidence:
+    [RF292 finding](Temporary/Review/findings.md#rf292--cover-every-approved-gemstone-replacement-rate-p3).
+  - [ ] **RF293 — Assert the island locator's surrounding sea contract (P3; CR10-006).**
+    `KalmalaIslandLocatorTest` checks repeatability and a dry center but does not
+    independently sample the shoreline ring required by the locator. Acceptance:
+    the focused test confirms the returned center is valid land and at least
+    9 of 16 samples at 1,250 m are sea. Focused validation: run the island
+    locator automation after an Editor build. Dependencies: after CR19 review
+    acceptance. Evidence:
+    [RF293 finding](Temporary/Review/findings.md#rf293--assert-the-island-locators-surrounding-sea-contract-p3).
+  - [ ] **RF294 — Pin terrain snow-mask alpha coverage (P3; CR10-007).**
+    `KalmalaTerrainGroundBlendTest` covers only RGB ground weights and calls the
+    helper with default zero Tundra/Mountain weights, so it does not pin the
+    documented snow-mask alpha. Add expected alpha checks for Tundra, the
+    Mountain height transition, and surface-normal attenuation. Focused
+    validation: run the terrain ground-blend automation after an Editor build.
+    Dependencies: after CR19 review acceptance. Evidence:
+    [RF294 finding](Temporary/Review/findings.md#rf294--pin-terrain-snow-mask-alpha-coverage-p3).
+  - [ ] **RF295 — Pin M8 vessel-save bounds (P3; CR10-007).**
+    The travel persistence test accepts the maximum vessel ID but does not reject
+    length 129, finite safe-location Z beyond ±100,000 cm, or finite heading
+    beyond ±180 degrees. Add boundary rejection assertions while retaining
+    accepted limits. Focused validation: run the Ocean travel persistence
+    contract automation after an Editor build. Dependencies: after CR19 review
+    acceptance. Evidence:
+    [RF295 finding](Temporary/Review/findings.md#rf295--pin-m8-vessel-save-bounds-p3).
+  - [ ] **RF296 — Reject out-of-world construction save transforms (P3; CR11-001).**
+    Schema-7 construction validation accepts any finite location and restore
+    spawns each accepted record without checking the finite-world radius.
+    Reject incompatible out-of-bounds save data without rewriting it, using
+    the established placement margin. Focused validation: exercise valid edge
+    and finite outside-world transforms and prove the rejected slot is
+    preserved. Dependencies: after CR19 review acceptance. Evidence:
+    [RF296 finding](Temporary/Review/findings.md#rf296--reject-out-of-world-construction-save-transforms-p3).
+  - [ ] **RF297 — Bound Smelter saved counters before arithmetic (P3; CR11-003).**
+    `FKalmalaSmelterState::GetInputCoalCount` and `GetOutputCount` add signed
+    32-bit values before enforcing their capacities. Reject malformed current
+    schema-7 counters without rewriting the slot. Acceptance: maximum valid
+    input/output boundaries still pass, while an `INT32_MAX` active-job coal
+    count and an overflowing combined output count fail `MatchesWorld` before
+    restore. Focused validation: extend construction-save contract coverage
+    for both cases and verify the rejected slot remains unchanged. Dependencies:
+    after CR19 review acceptance. Evidence:
+    [RF297 finding](Temporary/Review/findings.md#rf297--bound-smelter-saved-counters-before-arithmetic-p3).
 
   - [ ] **RF298 — Apply text scale to the accessibility feedback overlay (P2; CR12-002).**
     The optional nearby-hearth/construction feedback text stays at a fixed 16-point size.
@@ -4041,16 +4852,27 @@
     [RF299 finding](Temporary/Review/findings.md#rf299--keep-ui-paths-behind-world-facing-interfaces-p3).
 
   - [ ] **RF300 — Restore valid list markers in review records (P3; CR16 handoff).**
-    `BACKLOG.md` has a literal plus before the RF160 task and joins RF162 to the
-    RF161 paragraph; `PROGRESS.md` has seven report bullets with literal plus
-    prefixes. These lines render as ordinary text or a merged paragraph instead
-    of independent list entries. Restore the list markers and place RF162 on its
-    own bullet while preserving all text.
+    `BACKLOG.md` prefixes RF160 with a literal `+`, joins RF162 to RF161's final
+    paragraph, and joins RF258 to RF257's focused-validation line. `PROGRESS.md`
+    has seven report bullets prefixed with literal `+` characters. These render
+    as ordinary text or merged paragraphs instead of independent list entries.
+    Restore all three backlog task markers and seven progress markers while
+    preserving the existing text.
     **Dependencies:** After CR19 review acceptance; this is a bookkeeping repair.
-    **Acceptance:** RF160 and RF162 render as separate backlog tasks, and all
+    **Acceptance:** RF160, RF162, and RF258 render as separate backlog tasks, and all
     seven affected progress entries render as list items with their text intact.
     **Focused validation:** Inspect the exact diff, run an available Markdown
     parser or renderer, and run `git diff --check`; no gameplay test applies.
+  - [ ] **RF301 — Reapply accessibility styling to editable address and seed inputs (P2; CR12-003/006)**
+    **Source:** CR12-003 and CR12-006.
+    **Affected path:** `KalmalaJoinAddressWidget.cpp:79,112-139` and `KalmalaWorldListWidget.cpp:308,480-505`.
+    **Trigger:** text scale or contrast changes while either join-address or world-list widget stays open.
+    **Impact:** the editable fields keep their initial font and colors while nearby controls refresh.
+    **Evidence:** each editable style is assigned once during widget construction; runtime `RefreshTheme` does not reapply it; no focused test covers either field.
+    **Proposed repair:** rebuild each editable style in `RefreshTheme` from the current text-scale and contrast settings.
+    **Dependencies:** After CR19 review acceptance; no repair during CR01–CR19.
+    **Acceptance:** both editable fields track every supported text-scale and contrast change without changing focus, entered text or commit behavior.
+    **Focused validation:** add focused refresh coverage for both widgets and exercise scale/contrast changes in a rendered menu after an Editor build. Evidence: `Temporary/Review/findings.md#rf301--reapply-accessibility-styling-to-editable-address-and-seed-inputs-p2`.
 
   - **Queue rules:** Review agents append concrete unchecked RF01, RF02, ...
     children as findings arise; do not invent defects or placeholder fixes.
