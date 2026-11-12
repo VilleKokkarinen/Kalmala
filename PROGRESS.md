@@ -32709,3 +32709,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The count query remains server-authoritative and read-only with respect to gameplay state; the test directly injects stale registry entries in its isolated server world.
 - **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The separate CR remediation goal remains open.
 - **Next eligible task:** RF10 — Verify population unload against every living player.
+
+## Run 2026-11-12 — RF10 population unload with multiple living players
+
+- **Selected task:** RF10, prove a roaming creature remains loaded while any supplied living player is within the inclusive 96 m radius, and unloads only once every player is outside.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.CreationLifecycle` with two living player fixtures. The first player is farther than 96 m while the second is exactly on the boundary; the creature remains loaded. Then both players are moved outside, after which unload, cooldown and reactivation behavior are covered by the existing assertions.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the unload loop's authority, player validity and inclusive-distance checks alongside the fixture order, player positions, unload result and cooldown assertions. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF10 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.CreationLifecycle` automation remain unexecuted.
+- **Observable impact:** The focused lifecycle test now fails if unload ignores a nearby second player later in the supplied list, and verifies unload only after both players move outside the radius.
+- **Networking/authority:** Production unload behavior remains server-authoritative and unchanged. The isolated fixture calls the authoritative GameMode path with two same-world player characters; no replicated behavior changed.
+- **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The CR remediation goal remains open.
+- **Next eligible task:** RF11 — Cover source-owned live actors in the local cap path.

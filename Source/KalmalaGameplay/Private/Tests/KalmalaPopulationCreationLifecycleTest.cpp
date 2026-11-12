@@ -65,20 +65,29 @@ bool FKalmalaPopulationCreationTest::RunTest(const FString& Parameters)
 
     FActorSpawnParameters PlayerSpawnParameters;
     PlayerSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-    AKalmalaCharacter* Player = World->SpawnActor<AKalmalaCharacter>(
+    AKalmalaCharacter* FirstPlayer = World->SpawnActor<AKalmalaCharacter>(
+        Descriptor.Location + FVector(FKalmalaMonsterSpawnTuning::CountRadiusCm * 2.0, 0.0, 0.0),
+        FRotator::ZeroRotator, PlayerSpawnParameters);
+    AKalmalaCharacter* SecondPlayer = World->SpawnActor<AKalmalaCharacter>(
         Descriptor.Location + FVector(FKalmalaMonsterSpawnTuning::CountRadiusCm, 0.0, 0.0),
         FRotator::ZeroRotator, PlayerSpawnParameters);
-    if (!TestNotNull(TEXT("Living player fixture created"), Player)) return false;
-    const TArray<AKalmalaCharacter*> LivingPlayers = { Player };
+    if (!TestNotNull(TEXT("First living player fixture created"), FirstPlayer)
+        || !TestNotNull(TEXT("Second living player fixture created"), SecondPlayer)) return false;
+    const TArray<AKalmalaCharacter*> LivingPlayers = { FirstPlayer, SecondPlayer };
 
     Mode->UpdatePopulationCreatureUnloads(10.0, LivingPlayers);
-    TestTrue(TEXT("A roaming creature at exactly 96 m remains loaded"), IsValid(Creature));
-    TestFalse(TEXT("The exact 96 m boundary does not start an unload cooldown"),
+    TestTrue(TEXT("A second living player at exactly 96 m keeps the creature loaded while the first is farther away"),
+        IsValid(Creature));
+    TestFalse(TEXT("A living player at the exact 96 m boundary does not start an unload cooldown"),
         Mode->PopulationCreatureReactivationDueTimes.Contains(PersistentSpawnId));
 
-    Player->SetActorLocation(Player->GetActorLocation() + FVector(1.0, 0.0, 0.0));
+    FirstPlayer->SetActorLocation(Descriptor.Location + FVector(
+        FKalmalaMonsterSpawnTuning::CountRadiusCm * 2.0 + 1.0, 0.0, 0.0));
+    SecondPlayer->SetActorLocation(Descriptor.Location + FVector(
+        FKalmalaMonsterSpawnTuning::CountRadiusCm + 1.0, 0.0, 0.0));
     Mode->UpdatePopulationCreatureUnloads(11.0, LivingPlayers);
-    TestFalse(TEXT("A creature outside every living player's 96 m radius unloads"), IsValid(Creature));
+    TestFalse(TEXT("A creature unloads after both living players are outside the 96 m radius"),
+        IsValid(Creature));
     TestFalse(TEXT("Unloaded wildlife is removed from the live registry"),
         Mode->HasLivePopulationCreatureWithSpawnId(PersistentSpawnId));
     TestEqual(TEXT("Unload preserves the stable slot through its 30-second cooldown"),
@@ -101,7 +110,7 @@ bool FKalmalaPopulationCreationTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Reload preserves the descriptor's stable spawn identity"),
         ReloadedCreature->GetPersistentSpawnId(), PersistentSpawnId);
 
-    Player->SetActorLocation(Descriptor.Location + FVector(
+    FirstPlayer->SetActorLocation(Descriptor.Location + FVector(
         FKalmalaMonsterSpawnTuning::CountRadiusCm, 0.0, 0.0));
     Mode->UpdatePopulationCreatureUnloads(41.0, LivingPlayers);
     TestTrue(TEXT("The reloaded living actor remains tracked at the inclusive player radius"),

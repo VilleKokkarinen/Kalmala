@@ -334,7 +334,7 @@
     Focused validation: run `Kalmala.Gameplay.Population.LiveCreatureRegistry`
     after an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf09--lazy-live-creature-registry-pruning-lacks-focused-coverage-p3`.
-  - [ ] **RF10 — Verify population unload against every living player (P3; CR03-001b-87).**
+  - [x] **RF10 — Verify population unload against every living player (P3; CR03-001b-87).**
     Affected: `KalmalaGameMode.cpp:7232-7305`,
     `KalmalaPopulationCreationLifecycleTest.cpp:56-112`, and
     `KalmalaPopulationLivingPlayersTest.cpp:88-98`. The unload path correctly
