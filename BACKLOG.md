@@ -236,7 +236,7 @@
     Focused validation: run `Kalmala.Gameplay.Population.LandSurface` after an
     Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf03--wolf-land-surface-test-omits-one-required-pack-location-p3`.
-  - [ ] **RF04 — Exercise Reef Maw aquatic footprint validation (P3; CR03-001b-79).**
+  - [x] **RF04 — Exercise Reef Maw aquatic footprint validation (P3; CR03-001b-79).**
     KalmalaGameMode.cpp:6010-6102 validates the center and sampled sphere
     footprint. The dedicated test covers helper geometry, but its only
     descriptor-level call uses an out-of-bounds input at

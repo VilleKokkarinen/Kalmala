@@ -6075,11 +6075,18 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassAquaticSurface(
             const FVector2D SamplePosition = CenterPosition + Offset;
             FKalmalaOceanSample OceanSample;
             const bool bIsCenterSample = XIndex == 0 && YIndex == 0;
-            const bool bHasReefMawSwimmingSupport = bIsCenterSample
+            bool bHasReefMawSwimmingSupport = bIsCenterSample
                 ? AKalmalaWildlifeSpawn::IsReefMawPositionNavigable(
                     WorldGenerationConfig, SamplePosition, &OceanSample)
                 : AKalmalaWildlifeSpawn::IsReefMawOceanPosition(
                     WorldGenerationConfig, SamplePosition, &OceanSample);
+#if WITH_DEV_AUTOMATION_TESTS
+            if (PopulationAquaticSurfaceSampleForTests)
+            {
+                PopulationAquaticSurfaceSampleForTests(SamplePosition, bIsCenterSample,
+                    bHasReefMawSwimmingSupport, OceanSample);
+            }
+#endif
             if (!bHasReefMawSwimmingSupport
                 || !DoesReefMawBodyFitOceanSample(OceanSample,
                     FMath::Sqrt(HorizontalDistanceSquared)))

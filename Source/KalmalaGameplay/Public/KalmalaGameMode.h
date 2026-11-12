@@ -185,6 +185,8 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
     TFunction<bool(const FVector&, bool)> PopulationLandSurfaceSampleForTests;
+    // Mutates a completed sample only for descriptor-path automation fixtures.
+    TFunction<void(const FVector2D&, bool, bool&, FKalmalaOceanSample&)> PopulationAquaticSurfaceSampleForTests;
     // Isolate the final disk boundary while exercising the real depletion callback.
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
     // Force the player-slot write boundary to fail after a candidate save is prepared.

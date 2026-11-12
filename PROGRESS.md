@@ -32637,3 +32637,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The production gate remains server-authoritative and its sampling behavior is unchanged. The result hook exists only with `WITH_DEV_AUTOMATION_TESTS` and changes no gameplay state.
 - **Known limitations / remaining scope:** The focused automation has not been executed in Unreal. The separate CR remediation goal remains open.
 - **Next eligible task:** RF04 — Exercise Reef Maw aquatic footprint validation.
+
+## Run 2026-11-12 — RF04 Reef Maw aquatic footprint coverage
+
+- **Selected task:** RF04, exercise the full descriptor-level Reef Maw aquatic surface predicate over its center and complete sphere footprint.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.AquaticSurface` to find a valid in-bounds deep-Ocean Reef Maw descriptor and verify the descriptor gate accepts it while sampling every expected footprint point. The test individually lowers each center/footprint sample below the required water depth and verifies rejection, also exercises missing center swimming support and terrain overlap through the descriptor path. Added a Development-automation-only sample hook after real Ocean sampling so each rejection remains within the production policy path.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationAquaticSurfaceTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the descriptor checks, Reef Maw center navigation/depth rules, sphere sample lattice, and per-sample rejection assertions. No Unreal build or automation test was run.
+- **Full verification:** Deferred; RF04 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.AquaticSurface` automation remain unexecuted.
+- **Observable impact:** The focused automation now detects a missing center or footprint check and verifies that depth, center support, and terrain failures reject a valid descriptor.
+- **Networking/authority:** Production aquatic placement remains server-authoritative and unchanged. The injection hook exists only with `WITH_DEV_AUTOMATION_TESTS` and changes no gameplay state.
+- **Known limitations / remaining scope:** The valid-descriptor search and focused automation have not been executed in Unreal. The separate CR remediation goal remains open.
+- **Next eligible task:** RF05 — Trace offset snake body tops for roof clearance.
