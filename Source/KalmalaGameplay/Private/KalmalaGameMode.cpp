@@ -6329,12 +6329,20 @@ bool AKalmalaGameMode::DoesPopulationDescriptorPassMovementSupport(
     {
         FVector ActorLocation;
         if (!TryGetPopulationActorPlacementLocation(
-                ActorDescriptor, Archetype, BodyShapes, ActorLocation)
-            || !AKalmalaWildlifeSpawn::IsPopulationSpawnPositionSupported(
-                WorldGenerationConfig, Archetype, ActorLocation, ActorLocation))
+                ActorDescriptor, Archetype, BodyShapes, ActorLocation))
         {
             return false;
         }
+
+        bool bMovementSupported = AKalmalaWildlifeSpawn::IsPopulationSpawnPositionSupported(
+            WorldGenerationConfig, Archetype, ActorLocation, ActorLocation);
+#if WITH_DEV_AUTOMATION_TESTS
+        if (PopulationMovementSupportForTests)
+        {
+            bMovementSupported = PopulationMovementSupportForTests(ActorLocation, bMovementSupported);
+        }
+#endif
+        if (!bMovementSupported) return false;
     }
     return true;
 }

@@ -32673,3 +32673,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production body clearance remains server-authoritative and unchanged. Fixtures mutate only the isolated test world.
 - **Known limitations / remaining scope:** The focused automation has not been executed in Unreal. Remaining CR remediation tasks are incomplete.
 - **Next eligible task:** RF07 — Exercise movement-support descriptor composition.
+
+## Run 2026-11-12 — RF07 movement-support descriptor composition
+
+- **Selected task:** RF07, cover S22c movement-support composition for land wildlife, Reef Maw, and every generated Wolf member.
+- **Work completed:** Added a Development-automation-only observation seam after the real movement-support helper call. Added `Kalmala.Gameplay.Population.MovementSupport` with deterministic map-sample policy checks for species biome, water, traversability, and snake leash rules; valid Boar and Wolf descriptors; per-member Wolf rejection; and a valid Reef Maw aquatic descriptor with movement-result rejection coverage.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationMovementSupportTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the production gate order, test-only hook placement, deterministic descriptor searches, species-rule assertions, and exact Boar, Wolf-member, and Reef Maw actor-position observations. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF07 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.MovementSupport` automation remain unexecuted.
+- **Observable impact:** Focused coverage now detects a missing movement-support composition call, omitted Wolf member, failure to reject a denied actual actor position, or a regression in the documented species support rules.
+- **Networking/authority:** Production movement-support evaluation remains in the server-authoritative GameMode gate. The observation seam exists only with `WITH_DEV_AUTOMATION_TESTS`; no runtime behavior or replicated state changed.
+- **Known limitations / remaining scope:** The deterministic fixtures and new automation have not been executed in Unreal. The Review findings remediation goal remains open.
+- **Next eligible task:** RF08 — Exercise S25 camp suppression for every Wolf member origin.

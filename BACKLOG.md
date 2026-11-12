@@ -279,7 +279,7 @@
     through the descriptor-level body predicate. Focused validation: run that test
     after an Editor build. Evidence and repair:
     Temporary/Review/findings.md#rf06--valid-wildlife-body-clearance-composition-lacks-test-p3.
-  - [ ] **RF07 — Exercise movement-support descriptor composition (P3; CR03-001b-81).**
+  - [x] **RF07 — Exercise movement-support descriptor composition (P3; CR03-001b-81).**
     Affected: `KalmalaGameMode.cpp:6241-6310`, `KalmalaWildlifeSpawn.cpp:848-916`,
     and `KalmalaPopulationPhysicalPlacementGateTest.cpp:24-76`. The production
     descriptor gate composes S20 land or S21 Reef Maw surface support with the

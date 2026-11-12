@@ -173,6 +173,7 @@ private:
     friend class FKalmalaPopulationSpawnGateEvaluatorTest;
     friend class FKalmalaPopulationLandSurfaceTest;
     friend class FKalmalaPopulationAquaticSurfaceTest;
+    friend class FKalmalaPopulationMovementSupportTest;
     friend class FKalmalaPopulationBodyClearanceTest;
     friend class FKalmalaPopulationRoofClearanceTest;
     friend class FKalmalaPopulationStationCylinderTest;
@@ -185,6 +186,8 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
     TFunction<bool(const FVector&, bool)> PopulationLandSurfaceSampleForTests;
+    // Isolate S22c's use of the real movement-support result at each actor location.
+    TFunction<bool(const FVector&, bool)> PopulationMovementSupportForTests;
     // Mutates a completed sample only for descriptor-path automation fixtures.
     TFunction<void(const FVector2D&, bool, bool&, FKalmalaOceanSample&)> PopulationAquaticSurfaceSampleForTests;
     // Isolate the final disk boundary while exercising the real depletion callback.
