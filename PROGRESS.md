@@ -32745,3 +32745,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production transaction authority and gameplay behavior remain unchanged. The spawn failure and save writer seams exist only under `WITH_DEV_AUTOMATION_TESTS`; the transaction still creates and registers actors through the authoritative GameMode path.
 - **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The broader CR remediation goal remains open.
 - **Next eligible task:** RF13 — Cover population scheduler GameMode tick integration.
+
+## Run 2026-11-13 — RF13 population scheduler GameMode tick coverage
+
+- **Selected task:** RF13, verify the real authoritative GameMode tick connects loaded-key cadence scheduling to the bounded population wake.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.SchedulerCadence` with controlled world-time advancement and calls to the real `AKalmalaGameMode::Tick`. The fixture selects a deterministic phase-zero key and verifies that the first tick schedules and services it in order, then checks the per-key and total candidate bounds, five-second cadence advancement, and no extra wake before the next deadline. Production scheduler behavior is unchanged.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationSchedulerCadenceTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the authoritative Tick guard and the terrain/unload/schedule/wake ordering, scheduler phase and wake deadlines, and the fixture's controlled tick assertions. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF13 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.SchedulerCadence` / `Kalmala.Gameplay.Population.SchedulerWakeBudget` automations remain unexecuted.
+- **Observable impact:** The cadence regression now detects removal or reordering of real Tick scheduling/wake calls, loss of deterministic initial due times, a missed bounded wake, budget overflow, or an extra wake before its deadline.
+- **Networking/authority:** Production behavior remains server-authoritative and unchanged. The isolated automation invokes the authoritative GameMode Tick against controlled world time; no client-controlled scheduling was added.
+- **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The CR remediation goal remains open.
+- **Next eligible task:** RF14 — Cover generated hazard materialization and permanent depletion.

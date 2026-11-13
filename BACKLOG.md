@@ -391,9 +391,9 @@
     validation: run `Kalmala.Gameplay.Population.CreationLifecycle` after an
     Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf12--natural-population-creation-and-wolf-rollback-lack-transaction-coverage-p3`.
-  - [ ] **RF13 — Cover population scheduler GameMode tick integration (P3; CR03-001b-90).**
-    Affected: `KalmalaGameMode.cpp:7820-7930`,
-    `KalmalaPopulationSchedulerCadenceTest.cpp:12-130`, and
+  - [x] **RF13 — Cover population scheduler GameMode tick integration (P3; CR03-001b-90).**
+    Affected: `KalmalaGameMode.cpp:7905-8016`,
+    `KalmalaPopulationSchedulerCadenceTest.cpp:12-212`, and
     `KalmalaPopulationSchedulerBudgetTest.cpp:12-69`. Trigger: a regression
     removes or misorders `UpdatePopulationKeySchedule` and
     `UpdatePopulationSchedulerWake` in the real server tick while helper-level

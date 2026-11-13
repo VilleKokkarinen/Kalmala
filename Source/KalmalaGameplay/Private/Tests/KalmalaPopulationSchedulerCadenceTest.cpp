@@ -124,6 +124,91 @@ bool FKalmalaPopulationSchedulerCadenceTest::RunTest(const FString& Parameters)
     const TArray<FIntPoint> ResumedDueKeys = Mode->GetDuePopulationSpatialKeys(ResumedEarlierDue);
     TestTrue(TEXT("Reactivated keys retain their stable staggered order"),
         ResumedDueKeys.Num() == 1 && ResumedDueKeys[0] == ResumedEarlierKey);
+
+    FIntPoint IntegrationKey = FIntPoint::ZeroValue;
+    bool bFoundImmediatePhaseKey = false;
+    for (int32 KeyY = -32; KeyY <= 32 && !bFoundImmediatePhaseKey; ++KeyY)
+    {
+        for (int32 KeyX = -32; KeyX <= 32 && !bFoundImmediatePhaseKey; ++KeyX)
+        {
+            const FIntPoint CandidateKey(KeyX, KeyY);
+            const uint64 Phase = FKalmalaWorldPopulationLayout::DeriveSpatialSeed(
+                Mode->WorldGenerationConfig, CandidateKey, EKalmalaWorldPopulationKind::Wildlife)
+                % FKalmalaMonsterSpawnTuning::PopulationKeyPhaseCount;
+            if (Phase == 0)
+            {
+                IntegrationKey = CandidateKey;
+                bFoundImmediatePhaseKey = true;
+            }
+        }
+    }
+    if (!TestTrue(TEXT("The tick fixture finds a deterministic key with an immediate initial phase"),
+            bFoundImmediatePhaseKey))
+    {
+        return false;
+    }
+
+    Mode->ActivePopulationSpatialKeys.Reset();
+    Mode->ActivePopulationSpatialKeys.Add(IntegrationKey);
+    Mode->ActivePopulationSchedulerKeys.Reset();
+    Mode->PopulationKeyNextDueTimes.Reset();
+    Mode->PopulationKeyCandidateCursors.Reset();
+    Mode->PopulationKeyServicedCheckOrdinals.Reset();
+    Mode->PopulationKeyWildlifeActorBudgets.Reset();
+    Mode->PopulationSchedulerWakeWork.Reset();
+    Mode->NextPopulationSchedulerWakeTime = 0.0;
+    Mode->NextTerrainPatchActivationTime = 1000.0f;
+    Mode->NextExposureUpdateTime = 1000.0f;
+    Mode->NextInteractionGridUpdateTime = 1000.0f;
+    Mode->NextOceanDiscoveryRefreshTime = 1000.0f;
+    Mode->WildlifeRewardRetrySeconds = 1000.0f;
+    const FVector IntegrationPlayerLocation(
+        (static_cast<double>(IntegrationKey.X) + 0.5) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm,
+        (static_cast<double>(IntegrationKey.Y) + 0.5) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm,
+        0.0);
+    Character->SetActorLocation(IntegrationPlayerLocation);
+
+    World->Tick(LEVELTICK_TimeOnly, 0.05f);
+    const double FirstGameModeTickTime = World->GetTimeSeconds();
+    Mode->Tick(0.05f);
+    if (!TestTrue(TEXT("The real GameMode tick schedules and services its due key in order"),
+            Mode->ActivePopulationSchedulerKeys.Contains(IntegrationKey)
+            && Mode->PopulationKeyServicedCheckOrdinals.FindRef(IntegrationKey) == uint64(1)
+            && Mode->PopulationSchedulerWakeWork.Num() == 1))
+    {
+        return false;
+    }
+    const double IntegrationWakeTime = World->GetTimeSeconds();
+    const double NextIntegrationWakeTime = IntegrationWakeTime
+        + FKalmalaMonsterSpawnTuning::PopulationSchedulerWakeIntervalSeconds;
+    const double NextIntegrationKeyDueTime = FirstGameModeTickTime
+        + FKalmalaMonsterSpawnTuning::PopulationKeyCheckIntervalSeconds;
+    int32 IntegrationCandidateBudget = 0;
+    for (const FKalmalaPopulationSchedulerKeyWork& Work : Mode->PopulationSchedulerWakeWork)
+    {
+        TestEqual(TEXT("The GameMode tick services the expected due key"), Work.SpatialKey, IntegrationKey);
+        TestTrue(TEXT("The integrated wake respects the per-key candidate limit"),
+            Work.CandidateBudget > 0
+            && Work.CandidateBudget <= FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerKey);
+        IntegrationCandidateBudget += Work.CandidateBudget;
+    }
+    TestTrue(TEXT("The integrated wake stays within the key and total candidate budgets"),
+        Mode->PopulationSchedulerWakeWork.Num() <= FKalmalaMonsterSpawnTuning::MaxPopulationKeysPerWake
+        && IntegrationCandidateBudget <= FKalmalaMonsterSpawnTuning::MaxPopulationCandidatesPerWake);
+    TestTrue(TEXT("Tick service advances cadence and the next wake from the service time"),
+        FMath::IsNearlyEqual(Mode->PopulationKeyNextDueTimes.FindRef(IntegrationKey),
+            NextIntegrationKeyDueTime)
+        && FMath::IsNearlyEqual(Mode->NextPopulationSchedulerWakeTime, NextIntegrationWakeTime));
+
+    World->Tick(LEVELTICK_TimeOnly,
+        FKalmalaMonsterSpawnTuning::PopulationSchedulerWakeIntervalSeconds * 0.5f);
+    Mode->Tick(FKalmalaMonsterSpawnTuning::PopulationSchedulerWakeIntervalSeconds * 0.5f);
+    TestTrue(TEXT("A GameMode tick before the next wake deadline does no scheduler work"),
+        World->GetTimeSeconds() < NextIntegrationWakeTime
+        && Mode->PopulationSchedulerWakeWork.IsEmpty()
+        && FMath::IsNearlyEqual(Mode->NextPopulationSchedulerWakeTime, NextIntegrationWakeTime)
+        && FMath::IsNearlyEqual(Mode->PopulationKeyNextDueTimes.FindRef(IntegrationKey),
+            NextIntegrationKeyDueTime));
     return true;
 }
 
