@@ -307,6 +307,7 @@ private:
     friend class AKalmalaArrowProjectile;
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaWildlifeDefeatAtomicityTest;
+    friend class FKalmalaWildlifeGameModeRewardCallbackTest;
 #endif
     bool ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker, FName ArrowItemId);
     bool ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker,
