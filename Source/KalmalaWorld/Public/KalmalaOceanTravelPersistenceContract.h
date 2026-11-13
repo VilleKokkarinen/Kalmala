@@ -82,6 +82,8 @@ public:
     bool CanPairWithWorldSave(const UKalmalaOceanTravelPersistenceSaveGame& WorldSave) const;
 
 private:
+    friend class FKalmalaOceanTravelWorldSlotFailClosedTest;
+
     UPROPERTY(SaveGame)
     int32 SchemaVersion = CurrentSchemaVersion;
 

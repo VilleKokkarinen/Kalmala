@@ -200,6 +200,7 @@ private:
 
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
+    friend class FKalmalaOceanTravelWorldSlotFailClosedTest;
     TFunction<bool(const FVector&, bool)> PopulationLandSurfaceSampleForTests;
     // Isolate S22c's use of the real movement-support result at each actor location.
     TFunction<bool(const FVector&, bool)> PopulationMovementSupportForTests;

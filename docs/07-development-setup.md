@@ -1958,9 +1958,13 @@ failed disembark-save clears fail closed; inventory and cargo are not saved.
 
 After the forced editor build, run the in-memory and local-slot round-trip and
 rejection contracts with the M7 identity/save checks:
+`Kalmala.Gameplay.OceanTravel.WorldSlotFailClosed` exercises the production
+GameMode loader with incompatible schema, world identity, and vessel payload
+slots; it verifies world and passenger writes remain blocked, preserves the
+exact rejected slot bytes, and retains a valid current-format restore case.
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.Gameplay.OceanTravel.SkiffRestoreContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.Gameplay.OceanTravel.WorldSlotFailClosed+Kalmala.Gameplay.OceanTravel.SkiffRestoreContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ### M7 skill progression contract

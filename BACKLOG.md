@@ -593,7 +593,7 @@
       `Kalmala.Gameplay.OceanTravel.SkiffRestoreContract`, and
       `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1` after an Editor build.
 
-  - [ ] **RF25 — Cover fail-closed Ocean travel world-slot loading (P3; CR03-001b-101).**
+  - [x] **RF25 — Cover fail-closed Ocean travel world-slot loading (P3; CR03-001b-101).**
     **Source:** CR03-001b-101; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9736-9755`.
     **Affected path:** GameMode startup loading of the world-scoped schema-1 Ocean travel save.
     **Trigger:** A future regression accepts or rewrites an existing slot with an unsupported schema, wrong

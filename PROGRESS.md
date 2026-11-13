@@ -1,3 +1,32 @@
+## RF25 — Cover fail-closed Ocean travel world slots — 2026-11-13
+
+- **Work completed:** Added an isolated GameMode automation covering future and
+  unversioned schemas, wrong world seed and generator revision, missing or
+  malformed vessel payloads, and invalid transforms. Each rejected world slot
+  stays byte-for-byte unchanged after attempted world and authenticated-player
+  persistence. A valid current-format slot is loaded and restored through the
+  production GameMode path. Added the test to the documented M8 save check.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaOceanTravelWorldSlotFailClosedTest.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaWorld/Public/KalmalaOceanTravelPersistenceContract.h`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed; inspected the production
+  load and persistence guards, test case payloads, unique slot naming, cleanup,
+  and Windows path lengths.
+- **Full verification:** Deferred; no Editor build, automation, or integrated
+  reconnect script was run. This is not milestone-final verification.
+- **Observable impact:** No runtime behavior changed. Future regressions that
+  accept or overwrite incompatible travel data now have direct GameMode-level
+  coverage alongside the existing save-model contract.
+- **Networking/authority:** The regression uses an authoritative GameMode and
+  server-owned actors; it exercises both world and authenticated-player write
+  guards. No gameplay/network behavior changed.
+- **Known limits:** The new automation has not been compiled or executed, and
+  the integrated travel/reconnect acceptance remains unverified.
+- **Next eligible task:** RF26 — reject launch and boarding after travel-save
+  failure. The overall CR remediation goal remains active.
+
 ## RF24 — Protect collision-blocked saved skiffs — 2026-11-13
 
 - **Work completed:** A failed saved-skiff spawn now makes the accepted world
