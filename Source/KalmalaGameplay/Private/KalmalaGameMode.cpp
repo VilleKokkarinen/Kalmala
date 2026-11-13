@@ -10427,7 +10427,7 @@ bool AKalmalaGameMode::PersistOceanTravelPassenger(AKalmalaCharacter* Interactor
     if (Candidate == nullptr || !Candidate->GetIdentity().Matches(Identity)
         || !Candidate->SetPassengerState(Passenger)
         || !Candidate->Matches(Identity)
-        || !UGameplayStatics::SaveGameToSlot(Candidate, Slot, 0))
+        || !WriteOceanTravelSave(Candidate, Slot))
     {
         return false;
     }
@@ -10438,10 +10438,25 @@ bool AKalmalaGameMode::PersistOceanTravelPassenger(AKalmalaCharacter* Interactor
 
 bool AKalmalaGameMode::PersistOceanTravelState(AKalmalaOceanSkiff* Skiff)
 {
+    return PersistOceanTravelState(Skiff, nullptr, EKalmalaOceanSkiffSeat::None);
+}
+
+bool AKalmalaGameMode::PersistOceanTravelState(AKalmalaOceanSkiff* Skiff,
+    AKalmalaCharacter* PassengerToPersist, const EKalmalaOceanSkiffSeat Seat)
+{
     if (!bOceanTravelPersistenceWritable || bOceanTravelSavedVesselRestoreBlocked
         || !HasAuthority() || !IsValid(Skiff)
         || !Skiff->HasAuthority() || Skiff->GetMode() != EKalmalaOceanSkiffMode::Moored
         || !WorldGenerationConfig.IsValid())
+    {
+        return false;
+    }
+
+    if ((PassengerToPersist == nullptr && Seat != EKalmalaOceanSkiffSeat::None)
+        || (PassengerToPersist != nullptr
+            && ((Seat != EKalmalaOceanSkiffSeat::Helm && Seat != EKalmalaOceanSkiffSeat::Passenger)
+                || (Seat == EKalmalaOceanSkiffSeat::Helm && Skiff->GetHelmOccupant() != PassengerToPersist)
+                || (Seat == EKalmalaOceanSkiffSeat::Passenger && Skiff->GetPassengerOccupant() != PassengerToPersist))))
     {
         return false;
     }
@@ -10475,7 +10490,7 @@ bool AKalmalaGameMode::PersistOceanTravelState(AKalmalaOceanSkiff* Skiff)
     if (CandidateWorld == nullptr || !CandidateWorld->GetIdentity().Matches(WorldIdentity)
         || !CandidateWorld->SetVesselState(Vessel)
         || !CandidateWorld->Matches(WorldIdentity)
-        || !UGameplayStatics::SaveGameToSlot(CandidateWorld, WorldSlot, 0))
+        || !WriteOceanTravelSave(CandidateWorld, WorldSlot))
     {
         UE_LOG(LogTemp, Warning, TEXT("Could not persist moored ocean skiff %s; existing world state remains authoritative."), *Vessel.VesselId);
         return false;
@@ -10483,6 +10498,11 @@ bool AKalmalaGameMode::PersistOceanTravelState(AKalmalaOceanSkiff* Skiff)
 
     OceanTravelWorldSave = CandidateWorld;
     RestoredOceanSkiff = Skiff;
+    if (PassengerToPersist != nullptr)
+    {
+        return PersistOceanTravelPassenger(PassengerToPersist, Vessel.VesselId, Seat);
+    }
+
     bool bPassengersPersisted = true;
     if (AKalmalaCharacter* Helm = Skiff->GetHelmOccupant())
     {
@@ -10495,12 +10515,36 @@ bool AKalmalaGameMode::PersistOceanTravelState(AKalmalaOceanSkiff* Skiff)
     return bPassengersPersisted;
 }
 
-void AKalmalaGameMode::OnOceanSkiffStateChanged(AKalmalaOceanSkiff* Skiff)
+bool AKalmalaGameMode::OnOceanSkiffStateChanged(AKalmalaOceanSkiff* Skiff)
 {
-    if (!PersistOceanTravelState(Skiff))
+    const bool bPersisted = PersistOceanTravelState(Skiff);
+    if (!bPersisted)
     {
         UE_LOG(LogTemp, Warning, TEXT("Ocean skiff state change was not persisted; session state remains server-authoritative."));
     }
+    return bPersisted;
+}
+
+bool AKalmalaGameMode::OnOceanSkiffSeatAssigned(AKalmalaOceanSkiff* Skiff,
+    AKalmalaCharacter* Interactor, const EKalmalaOceanSkiffSeat Seat)
+{
+    const bool bPersisted = PersistOceanTravelState(Skiff, Interactor, Seat);
+    if (!bPersisted)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Ocean skiff seat assignment for a requester was rejected because its travel state was not persisted."));
+    }
+    return bPersisted;
+}
+
+bool AKalmalaGameMode::WriteOceanTravelSave(USaveGame* SaveGame, const FString& Slot)
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (OceanTravelSaveWriterForTests)
+    {
+        return OceanTravelSaveWriterForTests(SaveGame, Slot, 0);
+    }
+#endif
+    return UGameplayStatics::SaveGameToSlot(SaveGame, Slot, 0);
 }
 
 bool AKalmalaGameMode::ClearOceanTravelPassenger(AKalmalaCharacter* Interactor, const FString& VesselId)

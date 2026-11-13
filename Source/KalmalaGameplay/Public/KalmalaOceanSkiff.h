@@ -115,9 +115,9 @@ private:
         EKalmalaOceanSkiffBlockReason Reason);
     void SendFeedback(AKalmalaCharacter* Interactor, EKalmalaOceanTravelFeedback Feedback) const;
     void RefreshSeatOccupancyPresentation();
-    void SetSeatOccupant(AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);
+    bool SetSeatOccupant(AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);
     void ClearSeatOccupant(AKalmalaCharacter* Interactor);
-    void NotifyPersistenceStateChanged();
+    bool NotifyPersistenceStateChanged();
     static bool BuildOriginalHull(UProceduralMeshComponent* Mesh);
 
     float ThrottleInput = 0.0f;

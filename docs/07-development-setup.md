@@ -1962,9 +1962,13 @@ rejection contracts with the M7 identity/save checks:
 GameMode loader with incompatible schema, world identity, and vessel payload
 slots; it verifies world and passenger writes remain blocked, preserves the
 exact rejected slot bytes, and retains a valid current-format restore case.
+`Kalmala.Gameplay.OceanTravel.SaveFailureRollback` injects world and passenger
+write failures, checks that launch and boarding are rejected without attaching
+the requester, preserves incompatible passenger bytes, and verifies the valid
+vessel and helm seat restore after restart.
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.Gameplay.OceanTravel.WorldSlotFailClosed+Kalmala.Gameplay.OceanTravel.SkiffRestoreContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.Gameplay.OceanTravel.WorldSlotFailClosed+Kalmala.Gameplay.OceanTravel.SaveFailureRollback+Kalmala.Gameplay.OceanTravel.SkiffRestoreContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ### M7 skill progression contract
@@ -2195,7 +2199,7 @@ After an editor build, run `Scripts/Tests/Travel/OceanTravel.ps1`. It starts a c
 
 ## M8 skiff launch and occupancy contract
 
-After an editor build, run `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract` and `Kalmala.Gameplay.OceanTravel.SkiffSteeringContract` with isolated temporary `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"`. The launch test checks the server/deep-water/generated-terrain/world-bound gates, one-skiff session cap, helm-first and passenger-second seat selection, and stopped safe-exit gate. The steering test checks helm-only authority, finite bounded axes, increasing sequences, the 10 Hz rate limit, 0.5-second expiry, acceleration, and forward/reverse speed caps. These focused contracts do not prove a live client interaction, rendered skiff presentation, or collision movement over a representative coastline.
+After an editor build, run `Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract`, `Kalmala.Gameplay.OceanTravel.SkiffSteeringContract`, and `Kalmala.Gameplay.OceanTravel.SaveFailureRollback` with isolated temporary `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"`. The launch test checks the server/deep-water/generated-terrain/world-bound gates, one-skiff session cap, helm-first and passenger-second seat selection, and stopped safe-exit gate. The steering test checks helm-only authority, finite bounded axes, increasing sequences, the 10 Hz rate limit, 0.5-second expiry, acceleration, and forward/reverse speed caps. The save-failure test checks rejected launches and boardings, incompatible-slot preservation, and a valid restart restore. These focused contracts do not prove a live client interaction, rendered skiff presentation, or collision movement over a representative coastline.
 
 ```powershell
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8SkiffUser' -abslog='C:\temp\KalmalaM8Skiff.log' -ExecCmds="Automation RunTests Kalmala.Gameplay.OceanTravel.SkiffAuthorityContract+Kalmala.Gameplay.OceanTravel.SkiffSteeringContract; Quit" -TestExit="Automation Test Queue Empty"

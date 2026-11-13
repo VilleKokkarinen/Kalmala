@@ -82,6 +82,9 @@ bool FKalmalaOceanSkiffRestoreContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Failed saved-seat cleanup explains why disembarking was cancelled"),
         UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Feedback::TravelSaveUnavailable)
             .Contains(TEXT("disembarking was cancelled safely")));
+    TestTrue(TEXT("A launch or boarding save failure explains that the action was cancelled"),
+        UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Feedback::TravelActionSaveUnavailable)
+            .Contains(TEXT("this action was cancelled safely")));
     return true;
 }
 

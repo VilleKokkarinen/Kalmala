@@ -1,3 +1,39 @@
+## RF26 — Reject launch and boarding after travel-save failure — 2026-11-13
+
+- **Work completed:** GameMode now returns travel-save results. Launch destroys
+  its provisional skiff and reports save failure if the world record cannot be
+  written. Boarding persists the vessel and authenticated requester's seat
+  before attaching the pawn; a failed write rolls back the tentative seat and
+  reports an owner-only cancellation reason. Incompatible passenger slots stay
+  untouched, and disembark still clears the player slot before detaching. Added
+  a focused GameMode/skiff automation for world and passenger write failures,
+  incompatible-slot byte preservation, boarding rollback, and exact vessel and
+  helm-seat restore after restart.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h`,
+  `Source/KalmalaGameplay/Private/KalmalaOceanTravelFeedbackComponent.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaOceanTravelFeedbackComponent.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaOceanTravelSaveFailureRollbackTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed; inspected launch, seat
+  assignment, disembark ordering, save-slot preservation, restart restoration,
+  and automation call sites. Changed paths remain below the Windows path limit.
+- **Full verification:** Deferred. No Editor build or automation was run; this
+  is not milestone-final verification.
+- **Observable impact:** A launch or boarding that cannot be saved no longer
+  appears successful. Failed boarding leaves the requester unattached.
+- **Networking/authority:** Persistence and transition decisions remain in the
+  authoritative GameMode/skiff path. The new failure result uses the existing
+  owner-only feedback component; saved-data schemas are unchanged.
+- **Known limits:** The new automation source has not been compiled or run, and
+  integrated reconnect acceptance remains unverified.
+- **Next eligible task:** RF27 — report unavailable world discovery saves to the
+  owner. The overall CR remediation goal remains active.
+
 ## RF25 — Cover fail-closed Ocean travel world slots — 2026-11-13
 
 - **Work completed:** Added an isolated GameMode automation covering future and

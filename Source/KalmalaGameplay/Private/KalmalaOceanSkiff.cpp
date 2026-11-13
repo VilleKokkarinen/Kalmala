@@ -453,6 +453,7 @@ AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* I
     SpawnParameters.Instigator = nullptr;
     SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
     AKalmalaOceanSkiff* LaunchedSkiff = World->SpawnActor<AKalmalaOceanSkiff>(SpawnLocation, SpawnRotation, SpawnParameters);
+    bool bTravelSaveUnavailable = false;
     if (LaunchedSkiff != nullptr)
     {
         if (!LaunchedSkiff->InitializePersistentIdentityFromServer(TEXT("ocean-skiff:primary")))
@@ -460,13 +461,21 @@ AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* I
             LaunchedSkiff->Destroy();
             LaunchedSkiff = nullptr;
         }
-        else if (AKalmalaGameMode* GameMode = World->GetAuthGameMode<AKalmalaGameMode>())
+        else
         {
-            GameMode->OnOceanSkiffStateChanged(LaunchedSkiff);
+            AKalmalaGameMode* GameMode = World->GetAuthGameMode<AKalmalaGameMode>();
+            if (GameMode == nullptr || !GameMode->OnOceanSkiffStateChanged(LaunchedSkiff))
+            {
+                bTravelSaveUnavailable = true;
+                LaunchedSkiff->Destroy();
+                LaunchedSkiff = nullptr;
+            }
         }
     }
     Interactor->GetOceanTravelFeedbackComponent()->SetFeedbackFromServer(LaunchedSkiff != nullptr
-        ? EKalmalaOceanTravelFeedback::SkiffLaunched : EKalmalaOceanTravelFeedback::LaunchObstructed);
+        ? EKalmalaOceanTravelFeedback::SkiffLaunched
+        : bTravelSaveUnavailable ? EKalmalaOceanTravelFeedback::TravelActionSaveUnavailable
+            : EKalmalaOceanTravelFeedback::LaunchObstructed);
     return LaunchedSkiff;
 }
 
@@ -556,7 +565,11 @@ bool AKalmalaOceanSkiff::TryInteractFromServer(AKalmalaCharacter* Interactor)
         return false;
     }
 
-    SetSeatOccupant(Interactor, Seat);
+    if (!SetSeatOccupant(Interactor, Seat))
+    {
+        SendFeedback(Interactor, EKalmalaOceanTravelFeedback::TravelActionSaveUnavailable);
+        return false;
+    }
     SendFeedback(Interactor, Seat == EKalmalaOceanSkiffSeat::Helm
         ? EKalmalaOceanTravelFeedback::HelmAssigned : EKalmalaOceanTravelFeedback::PassengerAssigned);
     return true;
@@ -659,9 +672,10 @@ bool AKalmalaOceanSkiff::FindSafeExitLocation(AKalmalaCharacter* Interactor, FVe
     return false;
 }
 
-void AKalmalaOceanSkiff::SetSeatOccupant(AKalmalaCharacter* Interactor, const EKalmalaOceanSkiffSeat Seat)
+bool AKalmalaOceanSkiff::SetSeatOccupant(AKalmalaCharacter* Interactor, const EKalmalaOceanSkiffSeat Seat)
 {
-    if (!HasAuthority() || !IsValid(Interactor) || Seat == EKalmalaOceanSkiffSeat::None) return;
+    if (!HasAuthority() || !IsValid(Interactor) || GetWorld() == nullptr
+        || Seat == EKalmalaOceanSkiffSeat::None) return false;
     if (Seat == EKalmalaOceanSkiffSeat::Helm)
     {
         HelmOccupant = Interactor;
@@ -672,9 +686,27 @@ void AKalmalaOceanSkiff::SetSeatOccupant(AKalmalaCharacter* Interactor, const EK
         RudderInput = 0.0f;
     }
     else PassengerOccupant = Interactor;
+
+    AKalmalaGameMode* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
+    if (GameMode == nullptr || !GameMode->OnOceanSkiffSeatAssigned(this, Interactor, Seat))
+    {
+        if (Seat == EKalmalaOceanSkiffSeat::Helm)
+        {
+            HelmOccupant = nullptr;
+            LastAcceptedInputSequence = 0;
+            LastAcceptedInputTime = 0.0;
+            bHasAcceptedInput = false;
+            ThrottleInput = 0.0f;
+            RudderInput = 0.0f;
+        }
+        else PassengerOccupant = nullptr;
+        ForceNetUpdate();
+        return false;
+    }
+
     RefreshSeatOccupancyPresentation();
     ForceNetUpdate();
-    NotifyPersistenceStateChanged();
+    return true;
 }
 
 void AKalmalaOceanSkiff::ClearSeatOccupant(AKalmalaCharacter* Interactor)
@@ -722,17 +754,17 @@ bool AKalmalaOceanSkiff::RestoreSeatFromServer(AKalmalaCharacter* Interactor, co
         Interactor->GetAttachParentActor() != nullptr);
     if (!bAllowed) return false;
 
-    SetSeatOccupant(Interactor, Seat);
-    return Seat == EKalmalaOceanSkiffSeat::Helm ? HelmOccupant == Interactor : PassengerOccupant == Interactor;
+    return SetSeatOccupant(Interactor, Seat);
 }
 
-void AKalmalaOceanSkiff::NotifyPersistenceStateChanged()
+bool AKalmalaOceanSkiff::NotifyPersistenceStateChanged()
 {
-    if (!HasAuthority() || GetWorld() == nullptr) return;
+    if (!HasAuthority() || GetWorld() == nullptr) return false;
     if (AKalmalaGameMode* GameMode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>())
     {
-        GameMode->OnOceanSkiffStateChanged(this);
+        return GameMode->OnOceanSkiffStateChanged(this);
     }
+    return false;
 }
 
 void AKalmalaOceanSkiff::OnRep_SeatOccupants()

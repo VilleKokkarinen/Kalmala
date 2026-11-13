@@ -616,16 +616,17 @@
       `Kalmala.World.OceanTravel.PersistenceContract`, `Kalmala.Gameplay.OceanTravel.SkiffRestoreContract`, and
       `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1` after an Editor build.
 
-  - [ ] **RF26 — Do not accept skiff launch or boarding after travel-save failure (P2; CR03-001b-102).**
+  - [x] **RF26 — Do not accept skiff launch or boarding after travel-save failure (P2; CR03-001b-102).**
     **Source:** CR03-001b-102; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9823-9949`, `9951-9984`, and
       `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp:399-465`, `514-559`, `561-604`, `658-674`.
     **Affected path:** Launching or boarding the persisted ocean skiff, then disembarking or restoring the
       accepted vessel and seat after restart.
     **Trigger:** The world or authenticated passenger slot write fails, or the player's existing travel slot is
       invalid/incompatible and is correctly preserved without overwrite.
-    **Impact:** `PersistOceanTravelState` returns failure when the world or any current occupant's player record
-      cannot be saved, but `OnOceanSkiffStateChanged` is `void` and only logs the failure. `TryLaunchFromServer`
-      still reports `SkiffLaunched` for the spawned actor, and `TryInteractFromServer` still reports an assigned
+    **Impact:** Before this repair, `PersistOceanTravelState` returned failure
+      when the world or any current occupant's player record could not be saved,
+      but `OnOceanSkiffStateChanged` was `void` and only logged the failure. `TryLaunchFromServer`
+      reported `SkiffLaunched` for the spawned actor, and `TryInteractFromServer` reported an assigned
       seat after the state setter's notification. With an incompatible existing player slot,
       `PersistOceanTravelPassenger` fails without overwriting it; later `ClearOceanTravelPassenger` rejects
       clearing that same record and `TryDisembarkFromServer` leaves the character attached. When a slot write
@@ -643,10 +644,11 @@
       slot, do not produce a reported successful but non-durable launch/seat. The incompatible slot remains
       byte-identical, the player is not left seated without a clearable record, and a valid persisted
       vessel/seat still restores exactly after restart.
-    **Focused validation:** Add isolated GameMode/skiff automation for world-write failure, passenger-write
-      failure, incompatible-slot preservation, and boarding rollback; run
-      `Kalmala.World.OceanTravel.PersistenceContract`, `Kalmala.Gameplay.OceanTravel.SkiffRestoreContract`, and
-      `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1` after an Editor build.
+    **Focused validation:** `Kalmala.Gameplay.OceanTravel.SaveFailureRollback` covers world-write failure,
+      passenger-write failure, incompatible-slot preservation, boarding rollback, and valid restart restore.
+      After an Editor build, run it with `Kalmala.World.OceanTravel.PersistenceContract`,
+      `Kalmala.Gameplay.OceanTravel.SkiffRestoreContract`, and
+      `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1`.
 
   - [ ] **RF27 — Report unavailable world discovery saves to the owner (P3; CR03-001b-103).**
     **Source:** CR03-001b-103; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10060-10063`,

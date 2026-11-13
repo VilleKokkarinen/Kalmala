@@ -154,7 +154,9 @@ public:
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
     static FString GetMirelingBossScrollId(uint64 WorldSeed);
-    void OnOceanSkiffStateChanged(class AKalmalaOceanSkiff* Skiff);
+    bool OnOceanSkiffStateChanged(class AKalmalaOceanSkiff* Skiff);
+    bool OnOceanSkiffSeatAssigned(class AKalmalaOceanSkiff* Skiff,
+        class AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);
     bool ClearOceanTravelPassenger(class AKalmalaCharacter* Interactor, const FString& VesselId);
 
 private:
@@ -201,6 +203,7 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
     friend class FKalmalaOceanTravelWorldSlotFailClosedTest;
+    friend class FKalmalaOceanTravelSaveFailureRollbackTest;
     TFunction<bool(const FVector&, bool)> PopulationLandSurfaceSampleForTests;
     // Isolate S22c's use of the real movement-support result at each actor location.
     TFunction<bool(const FVector&, bool)> PopulationMovementSupportForTests;
@@ -219,6 +222,7 @@ private:
     TFunction<bool(const FString&, int32, class USaveGame*&)> PlayerDiscoverySaveLoaderForTests;
     TFunction<bool(class UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)> PlayerDiscoverySaveWriterForTests;
     TFunction<bool(class USaveGame*, const FString&, int32)> WorldComponentSaveWriterForTests;
+    TFunction<bool(class USaveGame*, const FString&, int32)> OceanTravelSaveWriterForTests;
     TFunction<ENetMode(const UWorld*)> HomeReturnNetModeForTests;
     TFunction<bool(const APlayerController*)> HomeReturnLocalControllerForTests;
     TFunction<bool(const APlayerController*)> HomeReturnConnectionForTests;
@@ -615,8 +619,11 @@ private:
     void RestoreOceanTravelForPlayer(class APlayerController* PlayerController);
     void LoadOceanDiscoveryLedger(class AKalmalaCharacter* Interactor);
     bool PersistOceanTravelState(class AKalmalaOceanSkiff* Skiff);
+    bool PersistOceanTravelState(class AKalmalaOceanSkiff* Skiff,
+        class AKalmalaCharacter* PassengerToPersist, EKalmalaOceanSkiffSeat Seat);
     bool PersistOceanTravelPassenger(class AKalmalaCharacter* Interactor,
         const FString& VesselId, EKalmalaOceanSkiffSeat Seat);
+    bool WriteOceanTravelSave(class USaveGame* SaveGame, const FString& Slot);
 
     class APlayerStart* GeneratedPlayerStart = nullptr;
     FKalmalaWorldGenerationConfig WorldGenerationConfig;

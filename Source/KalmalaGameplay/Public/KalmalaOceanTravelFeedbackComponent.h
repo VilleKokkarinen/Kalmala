@@ -23,7 +23,8 @@ enum class EKalmalaOceanTravelFeedback : uint8
 	StopBeforeDisembarking,
 	NoSafeExit,
 	Disembarked,
-	TravelSaveUnavailable
+	TravelSaveUnavailable,
+	TravelActionSaveUnavailable
 };
 
 /** Owner-only transient reasons for server-resolved ocean travel interactions. */

@@ -1275,6 +1275,12 @@ already attached pawn. Invalid or incompatible records are preserved without
 overwrite. Ocean discovery `DiscoveryClaimed` ledgers are loaded for the
 authenticated player at login, so reconnects keep duplicate rewards rejected.
 
+Launch is accepted only after its moored world record is saved. Boarding is
+accepted only after saving the moored vessel and authenticated requester's
+seat; a failed write rolls back the tentative seat before attaching the pawn
+and reports the save failure to that requester. A rejected boarding leaves the
+requester in place.
+
 Schema zero and unknown future versions fail closed. Do not add compatibility
 migrations before release; development save formats may change directly.
 The focused
