@@ -55,6 +55,7 @@ public:
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const;
     bool IsHarvested(const FString& PersistentSpawnId) const;
     void MarkHarvested(const FString& PersistentSpawnId);
+    void UnmarkHarvested(const FString& PersistentSpawnId);
     bool IsDefeated(const FString& PersistentSpawnId) const;
     void MarkDefeated(const FString& PersistentSpawnId);
     bool TryQueuePendingWildlifeReward(const FString& RewardClaimId, const FString& PlayerIdentity);

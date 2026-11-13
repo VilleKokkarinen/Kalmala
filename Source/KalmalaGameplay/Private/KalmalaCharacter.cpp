@@ -2238,18 +2238,50 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
     *CurrentDurability = CandidateToolState.Durability;
     AKalmalaGameMode* GameMode = GetWorld() != nullptr
         ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
-    if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(this))
+    const bool bNeedsDurableDepletion = Node->GetM9ResourceDepletionId().IsEmpty();
+    if (GameMode == nullptr || (bNeedsDurableDepletion && !Node->PrepareHarvestedStateFromServer()))
     {
         CarriedTools = ExistingTools;
         if (!Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory))
         {
-            UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player tool persistence rejected harvesting."));
+            UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after population depletion persistence rejected harvesting."));
         }
         ForceNetUpdate();
         return false;
     }
 
-    Node->CommitHarvestedStateFromServer();
+    if (!GameMode->PersistPlayerStateFromServer(this))
+    {
+        CarriedTools = ExistingTools;
+        const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory);
+        if (!bInventoryRestored)
+            UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player tool persistence rejected harvesting."));
+        if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(this))
+        {
+            if (bNeedsDurableDepletion) Node->RollbackHarvestedStateFromServer();
+        }
+        else if (bNeedsDurableDepletion)
+        {
+            Node->CommitHarvestedStateFromServer();
+        }
+        ForceNetUpdate();
+        return false;
+    }
+    if (!Node->CommitHarvestedStateFromServer())
+    {
+        CarriedTools = ExistingTools;
+        const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory);
+        if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(this))
+        {
+            if (bNeedsDurableDepletion) Node->RollbackHarvestedStateFromServer();
+            ForceNetUpdate();
+        }
+        else if (bNeedsDurableDepletion)
+        {
+            Node->CommitHarvestedStateFromServer();
+        }
+        return false;
+    }
     ForceNetUpdate();
     return true;
 }

@@ -93,7 +93,9 @@ private:
     void BuildSourcePresentation();
     void UpdateTreePresentationPose();
     void ApplyHarvestedState();
-    void CommitHarvestedStateFromServer();
+    bool PrepareHarvestedStateFromServer();
+    bool CommitHarvestedStateFromServer();
+    bool RollbackHarvestedStateFromServer();
     void SettleTreeFromServer();
     FTimerHandle TreeFallTimer;
     UPROPERTY(ReplicatedUsing = OnRep_Gemstone) uint8 GemHits = 0;

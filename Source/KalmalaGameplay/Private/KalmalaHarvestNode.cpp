@@ -255,13 +255,41 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
             }
             return;
         }
-        if (!Inventory->TryCommitStacksFromServer(Before, After)) return;
-        if (!GameMode->PersistPlayerStateFromServer(Interactor))
+        const bool bNeedsDurableDepletion = GetM9ResourceDepletionId().IsEmpty();
+        if (bNeedsDurableDepletion && !PrepareHarvestedStateFromServer()) return;
+        if (!Inventory->TryCommitStacksFromServer(Before, After))
         {
-            Inventory->TryCommitStacksFromServer(After, Before);
+            if (bNeedsDurableDepletion) RollbackHarvestedStateFromServer();
             return;
         }
-        CommitHarvestedStateFromServer();
+        if (!GameMode->PersistPlayerStateFromServer(Interactor))
+        {
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(After, Before);
+            if (!bInventoryRestored)
+                UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player persistence rejected a tree bundle."));
+            if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
+            {
+                if (bNeedsDurableDepletion) RollbackHarvestedStateFromServer();
+            }
+            else if (bNeedsDurableDepletion)
+            {
+                CommitHarvestedStateFromServer();
+            }
+            return;
+        }
+        if (!CommitHarvestedStateFromServer())
+        {
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(After, Before);
+            if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
+            {
+                if (bNeedsDurableDepletion) RollbackHarvestedStateFromServer();
+            }
+            else
+            {
+                if (bNeedsDurableDepletion) CommitHarvestedStateFromServer();
+                UE_LOG(LogTemp, Error, TEXT("Failed to restore player state after a tree bundle commit was rejected."));
+            }
+        }
         return;
     }
     if (IsHandGatherablePatch())
@@ -308,14 +336,41 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
             PublishFullPack();
             return;
         }
-        if (!Inventory->TryCommitStacksFromServer(Before, *FinalStacks)) return;
-        if (!GameMode->PersistPlayerStateFromServer(Interactor))
+        const bool bNeedsDurableDepletion = GetM9ResourceDepletionId().IsEmpty();
+        if (bNeedsDurableDepletion && !PrepareHarvestedStateFromServer()) return;
+        if (!Inventory->TryCommitStacksFromServer(Before, *FinalStacks))
         {
-            if (!Inventory->TryCommitStacksFromServer(*FinalStacks, Before))
-                UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player persistence rejected a wild crop harvest."));
+            if (bNeedsDurableDepletion) RollbackHarvestedStateFromServer();
             return;
         }
-        CommitHarvestedStateFromServer();
+        if (!GameMode->PersistPlayerStateFromServer(Interactor))
+        {
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(*FinalStacks, Before);
+            if (!bInventoryRestored)
+                UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player persistence rejected a wild crop harvest."));
+            if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
+            {
+                if (bNeedsDurableDepletion) RollbackHarvestedStateFromServer();
+            }
+            else if (bNeedsDurableDepletion)
+            {
+                CommitHarvestedStateFromServer();
+            }
+            return;
+        }
+        if (!CommitHarvestedStateFromServer())
+        {
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(*FinalStacks, Before);
+            if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
+            {
+                if (bNeedsDurableDepletion) RollbackHarvestedStateFromServer();
+            }
+            else
+            {
+                if (bNeedsDurableDepletion) CommitHarvestedStateFromServer();
+                UE_LOG(LogTemp, Error, TEXT("Failed to restore player state after a crop commit was rejected."));
+            }
+        }
         return;
     }
     // Generated biome sources must pass through the server trace/tool transaction.
@@ -323,12 +378,17 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
     // No client-selected reward or quantity. Commit depletion only after the complete grant succeeds.
     if (!CanInteract_Implementation(Interactor)) return;
     auto* Inventory = Interactor->FindComponentByClass<UKalmalaInventoryComponent>();
-    if (IsValid(Inventory) && Inventory->TryGrantFromServer(GetHarvestItemId(), 1))
+    if (!IsValid(Inventory)) return;
+    const TArray<FKalmalaInventoryStack> BeforeGrant = Inventory->GetStacks();
+    if (Inventory->TryGrantFromServer(GetHarvestItemId(), 1))
     {
-        bHarvested = true;
-        ApplyHarvestedState();
-        OnHarvested.Broadcast(PersistentSpawnId);
-        ForceNetUpdate();
+        const TArray<FKalmalaInventoryStack> GrantedStacks = Inventory->GetStacks();
+        if (!CommitHarvestedStateFromServer())
+        {
+            if (!Inventory->TryCommitStacksFromServer(GrantedStacks, BeforeGrant))
+                UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after population depletion persistence rejected a harvest."));
+            return;
+        }
     }
 }
 
@@ -521,12 +581,29 @@ void AKalmalaHarvestNode::Tick(const float DeltaSeconds)
     UpdateTreePresentationPose();
 }
 
-void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
+bool AKalmalaHarvestNode::PrepareHarvestedStateFromServer()
 {
-    if (!HasAuthority() || bHarvested || PersistentSpawnId.IsEmpty()) return;
+    if (!HasAuthority() || bHarvested || PersistentSpawnId.IsEmpty()
+        || !GetM9ResourceDepletionId().IsEmpty()) return false;
+
+    AKalmalaGameMode* GameMode = GetWorld() != nullptr
+        ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    return GameMode != nullptr && GameMode->TryPersistHarvestedSpawnFromServer(PersistentSpawnId);
+}
+
+bool AKalmalaHarvestNode::CommitHarvestedStateFromServer()
+{
+    if (!HasAuthority() || bHarvested || PersistentSpawnId.IsEmpty()) return false;
+    const FString M9ResourceId = GetM9ResourceDepletionId();
+    if (M9ResourceId.IsEmpty())
+    {
+        AKalmalaGameMode* GameMode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+        if (GameMode == nullptr || !GameMode->TryPersistHarvestedSpawnFromServer(PersistentSpawnId)) return false;
+    }
+
     bHarvested = true;
     ApplyHarvestedState();
-    const FString M9ResourceId = GetM9ResourceDepletionId();
     if (!M9ResourceId.IsEmpty())
     {
         OnM9ResourceDepleted.Broadcast(M9ResourceId);
@@ -536,6 +613,38 @@ void AKalmalaHarvestNode::CommitHarvestedStateFromServer()
         OnHarvested.Broadcast(PersistentSpawnId);
     }
     ForceNetUpdate();
+    return true;
+}
+
+bool AKalmalaHarvestNode::RollbackHarvestedStateFromServer()
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty()) return false;
+
+    AKalmalaGameMode* GameMode = GetWorld() != nullptr
+        ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
+    const FString M9ResourceId = GetM9ResourceDepletionId();
+    if (M9ResourceId.IsEmpty())
+    {
+        if (GameMode == nullptr || !GameMode->TryRollbackHarvestedSpawnFromServer(PersistentSpawnId))
+        {
+            bHarvested = true;
+            ApplyHarvestedState();
+            ForceNetUpdate();
+            UE_LOG(LogTemp, Warning,
+                TEXT("Could not compensate harvest depletion %s; keeping its last durable state."), *PersistentSpawnId);
+            return false;
+        }
+    }
+    else
+    {
+        if (!bHarvested || GameMode == nullptr) return false;
+        GameMode->SessionM9ResourceDepletionIds.Remove(M9ResourceId);
+    }
+
+    bHarvested = false;
+    ApplyHarvestedState();
+    ForceNetUpdate();
+    return true;
 }
 
 FName AKalmalaHarvestNode::GetHarvestItemId() const

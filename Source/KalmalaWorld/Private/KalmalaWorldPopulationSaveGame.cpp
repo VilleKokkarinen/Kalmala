@@ -83,6 +83,14 @@ void UKalmalaWorldPopulationSaveGame::MarkHarvested(const FString& PersistentSpa
     }
 }
 
+void UKalmalaWorldPopulationSaveGame::UnmarkHarvested(const FString& PersistentSpawnId)
+{
+    if (!PersistentSpawnId.IsEmpty())
+    {
+        HarvestedSpawnIds.Remove(PersistentSpawnId);
+    }
+}
+
 bool UKalmalaWorldPopulationSaveGame::IsDefeated(const FString& PersistentSpawnId) const
 {
     return !PersistentSpawnId.IsEmpty() && DefeatedSpawnIds.Contains(PersistentSpawnId);

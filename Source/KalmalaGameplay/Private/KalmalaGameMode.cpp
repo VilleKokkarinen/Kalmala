@@ -7996,6 +7996,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     }
 
     const double NowSeconds = GetWorld()->GetTimeSeconds();
+    RetryPendingPopulationDepletionWrites(NowSeconds);
     if (NowSeconds >= NextTerrainPatchActivationTime)
     {
         NextTerrainPatchActivationTime = NowSeconds + KalmalaGameMode::TerrainPatchActivationIntervalSeconds;
@@ -8809,15 +8810,19 @@ void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
     if (HasAuthority() && !PersistentSpawnId.IsEmpty() && PopulationSaveGame != nullptr
         && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
+        if (PopulationSaveGame->IsHarvested(PersistentSpawnId)
+            && !PendingPopulationDepletionWriteIds.Contains(PersistentSpawnId)) return;
+
         PopulationSaveGame->MarkHarvested(PersistentSpawnId);
-#if WITH_DEV_AUTOMATION_TESTS
-        if (PopulationSaveWriterForTests)
+        PendingPopulationDepletionWriteIds.Add(PersistentSpawnId);
+        const bool bSaved = WritePopulationSaveToSlot();
+        if (!bSaved)
         {
-            PopulationSaveWriterForTests(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
-            return;
+            NextPopulationDepletionWriteRetryTime = GetWorld()->GetTimeSeconds() + 1.0;
+            UE_LOG(LogTemp, Warning,
+                TEXT("Harvest depletion %s remains queued until its population save is durable."),
+                *PersistentSpawnId);
         }
-#endif
-        const bool bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
 #if !UE_BUILD_SHIPPING
         if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaForestPickup"))
             && PersistentSpawnId.StartsWith(TEXT("forest:v1:")))
@@ -8826,27 +8831,102 @@ void AKalmalaGameMode::RecordHarvestedSpawn(const FString& PersistentSpawnId)
                 WorldGenerationConfig.WorldSeed, *PersistentSpawnId, bSaved);
         }
 #endif
-        (void)bSaved;
     }
+}
+
+bool AKalmalaGameMode::TryPersistHarvestedSpawnFromServer(const FString& PersistentSpawnId)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || PendingPopulationDepletionWriteIds.Contains(PersistentSpawnId)) return false;
+    if (PopulationSaveGame->IsHarvested(PersistentSpawnId)) return true;
+
+    PopulationSaveGame->MarkHarvested(PersistentSpawnId);
+    if (WritePopulationSaveToSlot()) return true;
+
+    PopulationSaveGame->UnmarkHarvested(PersistentSpawnId);
+    return false;
+}
+
+bool AKalmalaGameMode::TryRollbackHarvestedSpawnFromServer(const FString& PersistentSpawnId)
+{
+    if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || !PopulationSaveGame->IsHarvested(PersistentSpawnId)) return false;
+
+    PopulationSaveGame->UnmarkHarvested(PersistentSpawnId);
+    if (WritePopulationSaveToSlot()) return true;
+
+    // Keep the last durable state if compensating the save slot fails.
+    PopulationSaveGame->MarkHarvested(PersistentSpawnId);
+    return false;
 }
 
 void AKalmalaGameMode::RecordDefeatedSpawn(const FString& PersistentSpawnId)
 {
-    if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
+    if (HasAuthority() && !PersistentSpawnId.IsEmpty() && PopulationSaveGame != nullptr
+        && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
         PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-#if WITH_DEV_AUTOMATION_TESTS
-        if (PopulationSaveWriterForTests)
+        PendingPopulationDepletionWriteIds.Add(PersistentSpawnId);
+        if (!WritePopulationSaveToSlot())
         {
-            PopulationSaveWriterForTests(PopulationSaveGame,
-                KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
-            return;
+            NextPopulationDepletionWriteRetryTime = GetWorld()->GetTimeSeconds() + 1.0;
+            UE_LOG(LogTemp, Warning,
+                TEXT("Defeat depletion %s remains queued until its population save is durable."),
+                *PersistentSpawnId);
         }
-#endif
-        const bool bSaved = UGameplayStatics::SaveGameToSlot(
-            PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
-        (void)bSaved;
     }
+}
+
+bool AKalmalaGameMode::WritePopulationSaveToSlot()
+{
+    if (!HasAuthority() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    const FString Slot = KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig);
+    bool bSaved = false;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (PopulationSaveWriteAttemptForTests)
+    {
+        bSaved = PopulationSaveWriteAttemptForTests(PopulationSaveGame, Slot, 0);
+    }
+    else if (PopulationSaveWriterForTests)
+    {
+        // Existing fixtures replace the writer without reporting a result.
+        PopulationSaveWriterForTests(PopulationSaveGame, Slot, 0);
+        bSaved = true;
+    }
+    else
+#endif
+    {
+        bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame, Slot, 0);
+    }
+
+    if (bSaved)
+    {
+        PendingPopulationDepletionWriteIds.Reset();
+        NextPopulationDepletionWriteRetryTime = 0.0;
+    }
+    return bSaved;
+}
+
+void AKalmalaGameMode::RetryPendingPopulationDepletionWrites(const double NowSeconds)
+{
+    if (!HasAuthority() || !FMath::IsFinite(NowSeconds) || PendingPopulationDepletionWriteIds.IsEmpty()
+        || NowSeconds < NextPopulationDepletionWriteRetryTime) return;
+
+    const int32 PendingCount = PendingPopulationDepletionWriteIds.Num();
+    if (WritePopulationSaveToSlot())
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Persisted %d pending population depletion ID(s) after a retry."), PendingCount);
+        return;
+    }
+
+    NextPopulationDepletionWriteRetryTime = NowSeconds + 1.0;
+    UE_LOG(LogTemp, Verbose,
+        TEXT("Population save retry failed; %d depletion ID(s) remain queued."), PendingCount);
 }
 
 bool AKalmalaGameMode::RecordRatDefeatReward(const FString& PersistentSpawnId,
@@ -9799,8 +9879,7 @@ bool AKalmalaGameMode::TrySaveWorldFromLocalHost(APlayerController* RequestingCo
         || !StorageSaveGame
         || !StorageSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    bool bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    bool bSaved = WritePopulationSaveToSlot();
     bSaved &= UGameplayStatics::SaveGameToSlot(ConstructionSaveGame,
         KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0);
     bSaved &= UGameplayStatics::SaveGameToSlot(StorageSaveGame,

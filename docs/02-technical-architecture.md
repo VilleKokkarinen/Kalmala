@@ -3431,6 +3431,17 @@ and process restart filter collected IDs and recreate uncollected trees. Partial
 health, trunks and uncollected drops are session state and reset to Standing when
 actors regenerate. This uses the existing save schema without migrations.
 
+Population-backed harvests write the sparse depletion before committing the
+player reward. If that slot write fails, the server rolls back the ledger change
+and rejects the grant. If player-state saving then fails, the server restores the
+old player state before compensating the population save; if compensation cannot
+be written, the last durable depleted ID remains to prevent a duplicate
+acquisition. Accepted generic wildlife and hazard defeats keep their stable
+IDs in a server-owned retry set and retry the full population save once per
+second until it succeeds. Successful host saves use the same writer. The existing
+session-only M9 resource depletion policy remains unchanged. These changes use
+the existing population save schema.
+
 Focused acceptance covers exact-ID stage delivery, late joins, ordinary-camera
 pickup, forged/range/physical-distance and capacity rejection, competing owned
 pickup requests and owner-only full-pack feedback. Isolated server-world tests

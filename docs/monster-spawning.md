@@ -79,11 +79,23 @@ save data.
   `UKalmalaWorldPopulationSaveGame::DefeatedSpawnIds`. Spawned wildlife members
   and hazards bind `OnDefeated` to `AKalmalaGameMode::RecordDefeatedSpawn`.
   Authority-only `DefeatServer` implementations broadcast only after accepting
-  the defeat; the GameMode callback calls `MarkDefeated` and writes the matching
-  population save slot. Wildlife reward handlers also mark and save their IDs as
-  part of the reward transaction before `OnDefeated` is broadcast. Thus unload,
-  later key activation, reconnect and restart must never remove a defeated ID;
-  each wolf member retains its own stable depleted ID.
+  the defeat; the generic callback marks the stable ID and writes the
+  matching population save slot. A failed generic defeat write remains in the
+  server-owned pending-ID set and retries once per second until a full population
+  save succeeds. Wildlife reward handlers also mark and save their IDs as part
+  of the reward transaction before `OnDefeated` is broadcast. Thus unload, later
+  key activation, reconnect and restart must never remove a defeated ID; each
+  wolf member retains its own stable depleted ID.
+- **Harvest save recovery:** For population-backed sources, the server writes
+  the sparse harvested ID before accepting and saving the player grant. A failed
+  population write rolls the ID back and rejects the harvest without granting
+  the item. If player-state saving fails after the depletion write succeeds,
+  the server restores the old player state and then compensates the population
+  save. If either compensation fails, the last durable depleted ID stays in
+  place to prevent a second acquisition. Session-only M9 resource depletion
+  keeps its existing session policy. Clean host saves use the same population
+  writer, include pending depletion IDs, and block leaving gameplay when that
+  write fails.
 - **Living-actor unload/reload:** `ActivatePopulationKey` only adds keys to
   `ActivePopulationSpatialKeys`; it does not unload actors or keys. S10 adds a
   GameMode-owned weak registry for authoritative `AKalmalaWildlifeSpawn` actors:

@@ -182,7 +182,9 @@ private:
     friend class FKalmalaPopulationCreationTest;
     friend class FKalmalaPopulationHazardMaterializationTest;
     friend class FKalmalaPopulationKeyTurnoverTest;
+    friend class FKalmalaPopulationDepletionWriteRetryTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
+    friend class AKalmalaHarvestNode;
     friend class AKalmalaWildlifeSpawn;
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -196,6 +198,8 @@ private:
     TFunction<void(const FVector2D&, bool, bool&, FKalmalaOceanSample&)> PopulationAquaticSurfaceSampleForTests;
     // Isolate sparse world-population save writes while exercising real callbacks.
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
+    // Report whether a population-slot write succeeded, including injected failures.
+    TFunction<bool(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriteAttemptForTests;
     TFunction<bool(class UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)> PlayerDiscoverySaveWriterForTests;
     // Inject a failed actor creation at a chosen member index in population transactions.
     TFunction<bool(int32)> PopulationActorSpawnAllowedForTests;
@@ -210,6 +214,8 @@ private:
     TArray<FIntPoint> GetPopulationSpatialKeyCandidates() const;
     bool TryMakeRoomForPopulationKey();
     void RetirePopulationKey(const FIntPoint& SpatialKey);
+    bool WritePopulationSaveToSlot();
+    void RetryPendingPopulationDepletionWrites(double NowSeconds);
     void UpdatePopulationKeySchedule(double NowSeconds);
     TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
     bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
@@ -318,6 +324,8 @@ private:
     void ActivatePopulationKey(const FIntPoint& SpatialKey,
         bool bAllowLegacyWildlifeForVerification = false);
     void RefreshOceanDiscoveries();
+    bool TryPersistHarvestedSpawnFromServer(const FString& PersistentSpawnId);
+    bool TryRollbackHarvestedSpawnFromServer(const FString& PersistentSpawnId);
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void LoadPopulationSave();
     void RecordM9ResourceDepleted(const FString& StableResourceId);
@@ -579,6 +587,8 @@ private:
 #endif
     UPROPERTY(Transient) TObjectPtr<class AKalmalaOceanTravelTestFixture> OceanTravelTestFixture;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
+    TSet<FString> PendingPopulationDepletionWriteIds;
+    double NextPopulationDepletionWriteRetryTime = 0.0;
     TSet<FString> SessionM9ResourceDepletionIds;
     UPROPERTY(Transient)
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGameV2>> PlayerDiscoverySaves;
