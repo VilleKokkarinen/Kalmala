@@ -32757,3 +32757,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production behavior remains server-authoritative and unchanged. The isolated automation invokes the authoritative GameMode Tick against controlled world time; no client-controlled scheduling was added.
 - **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The CR remediation goal remains open.
 - **Next eligible task:** RF14 — Cover generated hazard materialization and permanent depletion.
+
+## Run 2026-11-13 — RF14 generated hazard materialization and depletion coverage
+
+- **Selected task:** RF14, cover GameMode hazard materialization, stable identity, accepted defeat persistence, and fresh activation suppression.
+- **Work completed:** Added `Kalmala.Gameplay.Population.HazardMaterialization`. The test searches the fixed seed for adjacent keys with eligible hazard descriptors, activates them through the real GameMode path, verifies each actor's location and production defeat binding, accepts one server defeat, captures the population save through the existing test-only writer into memory, reloads it, and verifies a fresh GameMode omits only the defeated ID while retaining its undefeated neighbor. Added a test-only friend declaration; no production behavior changed.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationHazardMaterializationTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the activation, stable-ID, callback, authority and save-writer paths against the new fixture's assertions. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF14 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.HazardMaterialization` automation remain unexecuted.
+- **Observable impact:** The regression detects missing generated hazards, unstable or misattributed IDs, missing production defeat binding, incorrect sparse save mutation, and activation that fails to suppress only the defeated slot after reload.
+- **Networking/authority:** The test invokes server-authoritative `ActivatePopulationKey` and `DefeatServer`; no client-controlled input or production network behavior changed.
+- **Known limitations / remaining scope:** The automation has not been compiled or executed in Unreal. Later RF15–RF19 and the rest of the CR remediation queue remain open.
+- **Next eligible task:** RF15 — Recycle active population keys during traversal.

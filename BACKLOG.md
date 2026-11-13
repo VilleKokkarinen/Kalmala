@@ -411,7 +411,7 @@
     `Kalmala.Gameplay.Population.SchedulerWakeBudget` after an Editor build.
     Evidence and repair:
     `Temporary/Review/findings.md#rf13--population-scheduler-tick-integration-lacks-focused-coverage-p3`.
-  - [ ] **RF14 — Cover generated hazard materialization and permanent depletion (P3; CR03-001b-93).**
+  - [x] **RF14 — Cover generated hazard materialization and permanent depletion (P3; CR03-001b-93).**
     Affected: `KalmalaGameMode.cpp:8460-8473`,
     `KalmalaInteractionAuthorityTest.cpp:254-264`,
     `KalmalaWorldPlayerStartResolverTest.cpp:232-279`, and

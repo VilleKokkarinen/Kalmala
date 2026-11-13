@@ -180,6 +180,7 @@ private:
     friend class FKalmalaPopulationSphericalSuppressionTest;
     friend class FKalmalaPopulationPhysicalPlacementGateTest;
     friend class FKalmalaPopulationCreationTest;
+    friend class FKalmalaPopulationHazardMaterializationTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaWildlifeSpawn;
 
