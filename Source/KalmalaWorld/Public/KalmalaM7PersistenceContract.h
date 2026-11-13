@@ -12,13 +12,14 @@ enum class EKalmalaM7SaveScope : uint8
     Player
 };
 
-/** Only generated-content facts are admitted by the first M7 persistence slice. */
+/** Sparse world facts and authenticated pending Ocean rewards use the M7 ledger. */
 UENUM()
 enum class EKalmalaM7SparseDeltaKind : uint8
 {
     ResourceDepleted,
     CreatureDefeated,
-    DiscoveryClaimed
+    DiscoveryClaimed,
+    DiscoveryRewardPending
 };
 
 /** Only current-schema data loads during development; all other versions fail closed. */
@@ -75,9 +76,9 @@ struct KALMALAWORLD_API FKalmalaM7SparseDelta
 };
 
 /**
- * Versioned M7 gate container. It intentionally holds only bounded sparse
- * generated-content facts until progression, tools, food, and loot contracts
- * are approved in later increments.
+ * Versioned M7 gate container. It holds bounded sparse world facts and the
+ * owner-scoped pending marker for optional Ocean discovery reward recovery.
+ * Other progression, tools, food, and loot state remain outside this ledger.
  */
 UCLASS()
 class KALMALAWORLD_API UKalmalaM7PersistenceSaveGame : public USaveGame
@@ -85,13 +86,14 @@ class KALMALAWORLD_API UKalmalaM7PersistenceSaveGame : public USaveGame
     GENERATED_BODY()
 
 public:
-    static constexpr int32 CurrentSchemaVersion = 1;
+    static constexpr int32 CurrentSchemaVersion = 2;
     static constexpr int32 MaxSparseDeltas = 256;
 
     void Initialize(const FKalmalaM7SaveIdentity& InIdentity);
     bool Matches(const FKalmalaM7SaveIdentity& InIdentity) const;
     static EKalmalaM7SchemaDecision EvaluateSchemaVersion(int32 CandidateSchemaVersion);
     bool AddSparseDelta(const FKalmalaM7SparseDelta& Delta);
+    bool RemoveSparseDelta(EKalmalaM7SparseDeltaKind Kind, const FString& StableId);
     bool HasSparseDelta(EKalmalaM7SparseDeltaKind Kind, const FString& StableId) const;
     int32 GetSparseDeltaCount() const { return SparseDeltas.Num(); }
     const TArray<FKalmalaM7SparseDelta>& GetSparseDeltas() const { return SparseDeltas; }

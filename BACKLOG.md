@@ -676,7 +676,7 @@
       `Kalmala.Gameplay.Persistence.PlayerDiscoveryFailClosedLoad`; after an Editor build, run that contract
       and `Scripts/Tests/Progression/DiscoveryPeer.ps1`.
 
-  - [ ] **RF28 — Recover Ocean discovery rewards when claim rollback fails (P2; CR03-001b-103).**
+  - [x] **RF28 — Recover Ocean discovery rewards when claim rollback fails (P2; CR03-001b-103).**
     **Source:** CR03-001b-103; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10155-10200`,
       `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp:278-295`, `411-427`, and
       `Source/KalmalaGameplay/Private/KalmalaInventoryGrid.cpp:51-54`.
@@ -686,25 +686,29 @@
       candidate, and the compensating write of the prior ledger also fails. One commit rejection can occur when
       `BuildGrant` accepts the stack layout but the combined stack-plus-packed-tool slot limit enforced by
       `TryCommitStacksFromServer` is exceeded.
-    **Impact:** Inventory remains unchanged while the last successful slot write can contain the new
-      `DiscoveryClaimed` ID. After a restart, the handler reloads that ID and reports `AlreadyFound`, so the
-      player cannot retry the reward. The handler logs the failed compensation but has no durable recovery
-      record. This violates M8's owner-private exact-once reward contract by durably consuming a claim without
+    **Impact (before repair):** Inventory remained unchanged while the last successful slot write could contain
+      the new `DiscoveryClaimed` ID. After a restart, the handler reloaded that ID and reported `AlreadyFound`, so
+      the player could not retry the reward. The handler logged failed compensation but had no durable recovery
+      record. This violated M8's owner-private exact-once reward contract by durably consuming a claim without
       delivering its reward.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf28--recover-ocean-discovery-rewards-when-claim-rollback-fails-p2.
-    **Proposed repair:** Preflight the exact combined inventory capacity before writing the ledger, and make the
-      claim/reward transaction recoverable if inventory commit or compensating persistence fails. Add
-      controllable save and inventory outcomes to the GameMode regression.
+    **Repair:** The GameMode now preflights reward stacks with packed-tool capacity, persists a player-scoped
+      `DiscoveryRewardPending` marker before inventory commit, and writes `DiscoveryClaimed` only after the grant
+      succeeds. Inventory rejection attempts to restore the old ledger; failed compensation preserves the
+      pending marker for retry after restart. A live-pawn delivery marker retries a failed completion write
+      without granting twice. M7 save schema 2 rejects prior development saves without rewriting them.
     **Dependencies:** After CR19 review acceptance; this finding is review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** A candidate exceeding combined packed-tool capacity is rejected before any claim is durably
       added and can be retried after capacity is freed. Injected inventory-commit and rollback-write failures
       leave a recoverable outcome across restart; no valid claim is replayable without its reward, and recovery
       cannot duplicate a granted reward.
-    **Focused validation:** Add a GameMode Ocean claim transaction regression covering packed-tool capacity and
-      both failure outcomes; run `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract` and
-      `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1` after an Editor build.
+    **Focused validation:** Added `Kalmala.Gameplay.OceanTravel.DiscoveryClaimRecovery` for packed-tool capacity,
+      capacity retry, inventory/rollback-write failure recovery through a fresh GameMode, failed completion
+      write retry, and duplicate prevention. After an Editor build, run it with
+      `Kalmala.World.M7.PersistenceContract`, `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract`, and
+      `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1`.
 
   - [ ] **RF29 — Keep Mireling boss scroll claims recoverable after player-save failure (P2; CR03-001b-104).**
     **Source:** CR03-001b-104; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10295-10340`, `12034-12051`,

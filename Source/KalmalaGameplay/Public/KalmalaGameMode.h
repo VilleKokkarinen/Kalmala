@@ -204,6 +204,12 @@ private:
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
     friend class FKalmalaOceanTravelWorldSlotFailClosedTest;
     friend class FKalmalaOceanTravelSaveFailureRollbackTest;
+    friend class FKalmalaOceanDiscoveryClaimTransactionTest;
+    // Isolate the owner-scoped Ocean discovery ledger while exercising GameMode claims.
+    TFunction<bool(const FString&, int32, class USaveGame*&)> OceanDiscoverySaveLoaderForTests;
+    TFunction<bool(class UKalmalaM7PersistenceSaveGame*, const FString&, int32)> OceanDiscoverySaveWriterForTests;
+    // Force inventory publication to fail after a durable pending claim is written.
+    TFunction<bool()> OceanDiscoveryInventoryCommitGateForTests;
     TFunction<bool(const FVector&, bool)> PopulationLandSurfaceSampleForTests;
     // Isolate S22c's use of the real movement-support result at each actor location.
     TFunction<bool(const FVector&, bool)> PopulationMovementSupportForTests;
@@ -642,6 +648,7 @@ private:
     TSet<FString> RejectedPlayerDiscoverySaveIdentities;
     TSet<FString> DeliveredWildlifeRewardSpawnIds;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
+    TMap<FString, TWeakObjectPtr<class AKalmalaCharacter>> OceanDiscoveryRewardDeliveryPawnsThisSession;
     TMap<FString, TSet<FString>> SessionM9ExplorationClaims;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;
     TMap<FString, TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame>> OceanTravelPlayerSaves;

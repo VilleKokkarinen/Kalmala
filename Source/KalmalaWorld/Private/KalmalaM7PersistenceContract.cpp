@@ -94,7 +94,8 @@ bool FKalmalaM7SparseDelta::IsValid() const
 {
     return (Kind == EKalmalaM7SparseDeltaKind::ResourceDepleted
         || Kind == EKalmalaM7SparseDeltaKind::CreatureDefeated
-        || Kind == EKalmalaM7SparseDeltaKind::DiscoveryClaimed)
+        || Kind == EKalmalaM7SparseDeltaKind::DiscoveryClaimed
+        || Kind == EKalmalaM7SparseDeltaKind::DiscoveryRewardPending)
         && IsValidStableId(StableId);
 }
 
@@ -113,11 +114,21 @@ bool UKalmalaM7PersistenceSaveGame::Matches(const FKalmalaM7SaveIdentity& InIden
     }
 
     TSet<FString> Seen;
+    TSet<FString> OceanClaimTransactionIds;
     for (const FKalmalaM7SparseDelta& Delta : SparseDeltas)
     {
-        if (!Delta.IsValid())
+        if (!Delta.IsValid()
+            || (Delta.Kind == EKalmalaM7SparseDeltaKind::DiscoveryRewardPending
+                && Identity.Scope != EKalmalaM7SaveScope::Player))
         {
             return false;
+        }
+
+        if (Delta.Kind == EKalmalaM7SparseDeltaKind::DiscoveryClaimed
+            || Delta.Kind == EKalmalaM7SparseDeltaKind::DiscoveryRewardPending)
+        {
+            if (OceanClaimTransactionIds.Contains(Delta.StableId)) return false;
+            OceanClaimTransactionIds.Add(Delta.StableId);
         }
 
         const FString Key = FString::Printf(TEXT("%d:%s"), static_cast<uint8>(Delta.Kind), *Delta.StableId);
@@ -142,14 +153,21 @@ EKalmalaM7SchemaDecision UKalmalaM7PersistenceSaveGame::EvaluateSchemaVersion(co
 
 bool UKalmalaM7PersistenceSaveGame::AddSparseDelta(const FKalmalaM7SparseDelta& Delta)
 {
-    if (!Matches(Identity) || !Delta.IsValid() || SparseDeltas.Num() >= MaxSparseDeltas)
+    if (!Matches(Identity) || !Delta.IsValid() || SparseDeltas.Num() >= MaxSparseDeltas
+        || (Delta.Kind == EKalmalaM7SparseDeltaKind::DiscoveryRewardPending
+            && Identity.Scope != EKalmalaM7SaveScope::Player))
     {
         return false;
     }
 
     if (SparseDeltas.ContainsByPredicate([&Delta](const FKalmalaM7SparseDelta& Existing)
         {
-            return Existing.Kind == Delta.Kind && Existing.StableId == Delta.StableId;
+            const bool bOceanClaimState = Delta.Kind == EKalmalaM7SparseDeltaKind::DiscoveryClaimed
+                || Delta.Kind == EKalmalaM7SparseDeltaKind::DiscoveryRewardPending;
+            const bool bExistingOceanClaimState = Existing.Kind == EKalmalaM7SparseDeltaKind::DiscoveryClaimed
+                || Existing.Kind == EKalmalaM7SparseDeltaKind::DiscoveryRewardPending;
+            return Existing.StableId == Delta.StableId
+                && ((Existing.Kind == Delta.Kind) || (bOceanClaimState && bExistingOceanClaimState));
         }))
     {
         return false;
@@ -157,6 +175,16 @@ bool UKalmalaM7PersistenceSaveGame::AddSparseDelta(const FKalmalaM7SparseDelta& 
 
     SparseDeltas.Add(Delta);
     return true;
+}
+
+bool UKalmalaM7PersistenceSaveGame::RemoveSparseDelta(
+    const EKalmalaM7SparseDeltaKind Kind, const FString& StableId)
+{
+    if (!Matches(Identity)) return false;
+    return SparseDeltas.RemoveAll([Kind, &StableId](const FKalmalaM7SparseDelta& Delta)
+    {
+        return Delta.Kind == Kind && Delta.StableId == StableId;
+    }) == 1;
 }
 
 bool UKalmalaM7PersistenceSaveGame::HasSparseDelta(const EKalmalaM7SparseDeltaKind Kind, const FString& StableId) const

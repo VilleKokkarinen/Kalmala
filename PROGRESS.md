@@ -1,3 +1,39 @@
+## RF28 — Recover Ocean discovery rewards when claim rollback fails — 2026-11-13
+
+- **Work completed:** Ocean claims now preflight stack-plus-packed-tool capacity
+  before saving. The server writes a player-scoped pending reward marker before
+  inventory commit and records `DiscoveryClaimed` only after a successful grant.
+  Failed compensation leaves the pending claim retryable. A live-pawn marker
+  lets the server retry finalization after a failed completion write without
+  granting the same reward twice. M7 save schema is now 2; prior development
+  saves fail closed without rewrite or migration. Added M7 contract coverage and
+  a GameMode regression for capacity retry, injected inventory and rollback
+  failures, fresh-GameMode recovery, finalization retry, and duplicate rejection.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryClaimTransactionTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaM7PersistenceContract.h`,
+  `Source/KalmalaWorld/Private/KalmalaM7PersistenceContract.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaM7PersistenceContractTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed; inspected pending/claimed
+  state transitions, M7 scope and schema validation, test save seams, and
+  changed path lengths.
+- **Full verification:** Deferred. No Editor build, automation, or reconnect
+  script was run; this is not milestone-final verification.
+- **Observable impact:** An Ocean reward cannot be permanently consumed by a
+  failed inventory grant. Pending rewards remain retryable after restart, and
+  normal packed-tool capacity rejection occurs before a claim is written.
+- **Networking/authority:** The authoritative GameMode validates the owner,
+  descriptor, inventory capacity, and save identity. Only the existing
+  owner-only discovery feedback reports results; no client authority was added.
+- **Known limits:** The new automation has not been compiled or executed. M7
+  schema-1 development saves are rejected without migration, and the live M8
+  reconnect journey remains unverified for this change.
+- **Next eligible task:** RF29 — keep Mireling boss scroll claims recoverable
+  after player-save failure. The overall CR remediation goal remains active.
+
 ## RF27 — Report unavailable world discovery saves to the owner — 2026-11-13
 
 - **Work completed:** A nearby world discovery claim now publishes one

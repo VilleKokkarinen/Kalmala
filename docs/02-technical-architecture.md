@@ -670,7 +670,7 @@ M9 supersedes the M7 tool-output replacement recipes and material-paid repair. T
 
 The normal Chest is the sole storage construction. Current schema-4 food processing uses the Cooking Rack, Cauldron, and Frying Pan; it has no Smoke Frame or smoke recipe. Recipes consume direct Wood and Stone, and other listed material costs; intermediate Fuel and ConstructionSupply items no longer exist. Cooking recipes consume their listed ingredients only. Wood, Lightwood, Densewood, and Coal each add 60 seconds of hearth fuel, and a lit hearth burns one fuel second per elapsed server second. The server derives cooking heat requirements from the resolved station and a usable lit hearth near both the player and station. Current storage schema 2 requires current item IDs and per-item GUIDs in saved stacks; it does not convert retired IDs or backfill legacy GUIDs. Construction save schema 7 stores Kiln and Smelter processing state, Garden Plot crop mode and remaining active-game seconds, and Standing Light remaining fuel.
 
-M9 persistence uses the existing construction and player-discovery save owners and slots. Construction saves use schema 7; player-discovery saves use schema 3. World construction uses exact seed/revision-7 identity and bounded records for paid station attachments, Charcoal Kiln and Smelter queues/jobs, Garden Plot crop mode/active time, and Standing Light remaining fuel; station level remains derived from accepted nearby attachments. Player discovery uses exact seed/revision/player identity and bounded carried-item and discovery records, with carried identities stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. The separate M7 sparse ledger remains schema 1. Normal writes validate complete candidates before replacing a slot. Player writes merge only server-revalidated current M9 claims and the owner's current carried-item state; a rejected candidate leaves the existing save and live gameplay unchanged. There are no user save files during development, so save formats may change directly; do not implement save compatibility migrations until the game is released.
+M9 persistence uses the existing construction and player-discovery save owners and slots. Construction saves use schema 7; player-discovery saves use schema 3. World construction uses exact seed/revision-7 identity and bounded records for paid station attachments, Charcoal Kiln and Smelter queues/jobs, Garden Plot crop mode/active time, and Standing Light remaining fuel; station level remains derived from accepted nearby attachments. Player discovery uses exact seed/revision/player identity and bounded carried-item and discovery records, with carried identities stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. The separate M7 sparse ledger uses schema 2. Normal writes validate complete candidates before replacing a slot. Player writes merge only server-revalidated current M9 claims and the owner's current carried-item state; a rejected candidate leaves the existing save and live gameplay unchanged. There are no user save files during development, so save formats may change directly; do not implement save compatibility migrations until the game is released.
 
 ## M3 wetness and rain override (2026-09-14)
 
@@ -1010,7 +1010,7 @@ only the approved source token and server-derived population identity; a client
 never submits it. These IDs fit the current 128-character stable-ID limit and
 remain separate for different sources or spatial spawns. Persist depletion only through the approved identity-scoped sparse ledger and its validated writer; source identities add no save field.
 
-GameMode stores these deltas in the separate schema-1 M7 world ledger at
+GameMode stores these deltas in the separate schema-2 M7 world ledger at
 `KalmalaM9ResourceDepletions_<world-seed>_<generator-revision>` and loads it
 before population activation. M9 activation requires a valid ledger matching
 the current world identity and skips any source whose ID has a
@@ -1275,6 +1275,17 @@ already attached pawn. Invalid or incompatible records are preserved without
 overwrite. Ocean discovery `DiscoveryClaimed` ledgers are loaded for the
 authenticated player at login, so reconnects keep duplicate rewards rejected.
 
+Ocean discovery claims use a schema-2 player-scoped transaction marker. The
+server preflights reward stacks together with packed tools, writes a
+`DiscoveryRewardPending` delta, and writes `DiscoveryClaimed` only after the
+inventory grant commits. If inventory commit fails, the server attempts to
+restore the previous ledger; a failed compensation leaves the pending reward
+retryable after restart. If the reward commits but final ledger completion
+fails, a live-pawn marker prevents another grant while the server retries
+finalization. Destroying that pawn leaves the durable pending marker available
+to the next authenticated pawn. Ordinary inventory is not saved, so recovery
+after a process restart can safely deliver the pending reward again.
+
 Launch is accepted only after its moored world record is saved. Boarding is
 accepted only after saving the moored vessel and authenticated requester's
 seat; a failed write rolls back the tentative seat before attaching the pawn
@@ -1379,9 +1390,10 @@ The existing construction and player-discovery slot names remain in use. Their
 schema-2 payloads carry the explicit M7 identity in addition to the legacy
 seed/player fields where those fields are retained. A record is usable only
 when the seed, revision, scope, and (for player state) owner all match exactly.
-The existing `UKalmalaM7PersistenceSaveGame` schema-1 sparse world/player
-ledger remains unchanged; its resource, creature, and ocean-discovery entries
-are not reinterpreted or moved.
+The `UKalmalaM7PersistenceSaveGame` schema-2 sparse world/player ledger retains
+resource, creature, and completed Ocean discovery facts and adds a
+player-scoped `DiscoveryRewardPending` delta for recoverable Ocean reward
+transactions. Schema-1 M7 data fails closed without rewrite or migration.
 
 ## State scope and bounds
 
@@ -1435,7 +1447,7 @@ release.
 | --- | ---: | --- |
 | Construction records, station attachments, Kiln/Smelter processing, Garden Plot crops, Timber Door state, and Standing Light fuel (`UKalmalaConstructionSaveGameV2`) | Save schema 7 | Server world |
 | Player discoveries, learned effects, M9 claims, and carried items (`UKalmalaPlayerDiscoverySaveGameV2`) | Save schema 3 | Authenticated player and exact world |
-| M7 sparse persistence ledger (`UKalmalaM7PersistenceSaveGame`) | Save schema 1 | Identity-scoped sparse world/player facts |
+| M7 sparse persistence ledger (`UKalmalaM7PersistenceSaveGame`) | Save schema 2 | Identity-scoped sparse world/player facts and pending Ocean rewards |
 | Generated population deltas (`UKalmalaWorldPopulationSaveGame`) | Save schema 1 | Server world |
 | Chest storage (`UKalmalaStorageSaveGame`) | Save schema 2 | Server world |
 | Ocean vessel and seat records (`UKalmalaOceanTravelPersistenceSaveGame`) | Save schema 1 | Server world and authenticated player |

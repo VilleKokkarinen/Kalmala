@@ -1921,14 +1921,17 @@ recipe detail copy omits skill/unlock boilerplate. See the architecture's Item a
 ### M7 persistence gate
 
 The first M7 save contract is isolated in
-`UKalmalaM7PersistenceSaveGame`. It is schema 1, matches an exact world seed
+`UKalmalaM7PersistenceSaveGame`. It is schema 2, matches an exact world seed
 and generator revision 7 plus explicit world/player scope, and accepts at most
-256 server-selected sparse resource, creature, or discovery identities. Schema
-0 and future schemas are rejected. No compatibility migration runs before release. Invalid identities,
+256 server-selected sparse resource, creature, completed-discovery, or pending
+Ocean reward identities. Pending rewards are player-scoped and are removed
+when an inventory grant is finalized as `DiscoveryClaimed`. Schema 0, prior,
+and future schemas are rejected without migration. Invalid identities,
 duplicate IDs, over-cap entries, and path-like IDs fail closed. This contract
 does not extend existing save schemas or add progression, tool, food, or loot
-state. `Kalmala.World.M7.PersistenceContract` covers its round-trip and
-identity rejection. `Kalmala.Gameplay.M9.WorldDepletionPersistence` exercises
+state. `Kalmala.World.M7.PersistenceContract` covers its round-trip, pending
+reward removal, prior-schema rejection, and identity validation.
+`Kalmala.Gameplay.M9.WorldDepletionPersistence` exercises
 the generated salt-source GameMode harvest, M7 write failure, fresh-load
 suppression, and world seed/revision isolation. `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
 retains the broader source and reward regressions.
@@ -1941,7 +1944,7 @@ After the editor build, run it with the documented temporary-user pattern:
 
 ### M9 current-schema persistence
 
-Construction uses save schema 7; player-discovery saves use schema 3, with carried equipment stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. M9 resource depletion uses the separate schema-1 M7 world ledger, keyed by exact seed and generator revision, and is saved before the player's reward. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated inventory state. See `docs/02-technical-architecture.md` for bounds and authority rules.
+Construction uses save schema 7; player-discovery saves use schema 3, with carried equipment stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. M9 resource depletion uses the separate schema-2 M7 world ledger, keyed by exact seed and generator revision, and is saved before the player's reward. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated inventory state. See `docs/02-technical-architecture.md` for bounds and authority rules.
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
@@ -4212,6 +4215,13 @@ confirm replay rejection after load. It checks catalogue reward construction
 without mutating a live inventory. These focused checks and the editor build do
 not replace a live client interaction trace, owner feedback inspection, or
 rendered presentation review in the later two-player journey acceptance.
+
+After the Editor build, also run
+`Kalmala.Gameplay.OceanTravel.DiscoveryClaimRecovery`. This GameMode regression
+checks the combined forty-cell stack/packed-tool preflight, retry after freeing
+capacity, an injected inventory rejection with failed ledger compensation,
+pending reward recovery through a fresh GameMode and player, failed completion
+write retry without a second grant, and completed-claim replay rejection.
 
 ## M8 combined-voyage late-join and restart verification
 

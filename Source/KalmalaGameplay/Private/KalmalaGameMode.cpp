@@ -10736,19 +10736,36 @@ bool AKalmalaGameMode::ClaimOceanDiscovery(AKalmalaCharacter* Interactor, const 
             return false;
         }
     }
-    else if (UGameplayStatics::DoesSaveGameExist(SaveSlot, 0))
-    {
-        Save = Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlot, 0));
-        if (Save == nullptr || !Save->Matches(SaveIdentity))
-        {
-            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery save uses an unsupported version"));
-            return false;
-        }
-    }
     else
     {
-        Save = NewObject<UKalmalaM7PersistenceSaveGame>(this);
-        Save->Initialize(SaveIdentity);
+        USaveGame* LoadedSave = nullptr;
+        bool bSlotExists = false;
+#if WITH_DEV_AUTOMATION_TESTS
+        if (OceanDiscoverySaveLoaderForTests)
+        {
+            bSlotExists = OceanDiscoverySaveLoaderForTests(SaveSlot, 0, LoadedSave);
+        }
+        else
+#endif
+        {
+            bSlotExists = UGameplayStatics::DoesSaveGameExist(SaveSlot, 0);
+            if (bSlotExists) LoadedSave = UGameplayStatics::LoadGameFromSlot(SaveSlot, 0);
+        }
+
+        if (bSlotExists)
+        {
+            Save = Cast<UKalmalaM7PersistenceSaveGame>(LoadedSave);
+            if (Save == nullptr || !Save->Matches(SaveIdentity))
+            {
+                Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery save uses an unsupported version"));
+                return false;
+            }
+        }
+        else
+        {
+            Save = NewObject<UKalmalaM7PersistenceSaveGame>(this);
+            if (Save != nullptr) Save->Initialize(SaveIdentity);
+        }
     }
 
     if (Save == nullptr || !Save->Matches(SaveIdentity))
@@ -10758,55 +10775,157 @@ bool AKalmalaGameMode::ClaimOceanDiscovery(AKalmalaCharacter* Interactor, const 
     }
 
     const FString DiscoveryIdentity = FKalmalaOceanDiscoveryCatalogue::MakeStableIdentity(Descriptor.DiscoveryId, Descriptor.SpatialKey);
+    const FString DeliveryKey = PlayerIdentity + TEXT("|") + DiscoveryIdentity;
     if (Save->HasSparseDelta(EKalmalaM7SparseDeltaKind::DiscoveryClaimed, DiscoveryIdentity))
     {
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Sea discovery already claimed"));
         return false;
     }
 
+    const auto CloneSave = [](UKalmalaM7PersistenceSaveGame* Source) -> UKalmalaM7PersistenceSaveGame*
+    {
+        if (Source == nullptr) return nullptr;
+        TArray<uint8> Bytes;
+        if (!UGameplayStatics::SaveGameToMemory(Source, Bytes)) return nullptr;
+        return Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromMemory(Bytes));
+    };
+    const auto WriteSave = [this, &SaveSlot](UKalmalaM7PersistenceSaveGame* Candidate)
+    {
+        if (Candidate == nullptr) return false;
+#if WITH_DEV_AUTOMATION_TESTS
+        if (OceanDiscoverySaveWriterForTests)
+        {
+            return OceanDiscoverySaveWriterForTests(Candidate, SaveSlot, 0);
+        }
+#endif
+        return UGameplayStatics::SaveGameToSlot(Candidate, SaveSlot, 0);
+    };
+    const auto ClearSessionDelivery = [this, &DeliveryKey]()
+    {
+        OceanDiscoveryRewardDeliveryPawnsThisSession.Remove(DeliveryKey);
+    };
+    const auto CreateClaimedSave = [&CloneSave, &SaveIdentity, &DiscoveryIdentity](
+        UKalmalaM7PersistenceSaveGame* PendingSave) -> UKalmalaM7PersistenceSaveGame*
+    {
+        UKalmalaM7PersistenceSaveGame* Candidate = CloneSave(PendingSave);
+        if (Candidate == nullptr || !Candidate->Matches(SaveIdentity)
+            || !Candidate->RemoveSparseDelta(EKalmalaM7SparseDeltaKind::DiscoveryRewardPending, DiscoveryIdentity)
+            || !Candidate->AddSparseDelta({ EKalmalaM7SparseDeltaKind::DiscoveryClaimed, DiscoveryIdentity })
+            || !Candidate->Matches(SaveIdentity))
+        {
+            return nullptr;
+        }
+        return Candidate;
+    };
+    const auto FinalizePendingSave = [this, &CreateClaimedSave, &WriteSave, &PlayerIdentity,
+        &DiscoveryIdentity, &ClearSessionDelivery](UKalmalaM7PersistenceSaveGame* PendingSave)
+    {
+        UKalmalaM7PersistenceSaveGame* Candidate = CreateClaimedSave(PendingSave);
+        if (Candidate == nullptr || !WriteSave(Candidate)) return false;
+        OceanDiscoverySaves.Add(PlayerIdentity, Candidate);
+        ClearSessionDelivery();
+        return true;
+    };
+
+    const bool bHasPendingReward =
+        Save->HasSparseDelta(EKalmalaM7SparseDeltaKind::DiscoveryRewardPending, DiscoveryIdentity);
+    TWeakObjectPtr<AKalmalaCharacter>* DeliveredPawn =
+        OceanDiscoveryRewardDeliveryPawnsThisSession.Find(DeliveryKey);
+    const bool bRewardAlreadyDeliveredToLivePawn = DeliveredPawn != nullptr && DeliveredPawn->IsValid();
+    if (!bRewardAlreadyDeliveredToLivePawn && DeliveredPawn != nullptr)
+    {
+        OceanDiscoveryRewardDeliveryPawnsThisSession.Remove(DeliveryKey);
+    }
+    if (bHasPendingReward && bRewardAlreadyDeliveredToLivePawn)
+    {
+        if (FinalizePendingSave(Save))
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Sea discovery already claimed"));
+        }
+        else
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery could not be saved"));
+        }
+        return false;
+    }
+
     const TArray<FKalmalaInventoryStack> ExistingStacks = Inventory->GetStacks();
     TArray<FKalmalaInventoryStack> CandidateStacks;
     FString GrantFailure;
-    if (!UKalmalaInventoryComponent::BuildGrant(ExistingStacks, Definition->RewardItemId, Definition->RewardQuantity, CandidateStacks, GrantFailure))
+    const int32 PackedToolCount = Inventory->CountPackedTools(Interactor->GetCarriedToolInventory());
+    if (!UKalmalaInventoryComponent::BuildGrant(
+            ExistingStacks, Definition->RewardItemId, Definition->RewardQuantity, CandidateStacks, GrantFailure)
+        || !Inventory->CanFitContents(CandidateStacks, PackedToolCount))
     {
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Pack full; sea discovery remains"));
         return false;
     }
 
-    TArray<uint8> SaveBytes;
-    if (!UGameplayStatics::SaveGameToMemory(Save, SaveBytes))
+    UKalmalaM7PersistenceSaveGame* PendingSave = Save;
+    const bool bCreatedPendingReward = !bHasPendingReward;
+    if (bCreatedPendingReward)
     {
-        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery unavailable"));
-        return false;
-    }
-    UKalmalaM7PersistenceSaveGame* CandidateSave = Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromMemory(SaveBytes));
-    FKalmalaM7SparseDelta ClaimDelta;
-    ClaimDelta.Kind = EKalmalaM7SparseDeltaKind::DiscoveryClaimed;
-    ClaimDelta.StableId = DiscoveryIdentity;
-    if (CandidateSave == nullptr || !CandidateSave->Matches(SaveIdentity) || !CandidateSave->AddSparseDelta(ClaimDelta))
-    {
-        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery ledger is full or invalid"));
-        return false;
+        PendingSave = CloneSave(Save);
+        const FKalmalaM7SparseDelta PendingDelta{
+            EKalmalaM7SparseDeltaKind::DiscoveryRewardPending, DiscoveryIdentity
+        };
+        if (PendingSave == nullptr || !PendingSave->Matches(SaveIdentity) || !PendingSave->AddSparseDelta(PendingDelta))
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery ledger is full or invalid"));
+            return false;
+        }
+
+        if (!WriteSave(PendingSave))
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery could not be saved"));
+            return false;
+        }
+        OceanDiscoverySaves.Add(PlayerIdentity, PendingSave);
     }
 
-    if (!UGameplayStatics::SaveGameToSlot(CandidateSave, SaveSlot, 0))
+#if WITH_DEV_AUTOMATION_TESTS
+    const bool bInventoryCommitAllowed = !OceanDiscoveryInventoryCommitGateForTests
+        || OceanDiscoveryInventoryCommitGateForTests();
+#else
+    constexpr bool bInventoryCommitAllowed = true;
+#endif
+    const bool bInventoryCommitted = bInventoryCommitAllowed
+        && Inventory->TryCommitStacksFromServer(ExistingStacks, CandidateStacks);
+    if (!bInventoryCommitted)
     {
-        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery could not be saved"));
-        return false;
-    }
-
-    if (!Inventory->TryCommitStacksFromServer(ExistingStacks, CandidateStacks))
-    {
-        const bool bLedgerRestored = UGameplayStatics::SaveGameToSlot(Save, SaveSlot, 0);
+        bool bLedgerRestored = false;
+        if (bCreatedPendingReward)
+        {
+            bLedgerRestored = WriteSave(Save);
+        }
+        OceanDiscoverySaves.Add(PlayerIdentity, bLedgerRestored ? Save : PendingSave);
         if (!bLedgerRestored)
         {
-            UE_LOG(LogTemp, Error, TEXT("Failed to restore the prior sea-discovery ledger for player %s after reward rejection."), *PlayerIdentity);
+            if (bCreatedPendingReward)
+            {
+                UE_LOG(LogTemp, Error,
+                    TEXT("Ocean discovery reward %s remains pending for authenticated player %s because inventory commit and ledger compensation failed."),
+                    *DiscoveryIdentity, *PlayerIdentity);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning,
+                    TEXT("Ocean discovery reward %s remains pending for authenticated player %s after inventory rejection."),
+                    *DiscoveryIdentity, *PlayerIdentity);
+            }
         }
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Sea discovery reward could not be granted"));
         return false;
     }
 
-    OceanDiscoverySaves.Add(PlayerIdentity, CandidateSave);
+    OceanDiscoveryRewardDeliveryPawnsThisSession.Add(DeliveryKey, Interactor);
+    if (!FinalizePendingSave(PendingSave))
+    {
+        OceanDiscoverySaves.Add(PlayerIdentity, PendingSave);
+        UE_LOG(LogTemp, Warning,
+            TEXT("Ocean discovery reward %s was delivered to authenticated player %s but its completed claim remains pending."),
+            *DiscoveryIdentity, *PlayerIdentity);
+    }
     Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::LandmarkFound,
         FString::Printf(TEXT("Sea discovery: %s (+%d %s)"), *Definition->DisplayName, Definition->RewardQuantity, *Definition->RewardItemId.ToString()));
     return true;
