@@ -351,7 +351,7 @@
     run `Kalmala.Gameplay.Population.CreationLifecycle` after an Editor build.
     Evidence and repair:
     `Temporary/Review/findings.md#rf10--population-unload-lacks-multiple-player-composition-coverage-p3`.
-  - [ ] **RF11 — Cover source-owned live actors in the local cap path (P3; CR03-001b-87).**
+  - [x] **RF11 — Cover source-owned live actors in the local cap path (P3; CR03-001b-87).**
     Affected: `KalmalaGameMode.cpp:7348-7419`,
     `KalmalaEnvironmentalSpawnerPolicyTest.cpp:45-91`, and
     `KalmalaEnvironmentalSpawnerAdmissionTest.cpp:145-212`. The source-sample

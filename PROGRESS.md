@@ -32721,3 +32721,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production unload behavior remains server-authoritative and unchanged. The isolated fixture calls the authoritative GameMode path with two same-world player characters; no replicated behavior changed.
 - **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The CR remediation goal remains open.
 - **Next eligible task:** RF11 — Cover source-owned live actors in the local cap path.
+
+## Run 2026-11-13 — RF11 source-owned live actor local-cap coverage
+
+- **Selected task:** RF11, exercise a successfully created configured-source actor through the live source-sample adapter and a later same-source admission.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` to select safe single-creature candidates, successfully create source slot 0, verify its source registration, and count it at the inclusive 24 m boundary. A nearby actor mapped to another source is verified inside the local radius but excluded from that source's samples. A second same-source candidate then passes the adapter-backed cap check and creates slot 1; post-creation samples count both owned actors. Existing pending-reservation and depleted-slot assertions remain.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `Source/KalmalaGameplay/Private/Tests/KalmalaEnvironmentalSpawnerAdmissionTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected configured-source gate ordering, source-ID registration, live-registry sampling, inclusive radius counting, foreign-source filtering and the second slot's final cap path. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF11 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` automation remain unexecuted.
+- **Observable impact:** The focused test now detects a missing or misattributed live source registration, loss of inclusive 24 m counting, accidental inclusion of another source's actor, or a regression in successful same-source follow-up admission.
+- **Networking/authority:** Production source admission, registry sampling and ownership mapping remain server-authoritative and unchanged. The test exercises configured creation in an isolated server world and manually registers only the other-source fixture actor.
+- **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The CR remediation goal remains open.
+- **Next eligible task:** RF12 — Cover natural population transaction success and Wolf rollback.
