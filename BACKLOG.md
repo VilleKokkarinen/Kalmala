@@ -433,7 +433,7 @@
     Focused validation: run the new GameMode hazard-materialization test after
     an Editor build. Evidence and repair:
     `Temporary/Review/findings.md#rf14--generated-hazard-materialization-and-permanent-depletion-lack-integration-coverage-p3`.
-  - [ ] **RF15 — Recycle active population keys during traversal (P1; CR03-001b-63/66/94).**
+  - [x] **RF15 — Recycle active population keys during traversal (P1; CR03-001b-63/66/94).**
     Affected: `KalmalaGameMode.cpp:5093-5184, 5364-5450, 7922, 8311, 8479-8622`;
     `KalmalaPopulationSpatialKeyUnionTest.cpp:42-133`;
     `KalmalaPopulationSchedulerCadenceTest.cpp:75-119`; and

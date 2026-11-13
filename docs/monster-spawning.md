@@ -464,6 +464,19 @@ This goal retains the existing finite deterministic population and defeat
 ledger. It schedules admission of surviving slots; it does not add renewable
 enemy farming or change the development save format.
 
+When all nine population keys are active and the server activates a new key for
+a living player's current cell, it retires active keys whose 64 m squares are
+outside the 96 m support radius of every living player. It destroys only the
+generated actors owned by those retired keys, then clears their scheduler,
+biome-discovery and wildlife-budget state before materializing the new key.
+Roaming wildlife remains in the live registry for the existing distance-based
+unload path; its stable-ID 30 s cooldown survives key retirement. Retiring a
+key does not record defeats or clear sparse harvest/defeat IDs or session and
+per-player M9 claims. Reactivation derives the same actors and IDs,
+then checks those existing depletion and claim records before spawning. If all
+nine keys remain inside living-player support, a new key waits until a slot
+becomes unsupported.
+
 - Defeated stable spawn IDs stay depleted across unload, reconnect and restart;
   respawn cooldown for defeated slots is disabled, not an unspecified timer.
   Natural checks can admit eligible slots that have not been defeated.

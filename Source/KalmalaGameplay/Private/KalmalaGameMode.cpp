@@ -8390,13 +8390,101 @@ void AKalmalaGameMode::ReportWorldProfileIfReady()
     bWorldProfileReported = true;
 }
 
+bool AKalmalaGameMode::TryMakeRoomForPopulationKey()
+{
+    if (!HasAuthority() || !IsValid(GetWorld())) return false;
+
+    const TArray<AKalmalaCharacter*> LivingPlayers = GetLivingPlayerPawnsForPopulation();
+    if (LivingPlayers.IsEmpty()) return false;
+
+    TSet<FIntPoint> SupportedKeys;
+    for (const FIntPoint& Key : GetPopulationSpatialKeyCandidates())
+    {
+        SupportedKeys.Add(Key);
+    }
+
+    TArray<FIntPoint> StaleKeys;
+    for (const FIntPoint& Key : ActivePopulationSpatialKeys)
+    {
+        if (!SupportedKeys.Contains(Key)) StaleKeys.Add(Key);
+    }
+    StaleKeys.Sort([](const FIntPoint& A, const FIntPoint& B)
+    {
+        return A.X == B.X ? A.Y < B.Y : A.X < B.X;
+    });
+
+    for (const FIntPoint& StaleKey : StaleKeys)
+    {
+        RetirePopulationKey(StaleKey);
+    }
+    return ActivePopulationSpatialKeys.Num() < KalmalaGameMode::MaxActivePopulationSpatialKeys;
+}
+
+void AKalmalaGameMode::RetirePopulationKey(const FIntPoint& SpatialKey)
+{
+    UWorld* World = GetWorld();
+    if (!HasAuthority() || !IsValid(World) || !ActivePopulationSpatialKeys.Contains(SpatialKey)) return;
+
+    if (const TArray<TWeakObjectPtr<AActor>>* KeyActors = ActivePopulationKeyActors.Find(SpatialKey))
+    {
+        for (const TWeakObjectPtr<AActor>& ActorReference : *KeyActors)
+        {
+            AActor* Actor = ActorReference.Get();
+            if (!IsValid(Actor) || Actor->GetWorld() != World || !Actor->HasAuthority()) continue;
+            // Living wildlife uses the separate distance check and stable-ID cooldown.
+            if (Actor->IsA<AKalmalaWildlifeSpawn>()) continue;
+            Actor->Destroy();
+        }
+    }
+
+    ActivePopulationKeyActors.Remove(SpatialKey);
+    ActivePopulationSchedulerKeys.Remove(SpatialKey);
+    PopulationKeyNextDueTimes.Remove(SpatialKey);
+    PopulationKeyCandidateCursors.Remove(SpatialKey);
+    PopulationKeyServicedCheckOrdinals.Remove(SpatialKey);
+    PopulationKeyWildlifeActorBudgets.Remove(SpatialKey);
+    PopulationSchedulerWakeWork.RemoveAll([&SpatialKey](const FKalmalaPopulationSchedulerKeyWork& Work)
+    {
+        return Work.SpatialKey == SpatialKey;
+    });
+    ActiveShimmeringLakeDiscoveryKeys.Remove(SpatialKey);
+    ActiveElderwoodDiscoveryKeys.Remove(SpatialKey);
+    ActiveMossyMireDiscoveryKeys.Remove(SpatialKey);
+    ActiveFreezingTundraDiscoveryKeys.Remove(SpatialKey);
+    ActiveThunderMountainsDiscoveryKeys.Remove(SpatialKey);
+
+    for (auto ReservationIterator = PendingPopulationCreatureReservations.CreateIterator(); ReservationIterator; ++ReservationIterator)
+    {
+        ReservationIterator.Value().RemoveAll([&SpatialKey](const FKalmalaPopulationCreatureReservation& Reservation)
+        {
+            return Reservation.HomeSpatialKey == SpatialKey;
+        });
+        if (ReservationIterator.Value().IsEmpty()) ReservationIterator.RemoveCurrent();
+    }
+
+    ActivePopulationSpatialKeys.Remove(SpatialKey);
+    UE_LOG(LogTemp, Verbose, TEXT("Server retired inactive population key (%d, %d); %d/%d remain active."),
+        SpatialKey.X, SpatialKey.Y, ActivePopulationSpatialKeys.Num(), KalmalaGameMode::MaxActivePopulationSpatialKeys);
+}
+
 void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey,
     const bool bAllowLegacyWildlifeForVerification)
 {
-    if (!HasAuthority() || GetWorld() == nullptr || ActivePopulationSpatialKeys.Contains(SpatialKey) || ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys)
+    if (!HasAuthority() || GetWorld() == nullptr || ActivePopulationSpatialKeys.Contains(SpatialKey))
     {
         return;
     }
+    if (ActivePopulationSpatialKeys.Num() >= KalmalaGameMode::MaxActivePopulationSpatialKeys
+        && !TryMakeRoomForPopulationKey())
+    {
+        return;
+    }
+
+    TSet<AActor*> ExistingPopulationActors;
+    for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It) ExistingPopulationActors.Add(*It);
+    for (TActorIterator<AKalmalaHarvestNode> It(GetWorld()); It; ++It) ExistingPopulationActors.Add(*It);
+    for (TActorIterator<AKalmalaHazardSpawn> It(GetWorld()); It; ++It) ExistingPopulationActors.Add(*It);
+    for (TActorIterator<AKalmalaDiscoveryActor> It(GetWorld()); It; ++It) ExistingPopulationActors.Add(*It);
 
     int32 SpawnedMarkerCount = 0;
     int32 WildlifeActorBudgetForKey = 0;
@@ -8700,6 +8788,17 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey,
         }
     }
 
+    TArray<TWeakObjectPtr<AActor>> SpawnedKeyActors;
+    const auto TrackNewActor = [&ExistingPopulationActors, &SpawnedKeyActors](AActor* Actor)
+    {
+        if (IsValid(Actor) && !ExistingPopulationActors.Contains(Actor)) SpawnedKeyActors.Add(Actor);
+    };
+    for (TActorIterator<AKalmalaWildlifeSpawn> It(GetWorld()); It; ++It) TrackNewActor(*It);
+    for (TActorIterator<AKalmalaHarvestNode> It(GetWorld()); It; ++It) TrackNewActor(*It);
+    for (TActorIterator<AKalmalaHazardSpawn> It(GetWorld()); It; ++It) TrackNewActor(*It);
+    for (TActorIterator<AKalmalaDiscoveryActor> It(GetWorld()); It; ++It) TrackNewActor(*It);
+
+    ActivePopulationKeyActors.Add(SpatialKey, MoveTemp(SpawnedKeyActors));
     PopulationKeyWildlifeActorBudgets.Add(SpatialKey, WildlifeActorBudgetForKey);
     ActivePopulationSpatialKeys.Add(SpatialKey);
     UE_LOG(LogTemp, Display, TEXT("Server activated %d deterministic population markers for spatial key (%d, %d); %d/%d active."), SpawnedMarkerCount, SpatialKey.X, SpatialKey.Y, ActivePopulationSpatialKeys.Num(), KalmalaGameMode::MaxActivePopulationSpatialKeys);
@@ -9673,8 +9772,14 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     const FString Slot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, Identity);
 #if WITH_DEV_AUTOMATION_TESTS
     if (PlayerStateSaveGateForTests && !PlayerStateSaveGateForTests()) return false;
-#endif
+    if (PlayerDiscoverySaveWriterForTests)
+    {
+        if (!PlayerDiscoverySaveWriterForTests(Candidate, Slot, 0)) return false;
+    }
+    else if (!UGameplayStatics::SaveGameToSlot(Candidate, Slot, 0)) return false;
+#else
     if (!UGameplayStatics::SaveGameToSlot(Candidate, Slot, 0)) return false;
+#endif
 
     PlayerDiscoverySaves.Add(Identity, Candidate);
     return true;

@@ -32769,3 +32769,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The test invokes server-authoritative `ActivatePopulationKey` and `DefeatServer`; no client-controlled input or production network behavior changed.
 - **Known limitations / remaining scope:** The automation has not been compiled or executed in Unreal. Later RF15–RF19 and the rest of the CR remediation queue remain open.
 - **Next eligible task:** RF15 — Recycle active population keys during traversal.
+
+## Run 2026-11-13 — RF15 bounded population-key turnover
+
+- **Selected task:** RF15, recycle unsupported active population keys at the nine-key cap while preserving actor lifecycle, sparse depletion and discovery claims.
+- **Work completed:** Added authoritative turnover to `ActivatePopulationKey`. At capacity, the server retires keys outside every living player's 96 m support neighborhood, destroys their generated non-wildlife actors, and clears per-key scheduler, biome-discovery, budget, wake-work and reservation state. Roaming wildlife remains on the existing distance-unload and stable-ID cooldown path. Population depletion saves and M9 claims are retained. Added `Kalmala.Gameplay.Population.KeyTurnover`, covering real nine-key activation, a tenth key, canonical Thunder Mountains M9 materialization, a persisted harvested source, retirement/reactivation without duplicate markers or restored depletion, cooldown retention, and replay rejection for an accepted M9 claim. Updated the population lifecycle documentation.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationKeyTurnoverTest.cpp`, `docs/monster-spawning.md`, and `docs/02-technical-architecture.md`.
+- **Lightweight checks:** `git diff --check` passed. Reviewed the activation and retirement paths, per-key state inventory, claim/save identity flow, and test assertions; confirmed no stale `DepletedSourceKey` reference remains. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF15 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.KeyTurnover` automation remain unexecuted.
+- **Observable impact:** Traversal can activate new population cells after the nine-key limit is reached, while loaded markers remain bounded and durable depletion/claim state continues to suppress previously used sources and rewards.
+- **Networking/authority:** Key activation and retirement remain server-authoritative. The player-save writer seam is limited to development automation; production save and claim handling remain server-owned.
+- **Known limitations / remaining scope:** The new automation has not been compiled or run in Unreal. If all nine active cells remain inside living-player support, the incoming key waits for a later unsupported cell. RF16–RF19 and the broader CR remediation queue remain open.
+- **Next eligible task:** RF16 — Recover failed population depletion writes.

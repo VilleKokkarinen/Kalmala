@@ -181,6 +181,7 @@ private:
     friend class FKalmalaPopulationPhysicalPlacementGateTest;
     friend class FKalmalaPopulationCreationTest;
     friend class FKalmalaPopulationHazardMaterializationTest;
+    friend class FKalmalaPopulationKeyTurnoverTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaWildlifeSpawn;
 
@@ -195,6 +196,7 @@ private:
     TFunction<void(const FVector2D&, bool, bool&, FKalmalaOceanSample&)> PopulationAquaticSurfaceSampleForTests;
     // Isolate sparse world-population save writes while exercising real callbacks.
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
+    TFunction<bool(class UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)> PlayerDiscoverySaveWriterForTests;
     // Inject a failed actor creation at a chosen member index in population transactions.
     TFunction<bool(int32)> PopulationActorSpawnAllowedForTests;
     // Force the player-slot write boundary to fail after a candidate save is prepared.
@@ -206,6 +208,8 @@ private:
     void RefreshTerrainPatchNeighborhoods();
     TArray<class AKalmalaCharacter*> GetLivingPlayerPawnsForPopulation() const;
     TArray<FIntPoint> GetPopulationSpatialKeyCandidates() const;
+    bool TryMakeRoomForPopulationKey();
+    void RetirePopulationKey(const FIntPoint& SpatialKey);
     void UpdatePopulationKeySchedule(double NowSeconds);
     TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
     bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
@@ -598,6 +602,7 @@ private:
     TSet<FIntPoint> ActiveTerrainPatchCoordinates;
     TMap<FIntPoint, TObjectPtr<class AKalmalaGeneratedTerrainPatch>> ActiveTerrainPatches;
     TMap<FIntPoint, TArray<TWeakObjectPtr<class AKalmalaHarvestNode>>> ActiveForestNodes;
+    TMap<FIntPoint, TArray<TWeakObjectPtr<AActor>>> ActivePopulationKeyActors;
     TSet<FIntPoint> ActivePopulationSpatialKeys;
     TSet<FIntPoint> ActivePopulationSchedulerKeys;
     TMap<FIntPoint, double> PopulationKeyNextDueTimes;
