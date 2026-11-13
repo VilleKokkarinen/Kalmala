@@ -185,6 +185,7 @@ private:
     friend class FKalmalaPopulationDepletionWriteRetryTest;
     friend class FKalmalaWildlifeDefeatAtomicityTest;
     friend class FKalmalaWildlifeGameModeRewardCallbackTest;
+    friend class FKalmalaMirelingGemRewardDeliveryTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaHarvestNode;
     friend class AKalmalaWildlifeSpawn;

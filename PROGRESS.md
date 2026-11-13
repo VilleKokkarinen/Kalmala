@@ -32829,3 +32829,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Documentation only; runtime code, peer behavior and server-authority boundaries are unchanged.
 - **Known limitations / remaining scope:** Live peer and vertical-slice execution remains deferred. RF20 and the broader CR remediation queue remain open.
 - **Next eligible task:** RF20 — Correct Mireling gemstone claim delivery.
+
+## Run 2026-11-13 — RF20 Mireling gem claim delivery
+
+- **Selected task:** RF20, fix pending Dusk Diamond delivery for authenticated generated Mirelings and add server delivery regression coverage.
+- **Work completed:** Derived the Mireling claim-prefix removal length from the full `mireling-gem|` prefix, so the defeated-ledger lookup uses the original stable spawn ID. Routed Mireling claim creation and gem delivery writes through the existing population-save writer seam. Added `Kalmala.Gameplay.Wildlife.MirelingGemRewardDelivery`, which defeats a generated Dusk Diamond Mireling for an authenticated owner, reloads the saved claim, confirms a full pack keeps the same claim and outcome, then frees one cell and verifies durable exact-once delivery.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, and `Source/KalmalaGameplay/Private/Tests/KalmalaMirelingGemRewardDeliveryTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed; the new test file has no trailing whitespace. Confirmed the claim prefix is 13 characters, removed the stale 12-character parser, and inspected that the fixture's save writes use the in-memory automation seam.
+- **Full verification:** Deferred; RF20 is not the final implementation task in the remediation milestone. The Editor build, `Kalmala.Gameplay.Discovery.EnemyGemSources`, and the new server delivery automation remain unexecuted.
+- **Observable impact:** Persisted Mireling Dusk Diamond claims now resolve to their canonical defeated-spawn ID and can reach the credited owner's inventory after capacity becomes available, while remaining recoverable through a full-pack retry.
+- **Networking/authority:** The fix stays in the authoritative GameMode delivery path. The regression uses authenticated server-owned actors and writes only to an in-memory save fixture; client input does not determine the target, gem or quantity.
+- **Known limitations / remaining scope:** The new automation has not been compiled or run in Unreal; milestone-wide verification remains deferred. RF21 and the broader CR remediation queue remain open.
+- **Next eligible task:** RF21 — M9 resource depletion is session-only.

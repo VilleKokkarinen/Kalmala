@@ -9370,6 +9370,7 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
     if (!HasAuthority() || GetWorld() == nullptr || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return;
 
+    const FString MirelingGemRewardPrefix = TEXT("mireling-gem|");
     const TArray<FKalmalaPendingWildlifeReward> PendingRewards = PopulationSaveGame->GetPendingWildlifeRewards();
     for (const FKalmalaPendingWildlifeReward& Reward : PendingRewards)
     {
@@ -9423,8 +9424,9 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         bool bReefMawHasTooth = false;
         const bool bReefMawReward = UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, ReefMawSpawnId, bReefMawHasTooth);
-        const bool bMirelingReward = Reward.PersistentSpawnId.StartsWith(TEXT("mireling-gem|"));
-        FString DefeatedSpawnId = bMirelingReward ? Reward.PersistentSpawnId.RightChop(12) : Reward.PersistentSpawnId;
+        const bool bMirelingReward = Reward.PersistentSpawnId.StartsWith(MirelingGemRewardPrefix);
+        FString DefeatedSpawnId = bMirelingReward
+            ? Reward.PersistentSpawnId.Mid(MirelingGemRewardPrefix.Len()) : Reward.PersistentSpawnId;
         if (bBadgerReward) DefeatedSpawnId = BadgerSpawnId;
         else if (bMoonBearReward) DefeatedSpawnId = MoonBearSpawnId;
         else if (bViperReward) DefeatedSpawnId = ViperSpawnId;
@@ -9595,12 +9597,11 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
                     PopulationSaveGame->TryQueuePendingWildlifeReward(Reward.PersistentSpawnId, Reward.PlayerIdentity);
                     PopulationSaveGame->SetPendingGemReward(Reward.PersistentSpawnId, Reward.GemItemId);
                 };
-                if (!UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-                    KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) { RestoreClaim(); break; }
+                if (!WritePopulationSaveObjectToSlot(PopulationSaveGame)) { RestoreClaim(); break; }
                 if (!Inventory->TryCommitStacksFromServer(Before, Candidate))
                 {
                     RestoreClaim();
-                    UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+                    WritePopulationSaveObjectToSlot(PopulationSaveGame);
                     break;
                 }
                 DeliveredWildlifeRewardSpawnIds.Add(Reward.PersistentSpawnId);
@@ -12373,8 +12374,8 @@ bool AKalmalaGameMode::RecordMirelingDefeatReward(const FString& PersistentSpawn
             || !CandidateSave->SetPendingGemReward(ClaimId, SelectEnemyGemForSpawn(PersistentSpawnId, false)))) return false;
     }
     CandidateSave->MarkDefeated(PersistentSpawnId);
-    if (!CandidateSave->MatchesWorld(WorldGenerationConfig) || !UGameplayStatics::SaveGameToSlot(
-        CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return false;
+    if (!CandidateSave->MatchesWorld(WorldGenerationConfig) || !WritePopulationSaveObjectToSlot(CandidateSave))
+        return false;
     PopulationSaveGame = CandidateSave;
     return true;
 }

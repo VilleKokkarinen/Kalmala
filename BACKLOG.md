@@ -475,7 +475,7 @@
     **Dependencies:** After CR19 review acceptance; no setup-doc or runner repair during CR03 or CR18.
     **Acceptance:** Every documented wildlife peer command resolves to the current runner and matching scenario, and M4 setup no longer claims the harness exercises Mireling or a rendered boss-scroll journey that it does not run or that the roadmap does not require. Boss-scroll coverage is claimed only when a dedicated boss-scroll check is present.
     **Focused validation:** Run `Scripts/Tests/Combat/EnemyPeers.ps1 -ListScenarios`, parser-check the updated setup documentation, and verify its M4 harness description matches the actual `VerticalSlice.ps1` scenario calls and roadmap acceptance.
-  - [ ] **RF20 — Correct Mireling gemstone claim delivery (P2; CR03-001b-97).**
+  - [x] **RF20 — Correct Mireling gemstone claim delivery (P2; CR03-001b-97).**
     KalmalaGameMode.cpp:9104-9118 removes 12 characters from the
     mireling-gem| claim prefix although it is 13 characters. The saved
     defeated ledger contains the unprefixed spawn ID, so lookup receives
