@@ -12146,17 +12146,46 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
                     UKalmalaInventoryComponent* Inventory = TestCharacter->FindComponentByClass<UKalmalaInventoryComponent>();
                     UKalmalaCraftingComponent* Crafting = TestCharacter->FindComponentByClass<UKalmalaCraftingComponent>();
                     if (Inventory == nullptr || Crafting == nullptr) return;
-                    const bool bIngredientsGranted = Inventory->TryGrantFromServer(TEXT("Wood"), 9);
-                    const uint32 PreviousSerial = Crafting->GetResultSerial();
-                    if (bIngredientsGranted)
+                    const FVector WorkbenchLocation = TestCharacter->GetActorLocation()
+                        + TestCharacter->GetActorRightVector() * 150.0f;
+                    FActorSpawnParameters WorkbenchSpawnParameters;
+                    WorkbenchSpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+                    AKalmalaConstructionActor* Workbench = TestCharacter->GetWorld()->SpawnActor<AKalmalaConstructionActor>(
+                        AKalmalaConstructionActor::StaticClass(),
+                        FTransform(FRotator::ZeroRotator, WorkbenchLocation), WorkbenchSpawnParameters);
+                    if (Workbench != nullptr)
                     {
-                        Crafting->ServerCraft_Implementation(TEXT("CookingRack"), 1);
+                        const FString ConstructionId = FString::Printf(TEXT("AmbientAudioTestWorkbench_%u"),
+                            TestCharacter->GetUniqueID());
+                        Workbench->InitializeFromServer(TEXT("WorkbenchKit"), ConstructionId);
+                    }
+                    const int32 PreviousOutputQuantity = Inventory->GetQuantity(TEXT("BowString"));
+                    const bool bIngredientsGranted = Inventory->TryGrantFromServer(TEXT("Sinew"), 4);
+                    const uint32 PreviousSerial = Crafting->GetResultSerial();
+                    if (bIngredientsGranted && Workbench != nullptr)
+                    {
+                        Crafting->ServerCraft_Implementation(TEXT("BowStringRecipe"), 1);
                     }
                     const bool bAccepted = bIngredientsGranted && Crafting->GetResultSerial() != PreviousSerial
-                        && Crafting->WasLastResultAccepted() && Inventory->GetQuantity(TEXT("CookingRackKit")) == 1;
+                        && Workbench != nullptr && Crafting->WasLastResultAccepted()
+                        && Inventory->GetQuantity(TEXT("BowString")) == PreviousOutputQuantity + 1;
+                    bool bNoPlacedObjectInInventory = true;
+                    for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
+                    {
+                        if (Stack.ItemId.ToString().EndsWith(TEXT("Kit"), ESearchCase::CaseSensitive))
+                        {
+                            bNoPlacedObjectInInventory = false;
+                            break;
+                        }
+                    }
                     UE_LOG(LogTemp, Display,
-                        TEXT("Ambient audio verification server crafted rack: Accepted=%d ResultSerial=%u"),
-                        bAccepted ? 1 : 0, Crafting->GetResultSerial());
+                        TEXT("Ambient audio verification server crafted item: Accepted=%d ResultSerial=%u NoPlacedObjectInInventory=%d"),
+                        bAccepted && bNoPlacedObjectInInventory ? 1 : 0, Crafting->GetResultSerial(),
+                        bNoPlacedObjectInInventory ? 1 : 0);
+                    if (Workbench != nullptr)
+                    {
+                        Workbench->Destroy();
+                    }
                 }), 2.0f, false);
 
             FTimerHandle GatheringInteractionTimer;

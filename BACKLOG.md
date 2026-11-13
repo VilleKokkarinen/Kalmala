@@ -821,7 +821,7 @@
       runs before scene changes or capture scheduling. The automation and focused `LightingComparison.ps1` run
       remain for Editor-backed verification; neither was run in this normal increment.
 
-  - [ ] **RF33 — Restore the ambient-audio accepted-craft peer fixture (P2; CR03-001b-109).**
+  - [x] **RF33 — Restore the ambient-audio accepted-craft peer fixture (P2; CR03-001b-109).**
     **Source:** CR03-001b-109; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:11026-11036`,
       `Source/KalmalaGameplay/Private/KalmalaGameCatalogueLoader.cpp:83-101,174-190`,
       `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp:223-235,312-330`, and
@@ -838,16 +838,19 @@
       the other cue checks pass. It cannot validate the accepted crafting cue for either owner.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf33--restore-the-ambient-audio-accepted-craft-peer-fixture-p2.
-    **Proposed repair:** Use an enabled ordinary inventory recipe for the audio acceptance cue, assert its
-      ordinary item result, and align the server marker with the peer runner. Keep construction identities out
-      of inventory.
+    **Repair:** The fixture now grants four Sinew, creates a temporary nearby Workbench, and invokes the
+      enabled `BowStringRecipe`. It checks for one additional ordinary `BowString` stack and rejects the
+      fixture marker if any placed-object identity ending in `Kit` appears in inventory. The server marker
+      and peer runner now agree on `crafted item`; construction identities remain out of inventory.
     **Dependencies:** After CR19 review acceptance; this finding is a review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** A fresh host/client audio run publishes one accepted ordinary craft per owner at result
       serial 1 and one rejected craft at serial 2; the runner observes both accepted-craft markers and passes
       without any placed-object identity in inventory.
-    **Focused validation:** Run `Scripts/Tests/Audio/AmbientAudioPeers.ps1 -WeatherExposureOnly` after an Editor
-      build, then run the normal peer scenario to retain visible-water coverage.
+    **Focused validation:** PowerShell syntax parsing and `git diff --check` passed. Source and catalogue
+      inspection confirms the enabled ordinary Bow String output, its four-Sinew cost and Workbench
+      requirement, and matching host/client result marker. The Editor build, `-WeatherExposureOnly` peer run,
+      and normal visible-water peer run remain deferred; none ran in this normal increment.
 
   - [ ] **RF34 — Select a persistent, interactable source for the harvest restart fixture (P2; CR03-001b-111).**
     **Source:** CR03-001b-111; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:11566-11638`,

@@ -67,7 +67,7 @@ try {
         $clientGatheringAccepted = $clientText -match 'Ambient audio gathering result: Local=1 InventoryIncrease=1 CueSubmitted=1 Asset=InteractionAcceptedCue'
         $serverInteractionRejected = $serverText -match 'Ambient audio interaction result: Local=1 Feedback=Unavailable Serial=2 CueSubmitted=1 Asset=InteractionRejectedCue'
         $clientInteractionRejected = $clientText -match 'Ambient audio interaction result: Local=1 Feedback=Unavailable Serial=2 CueSubmitted=1 Asset=InteractionRejectedCue'
-        $testCraftAcceptedCount = [regex]::Matches($serverText, 'Ambient audio verification server crafted fuel: Accepted=1 ResultSerial=1').Count
+        $testCraftAcceptedCount = [regex]::Matches($serverText, 'Ambient audio verification server crafted item: Accepted=1 ResultSerial=1 NoPlacedObjectInInventory=1').Count
         $testGatherAcceptedCount = [regex]::Matches($serverText, 'Ambient audio verification server gathered: Accepted=1 DuplicateRejected=1').Count
         $testCraftRejectedCount = [regex]::Matches($serverText, 'Ambient audio verification server rejected craft: Rejected=1 ResultSerial=2').Count
         $interactionFixturePassed = $testCraftAcceptedCount -ge 2 -and $testGatherAcceptedCount -ge 2 -and $testCraftRejectedCount -ge 2

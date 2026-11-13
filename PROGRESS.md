@@ -1,3 +1,32 @@
+## RF33 — Restore the ambient-audio accepted-craft peer fixture — 2026-11-13
+
+- **Work completed:** Replaced the rejected Cooking Rack buildable recipe in the
+  audio peer fixture with the enabled BowStringRecipe. Each owner receives four
+  Sinew and a temporary nearby Workbench; the server publishes the ordinary
+  BowString result and checks its stack increment. The acceptance marker also
+  requires that no placed-object identity ending in `Kit` is present in that
+  owner's inventory. Updated the peer runner to count the matching accepted
+  item marker; the existing rejected craft remains the expected serial 2.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Scripts/Tests/Audio/AmbientAudioPeers.ps1`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** PowerShell syntax parsing and `git diff --check`
+  passed. Inspected the enabled BowStringRecipe catalogue entry, output,
+  ingredients, station requirement, inventory stack assertion, and runner
+  marker.
+- **Full verification:** Deferred. No Editor build, weather-only peer run, or
+  normal visible-water peer run was executed; this is not milestone-final
+  verification.
+- **Observable impact:** The audio fixture now exercises an accepted ordinary
+  inventory craft for each owner and can pass without creating a portable
+  construction object.
+- **Networking/authority:** The test grants and crafts through server-owned
+  components and publishes the existing owner-only crafting result. Client
+  audio behavior and gameplay authority rules are unchanged.
+- **Known limits:** The host/client behavior and both peer-runner modes still
+  need Editor-backed verification.
+- **Next eligible task:** RF34 — select a persistent, interactable source for
+  the harvest restart fixture. The overall CR remediation goal remains active.
+
 ## RF32 — Reject incomplete per-site lighting comparison fixtures — 2026-11-13
 
 - **Work completed:** Comparison-fixture captures now validate the complete
