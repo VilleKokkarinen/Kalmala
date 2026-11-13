@@ -89,15 +89,17 @@ save data.
   activation, reconnect and restart must never remove a defeated ID; each wolf
   member retains its own stable depleted ID.
 - **Harvest save recovery:** For population-backed sources, the server writes
-  the sparse harvested ID before accepting and saving the player grant. A failed
-  population write rolls the ID back and rejects the harvest without granting
-  the item. If player-state saving fails after the depletion write succeeds,
-  the server restores the old player state and then compensates the population
-  save. If either compensation fails, the last durable depleted ID stays in
-  place to prevent a second acquisition. Session-only M9 resource depletion
-  keeps its existing session policy. Clean host saves use the same population
-  writer, include pending depletion IDs, and block leaving gameplay when that
-  write fails.
+  the sparse harvested ID before accepting and saving the player grant. M9
+  sources write their stable `ResourceDepleted` delta to the separate world-
+  scoped M7 ledger before saving the player grant. A failed depletion write
+  rejects the harvest without a durable player grant. If player-state saving
+  fails after depletion succeeds, the server restores the old player state and
+  compensates the same ledger; if compensation fails, it keeps the last durable
+  depleted ID to prevent a second acquisition. GameMode loads the M9 ledger
+  before population activation and suppresses matching sources for the exact
+  world seed and generator revision. Invalid or incompatible ledgers fail closed
+  and are preserved. Clean host saves use the population writer, include pending
+  population depletion IDs, and block leaving gameplay when that write fails.
 - **Living-actor unload/reload:** `ActivatePopulationKey` only adds keys to
   `ActivePopulationSpatialKeys`; it does not unload actors or keys. S10 adds a
   GameMode-owned weak registry for authoritative `AKalmalaWildlifeSpawn` actors:

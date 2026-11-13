@@ -206,6 +206,11 @@ namespace KalmalaGameMode
     {
         return FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), Config.WorldSeed);
     }
+    FString M9ResourceDepletionSaveSlot(const FKalmalaM7SaveIdentity& Identity)
+    {
+        return FString::Printf(TEXT("KalmalaM9ResourceDepletions_%llu_%d"),
+            Identity.WorldSeed, Identity.GeneratorRevision);
+    }
     FString ConstructionSaveSlot(const FKalmalaWorldGenerationConfig& Config)
     {
         return FString::Printf(TEXT("KalmalaConstruction_%llu"), Config.WorldSeed);
@@ -577,6 +582,7 @@ void AKalmalaGameMode::BeginPlay()
         }
     }
 #endif
+    LoadM9ResourceDepletionSave();
     LoadPopulationSave();
     const FString ConstructionSlot = KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig);
     const bool bConstructionSaveExists = UGameplayStatics::DoesSaveGameExist(ConstructionSlot, 0);
@@ -677,6 +683,142 @@ void AKalmalaGameMode::LoadPopulationSave()
     // Persist even an untouched world so it appears in the local world list.
     if (!UGameplayStatics::SaveGameToSlot(PopulationSaveGame, Slot, 0))
         UE_LOG(LogTemp, Error, TEXT("Could not save the new world record; retry Save world before logging out."));
+}
+
+void AKalmalaGameMode::LoadM9ResourceDepletionSave()
+{
+    M9ResourceDepletionSaveGame = nullptr;
+    bM9ResourceDepletionPersistenceWritable = HasAuthority() && WorldGenerationConfig.IsValid();
+    if (!bM9ResourceDepletionPersistenceWritable) return;
+
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    if (!Identity.IsValid())
+    {
+        bM9ResourceDepletionPersistenceWritable = false;
+        return;
+    }
+
+    const FString Slot = KalmalaGameMode::M9ResourceDepletionSaveSlot(Identity);
+    UKalmalaM7PersistenceSaveGame* Loaded = nullptr;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (M9ResourceSaveLoaderForTests)
+    {
+        Loaded = M9ResourceSaveLoaderForTests(Slot, 0);
+        if (Loaded == nullptr)
+        {
+            M9ResourceDepletionSaveGame = NewObject<UKalmalaM7PersistenceSaveGame>(this);
+            M9ResourceDepletionSaveGame->Initialize(Identity);
+            return;
+        }
+    }
+    else
+#endif
+    {
+        if (!UGameplayStatics::DoesSaveGameExist(Slot, 0))
+        {
+            M9ResourceDepletionSaveGame = NewObject<UKalmalaM7PersistenceSaveGame>(this);
+            M9ResourceDepletionSaveGame->Initialize(Identity);
+            return;
+        }
+
+        Loaded = Cast<UKalmalaM7PersistenceSaveGame>(UGameplayStatics::LoadGameFromSlot(Slot, 0));
+    }
+
+    if (Loaded == nullptr || !Loaded->Matches(Identity))
+    {
+        bM9ResourceDepletionPersistenceWritable = false;
+        UE_LOG(LogTemp, Warning,
+            TEXT("M9 resource depletion restore blocked: existing world ledger is invalid or incompatible; preserved without overwrite."));
+        return;
+    }
+
+    M9ResourceDepletionSaveGame = Loaded;
+}
+
+bool AKalmalaGameMode::HasM9ResourceDepletionFromServer(const FString& StableResourceId) const
+{
+    if (!HasAuthority() || !bM9ResourceDepletionPersistenceWritable
+        || !FKalmalaM7SparseDelta::IsValidStableId(StableResourceId)
+        || !StableResourceId.StartsWith(TEXT("resource:m9:v1:"))
+        || M9ResourceDepletionSaveGame == nullptr) return false;
+
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    return M9ResourceDepletionSaveGame->Matches(Identity)
+        && M9ResourceDepletionSaveGame->HasSparseDelta(
+            EKalmalaM7SparseDeltaKind::ResourceDepleted, StableResourceId);
+}
+
+bool AKalmalaGameMode::WriteM9ResourceDepletionSaveObjectToSlot(
+    UKalmalaM7PersistenceSaveGame* SaveGame)
+{
+    if (!HasAuthority() || !bM9ResourceDepletionPersistenceWritable || SaveGame == nullptr) return false;
+
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    if (!SaveGame->Matches(Identity)) return false;
+
+    const FString Slot = KalmalaGameMode::M9ResourceDepletionSaveSlot(Identity);
+#if WITH_DEV_AUTOMATION_TESTS
+    if (M9ResourceSaveWriteAttemptForTests)
+        return M9ResourceSaveWriteAttemptForTests(SaveGame, Slot, 0);
+#endif
+    return UGameplayStatics::SaveGameToSlot(SaveGame, Slot, 0);
+}
+
+bool AKalmalaGameMode::TryPersistM9ResourceDepletionFromServer(const FString& StableResourceId)
+{
+    if (!HasAuthority() || !bM9ResourceDepletionPersistenceWritable
+        || !FKalmalaM7SparseDelta::IsValidStableId(StableResourceId)
+        || !StableResourceId.StartsWith(TEXT("resource:m9:v1:"))
+        || M9ResourceDepletionSaveGame == nullptr) return false;
+
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    if (!M9ResourceDepletionSaveGame->Matches(Identity)) return false;
+    if (M9ResourceDepletionSaveGame->HasSparseDelta(
+            EKalmalaM7SparseDeltaKind::ResourceDepleted, StableResourceId)) return true;
+
+    UKalmalaM7PersistenceSaveGame* Candidate = NewObject<UKalmalaM7PersistenceSaveGame>(this);
+    Candidate->Initialize(Identity);
+    for (const FKalmalaM7SparseDelta& Existing : M9ResourceDepletionSaveGame->GetSparseDeltas())
+    {
+        if (!Candidate->AddSparseDelta(Existing)) return false;
+    }
+
+    const FKalmalaM7SparseDelta Depletion{
+        EKalmalaM7SparseDeltaKind::ResourceDepleted, StableResourceId };
+    if (!Candidate->AddSparseDelta(Depletion)
+        || !WriteM9ResourceDepletionSaveObjectToSlot(Candidate)) return false;
+
+    M9ResourceDepletionSaveGame = Candidate;
+    return true;
+}
+
+bool AKalmalaGameMode::TryRollbackM9ResourceDepletionFromServer(const FString& StableResourceId)
+{
+    if (!HasAuthority() || !bM9ResourceDepletionPersistenceWritable
+        || !FKalmalaM7SparseDelta::IsValidStableId(StableResourceId)
+        || !StableResourceId.StartsWith(TEXT("resource:m9:v1:"))
+        || M9ResourceDepletionSaveGame == nullptr) return false;
+
+    const FKalmalaM7SaveIdentity Identity = FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+    if (!M9ResourceDepletionSaveGame->Matches(Identity)) return false;
+
+    UKalmalaM7PersistenceSaveGame* Candidate = NewObject<UKalmalaM7PersistenceSaveGame>(this);
+    Candidate->Initialize(Identity);
+    bool bRemoved = false;
+    for (const FKalmalaM7SparseDelta& Existing : M9ResourceDepletionSaveGame->GetSparseDeltas())
+    {
+        if (!bRemoved && Existing.Kind == EKalmalaM7SparseDeltaKind::ResourceDepleted
+            && Existing.StableId == StableResourceId)
+        {
+            bRemoved = true;
+            continue;
+        }
+        if (!Candidate->AddSparseDelta(Existing)) return false;
+    }
+
+    if (!bRemoved || !WriteM9ResourceDepletionSaveObjectToSlot(Candidate)) return false;
+    M9ResourceDepletionSaveGame = Candidate;
+    return true;
 }
 
 void AKalmalaGameMode::SpawnOceanTravelTestFixture()
@@ -8521,9 +8663,18 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey,
             {
                 const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Spawn);
                 const FString M9ResourceId = FKalmalaM9SourceLootContract::BuildResourceDepletionId(Spawn.ContentId, PersistentSpawnId);
-                if (FKalmalaM9SourceLootContract::IsM9Source(Spawn.ContentId)
-                    ? (M9ResourceId.IsEmpty() || SessionM9ResourceDepletionIds.Contains(M9ResourceId))
-                    : (PopulationSaveGame != nullptr && PopulationSaveGame->IsHarvested(PersistentSpawnId)))
+                const bool bIsM9Source = FKalmalaM9SourceLootContract::IsM9Source(Spawn.ContentId);
+                const FKalmalaM7SaveIdentity M9WorldIdentity =
+                    FKalmalaM7SaveIdentity::ForWorld(WorldGenerationConfig.WorldSeed);
+                const bool bM9SourceUnavailable = bIsM9Source
+                    && (M9ResourceId.IsEmpty() || !bM9ResourceDepletionPersistenceWritable
+                        || M9ResourceDepletionSaveGame == nullptr
+                        || !M9ResourceDepletionSaveGame->Matches(M9WorldIdentity)
+                        || M9ResourceDepletionSaveGame->HasSparseDelta(
+                            EKalmalaM7SparseDeltaKind::ResourceDepleted, M9ResourceId));
+                const bool bPopulationSourceUnavailable = !bIsM9Source
+                    && PopulationSaveGame != nullptr && PopulationSaveGame->IsHarvested(PersistentSpawnId);
+                if (bM9SourceUnavailable || bPopulationSourceUnavailable)
                 {
                     continue;
                 }
@@ -8533,7 +8684,6 @@ void AKalmalaGameMode::ActivatePopulationKey(const FIntPoint& SpatialKey,
                 {
                     HarvestNode->InitializeServer(Spawn);
                     HarvestNode->OnHarvested.AddUObject(this, &AKalmalaGameMode::RecordHarvestedSpawn);
-                    HarvestNode->OnM9ResourceDepleted.AddUObject(this, &AKalmalaGameMode::RecordM9ResourceDepleted);
                     ++SpawnedMarkerCount;
                 }
             }
@@ -9622,15 +9772,6 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
             }
             break;
         }
-    }
-}
-
-void AKalmalaGameMode::RecordM9ResourceDepleted(const FString& StableResourceId)
-{
-    if (HasAuthority() && FKalmalaM7SparseDelta::IsValidStableId(StableResourceId)
-        && StableResourceId.StartsWith(TEXT("resource:m9:v1:")))
-    {
-        SessionM9ResourceDepletionIds.Add(StableResourceId);
     }
 }
 

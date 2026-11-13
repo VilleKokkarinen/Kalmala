@@ -75,7 +75,7 @@ public:
     bool InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor, float TraceDistance, float MaximumRange,
         FName ClientItemId, uint8 ClientAction);
     FKalmalaHarvestNodeHarvested OnHarvested;
-    /** Session-only M9 depletion handoff; it deliberately does not use the M7 save callback. */
+    /** Broadcast after the corresponding M9 world-ledger delta is durable. */
     FKalmalaM9ResourceDepleted OnM9ResourceDepleted;
     virtual bool CanInteract_Implementation(AKalmalaCharacter* Interactor) const override;
     virtual void Interact_Implementation(AKalmalaCharacter* Interactor) override;

@@ -2233,22 +2233,19 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
             Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
         return false;
     }
-    if (!Inventory->TryCommitStacksFromServer(ExistingInventory, CandidateInventory)) return false;
-
-    *CurrentDurability = CandidateToolState.Durability;
     AKalmalaGameMode* GameMode = GetWorld() != nullptr
         ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
-    const bool bNeedsDurableDepletion = Node->GetM9ResourceDepletionId().IsEmpty();
-    if (GameMode == nullptr || (bNeedsDurableDepletion && !Node->PrepareHarvestedStateFromServer()))
+    if (GameMode == nullptr || !Node->PrepareHarvestedStateFromServer())
     {
-        CarriedTools = ExistingTools;
-        if (!Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory))
-        {
-            UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after population depletion persistence rejected harvesting."));
-        }
-        ForceNetUpdate();
         return false;
     }
+
+    if (!Inventory->TryCommitStacksFromServer(ExistingInventory, CandidateInventory))
+    {
+        Node->RollbackHarvestedStateFromServer();
+        return false;
+    }
+    *CurrentDurability = CandidateToolState.Durability;
 
     if (!GameMode->PersistPlayerStateFromServer(this))
     {
@@ -2258,9 +2255,9 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
             UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player tool persistence rejected harvesting."));
         if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(this))
         {
-            if (bNeedsDurableDepletion) Node->RollbackHarvestedStateFromServer();
+            Node->RollbackHarvestedStateFromServer();
         }
-        else if (bNeedsDurableDepletion)
+        else
         {
             Node->CommitHarvestedStateFromServer();
         }
@@ -2273,10 +2270,10 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
         const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory);
         if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(this))
         {
-            if (bNeedsDurableDepletion) Node->RollbackHarvestedStateFromServer();
+            Node->RollbackHarvestedStateFromServer();
             ForceNetUpdate();
         }
-        else if (bNeedsDurableDepletion)
+        else
         {
             Node->CommitHarvestedStateFromServer();
         }

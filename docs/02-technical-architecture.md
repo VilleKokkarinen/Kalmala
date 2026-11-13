@@ -1010,6 +1010,17 @@ only the approved source token and server-derived population identity; a client
 never submits it. These IDs fit the current 128-character stable-ID limit and
 remain separate for different sources or spatial spawns. Persist depletion only through the approved identity-scoped sparse ledger and its validated writer; source identities add no save field.
 
+GameMode stores these deltas in the separate schema-1 M7 world ledger at
+`KalmalaM9ResourceDepletions_<world-seed>_<generator-revision>` and loads it
+before population activation. M9 activation requires a valid ledger matching
+the current world identity and skips any source whose ID has a
+`ResourceDepleted` delta. Harvest persists a candidate ledger before saving the
+player reward; a failed world write rejects the harvest. If the later player
+save fails, the server restores the prior player state and removes the delta
+through another validated ledger write. If compensation fails, the durable
+depletion remains, preventing another reward. Invalid or mismatched ledgers are
+preserved and block M9 source activation.
+
 ## Bounded optional loot
 
 Each accepted source harvest guarantees one unit of its table's primary item.
@@ -1022,8 +1033,8 @@ therefore deterministic for a source identity and has a strict total yield of
 one or two items.
 
 The server computes the bonus and preflights the full one- or two-item grant
-against the existing item catalogue and owner inventory before publishing any
-reward, tool wear, or in-session depletion. A full pack, invalid source,
+against the existing item catalogue and owner inventory before writing source
+depletion, applying tool wear, or saving the reward. A full pack, invalid source,
 wrong-world target, failed server trace, invalid range, or mismatched tool
 intent leaves inventory and source state unchanged. Client requests carry no
 reward ID, quantity, bonus result, target, or spawn identity. The separate
@@ -3438,8 +3449,9 @@ old player state before compensating the population save; if compensation cannot
 be written, the last durable depleted ID remains to prevent a duplicate
 acquisition. Accepted generic wildlife and hazard defeats keep their stable
 IDs in a server-owned retry set and retry the full population save once per
-second until it succeeds. Successful host saves use the same writer. The existing
-session-only M9 resource depletion policy remains unchanged. These changes use
+second until it succeeds. Successful host saves use the same writer. The
+earlier session-only M9 resource depletion policy has since been replaced by
+the world-scoped M7 ledger described above. Forest depletion continues to use
 the existing population save schema.
 
 Focused acceptance covers exact-ID stage delivery, late joins, ordinary-camera

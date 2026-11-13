@@ -9,6 +9,7 @@
 #include "KalmalaHarvestNode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9SourceLootContract.h"
+#include "KalmalaM7PersistenceContract.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -306,10 +307,25 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         PickupSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
         FString DepletedId;
         FString SparseId;
-        int32 SessionCallbacks = 0;
+        int32 M9ResourceCallbacks = 0;
         int32 SparseCallbacks = 0;
-        Node->OnM9ResourceDepleted.AddLambda([&](const FString& ResourceId) { DepletedId = ResourceId; ++SessionCallbacks; });
+        Node->OnM9ResourceDepleted.AddLambda([&](const FString& ResourceId) { DepletedId = ResourceId; ++M9ResourceCallbacks; });
         auto* PickupMode = World->GetAuthGameMode<AKalmalaGameMode>();
+        PickupMode->WorldGenerationConfig = WorldState->GetWorldGenerationConfig();
+        PickupMode->M9ResourceSaveWriteAttemptForTests = {};
+        TSharedRef<TArray<uint8>, ESPMode::ThreadSafe> M9SaveBytes = MakeShared<TArray<uint8>, ESPMode::ThreadSafe>();
+        if (!Source.bGeneratedForest)
+        {
+            PickupMode->M9ResourceDepletionSaveGame = NewObject<UKalmalaM7PersistenceSaveGame>(PickupMode);
+            PickupMode->M9ResourceDepletionSaveGame->Initialize(
+                FKalmalaM7SaveIdentity::ForWorld(WorldState->GetWorldGenerationConfig().WorldSeed));
+            PickupMode->bM9ResourceDepletionPersistenceWritable = true;
+            PickupMode->M9ResourceSaveWriteAttemptForTests = [M9SaveBytes](
+                UKalmalaM7PersistenceSaveGame* Candidate, const FString&, int32)
+            {
+                return UGameplayStatics::SaveGameToMemory(Candidate, *M9SaveBytes);
+            };
+        }
         TArray<uint8> ProductionPickupBytes;
         int32 ProductionWrites = 0;
         const FString PopulationSlot = FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"),
@@ -493,7 +509,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         }
         TestEqual(TEXT("Damage before pickup never invokes production writer"), ProductionWrites, 0);
         TestEqual(TEXT("Damage before pickup emits no sparse depletion"), SparseCallbacks, 0);
-        TestEqual(TEXT("Damage before pickup emits no session depletion"), SessionCallbacks, 0);
+        TestEqual(TEXT("Damage before pickup emits no M9 depletion callback"), M9ResourceCallbacks, 0);
         TestFalse(TEXT("Damage does not persist depletion before pickup"),
             PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
         if (Source.bGeneratedForest)
@@ -518,7 +534,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 TestEqual(TEXT("Invalid pickup preserves Main Hand"), Inventory->GetMainHandGuid(), PickupHand);
                 TestEqual(TEXT("Invalid pickup preserves axe condition"), Pawn->GetToolDurability(Source.ToolItemId), PickupCondition);
                 TestEqual(TEXT("Invalid pickup emits no sparse callback"), SparseCallbacks, 0);
-                TestEqual(TEXT("Invalid pickup emits no session callback"), SessionCallbacks, 0);
+                TestEqual(TEXT("Invalid pickup emits no M9 depletion callback"), M9ResourceCallbacks, 0);
                 TestFalse(TEXT("Invalid pickup leaves sparse ledger untouched"), PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
             };
             AssertInvalidPickup(TEXT("Generated drop rejects null interactor"), nullptr, 100.0f, 250.0f);
@@ -554,7 +570,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 TestEqual(TEXT("Rejected pickup spends no additional axe condition"),
                     Pawn->GetToolDurability(Source.ToolItemId), BeforeCondition);
                 TestEqual(TEXT("Rejected pickup emits no sparse callback"), SparseCallbacks, 0);
-                TestEqual(TEXT("Rejected pickup emits no session callback"), SessionCallbacks, 0);
+                TestEqual(TEXT("Rejected pickup emits no M9 depletion callback"), M9ResourceCallbacks, 0);
                 TestFalse(TEXT("Rejected pickup never enters the sparse save"),
                     PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
                 TestTrue(TEXT("Removing filler permits the same drop pickup to retry"),
@@ -639,7 +655,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Losing pickup preserves rival Main Hand"),
                 Rival->GetInventoryComponent()->GetMainHandGuid(), RivalHand);
             TestEqual(TEXT("Competing pickup emits only the winner's sparse callback"), SparseCallbacks, 1);
-            TestEqual(TEXT("Competing pickup emits no session callback"), SessionCallbacks, 0);
+            TestEqual(TEXT("Competing pickup emits no M9 depletion callback"), M9ResourceCallbacks, 0);
             Rival->Destroy();
             RivalState->Destroy();
         }
@@ -658,7 +674,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestEqual(FString::Printf(TEXT("%s depletion callback carries its stable sparse ID"), *SourceLabel),
             DepletedId, Source.bGeneratedForest ? FString() : FKalmalaM9SourceLootContract::BuildResourceDepletionId(Source.SourceId, Node->GetPersistentSpawnId()));
         TestEqual(TEXT("Only generated forest pickup emits exactly one sparse callback"), SparseCallbacks, Source.bGeneratedForest ? 1 : 0);
-        TestEqual(TEXT("Generated pickup bypasses session depletion"), SessionCallbacks, Source.bGeneratedForest ? 0 : 1);
+        TestEqual(TEXT("M9 source pickup emits its depletion callback"), M9ResourceCallbacks, Source.bGeneratedForest ? 0 : 1);
         TestEqual(TEXT("Sparse callback retains exact generated identity"), SparseId,
             Source.bGeneratedForest ? Node->GetPersistentSpawnId() : FString());
         TestEqual(TEXT("Only successful generated pickup reaches production writer"),

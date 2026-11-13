@@ -38,7 +38,7 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     PatchOwner->bAlwaysRelevant = true;
 
     int32 SparseCallbacks = 0;
-    int32 SessionCallbacks = 0;
+    int32 M9ResourceCallbacks = 0;
     const auto SpawnNode = [&]()
     {
         FActorSpawnParameters SpawnParameters;
@@ -49,7 +49,7 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
         if (Node)
         {
             Node->OnHarvested.AddLambda([&](const FString&) { ++SparseCallbacks; });
-            Node->OnM9ResourceDepleted.AddLambda([&](const FString&) { ++SessionCallbacks; });
+            Node->OnM9ResourceDepleted.AddLambda([&](const FString&) { ++M9ResourceCallbacks; });
         }
         return Node;
     };
@@ -130,13 +130,13 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Standing forest tree accepts axe attacks"), Node->CanReceiveAxeAttack());
     CheckStandingCollision(Node);
     CheckWorldSelection(Node);
-    TestTrue(TEXT("Forest bypasses session-only depletion identity"), Node->GetM9ResourceDepletionId().IsEmpty());
+    TestTrue(TEXT("Forest tree does not use an M9 source identity"), Node->GetM9ResourceDepletionId().IsEmpty());
     TestFalse(TEXT("Initialized forest identity cannot be replaced"),
         Node->InitializeForestServer(Config, PatchCenter, Tree.CandidateIndex));
     TestTrue(TEXT("Stream-out destroys node"), Node->Destroy());
     CheckWorldSelection(nullptr);
     TestEqual(TEXT("Stream-out never records sparse depletion"), SparseCallbacks, 0);
-    TestEqual(TEXT("Stream-out never records session depletion"), SessionCallbacks, 0);
+    TestEqual(TEXT("Stream-out never emits M9 resource depletion"), M9ResourceCallbacks, 0);
 
     auto* Reloaded = SpawnNode();
     if (TestNotNull(TEXT("Replacement node spawned after stream-out"), Reloaded))
@@ -182,7 +182,7 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
             TestTrue(TEXT("Eviction destroys uncollected session state"), Uncollected->Destroy());
             CheckWorldSelection(nullptr);
             TestEqual(TEXT("Uncollected eviction never records sparse depletion"), SparseCallbacks, 0);
-            TestEqual(TEXT("Uncollected eviction never records session depletion"), SessionCallbacks, 0);
+            TestEqual(TEXT("Uncollected eviction never emits M9 resource depletion"), M9ResourceCallbacks, 0);
 
             auto* Restored = SpawnNode();
             if (!TestNotNull(TEXT("Session replacement spawned"), Restored)) break;
@@ -205,7 +205,7 @@ bool FKalmalaForestLifecycleTest::RunTest(const FString& Parameters)
     }
     World->DestroyWorld(false);
     TestEqual(TEXT("World teardown never records sparse depletion"), SparseCallbacks, 0);
-    TestEqual(TEXT("World teardown never records session depletion"), SessionCallbacks, 0);
+    TestEqual(TEXT("World teardown never emits M9 resource depletion"), M9ResourceCallbacks, 0);
     return true;
 }
 

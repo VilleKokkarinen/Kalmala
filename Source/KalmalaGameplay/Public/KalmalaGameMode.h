@@ -186,6 +186,7 @@ private:
     friend class FKalmalaWildlifeDefeatAtomicityTest;
     friend class FKalmalaWildlifeGameModeRewardCallbackTest;
     friend class FKalmalaMirelingGemRewardDeliveryTest;
+    friend class FKalmalaM9WorldDepletionPersistenceTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaHarvestNode;
     friend class AKalmalaWildlifeSpawn;
@@ -203,6 +204,9 @@ private:
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
     // Report whether a population-slot write succeeded, including injected failures.
     TFunction<bool(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriteAttemptForTests;
+    // Isolate the world-scoped M9 depletion slot while exercising real harvests.
+    TFunction<class UKalmalaM7PersistenceSaveGame*(const FString&, int32)> M9ResourceSaveLoaderForTests;
+    TFunction<bool(class UKalmalaM7PersistenceSaveGame*, const FString&, int32)> M9ResourceSaveWriteAttemptForTests;
     TFunction<bool(class UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)> PlayerDiscoverySaveWriterForTests;
     // Inject a failed actor creation at a chosen member index in population transactions.
     TFunction<bool(int32)> PopulationActorSpawnAllowedForTests;
@@ -332,9 +336,13 @@ private:
     void RefreshOceanDiscoveries();
     bool TryPersistHarvestedSpawnFromServer(const FString& PersistentSpawnId);
     bool TryRollbackHarvestedSpawnFromServer(const FString& PersistentSpawnId);
+    bool HasM9ResourceDepletionFromServer(const FString& StableResourceId) const;
+    bool TryPersistM9ResourceDepletionFromServer(const FString& StableResourceId);
+    bool TryRollbackM9ResourceDepletionFromServer(const FString& StableResourceId);
+    bool WriteM9ResourceDepletionSaveObjectToSlot(class UKalmalaM7PersistenceSaveGame* SaveGame);
     void RecordHarvestedSpawn(const FString& PersistentSpawnId);
     void LoadPopulationSave();
-    void RecordM9ResourceDepleted(const FString& StableResourceId);
+    void LoadM9ResourceDepletionSave();
     void RecordDefeatedSpawn(const FString& PersistentSpawnId);
     void DeliverPendingWildlifeRewards();
     class UKalmalaPlayerDiscoverySaveGameV2* GetPlayerDiscoverySave(class AKalmalaCharacter* Interactor, FString& OutIdentity);
@@ -595,7 +603,8 @@ private:
     UPROPERTY(Transient) TObjectPtr<class UKalmalaWorldPopulationSaveGame> PopulationSaveGame;
     TSet<FString> PendingPopulationDepletionWriteIds;
     double NextPopulationDepletionWriteRetryTime = 0.0;
-    TSet<FString> SessionM9ResourceDepletionIds;
+    UPROPERTY(Transient) TObjectPtr<class UKalmalaM7PersistenceSaveGame> M9ResourceDepletionSaveGame;
+    bool bM9ResourceDepletionPersistenceWritable = false;
     UPROPERTY(Transient)
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGameV2>> PlayerDiscoverySaves;
     TSet<FString> RejectedPlayerDiscoverySaveIdentities;

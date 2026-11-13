@@ -487,7 +487,7 @@
     Focused validation: run Kalmala.Gameplay.Discovery.EnemyGemSources and
     the new server delivery regression after an Editor build. Evidence:
     Temporary/Review/findings.md#rf20--mireling-gem-claim-prefix-is-not-fully-removed-p2.
-  - [ ] **RF21 — M9 resource depletion is session-only (P2; CR03-001b-98).**
+  - [x] **RF21 — M9 resource depletion is session-only (P2; CR03-001b-98).**
     **Source:** CR03-001b-98; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8350-8353, 9305-9311`,
       `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp:524-538`, and
       `docs/02-technical-architecture.md:990-1004`.

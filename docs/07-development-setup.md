@@ -1927,18 +1927,21 @@ and generator revision 7 plus explicit world/player scope, and accepts at most
 0 and future schemas are rejected. No compatibility migration runs before release. Invalid identities,
 duplicate IDs, over-cap entries, and path-like IDs fail closed. This contract
 does not extend existing save schemas or add progression, tool, food, or loot
-state. The focused round-trip/rejection test is
-`Kalmala.World.M7.PersistenceContract`.
+state. `Kalmala.World.M7.PersistenceContract` covers its round-trip and
+identity rejection. `Kalmala.Gameplay.M9.WorldDepletionPersistence` exercises
+the generated salt-source GameMode harvest, M7 write failure, fresh-load
+suppression, and world seed/revision isolation. `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
+retains the broader source and reward regressions.
 
 After the editor build, run it with the documented temporary-user pattern:
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7PersistenceUser' -abslog='C:\temp\KalmalaM7Persistence.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7PersistenceUser' -abslog='C:\temp\KalmalaM7Persistence.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract+Kalmala.Gameplay.M9.WorldDepletionPersistence+Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ### M9 current-schema persistence
 
-Construction uses save schema 7; player-discovery saves use schema 3, with carried equipment stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated inventory state. See `docs/02-technical-architecture.md` for bounds and authority rules.
+Construction uses save schema 7; player-discovery saves use schema 3, with carried equipment stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. M9 resource depletion uses the separate schema-1 M7 world ledger, keyed by exact seed and generator revision, and is saved before the player's reward. Save data must match the exact seed, revision, scope, and authenticated player identity. The game is unreleased and has no user save files; change active development formats directly and do not add save migrations until release. Current-format writers validate complete server-owned candidates before saving, and incompatible or invalid slots fail closed without rewriting. The player writer also re-derives live M9 claim identities and saves the owner's bounded carried-item records without adding replicated inventory state. See `docs/02-technical-architecture.md` for bounds and authority rules.
 ### M8 travel-save contract
 
 `UKalmalaOceanTravelPersistenceSaveGame` is a separate schema-1 gate over the
@@ -2018,6 +2021,10 @@ inventory grant and pick condition before committing depletion.
 tool-free interaction, exact rewards, the Potato no-seed rule, full-pack
 rejection, persistence rollback, and duplicate prevention, including the A0
 Onion and Onion Seed grant.
+`Kalmala.Gameplay.M9.WorldDepletionPersistence` covers the generated salt
+source's M7 world write, injected write failure, exact-world reload suppression,
+and seed/revision isolation. Run it with the M7 contract test after an Editor
+build.
 Each valid point-of-interest rare source also maps to a distinct original
 collision-free procedural presentation. The source identity is replicated only
 with the already materialized relevant discovery actor; clients do not receive
