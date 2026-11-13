@@ -1,3 +1,32 @@
+## RF30 — Cover M9 exploration reward rollback on player-save failure — 2026-11-13
+
+- **Work completed:** Added an isolated GameMode regression that rejects the
+  first player-save attempt, checks exact inventory and item-identity rollback,
+  unavailable feedback, and absence of durable or session claims. Retrying the
+  same canonical descriptor after persistence recovers checks the exact
+  catalogue reward, saved claim, one session claim, owner success feedback,
+  and duplicate replay without another write or reward. No gameplay behavior
+  changed.
+- **Files changed:**
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardRollbackTest.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Carefully inspected the claim/save/rollback ordering
+  and test fixture; `git diff --check` and changed-path length check passed.
+- **Full verification:** Deferred. The new automation and Editor build were not
+  run; this is not milestone-final verification.
+- **Observable impact:** No runtime behavior changed. A focused regression now
+  detects M9 reward duplication, failed rollback, missing retry, and claim or
+  session-state mutation after player-save rejection.
+- **Networking/authority:** The regression invokes the authoritative GameMode
+  with a canonical descriptor and authenticated player identity. No authority
+  or replication behavior changed.
+- **Known limits:** The regression has not been compiled or executed. The M9
+  exploration acceptance runner and player-scoped persistence coverage remain
+  for milestone-final verification.
+- **Next eligible task:** RF31 — reject malformed biome baseline capture
+  numeric arguments. The overall CR remediation goal remains active.
+
 ## RF29 — Keep Mireling boss scroll claims recoverable after player-save failure — 2026-11-13
 
 - **Work completed:** Eligible Mireling defeats now persist a separate,

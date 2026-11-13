@@ -195,6 +195,7 @@ private:
     friend class FKalmalaMirelingGemRewardDeliveryTest;
     friend class FKalmalaM9WorldDepletionPersistenceTest;
     friend class FKalmalaPlayerDiscoveryFailClosedLoadTest;
+    friend class FKalmalaM9ExplorationRewardRollbackTest;
     friend class FKalmalaOceanSkiffRestoreCollisionTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class FKalmalaMirelingBossScrollRecoveryTest;

@@ -746,7 +746,7 @@
       combat/support baseline and must not be counted as boss-scroll coverage unless it is extended to assert
       that path.
 
-  - [ ] **RF30 — Cover M9 exploration reward rollback on player-save failure (P3; CR03-001b-104).**
+  - [x] **RF30 — Cover M9 exploration reward rollback on player-save failure (P3; CR03-001b-104).**
     **Source:** CR03-001b-104; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10208-10293`,
       `Source/KalmalaGameplay/Public/KalmalaGameMode.h:188-190`, and
       `Source/KalmalaGameplay/Private/Tests/KalmalaStormcutSwordTest.cpp:188-195`.
@@ -754,24 +754,26 @@
       stable claim.
     **Trigger:** A future regression changes the inventory-first claim transaction or its refund after
       `PersistPlayerStateFromServer` rejects the candidate, while the current valid peer scenario remains green.
-    **Impact:** The current handler attempts to restore the prior inventory and reports `Unavailable`; no test
+    **Impact (before repair):** The handler attempted to restore the prior inventory and report `Unavailable`; no test
       proves the real GameMode path leaves neither a reward nor a durable/session claim after the player-slot
       write fails, or that the player can retry once persistence recovers. A regression could grant material
       without a claim or leave inventory mutated while rejecting the discovery.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf30--cover-m9-exploration-reward-rollback-on-player-save-failure-p3.
-    **Proposed repair:** Add an isolated GameMode claim regression using the player-save gate to reject the
-      first persistence attempt, then restore the gate and retry the same canonical descriptor. Assert owner
-      feedback, live inventory, saved claim and session cap at each step.
+    **Repair:** Added `Kalmala.Gameplay.M9.ExplorationRewardRollback`. It rejects the first persistence attempt
+      through the player-save gate and verifies exact inventory rollback, unavailable feedback, and no durable or
+      session claim. Retrying the same canonical descriptor after the gate recovers verifies the exact catalogue
+      quantity, saved claim, one session entry, owner success feedback, and duplicate replay without another write
+      or reward.
     **Dependencies:** After CR19 review acceptance; this finding is a test handoff only and does not authorize
       test changes during CR03.
     **Acceptance:** A forced player-save rejection publishes `Unavailable`, returns inventory to its exact
       pre-claim contents, writes no discovery claim, and leaves the descriptor retryable. Once the save
       succeeds, one retry grants exactly the catalogue quantity and persists one claim; a later replay grants
       nothing.
-    **Focused validation:** Run the new GameMode failure/retry automation,
+    **Focused validation:** Added the GameMode failure/retry automation. After an Editor build, run it with
       `Kalmala.Gameplay.M9.ExplorationRewardCatalogue`, `Scripts/Tests/Progression/ExplorationRewards.ps1`, and
-      `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` after an Editor build.
+      `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`.
 
   - [ ] **RF31 — Reject malformed biome baseline capture numeric arguments (P3; CR03-001b-105, CR18-002 batch 106).**
     **Source:** CR03-001b-105 and CR18-002 batch 106; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10382-10410, 10472-10479, 10668-10678`,
