@@ -32817,3 +32817,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production gameplay is unchanged. The fixture drives the authoritative server damage path, and its save writer is test-only and keeps all population writes in memory.
 - **Known limitations / remaining scope:** The new automation has not been compiled or run in Unreal; full Editor and species-contract verification remains deferred. The CR remediation goal remains open.
 - **Next eligible task:** RF19 — Correct wildlife peer-runner instructions and M4 scenario claims.
+
+## Run 2026-11-13 — RF19 wildlife peer runner and M4 setup corrections
+
+- **Selected task:** RF19, replace the eight missing standalone wildlife peer launchers and correct the M4 setup guide's harness and boss-scroll claims.
+- **Work completed:** Updated the Rat, Peat Husk, Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel and Reef Maw commands to use `Scripts/Tests/Combat/EnemyPeers.ps1` with the matching listed scenario and authored seed (418 for SharedCombat; 445 for the species scenarios). Rewrote the M4 harness description to match its actual `SharedCombat`, `BoarCharge`, `DeerHerd`, and `PlayerScopedPersistence` calls. Removed unsupported claims that the harness runs Mireling/boss-scroll or rendered support journeys, aligned the acceptance statement with the roadmap, and pointed optional boss-scroll recovery verification to RF29.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** `EnemyPeers.ps1 -ListScenarios` passed and listed all mapped scenarios. `ConvertFrom-Markdown` parsed the updated setup guide. Checked all 13 documented `EnemyPeers.ps1 -Scenario` references against the runner's scenario list, confirmed the authored 418/445 seed values against its case definitions, checked that none of the eight retired launcher paths remain in active setup text, and ran `git diff --check`. Compared the M4 description with `VerticalSlice.ps1` and `docs/04-roadmap.md`. No Editor build or peer scenario was run.
+- **Full verification:** Deferred; RF19 is not the final implementation task in the remediation milestone. The Editor build, live peer scenarios, and M4 vertical-slice run remain unexecuted.
+- **Observable impact:** Current wildlife peer instructions resolve to the consolidated runner and real scenario names. The M4 setup text now describes only the harness's actual calls and does not require Mireling, boss-scroll delivery, or rendered two-player coverage that the harness and roadmap do not include.
+- **Networking/authority:** Documentation only; runtime code, peer behavior and server-authority boundaries are unchanged.
+- **Known limitations / remaining scope:** Live peer and vertical-slice execution remains deferred. RF20 and the broader CR remediation queue remain open.
+- **Next eligible task:** RF20 — Correct Mireling gemstone claim delivery.

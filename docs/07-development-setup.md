@@ -2360,7 +2360,7 @@ Run the prototype map twice as a listen server with `-KalmalaReconnectVerificati
 
 This completed M4 peer run is retained as historical evidence, not as an I4
 shared-system test. Its loot, combat-replication and defeat-persistence checks
-overlap the sole current I4 shared scenario, `RatPeer.ps1`.
+overlap the current I4 shared scenario, `EnemyPeers.ps1 -Scenario SharedCombat`.
 
 For historical reproduction, `Scripts/Tests/Combat/DeerPeer.ps1` starts a seed-418
 listen server and conflicting-seed client (999) with isolated temporary user
@@ -2387,23 +2387,24 @@ combined A8a/A8b I4 acceptance. Its source contract complements the single live
 Rat peer scenario below, which owns shared loot, replication and persistence
 acceptance.
 
-After an Editor build, run `Scripts/Tests/Combat/RatPeer.ps1`. The runner
-starts a fixed-seed Meadows listen server and two clients with conflicting
-local seeds. The server searches for and activates an ordinary generated Rat,
-requires its real bite to pressure the host, then defeats it with one normal
-Stone Mace attack. The host pack is full before defeat, so the Rat Tail claim
-must remain pending without a partial grant; after one inventory cell is freed,
-the reward must reach only the credited owner. Clients must observe the
-rejected target-free request, shared action, replicated host health and Rat
-defeat. The runner extracts the exact spawn identity and requires that same Rat
+After an Editor build, run
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario SharedCombat -WorldSeed 418`.
+The runner starts a fixed-seed Meadows listen server and two clients with
+conflicting local seeds. The server searches for and activates an ordinary
+generated Rat, requires its real bite to pressure the host, then defeats it
+with one normal Stone Mace attack. The host pack is full before defeat, so
+the Rat Tail claim must remain pending without a partial grant; after one
+inventory cell is freed, only the credited owner receives the reward. Clients
+must observe the rejected target-free request, shared action, replicated host
+health and Rat defeat. The runner extracts the exact spawn identity and requires that same Rat
 to remain absent after a same-world listen-server restart. The fixture adds no
 client-selected target, damage, reward, identity, RPC, replication field or save
 schema.
 
 ## I4 shared enemy acceptance: one scenario
 
-`Scripts/Tests/Combat/RatPeer.ps1` is the sole live end-to-end enemy
-scenario for the three shared checks:
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario SharedCombat -WorldSeed 418`
+is the sole live end-to-end enemy scenario for the three shared checks:
 
 - loot delivery, full-pack retry, and owner-only reward;
 - defeated-spawn persistence after a same-world restart;
@@ -2465,13 +2466,13 @@ only their authored poison profiles. The surface-winding automation also
 checks the procedural Viper model. Run these editor automations in the combined
 A8a/A8b I4 suite. The earlier `ViperPeer.ps1` result is retained as
 historical evidence of a live weak-poison bite; its shared loot, defeat-restart,
-and replication assertions are not repeated. `RatPeer.ps1` is the sole
-live end-to-end case for those shared systems. Immediately before the historical
-bite scenario, the fixture expired any prior weak/major poison and restored the
-host to full health so unrelated startup encounters could not make the poison
-bite lethal. The Viper Fang drop uses the existing durable claim. The Fang
-Arrows recipe output uses
-its registered Workbench recipe and fixed 50-Pierce attack; accepted wildlife
+and replication assertions are not repeated. The current `SharedCombat`
+scenario is the sole live end-to-end case for those shared systems. Immediately
+before the historical bite scenario, the fixture expired any prior weak/major
+poison and restored the host to full health so unrelated startup encounters
+could not make the poison bite lethal. The Viper Fang drop uses the existing
+durable claim. The Fang Arrows recipe output uses its registered Workbench
+recipe and fixed 50-Pierce attack; accepted wildlife
 hits apply the five-second weak-poison profile. The bow regression covers the shot, tick-clock-preserving
 refresh, five total poison ticks and the authority-owned timer. Its source is
 still contract coverage until compiled and executed during combined A8a/A8b I4.
@@ -2526,8 +2527,10 @@ The regression also checks all four allowlisted effects against malformed
 effect values, client-role activation, and replay/zero-sequence input; verifies
 every learned token survives matching-world reconnect serialization; and audits
 that every support effect is non-damaging. Active-effect fields remain ordinary
-replicated presentation state; a rendered live-peer cast remains part of the
-later M4 vertical slice.
+replicated presentation state. The M4 roadmap requires focused authority,
+persistence and peer regressions, and does not require a rendered two-player
+acceptance scenario. The baseline `VerticalSlice.ps1` does not run a rendered
+live support cast or live peer reconnect journey.
 Live Deer Call activation must remain server-owned: it may influence at most
 three existing idle Deer within 900 cm, must reject before stamina payment when
 none are eligible, and must not create wildlife or alter damage, harvest, loot,
@@ -2543,34 +2546,34 @@ supplies neither cost nor timing. Hearth Shield now keeps its bounded 40-point
 absorption for ten seconds; the focused discovery regression covers that
 server-owned duration constant. Bear's Vigor now keeps its existing 1.4x
 strength and 140-point stamina cap for ten seconds; the same focused discovery
-regression covers its server-owned duration constant. Live support authority
-and reconnect checks remain in the M4 harness.
+regression covers its server-owned duration constant. The M4 baseline runs the
+focused `PlayerScopedPersistence` automation for support authority and
+matching-world save/restore; it does not run a live support cast or peer
+reconnect journey.
 
 ## Mireling boss scroll verification
 
-The focused discovery regression also checks the bounded stable-ID gate and
-world-seed-only optional boss scroll identity. Runtime defeat uses the
-existing server Mireling callback: it validates the defeated actor and
-authenticated attacker, persists the one canonical scroll plus learned effect
-before owner-only feedback, and gives no reward to remote peers. The reward
-does not create a route, reveal a discovery catalogue, or accept client
-location/target/effect input. A rendered live two-peer boss-reward scenario
-remains part of the M4 vertical slice.
+The focused `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` automation
+checks the bounded server-derived stable-ID gate and world-seed-only optional
+boss-scroll identity. It does not exercise a generated Mireling defeat,
+successful owner delivery, or peer privacy. The baseline `VerticalSlice.ps1`
+does not include a Mireling peer or boss-scroll delivery scenario. M4 does not
+require a rendered two-player boss-reward scenario. If boss-scroll recovery
+needs runtime verification, that work is tracked separately under RF29.
 
 ## M4 vertical-slice harness
 
-After an editor build, run `Scripts/Tests/Acceptance/VerticalSlice.ps1`. The harness
-executes the existing isolated two-peer Mireling, boar, and deer scenarios on
-separate ports, retaining each server/client/restart log under one evidence
-directory, then runs `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` for
-all four learned support effects. This establishes the route-free creature,
-owner-only reward, defeat-persistence, non-damaging support, and matching-world
-learning-persistence baseline without adding a route, client-selected target,
-reward, or save input. The Mireling fixture disables movement on its
-server-controlled attacker after placement so gravity cannot invalidate the
-production three-dimensional melee-range proof. A single rendered live run with four support casts,
-late-join/reconnect presentation, and a persisted return state remains the
-final M4 acceptance step.
+After an Editor build, run `Scripts/Tests/Acceptance/VerticalSlice.ps1`. It
+invokes `Scripts/Tests/Combat/EnemyPeers.ps1` for `SharedCombat` (Rat),
+`BoarCharge`, and `DeerHerd` on separate ports, then runs
+`Kalmala.Gameplay.Discovery.PlayerScopedPersistence` for the four support
+effects. The harness covers shared Rat reward retry, owner privacy, replicated
+defeat and restart; Boar charge; Deer herd alert; and focused support authority,
+non-damage and matching-world persistence checks. It does not exercise a
+Mireling defeat or boss-scroll delivery, or run rendered support casts or a
+live support peer reconnect.
+The M4 roadmap accepts focused server-authority, persistence and peer
+regressions; a rendered two-player acceptance scenario is not required.
 
 ## Mireling Mossy Mire spawn regression
 
@@ -2581,8 +2584,10 @@ species proportions, rejection of Mireling outside Mossy Mire, and the dry
 Mossy Mire habitat gate. It also checks the complete 50/20/20/10 Mireling,
 Death Adder, Mosquito and Peat Husk distribution. The Mireling baseline Bone
 Fragment quantity, melee and boss-scroll code remain unchanged.
-This contract source is not live-spawn, reward, or peer acceptance; run the
-M4/M5 Mireling harness and combined A8a/A8b I4 checks after an editor build.
+This contract source does not establish live spawn, reward delivery, or peer
+acceptance. `VerticalSlice.ps1` does not include a Mireling scenario. Run the
+contract with the combined A8a/A8b I4 checks after an Editor build; boss-scroll
+recovery remains separately tracked under RF29.
 
 ## Mosquito swarm contract regression
 
@@ -2658,7 +2663,7 @@ relevant-peer acceptance. No Unreal build or automation
 execution ran in this normal increment; combined A8a/A8b I4 remains required.
 
 After building the Editor target, run
-`Scripts/Tests/Combat/PeatHuskPeer.ps1 -WorldSeed 445`. Its
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario PeatHuskSweep -WorldSeed 445`. Its
 Development-only fixture selects and activates a normal generated Peat Husk
 descriptor at least 150 m from the generated player start, moves the listen
 host into the reviewed sweep, and requires the server telegraph/recovery and
@@ -2685,11 +2690,12 @@ acceptance. No Unreal build or automation execution ran in this normal
 increment; combined A8a/A8b I4 remains required.
 
 The Development-only live pack check is
-`Scripts/Tests/Combat/WolfPeer.ps1 -WorldSeed 445`. It selects an
-undefeated generated Tundra pack with three valid member identities, positions
-the listen host inside the first Wolf's 180 cm bite boundary, and activates the
-normal population key. The server requires all three 250-health members in
-their stable triangular formation, then observes the first Wolf's replicated
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario WolfPack -WorldSeed 445`.
+It selects an undefeated generated Tundra pack with three valid member
+identities, positions the listen host inside the first Wolf's 180 cm bite
+boundary, and activates the normal population key. The server requires all
+three 250-health members in their stable triangular formation, then observes
+the first Wolf's replicated
 telegraph, lunge, recovery, and accepted bite. Both remote clients must observe
 that member's replicated telegraph. The fixture stays outside Shipping builds
 and does not repeat Rat's shared reward, persistence, or combat-state checks.
@@ -2716,11 +2722,11 @@ A8a/A8b I4 remains required.
 ## Freezing Tundra Lynx generated peer acceptance
 
 After an Editor build, run
-`Scripts/Tests/Combat/LynxPeer.ps1 -WorldSeed 445`. The Development-only
-fixture selects an undefeated Lynx from the normal seeded Freezing Tundra
-population descriptors, verifies its 150-health profile, and activates its
-ordinary population key after staging the listen host on dry Tundra 50 m from
-the descriptor. It selects only a descriptor retained by the same biome budget
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario LynxLeap -WorldSeed 445`.
+The Development-only fixture selects an undefeated Lynx from the normal seeded
+Freezing Tundra population descriptors, verifies its 150-health profile, and
+activates its ordinary population key after staging the listen host on dry
+Tundra 50 m from the descriptor. It selects only a descriptor retained by the same biome budget
 and Tundra actor cap as normal key activation. After the descriptor materializes,
 it moves the host within the 350 cm server leap reach and two observer clients
 10 m and 15 m from the Lynx. Require the server's
@@ -2734,8 +2740,8 @@ of combined A8a/A8b I4.
 ## Freezing Tundra Polar Bear generated peer acceptance
 
 After an Editor build, run
-`Scripts/Tests/Combat/PolarBearPeer.ps1 -WorldSeed 445`. The
-Development-only fixture selects an undefeated Polar Bear from the normal
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario PolarBearCharge -WorldSeed 445`.
+The Development-only fixture selects an undefeated Polar Bear from the normal
 seeded Freezing Tundra descriptors, applies the normal biome population budget
 and Tundra actor cap, and verifies the 150 m generated-start exclusion. It
 stages the listen host 50 m away while the ordinary population key activates,
@@ -2752,11 +2758,11 @@ of combined A8a/A8b I4.
 ## Thunder Mountains Horned Goat generated peer acceptance
 
 After an Editor build, run
-`Scripts/Tests/Combat/HornedGoatPeer.ps1 -WorldSeed 445`. The
-Development-only fixture selects an undefeated Horned Goat from the ordinary
-seeded Thunder Mountains population after applying the normal population
-budget. It stages the listen host outside the 3 m territorial trigger while
-the normal key activates, then places the host within the 180 cm server horn
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario HornedGoatPush -WorldSeed 445`.
+The Development-only fixture selects an undefeated Horned Goat from the
+ordinary seeded Thunder Mountains population after applying the normal
+population budget. It stages the listen host outside the 3 m territorial
+trigger while the normal key activates, then places the host within the 180 cm server horn
 reach on a dry traversable lane. Two remote clients observe the same generated
 Goat from 10 m and 15 m away. Require its 200-health/50-Armor profile, the
 server telegraph and recovery, accepted Crush damage, measurable server-owned
@@ -2769,8 +2775,8 @@ its live run remains part of combined A8a/A8b I4.
 ## Thunder Mountains Thunder Sentinel generated peer acceptance
 
 After an Editor build, run
-`Scripts/Tests/Combat/ThunderSentinelPeer.ps1 -WorldSeed 445`. The
-Development-only fixture selects an undefeated generated Thunder Sentinel
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario ThunderSentinelSlam -WorldSeed 445`.
+The Development-only fixture selects an undefeated generated Thunder Sentinel
 from normal Thunder Mountains descriptors after applying the population
 budget and actor cap. It verifies the shared 150 m hard-enemy start exclusion,
 then activates the ordinary population key with the listen host 700 cm away.
@@ -2788,11 +2794,11 @@ replication acceptance; this live run remains part of combined A8a/A8b I4.
 ## Ocean Reef Maw generated peer acceptance
 
 After an Editor build, run
-`Scripts/Tests/Combat/ReefMawPeer.ps1 -WorldSeed 445`. The Development-only
-fixture selects an undefeated Reef Maw from ordinary Ocean population descriptors
-using Ocean's full descriptor budget and ordinary actor cap (Ocean has no
-expansion-budget reduction). It requires the shared 150 m
-hard-enemy start exclusion and finds a generated Ocean path at least 150 cm deep,
+`Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario ReefMawBite -WorldSeed 445`.
+The Development-only fixture selects an undefeated Reef Maw from ordinary
+Ocean population descriptors using Ocean's full descriptor budget and ordinary
+actor cap (Ocean has no expansion-budget reduction). It requires the shared
+150 m hard-enemy start exclusion and finds a generated Ocean path at least 150 cm deep,
 excluding Shimmering Lakes, for the host and both observers. The normal population
 key is activated before the three peers are staged as unattached swimmers. Require
 the generated 180-health/2-Armor profile, a 50-Stab server bite within 180 cm,
@@ -3173,7 +3179,7 @@ not establish readability at other distances or during other lighting.
 
 This completed M5 rendered peer run is retained as historical visual and
 Mireling-specific evidence. Its generic reward, combat-replication and defeat-
-persistence assertions overlap the sole I4 shared scenario, `RatPeer.ps1`.
+persistence assertions overlap the sole I4 shared scenario, `SharedCombat`.
 For historical reproduction, run `Scripts/Tests/Combat/MirelingPeer.ps1 -Rendered` after an editor build to capture
 the original Mireling in a bounded listen-host/client encounter. The transient
 host camera is positioned after the fixture arranges the generated actor; the
@@ -3562,7 +3568,7 @@ After an editor build, run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rende
 
 The completed M7 Boar peer run is retained as historical evidence. Do not rerun
 it for I4 shared loot, combat-replication or defeat-persistence coverage; those
-three shared checks are exercised together by `RatPeer.ps1`. The Boar
+three shared checks are exercised together by `SharedCombat`. The Boar
 run's species-specific spawn and charge evidence remains recorded in its prior
 acceptance result.
 
