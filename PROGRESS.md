@@ -1,3 +1,32 @@
+## RF34 — Select a persistent source for harvest restart verification — 2026-11-13
+
+- **Work completed:** Harvest and Verify now choose the same first generated
+  mining descriptor supported by the starting Stone Pick and skip M9 sources.
+  Harvest checks that the player has the tool, then follows the existing server
+  tool transaction and still requires the durable population harvested-ID
+  record before logging success. Missing eligible-source or tool preconditions
+  fail before population activation. The developer setup guide now describes
+  the selection and failure behavior.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed. Inspected mining-source
+  selection, M9 exclusion, Stone Pick support, starting-tool availability,
+  server harvesting, and the sparse population save callback.
+- **Full verification:** Deferred. No Editor build or
+  `Scripts/Tests/Survival/PersistedCampRestart.ps1` process-restart run was
+  executed; this is not milestone-final verification.
+- **Observable impact:** A tree or M9 descriptor at index zero no longer makes
+  the durable harvest restart fixture attempt the wrong interaction or ledger.
+  If no eligible source or starting tool exists, the helper reports a clear
+  setup failure before population activation.
+- **Networking/authority:** Descriptor choice and harvesting remain server-side
+  and derive from the server world and player. No client-selected spawn ID or
+  outcome is accepted.
+- **Known limits:** Fixed-seed and tree/M9-first process-restart scenarios still
+  need Editor-backed verification.
+- **Next eligible task:** RF35 — reconcile four-player terrain neighborhoods
+  with the 25-patch cap. The overall CR remediation goal remains active.
+
 ## RF33 — Restore the ambient-audio accepted-craft peer fixture — 2026-11-13
 
 - **Work completed:** Replaced the rejected Cooking Rack buildable recipe in the

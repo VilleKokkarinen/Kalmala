@@ -852,7 +852,7 @@
       requirement, and matching host/client result marker. The Editor build, `-WeatherExposureOnly` peer run,
       and normal visible-water peer run remain deferred; none ran in this normal increment.
 
-  - [ ] **RF34 — Select a persistent, interactable source for the harvest restart fixture (P2; CR03-001b-111).**
+  - [x] **RF34 — Select a persistent, interactable source for the harvest restart fixture (P2; CR03-001b-111).**
     **Source:** CR03-001b-111; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:11566-11638`,
       `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:139-164`,
       `Source/KalmalaWorld/Public/KalmalaBiomeContentContract.h:43,125`,
@@ -873,19 +873,23 @@
       persistence contract.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf34--select-a-persistent-interactable-source-for-the-harvest-restart-fixture-p2.
-    **Proposed repair:** Select a descriptor whose current interaction and depletion path writes the population
-      save's harvested-ID set, and fail early with a clear precondition if none exists. Keep session-only M9
-      depletion on a separate verification path.
+    **Repair:** Harvest and Verify now select the same first generated mining descriptor supported by the
+      starting Stone Pick and exclude M9 source identities. The Harvest phase checks the tool is available,
+      then uses the existing server tool transaction; the durable `PopulationSaveGame` harvested-ID check
+      remains the success gate. Unsupported modes and missing source/tool preconditions fail before population
+      activation. Tree and hand-gathered sources are skipped; M9's session-only depletion remains outside this
+      durable restart check.
     **Dependencies:** After CR19 review acceptance; this finding is a review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** `Harvest` accepts a supported generated node and records its persistent spawn ID in the
       population save. A new process with the same world identity reloads that ID and suppresses the node. A
       start key whose first generated descriptor is a tree or M9 source still selects an eligible persistent
       target or reports a clear setup failure before claiming test success.
-    **Focused validation:** After an Editor build, run `Scripts/Tests/Survival/PersistedCampRestart.ps1` for the
-      existing fixed-seed case and a case whose first start-key descriptor is a Meadow tree or M9 source;
-      confirm both process logs contain the required success markers and the restarted server has no actor for
-      the saved ID.
+    **Focused validation:** `git diff --check` passed. Source inspection confirms selection skips tree and
+      hand-gathered sources through the mining-action contract, excludes M9 identities, requires the supported
+      starting Stone Pick, and derives the same persistent ID for both phases. The Editor build and
+      `Scripts/Tests/Survival/PersistedCampRestart.ps1` runs for the fixed seed and a tree/M9-first case remain
+      deferred; neither process-restart scenario ran in this normal increment.
 
   - [ ] **RF35 — Reconcile four-player terrain neighborhoods with the 25-patch cap (P2; CR03-001b-112).**
     **Source:** CR03-001b-112;

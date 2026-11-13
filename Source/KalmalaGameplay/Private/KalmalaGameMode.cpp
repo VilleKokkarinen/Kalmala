@@ -12715,6 +12715,15 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
         return;
     }
 
+    const bool bHarvestMode = ReconnectVerificationMode.Equals(TEXT("Harvest"), ESearchCase::IgnoreCase);
+    const bool bVerifyHarvestMode = ReconnectVerificationMode.Equals(TEXT("Verify"), ESearchCase::IgnoreCase);
+    if (!bHarvestMode && !bVerifyHarvestMode)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Reconnect verification mode must be Harvest, Verify, WildlifeDefeat, or WildlifeVerify."));
+        FPlatformMisc::RequestExit(false);
+        return;
+    }
+
     const TArray<FKalmalaWorldPopulationSpawn> HarvestSpawns = FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(WorldGenerationConfig, SpatialKey, EKalmalaWorldPopulationKind::HarvestNode);
     if (HarvestSpawns.IsEmpty())
     {
@@ -12723,9 +12732,44 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
         return;
     }
 
-    const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(HarvestSpawns[0]);
+    const FKalmalaWorldPopulationSpawn* PersistentHarvestSpawn = nullptr;
+    FKalmalaToolServerSelection PersistentHarvestSelection;
+    const FKalmalaToolDefinition* PersistentHarvestTool = nullptr;
+    for (const FKalmalaWorldPopulationSpawn& Spawn : HarvestSpawns)
+    {
+        if (FKalmalaM9SourceLootContract::IsM9Source(Spawn.ContentId)) continue;
+        FKalmalaToolServerSelection CandidateSelection;
+        if (!FKalmalaToolLifecycleContract::BuildServerSelection(Spawn.ContentId, CandidateSelection)
+            || CandidateSelection.Action != EKalmalaToolAction::Mining) continue;
+        const FKalmalaToolDefinition* CandidateTool = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(CandidateSelection);
+        if (CandidateTool == nullptr || CandidateTool->ItemId != TEXT("StonePick")) continue;
+        PersistentHarvestSpawn = &Spawn;
+        PersistentHarvestSelection = CandidateSelection;
+        PersistentHarvestTool = CandidateTool;
+        break;
+    }
+    if (PersistentHarvestSpawn == nullptr || PersistentHarvestTool == nullptr)
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Reconnect verification requires a generated non-M9 mining node supported by the starting Stone Pick in spatial key (%d,%d); none was found."),
+            SpatialKey.X, SpatialKey.Y);
+        FPlatformMisc::RequestExit(false);
+        return;
+    }
+
+    const FString PersistentSpawnId = FKalmalaWorldPopulationLayout::GetPersistentSpawnId(*PersistentHarvestSpawn);
+    AKalmalaCharacter* Interactor = Cast<AKalmalaCharacter>(ServerPawn);
+    if (bHarvestMode && (Interactor == nullptr || Interactor->GetToolDurability(PersistentHarvestTool->ItemId) <= 0))
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Reconnect verification requires the starting Stone Pick to be available before harvesting %s."),
+            *PersistentSpawnId);
+        FPlatformMisc::RequestExit(false);
+        return;
+    }
+
     ActivatePopulationKey(SpatialKey);
-    if (ReconnectVerificationMode.Equals(TEXT("Harvest"), ESearchCase::IgnoreCase))
+    if (bHarvestMode)
     {
         for (TActorIterator<AKalmalaHarvestNode> NodeIterator(GetWorld()); NodeIterator; ++NodeIterator)
         {
@@ -12733,27 +12777,11 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             if (Node != nullptr && Node->GetPersistentSpawnId() == PersistentSpawnId)
             {
                 ServerPawn->SetActorLocation(Node->GetActorLocation());
-                AKalmalaCharacter* Interactor = Cast<AKalmalaCharacter>(ServerPawn);
-                bool bHarvestAccepted = false;
-                if (Interactor != nullptr && Node->GetGatheringSourceId().IsNone())
-                {
-                    Node->Interact_Implementation(Interactor);
-                    bHarvestAccepted = Node->IsHarvested();
-                }
-                else if (Interactor != nullptr)
-                {
-                    FKalmalaToolServerSelection Selection;
-                    if (FKalmalaToolLifecycleContract::BuildServerSelection(Node->GetGatheringSourceId(), Selection))
-                    {
-                        const FKalmalaToolDefinition* Tool = FKalmalaToolLifecycleContract::FindMinimumQualifiedTool(Selection);
-                        if (Tool != nullptr)
-                        {
-                            bHarvestAccepted = Node->InteractWithToolIntentFromServer(Interactor, 0.0f,
-                                FKalmalaToolLifecycleContract::DefaultMaximumRange, Tool->ItemId,
-                                static_cast<uint8>(Selection.Action));
-                        }
-                    }
-                }
+                const bool bHarvestAccepted = Interactor != nullptr
+                    && Node->GetGatheringSourceId() == PersistentHarvestSpawn->ContentId
+                    && Node->InteractWithToolIntentFromServer(Interactor, 0.0f,
+                        FKalmalaToolLifecycleContract::DefaultMaximumRange, PersistentHarvestTool->ItemId,
+                        static_cast<uint8>(PersistentHarvestSelection.Action));
 
                 if (bHarvestAccepted && PopulationSaveGame->IsHarvested(PersistentSpawnId))
                 {
@@ -12770,7 +12798,7 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
         }
         UE_LOG(LogTemp, Error, TEXT("Reconnect verification could not activate its generated harvest node before restart."));
     }
-    else if (ReconnectVerificationMode.Equals(TEXT("Verify"), ESearchCase::IgnoreCase))
+    else if (bVerifyHarvestMode)
     {
         bool bNodeRecreated = false;
         for (TActorIterator<AKalmalaHarvestNode> NodeIterator(GetWorld()); NodeIterator; ++NodeIterator)
@@ -12790,11 +12818,6 @@ void AKalmalaGameMode::RunReconnectVerification(APawn* ServerPawn)
             UE_LOG(LogTemp, Error, TEXT("Reconnect verification failed: harvested state=%d, node recreated=%d."), PopulationSaveGame->IsHarvested(PersistentSpawnId), bNodeRecreated);
         }
     }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Reconnect verification mode must be Harvest, Verify, WildlifeDefeat, or WildlifeVerify."));
-    }
-
     FPlatformMisc::RequestExit(false);
 }
 
