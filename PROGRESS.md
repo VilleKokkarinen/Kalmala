@@ -1,3 +1,34 @@
+## RF23 — World save and Home-return transactions — 2026-11-13
+
+- **Work completed:** Added a GameMode regression for standalone and listen-host
+  world/player saves, injected write failures and retry, authenticated client-only
+  persistence, successful checkpoint reopening, logout/driver ordering, and an
+  in-flight late join. Listen-host return now rejects new `PreLogin` attempts;
+  clients already accepted are added to the drain and saved before return.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaWorldHomeReturnTransactionTest.cpp`,
+  `docs/startmenu.md`, `docs/07-development-setup.md`, `BACKLOG.md`, and
+  `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed; inspected return guards,
+  save callbacks, pending-client updates, and the teardown-before-Home ordering;
+  checked changed paths remain under the Windows path limit. The new automation
+  source was inspected but not run.
+- **Full verification:** Deferred; no Editor build, automation run, live peer
+  join attempt, or create/save/logout/reopen session was performed. This is not
+  milestone-final verification.
+- **Observable impact:** A listen host no longer misses a client whose login
+  passed admission just before return began. Failed late-player persistence keeps
+  the client in the drain so it can retry before driver teardown.
+- **Networking/authority:** Admission and drain changes run in the authoritative
+  GameMode. Player writes remain server-side and owner-bound; client return still
+  writes only the authenticated requesting player's record. Save schemas are
+  unchanged.
+- **Known limits:** Live join timing and disk-backed reopen behavior remain
+  unverified; component checkpoints remain separate writes.
+- **Next eligible task:** RF24 — protect a collision-blocked saved skiff from
+  replacement. The overall CR remediation goal remains active.
+
 ## CR03-001b-28 - Mosquito fixture activation review - 2026-10-31
 
 - Reviewed GameMode 2213-2258; no new confirmed finding. RF01 queued; no code changed.

@@ -331,7 +331,11 @@ the client to local Home. A rejected save leaves the client connected and able t
 retry. The listen host saves every active player's existing record before
 requesting remote clients to return locally. It waits for their disconnects,
 retains the existing logout saves, closes its listen net driver, and then opens
-Home locally. A failed initial save leaves the session active and retryable. On
+Home locally. Once return begins, PreLogin rejects new clients. A client already
+past PreLogin is added to the pending drain at PostLogin and its player record is
+saved before it is asked to return. If that save fails, the host keeps the
+session and driver open and waits for that client to retry its own save and
+logout. A failed initial save also leaves the session active and retryable. On
 shutdown/failure release widgets, delegates, timers and pending request tokens.
 Home actions and Join cancellation also verify the current menu controller and
 flow screen before changing state, so callbacks from a prior world cannot affect

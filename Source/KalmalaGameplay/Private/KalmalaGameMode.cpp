@@ -10068,13 +10068,82 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     return true;
 }
 
+ENetMode AKalmalaGameMode::GetHomeReturnNetMode(const UWorld* World) const
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (HomeReturnNetModeForTests) return HomeReturnNetModeForTests(World);
+#endif
+    return World != nullptr ? World->GetNetMode() : NM_Standalone;
+}
+
+bool AKalmalaGameMode::IsHomeReturnLocalController(const APlayerController* Controller) const
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (HomeReturnLocalControllerForTests) return HomeReturnLocalControllerForTests(Controller);
+#endif
+    return Controller != nullptr && Controller->IsLocalController();
+}
+
+bool AKalmalaGameMode::HasHomeReturnConnection(const APlayerController* Controller) const
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (HomeReturnConnectionForTests) return HomeReturnConnectionForTests(Controller);
+#endif
+    return Controller != nullptr && Controller->GetNetConnection() != nullptr;
+}
+
+bool AKalmalaGameMode::SaveHomeReturnComponent(USaveGame* SaveGame, const FString& Slot) const
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (WorldComponentSaveWriterForTests)
+        return WorldComponentSaveWriterForTests(SaveGame, Slot, 0);
+#endif
+    return UGameplayStatics::SaveGameToSlot(SaveGame, Slot, 0);
+}
+
+void AKalmalaGameMode::SendHomeReturnClientResponse(AKalmalaCharacter* Character, const bool bSaved)
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (HomeReturnClientResponseForTests)
+    {
+        HomeReturnClientResponseForTests(Character, bSaved);
+        return;
+    }
+#endif
+    if (Character != nullptr) Character->ClientReturnToHomeResult(bSaved);
+}
+
+void AKalmalaGameMode::OpenHomeAfterReturn(APlayerController* Controller)
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (HomeReturnTravelForTests)
+    {
+        HomeReturnTravelForTests(Controller);
+        return;
+    }
+#endif
+    UGameplayStatics::OpenLevel(Controller, FName(TEXT("/Game/Kalmala/Maps/Menu/L_Menu")), true);
+}
+
+bool AKalmalaGameMode::TearDownListenHostDriverForReturn(UWorld* World)
+{
+    if (World == nullptr) return false;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (ListenHostNetDriverTeardownForTests) return ListenHostNetDriverTeardownForTests(World);
+#endif
+    if (World->GetNetDriver() != nullptr && GEngine != nullptr)
+        GEngine->DestroyNamedNetDriver(World, NAME_GameNetDriver);
+    return World->GetNetDriver() == nullptr;
+}
+
 bool AKalmalaGameMode::TrySaveWorldFromLocalHost(APlayerController* RequestingController)
 {
     UWorld* World = GetWorld();
-    if (!HasAuthority() || !World || (World->GetNetMode() != NM_Standalone
-        && World->GetNetMode() != NM_ListenServer) || !IsValid(RequestingController)
+    const ENetMode NetMode = GetHomeReturnNetMode(World);
+    if (!HasAuthority() || !World || (NetMode != NM_Standalone
+        && NetMode != NM_ListenServer) || !IsValid(RequestingController)
         || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
-        || !RequestingController->IsLocalController() || bSoloReturnToHomeInProgress
+        || !IsHomeReturnLocalController(RequestingController) || bSoloReturnToHomeInProgress
         || bListenHostReturnInProgress) return false;
 
     if (!PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
@@ -10083,10 +10152,10 @@ bool AKalmalaGameMode::TrySaveWorldFromLocalHost(APlayerController* RequestingCo
         || !StorageSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
     bool bSaved = WritePopulationSaveToSlot();
-    bSaved &= UGameplayStatics::SaveGameToSlot(ConstructionSaveGame,
-        KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0);
-    bSaved &= UGameplayStatics::SaveGameToSlot(StorageSaveGame,
-        UKalmalaStorageSaveGame::MakeSlotName(WorldGenerationConfig), 0);
+    bSaved &= SaveHomeReturnComponent(ConstructionSaveGame,
+        KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig));
+    bSaved &= SaveHomeReturnComponent(StorageSaveGame,
+        UKalmalaStorageSaveGame::MakeSlotName(WorldGenerationConfig));
     for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
     {
         APlayerController* Player = It->Get();
@@ -10099,10 +10168,10 @@ bool AKalmalaGameMode::TrySaveWorldFromLocalHost(APlayerController* RequestingCo
 bool AKalmalaGameMode::TryReturnToHomeFromSolo(APlayerController* RequestingController)
 {
     UWorld* World = GetWorld();
-    if (!HasAuthority() || World == nullptr || World->GetNetMode() != NM_Standalone
+    if (!HasAuthority() || World == nullptr || GetHomeReturnNetMode(World) != NM_Standalone
         || bSoloReturnToHomeInProgress || !IsValid(RequestingController)
         || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
-        || !RequestingController->IsLocalController()) return false;
+        || !IsHomeReturnLocalController(RequestingController)) return false;
 
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(RequestingController->GetPawn());
     if (!IsValid(Character) || Character->GetWorld() != World || !Character->HasAuthority()
@@ -10110,7 +10179,7 @@ bool AKalmalaGameMode::TryReturnToHomeFromSolo(APlayerController* RequestingCont
 
     if (!TrySaveWorldFromLocalHost(RequestingController)) return false;
     bSoloReturnToHomeInProgress = true;
-    UGameplayStatics::OpenLevel(RequestingController, FName(TEXT("/Game/Kalmala/Maps/Menu/L_Menu")), true);
+    OpenHomeAfterReturn(RequestingController);
     return true;
 }
 
@@ -10118,11 +10187,12 @@ bool AKalmalaGameMode::TryReturnNetworkClientToHomeFromServer(
     APlayerController* RequestingController, AKalmalaCharacter* Character)
 {
     UWorld* World = GetWorld();
+    const ENetMode NetMode = GetHomeReturnNetMode(World);
     if (!HasAuthority() || World == nullptr
-        || (World->GetNetMode() != NM_ListenServer && World->GetNetMode() != NM_DedicatedServer)
+        || (NetMode != NM_ListenServer && NetMode != NM_DedicatedServer)
         || !IsValid(RequestingController) || !IsValid(Character)
-        || RequestingController->GetWorld() != World || RequestingController->IsLocalController()
-        || RequestingController->GetNetConnection() == nullptr || RequestingController->GetPawn() != Character
+        || RequestingController->GetWorld() != World || IsHomeReturnLocalController(RequestingController)
+        || !HasHomeReturnConnection(RequestingController) || RequestingController->GetPawn() != Character
         || Character->GetWorld() != World || !Character->HasAuthority()
         || Character->GetController() != RequestingController) return false;
 
@@ -10140,10 +10210,10 @@ bool AKalmalaGameMode::TryReturnNetworkClientToHomeFromServer(
 bool AKalmalaGameMode::TryReturnListenHostToHome(APlayerController* RequestingController)
 {
     UWorld* World = GetWorld();
-    if (!HasAuthority() || World == nullptr || World->GetNetMode() != NM_ListenServer
+    if (!HasAuthority() || World == nullptr || GetHomeReturnNetMode(World) != NM_ListenServer
         || bListenHostReturnInProgress || !IsValid(RequestingController)
         || RequestingController->GetWorld() != World || !RequestingController->HasAuthority()
-        || !RequestingController->IsLocalController()) return false;
+        || !IsHomeReturnLocalController(RequestingController)) return false;
 
     AKalmalaCharacter* HostCharacter = Cast<AKalmalaCharacter>(RequestingController->GetPawn());
     if (!IsValid(HostCharacter) || HostCharacter->GetWorld() != World || !HostCharacter->HasAuthority()
@@ -10161,9 +10231,9 @@ bool AKalmalaGameMode::TryReturnListenHostToHome(APlayerController* RequestingCo
             || Character->GetController() != PlayerController) return false;
 
         bFoundRequestingController |= PlayerController == RequestingController;
-        if (!PlayerController->IsLocalController())
+        if (!IsHomeReturnLocalController(PlayerController))
         {
-            if (PlayerController->GetNetConnection() == nullptr) return false;
+            if (!HasHomeReturnConnection(PlayerController)) return false;
             RemoteControllers.Add(PlayerController);
         }
 
@@ -10180,7 +10250,7 @@ bool AKalmalaGameMode::TryReturnListenHostToHome(APlayerController* RequestingCo
     for (APlayerController* RemoteController : RemoteControllers)
     {
         if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(RemoteController->GetPawn()))
-            Character->ClientReturnToHomeResult(true);
+            SendHomeReturnClientResponse(Character, true);
     }
 
     if (PendingListenHostReturnClients.IsEmpty())
@@ -10197,12 +10267,9 @@ void AKalmalaGameMode::CompleteListenHostReturn()
     APlayerController* HostController = ListenHostReturningController.Get();
     if (!HasAuthority() || World == nullptr || !bListenHostReturnInProgress
         || !PendingListenHostReturnClients.IsEmpty() || !IsValid(HostController)
-        || HostController->GetWorld() != World || !HostController->IsLocalController()) return;
+        || HostController->GetWorld() != World || !IsHomeReturnLocalController(HostController)) return;
 
-    if (World->GetNetDriver() != nullptr && GEngine != nullptr)
-        GEngine->DestroyNamedNetDriver(World, NAME_GameNetDriver);
-
-    if (World->GetNetDriver() != nullptr)
+    if (!TearDownListenHostDriverForReturn(World))
     {
         World->GetTimerManager().SetTimerForNextTick(
             FTimerDelegate::CreateUObject(this, &AKalmalaGameMode::CompleteListenHostReturn));
@@ -10212,7 +10279,7 @@ void AKalmalaGameMode::CompleteListenHostReturn()
     PendingListenHostReturnClients.Reset();
     ListenHostReturningController.Reset();
     bListenHostReturnInProgress = false;
-    UGameplayStatics::OpenLevel(HostController, FName(TEXT("/Game/Kalmala/Maps/Menu/L_Menu")), true);
+    OpenHomeAfterReturn(HostController);
 }
 
 void AKalmalaGameMode::LoadOceanTravelWorldSave()
@@ -11322,6 +11389,38 @@ void AKalmalaGameMode::Logout(AController* Exiting)
     }
 }
 
+bool AKalmalaGameMode::HandleInFlightListenHostJoin(APlayerController* NewPlayer)
+{
+    if (!HasAuthority() || !bListenHostReturnInProgress || !IsValid(NewPlayer)
+        || NewPlayer->GetWorld() != GetWorld() || IsHomeReturnLocalController(NewPlayer)) return false;
+
+    PendingListenHostReturnClients.Add(TWeakObjectPtr<APlayerController>(NewPlayer));
+    AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(NewPlayer->GetPawn());
+    if (IsValid(Character) && Character->GetWorld() == GetWorld()
+        && PersistPlayerStateFromServer(Character))
+    {
+        SendHomeReturnClientResponse(Character, true);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning,
+            TEXT("Listen host Home return is waiting for an in-flight late join whose player save failed; the session remains open for retry."));
+    }
+    return true;
+}
+
+void AKalmalaGameMode::PreLogin(const FString& Options, const FString& Address,
+    const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+    if (bListenHostReturnInProgress)
+    {
+        if (ErrorMessage.IsEmpty())
+            ErrorMessage = TEXT("This session is returning to Home and is no longer accepting players.");
+        return;
+    }
+    Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+}
+
 void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 {
     Super::PostLogin(NewPlayer);
@@ -11415,6 +11514,8 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
         }
         PendingOceanTravelRestores.AddUnique(NewPlayer);
     }
+
+    if (HandleInFlightListenHostJoin(NewPlayer)) return;
 
 #if !UE_BUILD_SHIPPING
     const bool bAmbientAudioTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest"));

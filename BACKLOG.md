@@ -536,18 +536,17 @@
       `Kalmala.Gameplay.Discovery.Schema3CurrentFormat`, and
       `Scripts/Tests/Progression/Schema2CandidateReconnect.ps1` after an Editor build.
 
-  - [ ] **RF23 — Cover world save and Home-return transactions (P3; CR03-001b-100/CR17-004).**
+  - [x] **RF23 — Cover world save and Home-return transactions (P3; CR03-001b-100/CR17-004).**
     **Source:** CR03-001b-100; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9588-9710`.
     **Affected path:** Saving population, construction, storage, and authenticated player state before solo
       return, network-client return, or listen-host shutdown/Home travel.
     **Trigger:** A regression changes save ordering, mode/controller/pawn validation, failure retry state, or
       the listen-host client-disconnect/net-driver teardown sequence while current presentation checks remain
       green.
-    **Impact:** Static inspection found the current server-side gates and failure behavior consistent with the
-      start-menu contract. No focused automation establishes that world slots and player records are all
-      attempted, a failed write retains a retryable session, a network client saves only its own player record,
-      or a listen host waits for remote logout and driver teardown before returning Home. The documented live
-      create/save/logout/reopen confirmation remains pending, so these paths lack a regression gate.
+    **Impact:** Static inspection found the existing server-side gates and failure behavior consistent with the
+      start-menu contract. This increment adds an isolated regression for world/player writes, retryable failure,
+      client-only persistence, late-join admission/drain, and listen-driver completion ordering. The automation
+      has not been run; the documented live peer and create/save/logout/reopen confirmation remains pending.
     **CR17-004 review evidence:** The listen host snapshots remote controllers before waiting for logout, but no `PreLogin` gate or equivalent return-window admission check prevents a late join. That client is absent from `PendingListenHostReturnClients`; after tracked clients leave, driver teardown can disconnect the late join. This race is inferred from source and was not reproduced live.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf23--cover-world-save-and-home-return-transactions-p3.

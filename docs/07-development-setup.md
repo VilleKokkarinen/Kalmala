@@ -4418,6 +4418,19 @@ schema-2 save; reward materials remain session-only because ordinary inventory
 is not saved. The fixture uses the null renderer, so it does not review the
 discovery's visual presentation in-world.
 
+### World save and Home-return transaction regression
+
+After an Editor build, run `Kalmala.Gameplay.Persistence.WorldHomeReturnTransaction`
+with an isolated `-UserDir`, `-abslog`, memory DDC, and
+`-TestExit="Automation Test Queue Empty"`. The fixture injects failures for
+population, construction, storage, and authenticated player writes; checks solo
+and listen-host retry state; verifies a network client writes only its own
+record; reopens successful in-memory checkpoints; and holds listen-host travel
+until snapshotted and in-flight clients log out and driver teardown completes.
+It also checks that new joins are rejected after return begins. This automation
+does not replace the live peer attempt to join during return or the documented
+create/save/logout/reopen acceptance.
+
 ### M9 current-schema save verification
 
 After the forced editor build, run `Kalmala.Gameplay.Construction.Schema7CurrentFormat`, `Kalmala.Gameplay.Construction.Schema7WriteCandidate`, `Kalmala.Gameplay.Discovery.Schema3CurrentFormat`, and `Kalmala.Gameplay.Persistence.PlayerDiscoveryFailClosedLoad` with isolated `-UserDir`, `-abslog`, `-DDC-ForceMemoryCache`, and `-TestExit="Automation Test Queue Empty"` arguments. These checks cover current-format round-trips, exact identity and owner validation, malformed and over-cap rejection, Kiln and Smelter queue/timer persistence, Garden Plot crop-mode/active-time and Timber Door open-state persistence, exact wall-record replacement, duplicate IDs, and candidate isolation. The fail-closed GameMode regression exercises schema, owner, world seed/revision, and stale M9 claim rejection through player-save load and persistence; it compares the original in-memory slot bytes and confirms a valid current-format slot still restores. No schema-conversion tests run because compatibility migrations are intentionally absent until the game is released.

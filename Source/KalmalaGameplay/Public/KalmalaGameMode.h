@@ -18,6 +18,7 @@ struct FKalmalaCharcoalKilnState;
 struct FKalmalaSmelterState;
 struct FKalmalaGardenPlotState;
 struct FKalmalaStandingLightState;
+struct FUniqueNetIdRepl;
 enum class EKalmalaOceanSkiffSeat : uint8;
 
 /** Session-only capacity held for prospective wildlife actors; no actor is created here. */
@@ -97,6 +98,8 @@ public:
 
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaSeconds) override;
+    virtual void PreLogin(const FString& Options, const FString& Address,
+        const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
     virtual void PostLogin(APlayerController* NewPlayer) override;
     virtual void Logout(AController* Exiting) override;
     virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
@@ -163,6 +166,7 @@ private:
     friend class FKalmalaStormcutAcceptedHitWearTest;
     friend class FKalmalaPopulationLivingPlayersTest;
     friend class FKalmalaPopulationSpatialKeyUnionTest;
+    friend class FKalmalaWorldHomeReturnTransactionTest;
     friend class FKalmalaPopulationSchedulerCadenceTest;
     friend class FKalmalaPopulationSchedulerBudgetTest;
     friend class FKalmalaPopulationRingCandidateSelectorTest;
@@ -211,6 +215,13 @@ private:
     // Isolate exact player-slot existence and loading while exercising GameMode validation.
     TFunction<bool(const FString&, int32, class USaveGame*&)> PlayerDiscoverySaveLoaderForTests;
     TFunction<bool(class UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)> PlayerDiscoverySaveWriterForTests;
+    TFunction<bool(class USaveGame*, const FString&, int32)> WorldComponentSaveWriterForTests;
+    TFunction<ENetMode(const UWorld*)> HomeReturnNetModeForTests;
+    TFunction<bool(const APlayerController*)> HomeReturnLocalControllerForTests;
+    TFunction<bool(const APlayerController*)> HomeReturnConnectionForTests;
+    TFunction<void(class AKalmalaCharacter*, bool)> HomeReturnClientResponseForTests;
+    TFunction<void(APlayerController*)> HomeReturnTravelForTests;
+    TFunction<bool(UWorld*)> ListenHostNetDriverTeardownForTests;
     // Inject a failed actor creation at a chosen member index in population transactions.
     TFunction<bool(int32)> PopulationActorSpawnAllowedForTests;
     // Force the player-slot write boundary to fail after a candidate save is prepared.
@@ -589,6 +600,14 @@ private:
     void SpawnOceanTravelTestFixture();
     void LoadOceanTravelWorldSave();
     void CompleteListenHostReturn();
+    ENetMode GetHomeReturnNetMode(const UWorld* World) const;
+    bool IsHomeReturnLocalController(const APlayerController* Controller) const;
+    bool HasHomeReturnConnection(const APlayerController* Controller) const;
+    bool SaveHomeReturnComponent(class USaveGame* SaveGame, const FString& Slot) const;
+    bool HandleInFlightListenHostJoin(APlayerController* NewPlayer);
+    void SendHomeReturnClientResponse(class AKalmalaCharacter* Character, bool bSaved);
+    void OpenHomeAfterReturn(APlayerController* Controller);
+    bool TearDownListenHostDriverForReturn(UWorld* World);
     void RestorePersistedOceanSkiff();
     void RestoreOceanTravelForPlayer(class APlayerController* PlayerController);
     void LoadOceanDiscoveryLedger(class AKalmalaCharacter* Interactor);
