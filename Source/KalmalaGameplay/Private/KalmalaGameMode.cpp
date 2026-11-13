@@ -10659,7 +10659,15 @@ bool AKalmalaGameMode::ClaimDiscovery(AKalmalaCharacter* Interactor, const FKalm
     UKalmalaDiscoveryProgressComponent* Feedback = Interactor->GetDiscoveryProgressComponent();
     FString Identity;
     UKalmalaPlayerDiscoverySaveGameV2* Save = GetPlayerDiscoverySave(Interactor, Identity);
-    if (Save == nullptr || Feedback == nullptr) return false;
+    if (Save == nullptr)
+    {
+        if (Feedback != nullptr)
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
+        }
+        return false;
+    }
+    if (Feedback == nullptr) return false;
     const FString Id = FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Descriptor);
     if (Save->HasDiscovery(Id))
     {

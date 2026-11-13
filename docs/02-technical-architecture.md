@@ -2054,6 +2054,11 @@ use concise outcome-specific fallbacks, and all labels are trimmed and bounded
 to 48 characters. An unchanged serial does not renew the row, and expired
 feedback is never reconstructed from the last replicated label.
 
+If the authenticated player discovery save cannot be loaded or created for a
+nearby landmark or scroll claim, the server rejects the claim and publishes one
+owner-only `Unavailable` acknowledgement before changing discovery or support
+state. Incompatible save bytes remain untouched. Range rejection remains silent.
+
 Discovery rows share the three-row, theme-timed queue and use an original
 monochrome inspection glyph. Labels are trimmed and bounded to 48 characters,
 with a safe fallback for an empty accepted label. They are transient, local

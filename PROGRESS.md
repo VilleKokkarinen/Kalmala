@@ -1,3 +1,32 @@
+## RF27 — Report unavailable world discovery saves to the owner — 2026-11-13
+
+- **Work completed:** A nearby world discovery claim now publishes one
+  owner-only `Unavailable` acknowledgement when the authenticated player's
+  discovery save cannot be loaded. The claim stays rejected and does not mutate
+  discovery or scroll effects. Expanded the fail-closed GameMode regression to
+  preserve incompatible slot bytes, compare support effects and scroll counts,
+  check silent out-of-range rejection, and retain first-claim and duplicate
+  behavior.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaPlayerDiscoveryFailClosedLoadTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed; inspected save rejection,
+  owner-only feedback replication, claim mutation order, regression setup, and
+  changed paths for Windows path-length limits.
+- **Full verification:** Deferred. No Editor build, automation, or peer script
+  was run; this is not milestone-final verification.
+- **Observable impact:** Owners receive a clear unavailable acknowledgement
+  when an invalid or incompatible save prevents a nearby landmark or scroll
+  claim.
+- **Networking/authority:** The authoritative GameMode rejects the claim and
+  publishes through the existing owner-only discovery feedback component. No
+  save schema or client authority changed.
+- **Known limits:** The expanded automation has not been compiled or executed;
+  live owner/remote privacy remains covered by the deferred DiscoveryPeer run.
+- **Next eligible task:** RF28 — recover Ocean discovery rewards when claim
+  rollback fails. The overall CR remediation goal remains active.
+
 ## RF26 — Reject launch and boarding after travel-save failure — 2026-11-13
 
 - **Work completed:** GameMode now returns travel-save results. Launch destroys

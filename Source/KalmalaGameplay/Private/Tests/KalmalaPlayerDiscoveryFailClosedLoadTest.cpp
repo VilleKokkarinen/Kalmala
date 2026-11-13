@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "KalmalaCharacter.h"
+#include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaGameMode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9ExplorationRewardCatalogue.h"
@@ -8,6 +9,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
@@ -66,6 +68,7 @@ bool FKalmalaPlayerDiscoveryFailClosedLoadTest::RunTest(const FString& Parameter
     TMap<FString, TArray<uint8>> PlayerSlotBytes;
     int32 LoadAttempts = 0;
     int32 WriteAttempts = 0;
+    bool bAllowPlayerSlotWrites = false;
     Mode->PlayerDiscoverySaveLoaderForTests = [this, &PlayerSlotBytes, &LoadAttempts, ExpectedSlot](
         const FString& Slot, const int32 UserIndex, USaveGame*& OutSaveGame)
     {
@@ -77,11 +80,15 @@ bool FKalmalaPlayerDiscoveryFailClosedLoadTest::RunTest(const FString& Parameter
         OutSaveGame = UGameplayStatics::LoadGameFromMemory(*Bytes);
         return true;
     };
-    Mode->PlayerDiscoverySaveWriterForTests = [&WriteAttempts](
-        UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)
+    Mode->PlayerDiscoverySaveWriterForTests = [&WriteAttempts, &bAllowPlayerSlotWrites,
+        &PlayerSlotBytes, ExpectedSlot](UKalmalaPlayerDiscoverySaveGameV2* Save, const FString& Slot, int32 UserIndex)
     {
         ++WriteAttempts;
-        return false;
+        if (!bAllowPlayerSlotWrites || Save == nullptr || Slot != ExpectedSlot || UserIndex != 0) return false;
+        TArray<uint8> Bytes;
+        if (!UGameplayStatics::SaveGameToMemory(Save, Bytes)) return false;
+        PlayerSlotBytes.Add(Slot, MoveTemp(Bytes));
+        return true;
     };
 
     UKalmalaSupportMagicComponent* Support = Player->GetSupportMagicComponent();
@@ -229,6 +236,130 @@ bool FKalmalaPlayerDiscoveryFailClosedLoadTest::RunTest(const FString& Parameter
         Mode->IsCurrentM9ClaimId(StaleM9Claim));
     AssertRejectedSlot(TEXT("Stale-M9-claim"), StaleClaim);
 
+    FKalmalaWorldDiscoveryDescriptor ScrollDescriptor;
+    FKalmalaWorldDiscoveryDescriptor LandmarkDescriptor;
+    bool bFoundScroll = false;
+    bool bFoundLandmark = false;
+    for (int32 Y = -3; Y <= 3 && (!bFoundScroll || !bFoundLandmark); ++Y)
+    {
+        for (int32 X = -3; X <= 3 && (!bFoundScroll || !bFoundLandmark); ++X)
+        {
+            const FIntPoint Key(X, Y);
+            if (!bFoundScroll)
+            {
+                const TArray<FKalmalaWorldDiscoveryDescriptor> Scrolls =
+                    FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(
+                        WorldConfig, Key, EKalmalaWorldDiscoveryKind::Scroll);
+                if (!Scrolls.IsEmpty())
+                {
+                    ScrollDescriptor = Scrolls[0];
+                    bFoundScroll = true;
+                }
+            }
+            if (!bFoundLandmark)
+            {
+                const TArray<FKalmalaWorldDiscoveryDescriptor> Landmarks =
+                    FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(
+                        WorldConfig, Key, EKalmalaWorldDiscoveryKind::PointOfInterest);
+                if (!Landmarks.IsEmpty())
+                {
+                    LandmarkDescriptor = Landmarks[0];
+                    bFoundLandmark = true;
+                }
+            }
+        }
+    }
+    if (!TestTrue(TEXT("Fixture finds a current world scroll descriptor"), bFoundScroll)
+        || !TestTrue(TEXT("Fixture finds a current world landmark descriptor"), bFoundLandmark)) return false;
+
+    UKalmalaDiscoveryProgressComponent* DiscoveryFeedback = Player->GetDiscoveryProgressComponent();
+    if (!TestNotNull(TEXT("Player has owner discovery feedback"), DiscoveryFeedback)) return false;
+    const EKalmalaSupportEffect ScrollEffect =
+        UKalmalaSupportMagicComponent::FromScrollDefinition(ScrollDescriptor.DefinitionId);
+    if (!TestTrue(TEXT("Fixture scroll grants a known support effect"),
+            ScrollEffect != EKalmalaSupportEffect::None)) return false;
+
+    const TArray<EKalmalaSupportEffect> SupportEffects = {
+        EKalmalaSupportEffect::Mending, EKalmalaSupportEffect::HearthShield,
+        EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall
+    };
+    TArray<bool> LearnedEffectsBeforeClaim;
+    TArray<int32> ScrollQuantitiesBeforeClaim;
+    for (const EKalmalaSupportEffect Effect : SupportEffects)
+    {
+        LearnedEffectsBeforeClaim.Add(Support->HasLearnedEffect(Effect));
+        ScrollQuantitiesBeforeClaim.Add(
+            Inventory->GetQuantity(UKalmalaSupportMagicComponent::ScrollItemId(Effect)));
+    }
+
+    Player->SetActorLocation(ScrollDescriptor.Location);
+    const TArray<uint8> InvalidSlotBytesBeforeClaim = PlayerSlotBytes.FindChecked(ExpectedSlot);
+    const uint32 SerialBeforeUnavailableClaim = DiscoveryFeedback->GetFeedbackSerial();
+    const int32 LoadsBeforeUnavailableClaim = LoadAttempts;
+    TestFalse(TEXT("World scroll claim rejects an incompatible owner save"),
+        Mode->ClaimDiscovery(Player, ScrollDescriptor));
+    TestEqual(TEXT("Rejected world scroll publishes one Unavailable result"),
+        DiscoveryFeedback->GetFeedback(), EKalmalaDiscoveryFeedback::Unavailable);
+    TestEqual(TEXT("Unavailable world scroll uses the concise retry label"),
+        DiscoveryFeedback->GetFeedbackLabel(), FString(TEXT("Discovery unavailable")));
+    TestEqual(TEXT("Unavailable world scroll advances feedback exactly once"),
+        DiscoveryFeedback->GetFeedbackSerial(), SerialBeforeUnavailableClaim + 1);
+    TestEqual(TEXT("Already rejected save is not loaded again by the claim"), LoadAttempts, LoadsBeforeUnavailableClaim);
+    TestEqual(TEXT("Unavailable world scroll never reaches the slot writer"), WriteAttempts, 0);
+    TestTrue(TEXT("Unavailable world scroll preserves incompatible slot bytes"),
+        PlayerSlotBytes.FindChecked(ExpectedSlot) == InvalidSlotBytesBeforeClaim);
+    TestFalse(TEXT("Unavailable world scroll caches no discovery save"),
+        Mode->PlayerDiscoverySaves.Contains(PlayerIdentity));
+    for (int32 Index = 0; Index < SupportEffects.Num(); ++Index)
+    {
+        TestEqual(TEXT("Unavailable world scroll grants no learned support effect"),
+            Support->HasLearnedEffect(SupportEffects[Index]), LearnedEffectsBeforeClaim[Index]);
+        TestEqual(TEXT("Unavailable world scroll grants no support scroll"),
+            Inventory->GetQuantity(UKalmalaSupportMagicComponent::ScrollItemId(SupportEffects[Index])),
+            ScrollQuantitiesBeforeClaim[Index]);
+    }
+
+    Player->SetActorLocation(ScrollDescriptor.Location + FVector(1000.0f, 0.0f, 0.0f));
+    const uint32 SerialBeforeDistantClaim = DiscoveryFeedback->GetFeedbackSerial();
+    const int32 LoadsBeforeDistantClaim = LoadAttempts;
+    TestFalse(TEXT("Out-of-range world scroll claim remains rejected"),
+        Mode->ClaimDiscovery(Player, ScrollDescriptor));
+    TestEqual(TEXT("Out-of-range world scroll does not publish feedback"),
+        DiscoveryFeedback->GetFeedbackSerial(), SerialBeforeDistantClaim);
+    TestEqual(TEXT("Out-of-range world scroll does not load the player save"),
+        LoadAttempts, LoadsBeforeDistantClaim);
+
+    PlayerSlotBytes.Remove(ExpectedSlot);
+    Mode->PlayerDiscoverySaves.Remove(PlayerIdentity);
+    Mode->RejectedPlayerDiscoverySaveIdentities.Remove(PlayerIdentity);
+    Player->SetActorLocation(LandmarkDescriptor.Location);
+    bAllowPlayerSlotWrites = true;
+    const FString LandmarkId = FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(LandmarkDescriptor);
+    const uint32 SerialBeforeFirstLandmark = DiscoveryFeedback->GetFeedbackSerial();
+    const int32 WritesBeforeFirstLandmark = WriteAttempts;
+    TestTrue(TEXT("First world landmark claim succeeds with a writable owner save"),
+        Mode->ClaimDiscovery(Player, LandmarkDescriptor));
+    TestEqual(TEXT("First landmark publishes LandmarkFound"),
+        DiscoveryFeedback->GetFeedback(), EKalmalaDiscoveryFeedback::LandmarkFound);
+    TestEqual(TEXT("First landmark advances feedback once"),
+        DiscoveryFeedback->GetFeedbackSerial(), SerialBeforeFirstLandmark + 1);
+    TestEqual(TEXT("First landmark persists exactly once"), WriteAttempts, WritesBeforeFirstLandmark + 1);
+    TestTrue(TEXT("First landmark enters the authenticated player's save"),
+        Mode->PlayerDiscoverySaves.FindChecked(PlayerIdentity)->HasDiscovery(LandmarkId));
+
+    const TArray<uint8> SavedLandmarkBytes = PlayerSlotBytes.FindChecked(ExpectedSlot);
+    const uint32 SerialBeforeDuplicateLandmark = DiscoveryFeedback->GetFeedbackSerial();
+    const int32 WritesBeforeDuplicateLandmark = WriteAttempts;
+    TestFalse(TEXT("Duplicate world landmark claim remains rejected"),
+        Mode->ClaimDiscovery(Player, LandmarkDescriptor));
+    TestEqual(TEXT("Duplicate landmark publishes AlreadyFound"),
+        DiscoveryFeedback->GetFeedback(), EKalmalaDiscoveryFeedback::AlreadyFound);
+    TestEqual(TEXT("Duplicate landmark advances feedback once"),
+        DiscoveryFeedback->GetFeedbackSerial(), SerialBeforeDuplicateLandmark + 1);
+    TestEqual(TEXT("Duplicate landmark does not write again"), WriteAttempts, WritesBeforeDuplicateLandmark);
+    TestTrue(TEXT("Duplicate landmark preserves the saved slot bytes"),
+        PlayerSlotBytes.FindChecked(ExpectedSlot) == SavedLandmarkBytes);
+
     UKalmalaPlayerDiscoverySaveGameV2* ValidCurrent =
         BuildCurrentSave(WorldConfig, PlayerIdentity, FString(), true);
     if (!TestNotNull(TEXT("Valid current-format slot fixture built"), ValidCurrent)) return false;
@@ -237,6 +368,7 @@ bool FKalmalaPlayerDiscoveryFailClosedLoadTest::RunTest(const FString& Parameter
     PlayerSlotBytes.Add(ExpectedSlot, ValidBytes);
     Mode->PlayerDiscoverySaves.Remove(PlayerIdentity);
     Mode->RejectedPlayerDiscoverySaveIdentities.Remove(PlayerIdentity);
+    const int32 WritesBeforeValidLoad = WriteAttempts;
     ResetRuntimeState();
     FString ValidIdentity;
     UKalmalaPlayerDiscoverySaveGameV2* RestoredValid = Mode->GetPlayerDiscoverySave(Player, ValidIdentity);
@@ -253,7 +385,7 @@ bool FKalmalaPlayerDiscoveryFailClosedLoadTest::RunTest(const FString& Parameter
         Support->HasLearnedEffect(EKalmalaSupportEffect::Mending));
     TestEqual(TEXT("Valid load rebuilds the support scroll from its saved entitlement"),
         Inventory->GetQuantity(TEXT("MendingScroll")), MendingScrollsBefore + 1);
-    TestEqual(TEXT("Valid load does not invoke the slot writer"), WriteAttempts, 0);
+    TestEqual(TEXT("Valid load does not invoke the slot writer"), WriteAttempts, WritesBeforeValidLoad);
     TestFalse(TEXT("Valid identity is not rejected"), Mode->RejectedPlayerDiscoverySaveIdentities.Contains(PlayerIdentity));
     return true;
 }

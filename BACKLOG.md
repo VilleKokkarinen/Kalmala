@@ -650,7 +650,7 @@
       `Kalmala.Gameplay.OceanTravel.SkiffRestoreContract`, and
       `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1`.
 
-  - [ ] **RF27 — Report unavailable world discovery saves to the owner (P3; CR03-001b-103).**
+  - [x] **RF27 — Report unavailable world discovery saves to the owner (P3; CR03-001b-103).**
     **Source:** CR03-001b-103; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10060-10063`,
       `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9427-9517`, and
       `Source/KalmalaGameplay/Private/KalmalaDiscoveryActor.cpp:146-164`.
@@ -658,22 +658,23 @@
       save cannot be loaded or created.
     **Trigger:** `ClaimDiscovery` has a valid feedback component, but `GetPlayerDiscoverySave` returns null for
       an unavailable identity, invalid/incompatible slot, or other fail-closed save condition.
-    **Impact:** The claim returns false before mutation, but it does not publish `Unavailable`. The discovery
-      actor ignores the returned bool, so the owner receives no reason or retry cue. This leaves a rejected
-      interaction silent even though later save-write failures and Ocean discovery load failures publish owner
-      feedback.
+    **Impact (before repair):** The claim returned false before mutation, but did not publish `Unavailable`. The
+      discovery actor ignores the returned bool, so the owner received no reason or retry cue. This left a
+      rejected interaction silent even though later save-write failures and Ocean discovery load failures publish
+      owner feedback.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf27--report-unavailable-world-discovery-saves-to-the-owner-p3.
-    **Proposed repair:** When the save lookup fails and `Feedback` is valid, publish owner-only `Unavailable`
-      before returning. Keep the claim rejected, preserve invalid slot bytes and avoid applying scroll effects.
+    **Repair:** When the save lookup fails and `Feedback` is valid, `ClaimDiscovery` now publishes owner-only
+      `Unavailable` before returning. The claim remains rejected, invalid slot bytes remain preserved, and scroll
+      effects are not applied.
     **Dependencies:** After CR19 review acceptance; this finding is review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** A valid world discovery still succeeds once; an unavailable/incompatible owner save produces
       one owner-only `Unavailable` result with no claim or effect mutation; duplicate and out-of-range paths
       retain their existing behavior; invalid save bytes remain unchanged.
-    **Focused validation:** Add a GameMode world-discovery save-failure feedback regression and run
-      `Scripts/Tests/Progression/DiscoveryPeer.ps1` plus the player discovery save contract after an Editor
-      build.
+    **Focused validation:** Added world-discovery save-failure feedback coverage to
+      `Kalmala.Gameplay.Persistence.PlayerDiscoveryFailClosedLoad`; after an Editor build, run that contract
+      and `Scripts/Tests/Progression/DiscoveryPeer.ps1`.
 
   - [ ] **RF28 — Recover Ocean discovery rewards when claim rollback fails (P2; CR03-001b-103).**
     **Source:** CR03-001b-103; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10155-10200`,
