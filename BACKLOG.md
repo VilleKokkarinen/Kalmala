@@ -564,7 +564,7 @@
       and presentation regressions after an Editor build; include a peer attempt to join while an existing client is returning; perform the documented live create/save/logout/reopen
       acceptance before the feature is accepted.
 
-  - [ ] **RF24 — Collision-blocked saved skiff can be silently replaced (P2; CR03-001b-101).**
+  - [x] **RF24 — Collision-blocked saved skiff can be silently replaced (P2; CR03-001b-101).**
     **Source:** CR03-001b-101; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9758-9799`, `9885-9924`, and
       `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp:399-463`.
     **Affected path:** Restoring and updating the world-scoped moored `ocean-skiff:primary` snapshot after a

@@ -150,6 +150,7 @@ public:
     bool TryReturnNetworkClientToHomeFromServer(class APlayerController* RequestingController,
         class AKalmalaCharacter* Character);
     bool TryReturnListenHostToHome(class APlayerController* RequestingController);
+    bool CanLaunchPrimaryOceanSkiff() const { return !bOceanTravelSavedVesselRestoreBlocked; }
     static bool IsMirelingBossRewardId(const FString& PersistentSpawnId);
     static FString GetMirelingBossScrollDefinition(uint64 WorldSeed);
     static FString GetMirelingBossScrollId(uint64 WorldSeed);
@@ -192,6 +193,7 @@ private:
     friend class FKalmalaMirelingGemRewardDeliveryTest;
     friend class FKalmalaM9WorldDepletionPersistenceTest;
     friend class FKalmalaPlayerDiscoveryFailClosedLoadTest;
+    friend class FKalmalaOceanSkiffRestoreCollisionTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaHarvestNode;
     friend class AKalmalaWildlifeSpawn;
@@ -641,6 +643,7 @@ private:
     TSet<TWeakObjectPtr<APlayerController>> PendingListenHostReturnClients;
     TWeakObjectPtr<APlayerController> ListenHostReturningController;
     bool bOceanTravelPersistenceWritable = false;
+    bool bOceanTravelSavedVesselRestoreBlocked = false;
     bool bSoloReturnToHomeInProgress = false;
     bool bListenHostReturnInProgress = false;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaConstructionSaveGameV2> ConstructionSaveGame;

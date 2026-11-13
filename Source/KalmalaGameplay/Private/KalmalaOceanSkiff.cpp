@@ -416,7 +416,11 @@ AKalmalaOceanSkiff* AKalmalaOceanSkiff::TryLaunchFromServer(AKalmalaCharacter* I
         : FKalmalaOceanSample();
 
     bool bSessionSlotAvailable = true;
-    for (TActorIterator<AKalmalaOceanSkiff> Iterator(World); Iterator; ++Iterator)
+    if (const AKalmalaGameMode* GameMode = World->GetAuthGameMode<AKalmalaGameMode>())
+    {
+        bSessionSlotAvailable = GameMode->CanLaunchPrimaryOceanSkiff();
+    }
+    for (TActorIterator<AKalmalaOceanSkiff> Iterator(World); bSessionSlotAvailable && Iterator; ++Iterator)
     {
         bSessionSlotAvailable = false;
         break;

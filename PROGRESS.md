@@ -1,3 +1,31 @@
+## RF24 — Protect collision-blocked saved skiffs — 2026-11-13
+
+- **Work completed:** A failed saved-skiff spawn now makes the accepted world
+  slot read-only and reserves the primary launch slot. Launch admission and
+  persistence both honor the reservation. Added a restart regression that
+  blocks the saved location, compares exact slot bytes after the denied
+  replacement, removes the blocker, and checks the restored vessel ID and
+  transform on a fresh GameMode.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaOceanSkiffRestoreCollisionTest.cpp`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` passed; inspected the restore,
+  launch, persistence, and restart-regression paths; confirmed changed paths
+  remain below the Windows path limit.
+- **Full verification:** Deferred; no Editor build, automation, or integrated
+  reconnect script was run. This is not milestone-final verification.
+- **Observable impact:** A blocked restore can no longer be replaced by a new
+  primary skiff; the saved safe location remains available for a later restart.
+- **Networking/authority:** Restore reservation, launch admission, and slot
+  writes remain server-side. Save schema and accepted vessel payload are
+  unchanged.
+- **Known limits:** The new automation source has not been compiled or run;
+  live collision removal and restart behavior remain unverified.
+- **Next eligible task:** RF25 — cover fail-closed Ocean travel world-slot loading.
+  The overall CR remediation goal remains active.
+
 ## RF23 — World save and Home-return transactions — 2026-11-13
 
 - **Work completed:** Added a GameMode regression for standalone and listen-host

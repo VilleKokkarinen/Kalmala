@@ -10285,6 +10285,7 @@ void AKalmalaGameMode::CompleteListenHostReturn()
 void AKalmalaGameMode::LoadOceanTravelWorldSave()
 {
     bOceanTravelPersistenceWritable = HasAuthority() && WorldGenerationConfig.IsValid();
+    bOceanTravelSavedVesselRestoreBlocked = false;
     OceanTravelWorldSave = nullptr;
     if (!bOceanTravelPersistenceWritable) return;
 
@@ -10325,6 +10326,7 @@ void AKalmalaGameMode::RestorePersistedOceanSkiff()
         if (It->GetPersistentVesselId() == Vessel.VesselId)
         {
             RestoredOceanSkiff = *It;
+            bOceanTravelSavedVesselRestoreBlocked = false;
             return;
         }
     }
@@ -10339,11 +10341,14 @@ void AKalmalaGameMode::RestorePersistedOceanSkiff()
     if (Skiff == nullptr || !Skiff->InitializePersistentIdentityFromServer(Vessel.VesselId))
     {
         if (Skiff != nullptr) Skiff->Destroy();
-        UE_LOG(LogTemp, Warning, TEXT("Ocean travel restore blocked: saved moored vessel could not be spawned without overlap; save preserved."));
+        bOceanTravelPersistenceWritable = false;
+        bOceanTravelSavedVesselRestoreBlocked = true;
+        UE_LOG(LogTemp, Warning, TEXT("Ocean travel restore blocked: saved moored vessel could not be spawned without overlap; save preserved and replacement launches blocked."));
         return;
     }
 
     RestoredOceanSkiff = Skiff;
+    bOceanTravelSavedVesselRestoreBlocked = false;
     UE_LOG(LogTemp, Display, TEXT("Restored moored ocean skiff %s at %s after generated-ocean validation."),
         *Vessel.VesselId, *Vessel.SafeLocation.ToCompactString());
 }
@@ -10433,7 +10438,8 @@ bool AKalmalaGameMode::PersistOceanTravelPassenger(AKalmalaCharacter* Interactor
 
 bool AKalmalaGameMode::PersistOceanTravelState(AKalmalaOceanSkiff* Skiff)
 {
-    if (!bOceanTravelPersistenceWritable || !HasAuthority() || !IsValid(Skiff)
+    if (!bOceanTravelPersistenceWritable || bOceanTravelSavedVesselRestoreBlocked
+        || !HasAuthority() || !IsValid(Skiff)
         || !Skiff->HasAuthority() || Skiff->GetMode() != EKalmalaOceanSkiffMode::Moored
         || !WorldGenerationConfig.IsValid())
     {
