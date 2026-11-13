@@ -205,6 +205,7 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
     friend class FKalmalaBiomeBaselineArgumentTest;
+    friend class FKalmalaBiomeComparisonFixtureTest;
     friend class FKalmalaOceanTravelWorldSlotFailClosedTest;
     friend class FKalmalaOceanTravelSaveFailureRollbackTest;
     friend class FKalmalaOceanDiscoveryClaimTransactionTest;
@@ -617,6 +618,8 @@ private:
 #if !UE_BUILD_SHIPPING
     static bool TryParseBiomeBaselineNumericArguments(const TCHAR* CommandLine, float& OutXcm, float& OutYcm,
         float& OutViewZcm, int32& OutTemporalFrameCount, float& OutTemporalIntervalSeconds, int32& OutGpuCaptureFrameCount);
+    static bool HasCompleteBiomeBaselineComparisonFixture(const FString& RequestedSite,
+        const TArray<FString>& TaggedActorNames);
 #endif
     void TryCaptureBiomeBaselineView(class APlayerController* LocalController);
     void SpawnOceanTravelTestFixture();

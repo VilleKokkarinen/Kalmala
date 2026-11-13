@@ -1,3 +1,32 @@
+## RF32 — Reject incomplete per-site lighting comparison fixtures — 2026-11-13
+
+- **Work completed:** Comparison-fixture captures now validate the complete
+  tagged actor manifest before terrain activation, pawn movement, camera
+  creation, or capture scheduling. Each requested physical site must have the
+  exact six smooth and six banded identities; malformed names, extra tagged
+  identities, and missing or misnamed pairs fail closed. FireDusk resolves to
+  the shared MeadowsDaylight board. Isolated variants hide actors only after
+  validation. Added a fixture-level regression and documented the preflight.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaBiomeComparisonFixtureTest.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Carefully inspected the four-site/six-class manifest,
+  FireDusk mapping, tagged-name rejection, and preflight ordering;
+  `git diff --check` and changed-path length checks passed.
+- **Full verification:** Deferred. No Editor build, automation, or
+  `LightingComparison.ps1` capture was run; this is not milestone-final
+  verification.
+- **Observable impact:** Missing or misnamed comparison proxies can no longer
+  produce isolated images that the runner summarizes as background pixels.
+- **Networking/authority:** This is a non-Shipping local capture utility path;
+  gameplay authority and replication behavior are unchanged.
+- **Known limits:** The new automation has not been compiled or executed. The
+  focused capture still needs validation on the generated lighting map after an
+  Editor build.
+- **Next eligible task:** RF33 — restore the ambient-audio accepted-craft peer
+  fixture. The overall CR remediation goal remains active.
+
 ## RF31 — Reject malformed biome baseline capture numeric arguments — 2026-11-13
 
 - **Work completed:** Replaced numeric `FParse::Value` conversions in the

@@ -11374,6 +11374,67 @@ bool AKalmalaGameMode::TryParseBiomeBaselineNumericArguments(const TCHAR* Comman
     OutGpuCaptureFrameCount = GpuCaptureFrameCount;
     return true;
 }
+
+bool AKalmalaGameMode::HasCompleteBiomeBaselineComparisonFixture(const FString& RequestedSite,
+    const TArray<FString>& TaggedActorNames)
+{
+    // Keep these identities aligned with the test-map generator's physical anchors and sample classes.
+    static const TCHAR* FixtureSites[] = {
+        TEXT("MeadowsDaylight"), TEXT("ForestShade"), TEXT("OpenWater"), TEXT("OvercastRain")
+    };
+    static const TCHAR* SampleNames[] = {
+        TEXT("Ground"), TEXT("Rock"), TEXT("Wood"), TEXT("Canopy"), TEXT("Creature"), TEXT("Construction")
+    };
+
+    FString FixtureSite;
+    if (RequestedSite.Equals(TEXT("FireDusk"), ESearchCase::IgnoreCase))
+    {
+        // FireDusk uses the same physical board as MeadowsDaylight.
+        FixtureSite = TEXT("MeadowsDaylight");
+    }
+    else
+    {
+        for (const TCHAR* CandidateSite : FixtureSites)
+        {
+            if (RequestedSite.Equals(CandidateSite, ESearchCase::IgnoreCase))
+            {
+                FixtureSite = CandidateSite;
+                break;
+            }
+        }
+    }
+    if (FixtureSite.IsEmpty()) return false;
+
+    TSet<FString> ValidActorNames;
+    TSet<FString> RequiredActorNames;
+    for (const TCHAR* CandidateSite : FixtureSites)
+    {
+        for (const TCHAR* Sample : SampleNames)
+        {
+            const FString SmoothName = FString::Printf(TEXT("L03Smooth_%s_%s"), CandidateSite, Sample);
+            const FString BandedName = FString::Printf(TEXT("L03Band_%s_%s"), CandidateSite, Sample);
+            ValidActorNames.Add(SmoothName);
+            ValidActorNames.Add(BandedName);
+            if (FixtureSite == CandidateSite)
+            {
+                RequiredActorNames.Add(SmoothName);
+                RequiredActorNames.Add(BandedName);
+            }
+        }
+    }
+
+    TSet<FString> FoundActorNames;
+    for (const FString& ActorName : TaggedActorNames)
+    {
+        if (!ValidActorNames.Contains(ActorName) || FoundActorNames.Contains(ActorName)) return false;
+        FoundActorNames.Add(ActorName);
+    }
+    for (const FString& RequiredName : RequiredActorNames)
+    {
+        if (!FoundActorNames.Contains(RequiredName)) return false;
+    }
+    return true;
+}
 #endif
 
 void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalController)
@@ -11392,6 +11453,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     FString Condition = TEXT("Default");
     FString LightingVariant = TEXT("Both");
     FString RequestedRayTracingQuality;
+    TArray<FString> TaggedComparisonActorNames;
     float ExposureCompensationEV = 0.0f;
     float Xcm = 0.0f;
     float Ycm = 0.0f;
@@ -11474,6 +11536,23 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         UE_LOG(LogTemp, Error,
             TEXT("L05 profile capture requires the production scene without the L03 comparison or sky-only fixtures."));
         return;
+    }
+    const bool bNeedsComparisonFixtureValidation = bComparisonFixture
+        || !LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase);
+    if (bNeedsComparisonFixtureValidation)
+    {
+        for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+        {
+            if (It->ActorHasTag(TEXT("KalmalaL03ComparisonFixture"))) TaggedComparisonActorNames.Add(It->GetName());
+        }
+        if (!HasCompleteBiomeBaselineComparisonFixture(Site, TaggedComparisonActorNames))
+        {
+            bBiomeBaselineCaptureRequested = true;
+            UE_LOG(LogTemp, Error,
+                TEXT("Biome baseline comparison capture rejected: site %s requires its exact six smooth/banded proxy pairs and known variant prefixes."),
+                *Site);
+            return;
+        }
     }
     bBiomeBaselineCaptureRequested = true;
     float CaptureViewZcm = ViewZcm;
@@ -11638,28 +11717,21 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     }
     if (!LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase))
     {
-        int32 SmoothActors = 0;
-        int32 BandedActors = 0;
+        int32 VisibleActors = 0;
         for (TActorIterator<AActor> It(GetWorld()); It; ++It)
         {
             if (!It->ActorHasTag(TEXT("KalmalaL03ComparisonFixture"))) continue;
-            const bool bIsSmooth = It->GetName().StartsWith(TEXT("L03Smooth_"));
-            const bool bIsBanded = It->GetName().StartsWith(TEXT("L03Band_"));
+            const FString ActorName = It->GetName();
+            const bool bIsSmooth = ActorName.StartsWith(TEXT("L03Smooth_"), ESearchCase::CaseSensitive);
+            const bool bIsBanded = ActorName.StartsWith(TEXT("L03Band_"), ESearchCase::CaseSensitive);
             if (!bIsSmooth && !bIsBanded) continue;
-            SmoothActors += bIsSmooth ? 1 : 0;
-            BandedActors += bIsBanded ? 1 : 0;
             const bool bHideActor = LightingVariant.Equals(TEXT("DefaultLit"), ESearchCase::IgnoreCase)
                 ? bIsBanded : bIsSmooth;
             It->SetActorHiddenInGame(bHideActor);
+            VisibleActors += bHideActor ? 0 : 1;
         }
-        if (SmoothActors == 0 || BandedActors == 0)
-        {
-            UE_LOG(LogTemp, Error,
-                TEXT("Biome baseline lighting-variant capture requested %s but the L03 paired fixture was not found."), *LightingVariant);
-            return;
-        }
-        UE_LOG(LogTemp, Display, TEXT("Biome baseline isolated lighting variant: %s; visible samples=%d."),
-            *LightingVariant, LightingVariant.Equals(TEXT("DefaultLit"), ESearchCase::IgnoreCase) ? SmoothActors : BandedActors);
+        UE_LOG(LogTemp, Display, TEXT("Biome baseline isolated lighting variant: %s; visible proxies across fixture sites=%d."),
+            *LightingVariant, VisibleActors);
     }
     UCameraComponent* CameraComponent = CaptureCamera->GetCameraComponent();
     CameraComponent->SetFieldOfView(65.0f);

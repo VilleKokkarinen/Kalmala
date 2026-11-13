@@ -609,6 +609,12 @@ views: Meadows daylight, Forest shade, OpenWater, OvercastRain, and FireDusk.
 The two Meadows conditions share one board, so four physical placements cover
 five view contexts.
 
+Before a comparison-fixture capture or isolated `DefaultLit`/`Toon` capture,
+the non-Shipping GameMode validates all six exact smooth and banded identities
+for the requested physical site and rejects tagged actors outside the four-site
+fixture manifest. FireDusk maps to the shared MeadowsDaylight board. This check
+runs before terrain streaming, pawn movement, camera creation, or capture scheduling.
+
 The candidate diffuse ramp uses three broad levels (0.32, 0.58, 0.92) with
 cubic transitions spanning 0.08 of the ramp around the two boundaries. Diffuse
 and specular indirect scales remain at 1.0. The ramp does not fold shadow

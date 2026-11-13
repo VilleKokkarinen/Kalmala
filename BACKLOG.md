@@ -792,7 +792,7 @@
     **Acceptance:** Direct launches reject non-numeric and trailing-junk tokens for X/Y/view-Z, temporal frame count/interval, and GPU frame count before terrain activation, pawn movement, or capture scheduling. Valid supported coordinates and frame settings retain their requested values, and malformed GPU settings cannot silently disable profiling.
     **Focused validation:** Added `Kalmala.Gameplay.World.BiomeBaselineCaptureArguments` for non-numeric and trailing-junk values on all six numeric arguments, signed/scientific coordinates, omitted defaults, and frame/timing boundaries. `git diff --check` passed, and source inspection confirms parsing returns before terrain activation, pawn movement, camera creation, and capture scheduling. The automation and valid-site capture runner remain for Editor-backed verification; neither was run in this normal increment.
 
-  - [ ] **RF32 — Reject incomplete per-site lighting comparison fixtures (P3; CR03-001b-106).**
+  - [x] **RF32 — Reject incomplete per-site lighting comparison fixtures (P3; CR03-001b-106).**
     **Source:** CR03-001b-106; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10622-10645`,
       `Scripts/Tests/Presentation/LightingComparison.ps1:101-108, 191-218`, and
       `docs/valheim-like-lighting-plan.md:602-610, 678-695`.
@@ -800,24 +800,26 @@
       material-class summaries.
     **Trigger:** One smooth/banded proxy pair for a site is missing or misnamed while at least one smooth and
       one banded actor from another site remain in the fixture map.
-    **Impact:** The GameMode's aggregate `SmoothActors`/`BandedActors` checks still pass, so the capture
+    **Impact (before repair):** The GameMode's aggregate `SmoothActors`/`BandedActors` checks still pass, so the capture
       proceeds. The runner then samples the expected crop rectangle without checking that its proxy is present;
       background pixels can be written to `LightingSampleLuminance.csv` as that surface's measured result,
       weakening or misleading the material comparison.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf32--reject-incomplete-per-site-lighting-comparison-fixtures-p3.
-    **Proposed repair:** Validate the exact six smooth and six banded proxy identities for the requested site
-      before capture, and reject tagged comparison actors with an unrecognized variant prefix. Add a narrow
-      rendered or fixture-level regression proving missing and misnamed pairs cannot be summarized as valid
-      samples.
+    **Repair:** The non-Shipping capture path now validates every tagged proxy against the four-site manifest and
+      requires all six exact smooth/banded identities for the requested physical site before terrain activation,
+      pawn relocation, camera creation, or capture scheduling. FireDusk maps to the shared MeadowsDaylight board.
+      Added a fixture-level regression for complete, missing, misnamed, duplicated, and unknown-prefix identities.
     **Dependencies:** After CR19 review acceptance; this finding is review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** An isolated capture rejects a site missing or misnaming any one of its six pairs before
       producing the image or sample summary. A complete site captures all six selected proxies, hides the six
       opposite-variant proxies, and reports no background-only class crop.
-    **Focused validation:** Add fixture tests for one missing pair and one unrecognized name, then run the
-      focused `LightingComparison.ps1` capture on a valid generated map and verify all six per-site class crops
-      contain their expected proxy. Run after an Editor build.
+    **Focused validation:** Added `Kalmala.Gameplay.World.BiomeComparisonFixtureContract` for a complete site,
+      a missing pair, a misnamed pair, an unknown variant prefix, an unknown sample name, duplicate identities,
+      and FireDusk's shared physical board. `git diff --check` passed, and source inspection confirms the preflight
+      runs before scene changes or capture scheduling. The automation and focused `LightingComparison.ps1` run
+      remain for Editor-backed verification; neither was run in this normal increment.
 
   - [ ] **RF33 — Restore the ambient-audio accepted-craft peer fixture (P2; CR03-001b-109).**
     **Source:** CR03-001b-109; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:11026-11036`,
