@@ -305,6 +305,9 @@ public:
 
 private:
     friend class AKalmalaArrowProjectile;
+#if WITH_DEV_AUTOMATION_TESTS
+    friend class FKalmalaWildlifeDefeatAtomicityTest;
+#endif
     bool ApplyArrowDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker, FName ArrowItemId);
     bool ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage, AKalmalaCharacter* Attacker,
         bool bMelee, const FGuid* StormcutSwordGuid);

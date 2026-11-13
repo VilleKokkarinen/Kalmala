@@ -183,6 +183,7 @@ private:
     friend class FKalmalaPopulationHazardMaterializationTest;
     friend class FKalmalaPopulationKeyTurnoverTest;
     friend class FKalmalaPopulationDepletionWriteRetryTest;
+    friend class FKalmalaWildlifeDefeatAtomicityTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaHarvestNode;
     friend class AKalmalaWildlifeSpawn;
@@ -215,6 +216,9 @@ private:
     bool TryMakeRoomForPopulationKey();
     void RetirePopulationKey(const FIntPoint& SpatialKey);
     bool WritePopulationSaveToSlot();
+    bool WritePopulationSaveObjectToSlot(class UKalmalaWorldPopulationSaveGame* SaveGame);
+    bool TryCreatePopulationSaveCandidate(class UKalmalaWorldPopulationSaveGame*& OutCandidate) const;
+    bool TryCommitPopulationSaveCandidate(class UKalmalaWorldPopulationSaveGame* Candidate);
     void RetryPendingPopulationDepletionWrites(double NowSeconds);
     void UpdatePopulationKeySchedule(double NowSeconds);
     TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;

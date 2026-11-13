@@ -82,10 +82,12 @@ save data.
   the defeat; the generic callback marks the stable ID and writes the
   matching population save slot. A failed generic defeat write remains in the
   server-owned pending-ID set and retries once per second until a full population
-  save succeeds. Wildlife reward handlers also mark and save their IDs as part
-  of the reward transaction before `OnDefeated` is broadcast. Thus unload, later
-  key activation, reconnect and restart must never remove a defeated ID; each
-  wolf member retains its own stable depleted ID.
+  save succeeds. Wildlife reward handlers stage the claim and defeated ID on a
+  candidate save, publishing it only after the population slot write succeeds
+  and before `OnDefeated` is broadcast. A rejected lethal callback restores the
+  actor's pre-hit health so the defeat can be retried. Thus unload, later key
+  activation, reconnect and restart must never remove a defeated ID; each wolf
+  member retains its own stable depleted ID.
 - **Harvest save recovery:** For population-backed sources, the server writes
   the sparse harvested ID before accepting and saving the player grant. A failed
   population write rolls the ID back and rejects the harvest without granting

@@ -697,9 +697,18 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
     if (!Defenses || !Defenses->ResolveFromServer(Damage, ResolvedDamage)) return false;
     if (StormcutSwordGuid != nullptr
         && (Attacker == nullptr || !Attacker->SpendStormcutConditionForAcceptedHitFromServer(*StormcutSwordGuid))) return false;
+    const TWeakObjectPtr<AKalmalaCharacter> PreviousAttacker = LastValidatedAttacker;
     if (Attacker != nullptr) LastValidatedAttacker = Attacker;
+    const float PreviousHealth = Health;
     Health = FMath::Clamp(Health - ResolvedDamage, 0.0f, GetMaximumHealthForArchetype(Archetype));
-    if (Health <= 0.0f) return DefeatServer();
+    if (Health <= 0.0f)
+    {
+        if (DefeatServer()) return true;
+        Health = PreviousHealth;
+        LastValidatedAttacker = PreviousAttacker;
+        ForceNetUpdate();
+        return false;
+    }
     if (Archetype == EKalmalaWildlifeArchetype::Viper || Archetype == EKalmalaWildlifeArchetype::GiantSnake)
     {
         SnakeAttackTarget.Reset();

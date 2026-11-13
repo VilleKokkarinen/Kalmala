@@ -8884,31 +8884,71 @@ bool AKalmalaGameMode::WritePopulationSaveToSlot()
     if (!HasAuthority() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    const FString Slot = KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig);
-    bool bSaved = false;
-#if WITH_DEV_AUTOMATION_TESTS
-    if (PopulationSaveWriteAttemptForTests)
-    {
-        bSaved = PopulationSaveWriteAttemptForTests(PopulationSaveGame, Slot, 0);
-    }
-    else if (PopulationSaveWriterForTests)
-    {
-        // Existing fixtures replace the writer without reporting a result.
-        PopulationSaveWriterForTests(PopulationSaveGame, Slot, 0);
-        bSaved = true;
-    }
-    else
-#endif
-    {
-        bSaved = UGameplayStatics::SaveGameToSlot(PopulationSaveGame, Slot, 0);
-    }
-
+    const bool bSaved = WritePopulationSaveObjectToSlot(PopulationSaveGame);
     if (bSaved)
     {
         PendingPopulationDepletionWriteIds.Reset();
         NextPopulationDepletionWriteRetryTime = 0.0;
     }
     return bSaved;
+}
+
+bool AKalmalaGameMode::WritePopulationSaveObjectToSlot(UKalmalaWorldPopulationSaveGame* SaveGame)
+{
+    if (!HasAuthority() || SaveGame == nullptr || !SaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    const FString Slot = KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig);
+    bool bSaved = false;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (PopulationSaveWriteAttemptForTests)
+    {
+        bSaved = PopulationSaveWriteAttemptForTests(SaveGame, Slot, 0);
+    }
+    else if (PopulationSaveWriterForTests)
+    {
+        // Existing fixtures replace the writer without reporting a result.
+        PopulationSaveWriterForTests(SaveGame, Slot, 0);
+        bSaved = true;
+    }
+    else
+#endif
+    {
+        bSaved = UGameplayStatics::SaveGameToSlot(SaveGame, Slot, 0);
+    }
+
+    return bSaved;
+}
+
+bool AKalmalaGameMode::TryCreatePopulationSaveCandidate(
+    UKalmalaWorldPopulationSaveGame*& OutCandidate) const
+{
+    OutCandidate = nullptr;
+    if (!HasAuthority() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    TArray<uint8> SerializedPopulationSave;
+    if (!UGameplayStatics::SaveGameToMemory(PopulationSaveGame, SerializedPopulationSave)) return false;
+    OutCandidate = Cast<UKalmalaWorldPopulationSaveGame>(
+        UGameplayStatics::LoadGameFromMemory(SerializedPopulationSave));
+    if (OutCandidate == nullptr || !OutCandidate->MatchesWorld(WorldGenerationConfig))
+    {
+        OutCandidate = nullptr;
+        return false;
+    }
+    return true;
+}
+
+bool AKalmalaGameMode::TryCommitPopulationSaveCandidate(UKalmalaWorldPopulationSaveGame* Candidate)
+{
+    if (!HasAuthority() || PopulationSaveGame == nullptr || Candidate == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || !Candidate->MatchesWorld(WorldGenerationConfig)
+        || !WritePopulationSaveObjectToSlot(Candidate)) return false;
+
+    PopulationSaveGame = Candidate;
+    PendingPopulationDepletionWriteIds.Reset();
+    NextPopulationDepletionWriteRetryTime = 0.0;
+    return true;
 }
 
 void AKalmalaGameMode::RetryPendingPopulationDepletionWrites(const double NowSeconds)
@@ -8935,17 +8975,19 @@ bool AKalmalaGameMode::RecordRatDefeatReward(const FString& PersistentSpawnId,
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
+    UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
+    if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
+
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingWildlifeReward(PersistentSpawnId, Identity))
+        if (!Identity.IsEmpty() && !Candidate->TryQueuePendingWildlifeReward(PersistentSpawnId, Identity))
             return false;
     }
 
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    Candidate->MarkDefeated(PersistentSpawnId);
+    return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordBadgerDefeatReward(const FString& PersistentSpawnId,
@@ -9099,9 +9141,11 @@ bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
-        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        return WritePopulationSaveToSlot();
     }
+
+    UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
+    if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
@@ -9111,7 +9155,7 @@ bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
         {
             bool bFoundExistingClaim = false;
             bool bHasWolfFang = false;
-            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasWolfFang = false;
@@ -9125,14 +9169,13 @@ bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
                 }
             }
             if (!bFoundExistingClaim) bHasWolfFang = FMath::FRand() < 0.25f;
-            if (!PopulationSaveGame->TryQueuePendingWolfReward(PersistentSpawnId, Identity, bHasWolfFang))
+            if (!Candidate->TryQueuePendingWolfReward(PersistentSpawnId, Identity, bHasWolfFang))
                 return false;
         }
     }
 
-    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    Candidate->MarkDefeated(PersistentSpawnId);
+    return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
@@ -9143,9 +9186,11 @@ bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
-        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        return WritePopulationSaveToSlot();
     }
+
+    UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
+    if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
@@ -9155,7 +9200,7 @@ bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
         {
             bool bFoundExistingClaim = false;
             bool bHasLynxPelt = false;
-            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasLynxPelt = false;
@@ -9169,14 +9214,13 @@ bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
                 }
             }
             if (!bFoundExistingClaim) bHasLynxPelt = FMath::FRand() < 0.5f;
-            if (!PopulationSaveGame->TryQueuePendingLynxReward(PersistentSpawnId, Identity, bHasLynxPelt))
+            if (!Candidate->TryQueuePendingLynxReward(PersistentSpawnId, Identity, bHasLynxPelt))
                 return false;
         }
     }
 
-    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    Candidate->MarkDefeated(PersistentSpawnId);
+    return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordPolarBearDefeatReward(const FString& PersistentSpawnId,
@@ -9187,21 +9231,22 @@ bool AKalmalaGameMode::RecordPolarBearDefeatReward(const FString& PersistentSpaw
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
-        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        return WritePopulationSaveToSlot();
     }
+
+    UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
+    if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingPolarBearReward(PersistentSpawnId, Identity))
+        if (!Identity.IsEmpty() && !Candidate->TryQueuePendingPolarBearReward(PersistentSpawnId, Identity))
             return false;
     }
 
-    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    Candidate->MarkDefeated(PersistentSpawnId);
+    return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordHornedGoatDefeatReward(const FString& PersistentSpawnId,
@@ -9212,21 +9257,22 @@ bool AKalmalaGameMode::RecordHornedGoatDefeatReward(const FString& PersistentSpa
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
-        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        return WritePopulationSaveToSlot();
     }
+
+    UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
+    if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
     {
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingHornedGoatReward(PersistentSpawnId, Identity))
+        if (!Identity.IsEmpty() && !Candidate->TryQueuePendingHornedGoatReward(PersistentSpawnId, Identity))
             return false;
     }
 
-    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    Candidate->MarkDefeated(PersistentSpawnId);
+    return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& PersistentSpawnId,
@@ -9237,9 +9283,11 @@ bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& Persiste
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
-        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        return WritePopulationSaveToSlot();
     }
+
+    UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
+    if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
@@ -9249,7 +9297,7 @@ bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& Persiste
         {
             bool bFoundExistingClaim = false;
             bool bHasThunderCore = false;
-            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasThunderCore = false;
@@ -9263,14 +9311,13 @@ bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& Persiste
                 }
             }
             if (!bFoundExistingClaim) bHasThunderCore = FMath::FRand() < 0.25f;
-            if (!PopulationSaveGame->TryQueuePendingThunderSentinelReward(
+            if (!Candidate->TryQueuePendingThunderSentinelReward(
                     PersistentSpawnId, Identity, bHasThunderCore)) return false;
         }
     }
 
-    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    Candidate->MarkDefeated(PersistentSpawnId);
+    return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnId,
@@ -9281,9 +9328,11 @@ bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnI
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
-        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        return WritePopulationSaveToSlot();
     }
+
+    UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
+    if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
         && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
@@ -9293,7 +9342,7 @@ bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnI
         {
             bool bFoundExistingClaim = false;
             bool bHasReefTooth = false;
-            for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
+            for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasReefTooth = false;
@@ -9307,14 +9356,13 @@ bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnI
                 }
             }
             if (!bFoundExistingClaim) bHasReefTooth = FMath::FRand() < 0.5f;
-            if (!PopulationSaveGame->TryQueuePendingReefMawReward(
+            if (!Candidate->TryQueuePendingReefMawReward(
                     PersistentSpawnId, Identity, bHasReefTooth)) return false;
         }
     }
 
-    PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    Candidate->MarkDefeated(PersistentSpawnId);
+    return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 void AKalmalaGameMode::DeliverPendingWildlifeRewards()
