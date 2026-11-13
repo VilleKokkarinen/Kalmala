@@ -1003,6 +1003,13 @@ precipitation/fog after the dry-start frame, then clears weather after the
 wet-onset frame. All fixture behavior is guarded by the non-Shipping
 -KalmalaBiomeBaselineCapture option.
 
+Direct capture launches require full decimal tokens for X/Y/view-Z coordinates;
+signed values and scientific notation are supported. Temporal frames must be
+1–12, the interval 0.1–2.0 seconds, and GPU frames 0–1200. Malformed or
+out-of-range numeric arguments reject the capture before terrain activation,
+pawn movement, or camera and capture scheduling. Omitted optional frame settings
+keep their defaults, and a positive GPU frame count still requires `-csvGpuStats`.
+
 Fresh seed-418 renders were written outside the checkout under
 C:/Users/Ville/AppData/Local/Temp/klc/TestResults/LightingBaseline/. The
 runner validated each requested image as a nonblank 1024x768 PNG and checked

@@ -1,3 +1,33 @@
+## RF31 — Reject malformed biome baseline capture numeric arguments — 2026-11-13
+
+- **Work completed:** Replaced numeric `FParse::Value` conversions in the
+  non-Shipping biome capture path with full-token decimal and checked integer
+  parsing. Signed/scientific coordinates and existing frame bounds remain
+  supported; malformed, trailing-junk, bare-option, non-finite, and out-of-range
+  values reject before terrain activation, pawn movement, camera creation, or
+  capture scheduling. Added parser automation for all six numeric fields,
+  valid coordinate formats, optional defaults, and timing/frame boundaries.
+  Documented the direct-launch input contract.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaBiomeBaselineArgumentTest.cpp`,
+  `docs/valheim-like-lighting-plan.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Careful inspection of token delimiting, complete
+  decimal/integer consumption, optional defaults, bounds, and validation order;
+  `git diff --check` and changed-path length checks passed.
+- **Full verification:** Deferred. No Editor build, automation, or valid-site
+  capture runner was run; this is not milestone-final verification.
+- **Observable impact:** Malformed numeric capture settings no longer redirect
+  captures to parsed prefixes or silently turn an invalid GPU frame request
+  into zero. Valid requested coordinates and timing/frame settings are retained.
+- **Networking/authority:** This affects the non-Shipping local biome capture
+  utility only. Gameplay authority and replication behavior are unchanged.
+- **Known limits:** The new automation has not been compiled or executed. The
+  baseline capture runner still needs a valid fixed-site run after an Editor
+  build.
+- **Next eligible task:** RF32 — reject incomplete per-site lighting comparison
+  fixtures. The overall CR remediation goal remains active.
+
 ## RF30 — Cover M9 exploration reward rollback on player-save failure — 2026-11-13
 
 - **Work completed:** Added an isolated GameMode regression that rejects the

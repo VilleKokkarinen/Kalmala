@@ -11202,11 +11202,186 @@ FString AKalmalaGameMode::GetMirelingBossScrollId(const uint64 WorldSeed)
     return FString::Printf(TEXT("Scroll:1:%s:mireling-boss"), *GetMirelingBossScrollDefinition(WorldSeed));
 }
 
+#if !UE_BUILD_SHIPPING
+namespace
+{
+    bool HasBiomeBaselineOptionWithoutValue(const TCHAR* CommandLine, const TCHAR* Match)
+    {
+        FString OptionName(Match);
+        OptionName.RemoveFromEnd(TEXT("="), ESearchCase::CaseSensitive);
+        const TCHAR* Cursor = CommandLine;
+        while (*Cursor != TEXT('\0'))
+        {
+            while (*Cursor == TEXT(' ') || *Cursor == TEXT('\r') || *Cursor == TEXT('\n') || *Cursor == TEXT('\t')) ++Cursor;
+            if (*Cursor == TEXT('\0')) break;
+
+            const TCHAR* OptionStart = Cursor;
+            if (*Cursor == TEXT('-') || *Cursor == TEXT('/')) ++OptionStart;
+            const TCHAR* OptionEnd = OptionStart;
+            bool bInQuotes = false;
+            while (*OptionEnd != TEXT('\0'))
+            {
+                if (*OptionEnd == TEXT('"')) bInQuotes = !bInQuotes;
+                else if (!bInQuotes && (*OptionEnd == TEXT(' ') || *OptionEnd == TEXT('\r')
+                    || *OptionEnd == TEXT('\n') || *OptionEnd == TEXT('\t')))
+                {
+                    break;
+                }
+                ++OptionEnd;
+            }
+            const int32 OptionLength = OptionName.Len();
+            const int32 OptionTokenLength = static_cast<int32>(OptionEnd - OptionStart);
+            if (OptionTokenLength == OptionLength && FCString::Strnicmp(OptionStart, *OptionName, OptionLength) == 0)
+            {
+                return true;
+            }
+
+            Cursor = OptionEnd;
+        }
+        return false;
+    }
+
+    bool TryReadBiomeBaselineNumericToken(const TCHAR* CommandLine, const TCHAR* Match, const bool bRequired,
+        FString& OutToken, bool& bOutPresent)
+    {
+        bOutPresent = FParse::Value(CommandLine, Match, OutToken, true);
+        if (!bOutPresent)
+        {
+            return !bRequired && !HasBiomeBaselineOptionWithoutValue(CommandLine, Match);
+        }
+
+        const TCHAR* MatchStart = FCString::Strifind(CommandLine, Match, true);
+        if (MatchStart == nullptr) return false;
+        const TCHAR* ValueStart = MatchStart + FCString::Strlen(Match);
+        const bool bQuoted = *ValueStart == TEXT('"');
+        const TCHAR* TokenEnd = nullptr;
+        if (!FParse::Value(CommandLine, Match, OutToken, true, &TokenEnd) || TokenEnd == nullptr) return false;
+        if (bQuoted && (TokenEnd <= ValueStart + 1 || TokenEnd[-1] != TEXT('"'))) return false;
+
+        const TCHAR Terminator = *TokenEnd;
+        return Terminator == TEXT('\0') || Terminator == TEXT(' ') || Terminator == TEXT('\r')
+            || Terminator == TEXT('\n') || Terminator == TEXT('\t');
+    }
+
+    bool TryParseBiomeBaselineDecimal(const FString& Token, float& OutValue)
+    {
+        const TCHAR* Cursor = *Token;
+        if (*Cursor == TEXT('+') || *Cursor == TEXT('-')) ++Cursor;
+
+        bool bHasMantissaDigit = false;
+        while (*Cursor >= TEXT('0') && *Cursor <= TEXT('9'))
+        {
+            bHasMantissaDigit = true;
+            ++Cursor;
+        }
+        if (*Cursor == TEXT('.'))
+        {
+            ++Cursor;
+            while (*Cursor >= TEXT('0') && *Cursor <= TEXT('9'))
+            {
+                bHasMantissaDigit = true;
+                ++Cursor;
+            }
+        }
+        if (!bHasMantissaDigit) return false;
+
+        if (*Cursor == TEXT('e') || *Cursor == TEXT('E'))
+        {
+            ++Cursor;
+            if (*Cursor == TEXT('+') || *Cursor == TEXT('-')) ++Cursor;
+            const TCHAR* ExponentStart = Cursor;
+            while (*Cursor >= TEXT('0') && *Cursor <= TEXT('9')) ++Cursor;
+            if (Cursor == ExponentStart) return false;
+        }
+        if (*Cursor != TEXT('\0')) return false;
+
+        const double ParsedValue = FCString::Atod(*Token);
+        const float FloatValue = static_cast<float>(ParsedValue);
+        if (!FMath::IsFinite(ParsedValue) || !FMath::IsFinite(FloatValue)) return false;
+        OutValue = FloatValue;
+        return true;
+    }
+
+    bool TryParseBiomeBaselineInteger(const FString& Token, int32& OutValue)
+    {
+        const TCHAR* Cursor = *Token;
+        bool bNegative = false;
+        if (*Cursor == TEXT('+') || *Cursor == TEXT('-'))
+        {
+            bNegative = *Cursor == TEXT('-');
+            ++Cursor;
+        }
+        if (*Cursor < TEXT('0') || *Cursor > TEXT('9')) return false;
+
+        int64 Magnitude = 0;
+        const int64 MaxMagnitude = bNegative ? static_cast<int64>(MAX_int32) + 1 : MAX_int32;
+        for (; *Cursor != TEXT('\0'); ++Cursor)
+        {
+            if (*Cursor < TEXT('0') || *Cursor > TEXT('9')) return false;
+            Magnitude = Magnitude * 10 + (*Cursor - TEXT('0'));
+            if (Magnitude > MaxMagnitude) return false;
+        }
+        const int64 ParsedValue = bNegative ? -Magnitude : Magnitude;
+        OutValue = static_cast<int32>(ParsedValue);
+        return true;
+    }
+}
+
+bool AKalmalaGameMode::TryParseBiomeBaselineNumericArguments(const TCHAR* CommandLine, float& OutXcm, float& OutYcm,
+    float& OutViewZcm, int32& OutTemporalFrameCount, float& OutTemporalIntervalSeconds, int32& OutGpuCaptureFrameCount)
+{
+    float Xcm = 0.0f;
+    float Ycm = 0.0f;
+    float ViewZcm = 0.0f;
+    int32 TemporalFrameCount = 1;
+    float TemporalIntervalSeconds = 0.5f;
+    int32 GpuCaptureFrameCount = 0;
+    FString Token;
+    bool bPresent = false;
+
+    if (!TryReadBiomeBaselineNumericToken(CommandLine, TEXT("KalmalaBiomeBaselineXcm="), true, Token, bPresent)
+        || !TryParseBiomeBaselineDecimal(Token, Xcm)
+        || !TryReadBiomeBaselineNumericToken(CommandLine, TEXT("KalmalaBiomeBaselineYcm="), true, Token, bPresent)
+        || !TryParseBiomeBaselineDecimal(Token, Ycm)
+        || !TryReadBiomeBaselineNumericToken(CommandLine, TEXT("KalmalaBiomeBaselineViewZcm="), true, Token, bPresent)
+        || !TryParseBiomeBaselineDecimal(Token, ViewZcm))
+    {
+        return false;
+    }
+
+    if (!TryReadBiomeBaselineNumericToken(CommandLine, TEXT("KalmalaBiomeBaselineTemporalFrames="), false, Token, bPresent)
+        || (bPresent && !TryParseBiomeBaselineInteger(Token, TemporalFrameCount))
+        || !TryReadBiomeBaselineNumericToken(CommandLine, TEXT("KalmalaBiomeBaselineTemporalIntervalSeconds="), false, Token, bPresent)
+        || (bPresent && !TryParseBiomeBaselineDecimal(Token, TemporalIntervalSeconds))
+        || !TryReadBiomeBaselineNumericToken(CommandLine, TEXT("KalmalaBiomeBaselineGpuFrames="), false, Token, bPresent)
+        || (bPresent && !TryParseBiomeBaselineInteger(Token, GpuCaptureFrameCount)))
+    {
+        return false;
+    }
+
+    if (TemporalFrameCount < 1 || TemporalFrameCount > 12
+        || !FMath::IsFinite(TemporalIntervalSeconds) || TemporalIntervalSeconds < 0.1f || TemporalIntervalSeconds > 2.0f
+        || GpuCaptureFrameCount < 0 || GpuCaptureFrameCount > 1200)
+    {
+        return false;
+    }
+
+    OutXcm = Xcm;
+    OutYcm = Ycm;
+    OutViewZcm = ViewZcm;
+    OutTemporalFrameCount = TemporalFrameCount;
+    OutTemporalIntervalSeconds = TemporalIntervalSeconds;
+    OutGpuCaptureFrameCount = GpuCaptureFrameCount;
+    return true;
+}
+#endif
+
 void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalController)
 {
 #if !UE_BUILD_SHIPPING
+    const TCHAR* CommandLine = FCommandLine::Get();
     if (bBiomeBaselineCaptureRequested || LocalController == nullptr || !LocalController->IsLocalController()
-        || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCapture"))
+        || !FParse::Param(CommandLine, TEXT("KalmalaBiomeBaselineCapture"))
         || !bWorldGenerationConfigInitialized || !WorldGenerationConfig.IsValid())
     {
         return;
@@ -11224,24 +11399,24 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     int32 TemporalFrameCount = 1;
     int32 GpuCaptureFrameCount = 0;
     float TemporalIntervalSeconds = 0.5f;
-    const bool bHasCaptureArguments = FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineSite="), Site)
-        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineXcm="), Xcm)
-        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineYcm="), Ycm)
-        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineViewZcm="), ViewZcm)
-        && FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineOutput="), ScreenshotPath);
-    if (!bHasCaptureArguments || Site.IsEmpty() || ScreenshotPath.IsEmpty()
-        || !FMath::IsFinite(Xcm) || !FMath::IsFinite(Ycm) || !FMath::IsFinite(ViewZcm))
+    const bool bHasCaptureArguments = FParse::Value(CommandLine, TEXT("KalmalaBiomeBaselineSite="), Site)
+        && FParse::Value(CommandLine, TEXT("KalmalaBiomeBaselineOutput="), ScreenshotPath);
+    if (!bHasCaptureArguments || Site.IsEmpty() || ScreenshotPath.IsEmpty())
     {
         bBiomeBaselineCaptureRequested = true;
         UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: arguments or output path are invalid."));
         return;
     }
-    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineCondition="), Condition);
-    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineLightingVariant="), LightingVariant);
-    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineRayTracingQuality="), RequestedRayTracingQuality);
-    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineTemporalFrames="), TemporalFrameCount);
-    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineTemporalIntervalSeconds="), TemporalIntervalSeconds);
-    FParse::Value(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineGpuFrames="), GpuCaptureFrameCount);
+    if (!TryParseBiomeBaselineNumericArguments(CommandLine, Xcm, Ycm, ViewZcm,
+            TemporalFrameCount, TemporalIntervalSeconds, GpuCaptureFrameCount))
+    {
+        bBiomeBaselineCaptureRequested = true;
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: numeric arguments are invalid."));
+        return;
+    }
+    FParse::Value(CommandLine, TEXT("KalmalaBiomeBaselineCondition="), Condition);
+    FParse::Value(CommandLine, TEXT("KalmalaBiomeBaselineLightingVariant="), LightingVariant);
+    FParse::Value(CommandLine, TEXT("KalmalaBiomeBaselineRayTracingQuality="), RequestedRayTracingQuality);
     const bool bKnownRayTracingQuality = RequestedRayTracingQuality.IsEmpty()
         || RequestedRayTracingQuality.Equals(TEXT("Compatibility"), ESearchCase::IgnoreCase)
         || RequestedRayTracingQuality.Equals(TEXT("Balanced"), ESearchCase::IgnoreCase)
@@ -11249,16 +11424,13 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
     if ((!LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase)
             && !LightingVariant.Equals(TEXT("DefaultLit"), ESearchCase::IgnoreCase)
             && !LightingVariant.Equals(TEXT("Toon"), ESearchCase::IgnoreCase))
-        || !bKnownRayTracingQuality
-        || TemporalFrameCount < 1 || TemporalFrameCount > 12
-        || !FMath::IsFinite(TemporalIntervalSeconds) || TemporalIntervalSeconds < 0.1f || TemporalIntervalSeconds > 2.0f
-        || GpuCaptureFrameCount < 0 || GpuCaptureFrameCount > 1200)
+        || !bKnownRayTracingQuality)
     {
         bBiomeBaselineCaptureRequested = true;
-        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: lighting variant, ray-tracing quality, temporal frame, or GPU capture arguments are invalid."));
+        UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: lighting variant or ray-tracing quality arguments are invalid."));
         return;
     }
-    if (GpuCaptureFrameCount > 0 && !FParse::Param(FCommandLine::Get(), TEXT("csvGpuStats")))
+    if (GpuCaptureFrameCount > 0 && !FParse::Param(CommandLine, TEXT("csvGpuStats")))
     {
         bBiomeBaselineCaptureRequested = true;
         UE_LOG(LogTemp, Error, TEXT("Biome baseline GPU capture requires the -csvGpuStats option."));
@@ -11278,7 +11450,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         UE_LOG(LogTemp, Error, TEXT("Biome baseline capture rejected: unsupported condition '%s'."), *Condition);
         return;
     }
-    const bool bComparisonFixture = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineComparisonFixture"));
+    const bool bComparisonFixture = FParse::Param(CommandLine, TEXT("KalmalaBiomeBaselineComparisonFixture"));
     if (bWeatherTransition && (!LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase)
             || TemporalFrameCount != 1 || GpuCaptureFrameCount > 0 || bComparisonFixture))
     {
@@ -11286,7 +11458,7 @@ void AKalmalaGameMode::TryCaptureBiomeBaselineView(APlayerController* LocalContr
         UE_LOG(LogTemp, Error, TEXT("Weather-transition capture requires one non-comparison frame with no GPU profile."));
         return;
     }
-    const bool bSkyOnlyFill = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBiomeBaselineSkyOnlyFill"));
+    const bool bSkyOnlyFill = FParse::Param(CommandLine, TEXT("KalmalaBiomeBaselineSkyOnlyFill"));
     if (bSkyOnlyFill && (!bComparisonFixture || !Site.Equals(TEXT("ForestShade"), ESearchCase::IgnoreCase)
             || !Condition.Equals(TEXT("Default"), ESearchCase::IgnoreCase) || LightingVariant.Equals(TEXT("Both"), ESearchCase::IgnoreCase)
             || TemporalFrameCount != 1 || GpuCaptureFrameCount > 0))

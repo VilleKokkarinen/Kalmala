@@ -775,7 +775,7 @@
       `Kalmala.Gameplay.M9.ExplorationRewardCatalogue`, `Scripts/Tests/Progression/ExplorationRewards.ps1`, and
       `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`.
 
-  - [ ] **RF31 — Reject malformed biome baseline capture numeric arguments (P3; CR03-001b-105, CR18-002 batch 106).**
+  - [x] **RF31 — Reject malformed biome baseline capture numeric arguments (P3; CR03-001b-105, CR18-002 batch 106).**
     **Source:** CR03-001b-105 and CR18-002 batch 106; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10382-10410, 10472-10479, 10668-10678`,
       `Scripts/Tests/World/BiomeBaselineCapture.ps1:9-18,73-87`, installed UE 5.8
       `Engine/Source/Runtime/Core/Private/Misc/Parse.cpp:678-687,709-718`,
@@ -783,14 +783,14 @@
       `docs/valheim-like-lighting-plan.md:1224-1230`.
     **Affected path:** Direct non-Shipping `-KalmalaBiomeBaselineCapture` launches with coordinates or temporal/GPU frame settings.
     **Trigger:** A numeric command-line token contains non-numeric text or a valid numeric prefix followed by junk.
-    **Impact:** Numeric `FParse::Value` overloads report that the token was found and convert through `FCString::Atof`/`Atoi` without checking full-token consumption. Malformed X/Y/view-Z can become zero or a parsed prefix; finiteness alone then allows terrain activation and local pawn relocation at the wrong site. Temporal and GPU settings can likewise accept a parsed prefix; a wholly invalid GPU frame token becomes zero, which is within the allowed range and can silently omit requested profiling. The checked-in PowerShell runner uses typed numeric parameters and range validation, protecting its normal path.
+    **Impact (before repair):** Numeric `FParse::Value` overloads report that the token was found and convert through `FCString::Atof`/`Atoi` without checking full-token consumption. Malformed X/Y/view-Z can become zero or a parsed prefix; finiteness alone then allows terrain activation and local pawn relocation at the wrong site. Temporal and GPU settings can likewise accept a parsed prefix; a wholly invalid GPU frame token becomes zero, which is within the allowed range and can silently omit requested profiling. The checked-in PowerShell runner uses typed numeric parameters and range validation, protecting its normal path.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf31--reject-malformed-biome-baseline-capture-numeric-arguments-p3.
-    **Proposed repair:** Strictly convert every numeric capture argument as a full token and reject malformed values before terrain activation, pawn relocation, or capture scheduling. Preserve valid signed/scientific coordinates and supported timing/frame bounds.
+    **Repair:** Added strict full-token decimal and integer parsing for coordinates, temporal settings, and GPU frame count. Signed/scientific coordinates remain supported; non-finite, malformed, trailing-junk, bare-option, and out-of-range values reject capture before terrain activation, pawn movement, or camera/timer setup. Missing optional settings keep their defaults, and valid GPU profiling still requires `-csvGpuStats`.
     **Dependencies:** After CR19 review acceptance; this finding is review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** Direct launches reject non-numeric and trailing-junk tokens for X/Y/view-Z, temporal frame count/interval, and GPU frame count before terrain activation, pawn movement, or capture scheduling. Valid supported coordinates and frame settings retain their requested values, and malformed GPU settings cannot silently disable profiling.
-    **Focused validation:** Add a narrow parser regression covering malformed and trailing-junk tokens for each numeric argument plus valid signed/scientific coordinates and supported frame boundaries. Verify rejection precedes scene changes and image/profile output; run the baseline capture runner on a valid fixed site after an Editor build.
+    **Focused validation:** Added `Kalmala.Gameplay.World.BiomeBaselineCaptureArguments` for non-numeric and trailing-junk values on all six numeric arguments, signed/scientific coordinates, omitted defaults, and frame/timing boundaries. `git diff --check` passed, and source inspection confirms parsing returns before terrain activation, pawn movement, camera creation, and capture scheduling. The automation and valid-site capture runner remain for Editor-backed verification; neither was run in this normal increment.
 
   - [ ] **RF32 — Reject incomplete per-site lighting comparison fixtures (P3; CR03-001b-106).**
     **Source:** CR03-001b-106; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10622-10645`,
