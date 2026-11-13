@@ -192,8 +192,10 @@ private:
     double PopulationSuppressionRadiusCmForTests = -1.0;
     // Mutates a completed sample only for descriptor-path automation fixtures.
     TFunction<void(const FVector2D&, bool, bool&, FKalmalaOceanSample&)> PopulationAquaticSurfaceSampleForTests;
-    // Isolate the final disk boundary while exercising the real depletion callback.
+    // Isolate sparse world-population save writes while exercising real callbacks.
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
+    // Inject a failed actor creation at a chosen member index in population transactions.
+    TFunction<bool(int32)> PopulationActorSpawnAllowedForTests;
     // Force the player-slot write boundary to fail after a candidate save is prepared.
     TFunction<bool()> PlayerStateSaveGateForTests;
 #endif

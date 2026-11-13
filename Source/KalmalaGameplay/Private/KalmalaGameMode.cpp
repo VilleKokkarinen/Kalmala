@@ -7654,9 +7654,15 @@ bool AKalmalaGameMode::TryCreatePopulationSpawnTransaction(
         FActorSpawnParameters SpawnParameters;
         SpawnParameters.SpawnCollisionHandlingOverride =
             ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-        AKalmalaWildlifeSpawn* Creature = World->SpawnActor<AKalmalaWildlifeSpawn>(
-            AKalmalaWildlifeSpawn::StaticClass(), PlacementLocations[Index],
-            FRotator::ZeroRotator, SpawnParameters);
+        AKalmalaWildlifeSpawn* Creature = nullptr;
+#if WITH_DEV_AUTOMATION_TESTS
+        if (!PopulationActorSpawnAllowedForTests || PopulationActorSpawnAllowedForTests(Index))
+#endif
+        {
+            Creature = World->SpawnActor<AKalmalaWildlifeSpawn>(
+                AKalmalaWildlifeSpawn::StaticClass(), PlacementLocations[Index],
+                FRotator::ZeroRotator, SpawnParameters);
+        }
         if (Creature == nullptr)
         {
             for (AKalmalaWildlifeSpawn* Created : CreatedCreatures)
@@ -8730,7 +8736,17 @@ void AKalmalaGameMode::RecordDefeatedSpawn(const FString& PersistentSpawnId)
     if (HasAuthority() && PopulationSaveGame != nullptr && PopulationSaveGame->MatchesWorld(WorldGenerationConfig))
     {
         PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-        UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+#if WITH_DEV_AUTOMATION_TESTS
+        if (PopulationSaveWriterForTests)
+        {
+            PopulationSaveWriterForTests(PopulationSaveGame,
+                KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+            return;
+        }
+#endif
+        const bool bSaved = UGameplayStatics::SaveGameToSlot(
+            PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        (void)bSaved;
     }
 }
 

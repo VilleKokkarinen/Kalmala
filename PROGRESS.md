@@ -32733,3 +32733,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production source admission, registry sampling and ownership mapping remain server-authoritative and unchanged. The test exercises configured creation in an isolated server world and manually registers only the other-source fixture actor.
 - **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The CR remediation goal remains open.
 - **Next eligible task:** RF12 — Cover natural population transaction success and Wolf rollback.
+
+## Run 2026-11-13 — RF12 natural population creation and Wolf rollback coverage
+
+- **Selected task:** RF12, cover successful natural single and Wolf transactions and rollback after one Wolf member has been created.
+- **Work completed:** Extended `Kalmala.Gameplay.Population.CreationLifecycle` with a generated non-pack descriptor that succeeds through the natural transaction path, then verifies its stable ID, initialized state, live registry entry, defeat callback, and released reservation. Added a valid Wolf pack transaction and a test-only spawn gate that fails at member 1 after member 0 is initialized and registered. The test verifies rollback removes that actor and registry entry, releases reservations, and causes no defeat callback, defeated ID, reward, environmental ownership, or save write. Added a test-only save writer interception at the defeat callback boundary so the rollback assertion observes persistent writes without touching disk.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, and `Source/KalmalaGameplay/Private/Tests/KalmalaPopulationCreationLifecycleTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Inspected the transaction's existing spawn, registration, callback, rollback, and reservation-release branches alongside the new fixture's candidate selection and assertions. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF12 is not the final remediation task. The Editor build and `Kalmala.Gameplay.Population.CreationLifecycle` automation remain unexecuted.
+- **Observable impact:** The focused lifecycle test now detects regressions in natural single creation, Wolf member initialization and registration, defeat callback binding, reservation release, and cleanup of a partially created pack without allowing rollback to mark or save defeated wildlife or queue rewards.
+- **Networking/authority:** Production transaction authority and gameplay behavior remain unchanged. The spawn failure and save writer seams exist only under `WITH_DEV_AUTOMATION_TESTS`; the transaction still creates and registers actors through the authoritative GameMode path.
+- **Known limitations / remaining scope:** The expanded automation has not been executed in Unreal. The broader CR remediation goal remains open.
+- **Next eligible task:** RF13 — Cover population scheduler GameMode tick integration.

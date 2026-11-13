@@ -370,7 +370,7 @@
     `Kalmala.Gameplay.Population.EnvironmentalSpawnerAdmission` after an Editor
     build. Evidence and repair:
     `Temporary/Review/findings.md#rf11--source-owned-live-actors-lack-local-cap-adapter-coverage-p3`.
-  - [ ] **RF12 — Cover natural population transaction success and Wolf rollback (P3; CR03-001b-88).**
+  - [x] **RF12 — Cover natural population transaction success and Wolf rollback (P3; CR03-001b-88).**
     Affected: `KalmalaGameMode.cpp:7423-7630`,
     `KalmalaPopulationCreationLifecycleTest.cpp:20-104`, and
     `KalmalaEnvironmentalSpawnerAdmissionTest.cpp:145-212`. The transaction
