@@ -1,3 +1,32 @@
+## RF35 — Reconcile four-player terrain neighborhoods — 2026-11-13
+
+- **Work completed:** Raised the server terrain-patch cap from 25 to 36, matching
+  the maximum four players times nine patches per radius-one neighborhood. The
+  complete required union now fits regardless of `TSet` activation order. The
+  forest-patch lifecycle automation source now covers three and four disjoint
+  players, verifies generated patch centers and server collision, repeats
+  refreshes, crosses patch boundaries, and checks cleanup. Updated the current
+  terrain budget and profile documentation.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaForestPatchTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `docs/biome-height-rework.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` and static source/documentation
+  inspection. No Unreal build, Editor automation, or live peer session ran.
+- **Full verification:** Deferred; this is not milestone-final verification.
+- **Observable impact:** Up to 36 active terrain actors can now preserve the
+  entire documented 3x3 local terrain area for four disjoint players. This
+  permits 11 more patch actors than the former cap. The two-player shared-start
+  WorldProfile remains a baseline and does not saturate the new cap.
+- **Networking/authority:** Terrain activation and actor replication remain
+  server-owned. Terrain geometry remains locally derived from replicated world
+  identity and patch descriptors; no client selects or activates patches.
+- **Known limits:** Four-player peak memory and replication cost, Editor
+  automation, and live four-peer traversal still need milestone-final
+  verification.
+- **Next eligible task:** RF36 — keep treasure failure feedback consistent
+  with the claim transaction. The overall CR remediation goal remains active.
+
 ## RF34 — Select a persistent source for harvest restart verification — 2026-11-13
 
 - **Work completed:** Harvest and Verify now choose the same first generated

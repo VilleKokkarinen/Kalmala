@@ -13,6 +13,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include "ProceduralMeshComponent.h"
 #include "UObject/UnrealType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaForestPatchLifecycleTest,
@@ -196,7 +197,7 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("Adjacent return destroys introduced terrain actors"), Patch.IsValid());
     for (const auto& Node : IntroducedNodes)
         TestFalse(TEXT("Adjacent return destroys introduced forest actors"), Node.IsValid());
-    // Separate radius-one neighborhoods fit within the existing 25-patch budget.
+    // Separate radius-one neighborhoods fit within the four-player 36-patch budget.
     const FIntPoint RemoteCoordinate(4, 0);
     const FVector2D RemoteCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(Center, 4, 0);
     TestTrue(TEXT("First player moves to disjoint neighborhood"), FirstPawn->SetActorLocation(
@@ -255,6 +256,124 @@ bool FKalmalaForestPatchLifecycleTest::RunTest(const FString& Parameters)
     SecondController->Destroy();
     FirstPawn->Destroy();
     SecondPawn->Destroy();
+
+    TArray<APlayerController*> StreamingControllers;
+    TArray<AKalmalaCharacter*> StreamingPawns;
+    const auto AddStreamingPlayer = [&](const int32 PatchX)
+    {
+        APlayerController* Controller = World->SpawnActor<APlayerController>();
+        const FVector2D PatchCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(Center, PatchX, 0);
+        AKalmalaCharacter* Pawn = World->SpawnActor<AKalmalaCharacter>(AKalmalaCharacter::StaticClass(),
+            FVector(PatchCenter.X, PatchCenter.Y, 0.0), FRotator::ZeroRotator, PawnParameters);
+        if (Controller == nullptr || Pawn == nullptr)
+        {
+            if (Controller != nullptr) Controller->Destroy();
+            if (Pawn != nullptr) Pawn->Destroy();
+            return false;
+        }
+        Controller->Possess(Pawn);
+        World->AddController(Controller);
+        if (Controller->GetPawn() != Pawn)
+        {
+            Controller->Destroy();
+            Pawn->Destroy();
+            return false;
+        }
+        StreamingControllers.Add(Controller);
+        StreamingPawns.Add(Pawn);
+        return true;
+    };
+    TArray<int32> StreamingCenterXs = {0, 4, 8};
+    for (const int32 PatchX : StreamingCenterXs)
+    {
+        if (!TestTrue(TEXT("Disjoint streaming player is created"), AddStreamingPlayer(PatchX)))
+        {
+            World->DestroyWorld(false);
+            return false;
+        }
+    }
+    const auto VerifyStreamingCoverage = [&](const int32 ExpectedPatchCount, const TCHAR* Scenario)
+    {
+        TestEqual(FString::Printf(TEXT("%s has the complete required patch union"), Scenario),
+            Mode->ActiveTerrainPatches.Num(), ExpectedPatchCount);
+        TestEqual(FString::Printf(TEXT("%s patch bookkeeping matches active actors"), Scenario),
+            Mode->ActiveTerrainPatchCoordinates.Num(), ExpectedPatchCount);
+        TestTrue(FString::Printf(TEXT("%s remains within the 36-patch cap"), Scenario),
+            Mode->ActiveTerrainPatches.Num() <= 36);
+        for (int32 PlayerIndex = 0; PlayerIndex < StreamingCenterXs.Num(); ++PlayerIndex)
+        {
+            const int32 CenterX = StreamingCenterXs[PlayerIndex];
+            for (int32 OffsetY = -1; OffsetY <= 1; ++OffsetY)
+            {
+                for (int32 OffsetX = -1; OffsetX <= 1; ++OffsetX)
+                {
+                    const FIntPoint Coordinate(CenterX + OffsetX, OffsetY);
+                    const FString Context = FString::Printf(TEXT("%s player %d patch (%d,%d)"),
+                        Scenario, PlayerIndex + 1, Coordinate.X, Coordinate.Y);
+                    const auto* PatchEntry = Mode->ActiveTerrainPatches.Find(Coordinate);
+                    if (!TestNotNull(*FString::Printf(TEXT("%s is active"), *Context), PatchEntry)
+                        || !TestNotNull(*FString::Printf(TEXT("%s actor is live"), *Context), PatchEntry->Get()))
+                    {
+                        continue;
+                    }
+                    AKalmalaGeneratedTerrainPatch* TerrainPatch = PatchEntry->Get();
+                    TestTrue(*FString::Printf(TEXT("%s has generated data"), *Context), TerrainPatch->HasGenerationData());
+                    const FVector2D ExpectedCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(
+                        Center, Coordinate.X, Coordinate.Y);
+                    TestTrue(*FString::Printf(TEXT("%s retains its deterministic center"), *Context),
+                        FVector2D::DistSquared(TerrainPatch->GetGeneratedPatchCenter(), ExpectedCenter) <= 0.01f);
+                    TArray<UProceduralMeshComponent*> MeshComponents;
+                    TerrainPatch->GetComponents<UProceduralMeshComponent>(MeshComponents);
+                    const bool bHasBlockingSurface = MeshComponents.ContainsByPredicate(
+                        [](const UProceduralMeshComponent* Component)
+                        {
+                            return Component != nullptr
+                                && Component->GetCollisionEnabled() == ECollisionEnabled::QueryAndPhysics
+                                && Component->GetNumSections() > 0;
+                        });
+                    TestTrue(*FString::Printf(TEXT("%s retains server terrain collision"), *Context), bHasBlockingSurface);
+                }
+            }
+        }
+    };
+    Mode->RefreshTerrainPatchNeighborhoods();
+    VerifyStreamingCoverage(27, TEXT("Three disjoint players"));
+
+    StreamingCenterXs.Add(12);
+    if (!TestTrue(TEXT("Fourth disjoint streaming player is created"), AddStreamingPlayer(12)))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+    Mode->RefreshTerrainPatchNeighborhoods();
+    VerifyStreamingCoverage(36, TEXT("Four disjoint players"));
+    const auto FourPlayerPatchesBeforeRefresh = Mode->ActiveTerrainPatches;
+    Mode->RefreshTerrainPatchNeighborhoods();
+    VerifyStreamingCoverage(36, TEXT("Repeated four-player refresh"));
+    for (const auto& Entry : FourPlayerPatchesBeforeRefresh)
+    {
+        TestTrue(TEXT("Repeated at-cap refresh retains the same terrain actors"),
+            Mode->ActiveTerrainPatches.FindRef(Entry.Key) == Entry.Value.Get());
+    }
+
+    for (int32 PlayerIndex = 0; PlayerIndex < StreamingPawns.Num(); ++PlayerIndex)
+    {
+        StreamingCenterXs[PlayerIndex] += 1;
+        const FVector2D PatchCenter = FKalmalaTerrainPatchLayout::GetPatchCenter(
+            Center, StreamingCenterXs[PlayerIndex], 0);
+        TestTrue(TEXT("Player crosses into an adjacent streamed patch"), StreamingPawns[PlayerIndex]->SetActorLocation(
+            FVector(PatchCenter.X, PatchCenter.Y, 0.0), false, nullptr, ETeleportType::TeleportPhysics));
+    }
+    Mode->RefreshTerrainPatchNeighborhoods();
+    VerifyStreamingCoverage(36, TEXT("Four players after boundary crossing"));
+
+    for (APlayerController* Controller : StreamingControllers) Controller->UnPossess();
+    Mode->RefreshTerrainPatchNeighborhoods();
+    TestTrue(TEXT("Four-player departure clears terrain patch tracking"), Mode->ActiveTerrainPatches.IsEmpty()
+        && Mode->ActiveTerrainPatchCoordinates.IsEmpty() && Mode->ActiveForestNodes.IsEmpty());
+    for (APlayerController* Controller : StreamingControllers) Controller->Destroy();
+    for (AKalmalaCharacter* Pawn : StreamingPawns) Pawn->Destroy();
+
     // Missing or foreign-world saves must not hide this world's candidates.
     for (int32 SaveCase = 0; SaveCase < 2; ++SaveCase)
     {

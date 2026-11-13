@@ -90,7 +90,10 @@
 namespace KalmalaGameMode
 {
     constexpr int32 PlayerTerrainPatchRadius = 1;
-    constexpr int32 MaxActiveTerrainPatches = 25;
+    constexpr int32 MaxTerrainStreamingPlayers = 4;
+    constexpr int32 PlayerTerrainPatchSide = 2 * PlayerTerrainPatchRadius + 1;
+    constexpr int32 MaxActiveTerrainPatches =
+        MaxTerrainStreamingPlayers * PlayerTerrainPatchSide * PlayerTerrainPatchSide;
     constexpr int32 MaxActivePopulationSpatialKeys = 9;
     constexpr int32 MaxSessionM9ExplorationClaimsPerPlayer = 64;
     constexpr float TerrainPatchActivationIntervalSeconds = 1.0f;

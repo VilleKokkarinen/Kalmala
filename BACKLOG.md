@@ -891,7 +891,7 @@
       `Scripts/Tests/Survival/PersistedCampRestart.ps1` runs for the fixed seed and a tree/M9-first case remain
       deferred; neither process-restart scenario ran in this normal increment.
 
-  - [ ] **RF35 — Reconcile four-player terrain neighborhoods with the 25-patch cap (P2; CR03-001b-112).**
+  - [x] **RF35 — Reconcile four-player terrain neighborhoods with the 36-patch cap (P2; CR03-001b-112).**
     **Source:** CR03-001b-112;
       `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:92-96,11764-11778,11835-11878`,
       `Source/KalmalaWorld/Public/KalmalaTerrainPatchLayout.h:8-30`,
@@ -910,19 +910,21 @@
       gaps once the players separate.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf35--reconcile-four-player-terrain-neighborhoods-with-the-25-patch-cap-p2.
-    **Proposed repair:** Reconcile the four-player patch demand with the 25-patch budget. Define and enforce
-      deterministic minimum terrain/collision coverage for every live pawn, or adjust the budget/neighborhood
-      contract after validating the resulting memory and replication cost; never let `TSet` iteration decide
-      which player loses nearby terrain.
+    **Implemented repair:** Raised the hard cap to 36 patches, derived from the four-player limit times each
+      player's nine-patch neighborhood. Every live player's complete radius-one neighborhood now fits in the
+      cap, so `TSet` iteration order cannot omit a required terrain or collision patch. The bounded four-player
+      count and ordinary server-side activation/replication authority remain unchanged.
     **Dependencies:** After CR19 review acceptance; this finding is a review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** A focused three- and four-player test places pawns in disjoint neighborhoods and crosses
       patch boundaries. Every pawn retains continuous server collision and the documented local render area
       while active actors stay within the chosen documented cap; behavior is deterministic across runs and
       independent of set iteration order.
-    **Focused validation:** Extend the forest-patch lifecycle test with three/four disjoint pawns and
-      over-budget refreshes, then run a live four-peer traversal/streaming check after an Editor build and
-      confirm no pawn enters an unmaterialized collision region.
+    **Focused validation:** Extended the forest-patch lifecycle test with three/four disjoint pawns,
+      collision/render coverage assertions, repeated refresh stability, and boundary crossings. `git diff
+      --check` and source inspection passed. Editor automation and a live four-peer traversal/streaming check
+      remain deferred to milestone-final verification, including a measured memory/replication profile at the
+      new cap.
 
   - [ ] **RF36 — Keep treasure failure feedback consistent with the claim transaction (P3; CR03-001b-113).**
     **Source:** CR03-001b-113; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:12007-12030`,
