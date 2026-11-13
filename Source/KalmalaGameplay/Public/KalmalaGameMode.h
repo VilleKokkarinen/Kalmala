@@ -187,6 +187,7 @@ private:
     friend class FKalmalaWildlifeGameModeRewardCallbackTest;
     friend class FKalmalaMirelingGemRewardDeliveryTest;
     friend class FKalmalaM9WorldDepletionPersistenceTest;
+    friend class FKalmalaPlayerDiscoveryFailClosedLoadTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
     friend class AKalmalaHarvestNode;
     friend class AKalmalaWildlifeSpawn;
@@ -207,6 +208,8 @@ private:
     // Isolate the world-scoped M9 depletion slot while exercising real harvests.
     TFunction<class UKalmalaM7PersistenceSaveGame*(const FString&, int32)> M9ResourceSaveLoaderForTests;
     TFunction<bool(class UKalmalaM7PersistenceSaveGame*, const FString&, int32)> M9ResourceSaveWriteAttemptForTests;
+    // Isolate exact player-slot existence and loading while exercising GameMode validation.
+    TFunction<bool(const FString&, int32, class USaveGame*&)> PlayerDiscoverySaveLoaderForTests;
     TFunction<bool(class UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)> PlayerDiscoverySaveWriterForTests;
     // Inject a failed actor creation at a chosen member index in population transactions.
     TFunction<bool(int32)> PopulationActorSpawnAllowedForTests;

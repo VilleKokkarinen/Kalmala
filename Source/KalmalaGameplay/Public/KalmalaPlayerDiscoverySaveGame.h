@@ -81,6 +81,7 @@ public:
     static bool IsValidToolRecord(const FKalmalaPlayerToolSaveRecord& Record);
 private:
     friend class FKalmalaPlayerDiscoverySaveGameV2Test;
+    friend class FKalmalaPlayerDiscoveryFailClosedLoadTest;
 
     UPROPERTY(SaveGame) int32 SchemaVersion = SchemaVersionValue;
     UPROPERTY(SaveGame) FKalmalaWorldGenerationConfig WorldConfig;

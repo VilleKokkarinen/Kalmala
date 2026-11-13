@@ -9916,9 +9916,22 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
 
     const FString Slot = KalmalaGameMode::PlayerDiscoverySaveSlot(WorldGenerationConfig, OutIdentity);
     UKalmalaPlayerDiscoverySaveGameV2* Save = nullptr;
-    if (UGameplayStatics::DoesSaveGameExist(Slot, 0))
+    USaveGame* Loaded = nullptr;
+    bool bSlotExists = false;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (PlayerDiscoverySaveLoaderForTests)
     {
-        USaveGame* Loaded = UGameplayStatics::LoadGameFromSlot(Slot, 0);
+        bSlotExists = PlayerDiscoverySaveLoaderForTests(Slot, 0, Loaded);
+    }
+    else
+#endif
+    {
+        bSlotExists = UGameplayStatics::DoesSaveGameExist(Slot, 0);
+        if (bSlotExists) Loaded = UGameplayStatics::LoadGameFromSlot(Slot, 0);
+    }
+
+    if (bSlotExists)
+    {
         if (UKalmalaPlayerDiscoverySaveGameV2* Current = Cast<UKalmalaPlayerDiscoverySaveGameV2>(Loaded))
         {
             bool bValidClaims = Current->MatchesPlayer(WorldGenerationConfig, OutIdentity);

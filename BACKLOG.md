@@ -512,7 +512,7 @@
     **Focused validation:** Run the new GameMode M9 depletion persistence regression, the existing M9 source
       acceptance test, and the M7 sparse persistence contract test after an Editor build.
 
-  - [ ] **RF22 — Cover fail-closed player discovery save loading (P3; CR03-001b-99).**
+  - [x] **RF22 — Cover fail-closed player discovery save loading (P3; CR03-001b-99).**
     **Source:** CR03-001b-99; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9427-9488` and `9520-9585`.
     **Affected path:** Loading and writing authenticated player discovery/equipment state when a player slot
       already exists but is malformed, incompatible, belongs to another owner/world, or contains a stale M9
