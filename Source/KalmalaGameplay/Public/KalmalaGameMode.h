@@ -197,6 +197,7 @@ private:
     friend class FKalmalaPlayerDiscoveryFailClosedLoadTest;
     friend class FKalmalaOceanSkiffRestoreCollisionTest;
     friend class FKalmalaEnvironmentalSpawnerAdmissionTest;
+    friend class FKalmalaMirelingBossScrollRecoveryTest;
     friend class AKalmalaHarvestNode;
     friend class AKalmalaWildlifeSpawn;
 
@@ -253,6 +254,8 @@ private:
     bool TryCreatePopulationSaveCandidate(class UKalmalaWorldPopulationSaveGame*& OutCandidate) const;
     bool TryCommitPopulationSaveCandidate(class UKalmalaWorldPopulationSaveGame* Candidate);
     void RetryPendingPopulationDepletionWrites(double NowSeconds);
+    bool EnsureMirelingBossScrollEntitlement(class AKalmalaCharacter* Attacker,
+        const FString& PersistentSpawnId, bool& bOutAlreadyClaimed);
     void UpdatePopulationKeySchedule(double NowSeconds);
     TArray<FIntPoint> GetDuePopulationSpatialKeys(double NowSeconds) const;
     bool MarkPopulationSpatialKeyServiced(const FIntPoint& SpatialKey, double NowSeconds);
@@ -647,6 +650,7 @@ private:
     TMap<FString, TObjectPtr<class UKalmalaPlayerDiscoverySaveGameV2>> PlayerDiscoverySaves;
     TSet<FString> RejectedPlayerDiscoverySaveIdentities;
     TSet<FString> DeliveredWildlifeRewardSpawnIds;
+    TSet<FString> MirelingBossScrollUnavailableFeedbackKeys;
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
     TMap<FString, TWeakObjectPtr<class AKalmalaCharacter>> OceanDiscoveryRewardDeliveryPawnsThisSession;
     TMap<FString, TSet<FString>> SessionM9ExplorationClaims;

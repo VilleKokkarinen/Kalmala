@@ -59,6 +59,10 @@ public:
     bool IsDefeated(const FString& PersistentSpawnId) const;
     void MarkDefeated(const FString& PersistentSpawnId);
     bool TryQueuePendingWildlifeReward(const FString& RewardClaimId, const FString& PlayerIdentity);
+    bool TryQueuePendingMirelingBossScrollReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
+    static FString MakeMirelingBossScrollPendingRewardClaimId(const FString& PersistentSpawnId);
+    static bool TryGetMirelingBossSpawnIdFromPendingRewardClaimId(
+        const FString& ClaimId, FString& OutPersistentSpawnId);
     bool TryQueuePendingBadgerReward(const FString& PersistentSpawnId, const FString& PlayerIdentity);
     static FString MakeBadgerPendingRewardClaimId(const FString& PersistentSpawnId);
     static bool TryGetBadgerSpawnIdFromPendingRewardClaimId(const FString& ClaimId, FString& OutPersistentSpawnId);

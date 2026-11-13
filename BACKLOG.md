@@ -710,7 +710,7 @@
       `Kalmala.World.M7.PersistenceContract`, `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract`, and
       `Scripts/Tests/Travel/OceanSkiffIntegratedReconnectJourney.ps1`.
 
-  - [ ] **RF29 — Keep Mireling boss scroll claims recoverable after player-save failure (P2; CR03-001b-104).**
+  - [x] **RF29 — Keep Mireling boss scroll claims recoverable after player-save failure (P2; CR03-001b-104).**
     **Source:** CR03-001b-104; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10295-10340`, `12034-12051`,
       and `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-597`, `5392-5450`.
     **Affected path:** The authenticated credited attacker’s one-time world-seeded support scroll from a
@@ -718,28 +718,31 @@
     **Trigger:** `RecordMirelingDefeatReward` successfully persists the Mireling defeated ID, but
       `GetPlayerDiscoverySave` returns null or `PersistPlayerStateFromServer` fails while
       `ClaimMirelingBossScroll` records the scroll and learned effect.
-    **Impact:** The player claim returns false after the defeated source has been durably consumed.
+    **Impact (before repair):** The player claim returned false after the defeated source had been durably consumed.
       `GrantDefeatReward` has already set `bDefeatRewardProcessed` and ignores the claim result; the actor
       remains defeated, and population activation suppresses that stable ID on reactivation. The persistent
       Mireling reward queue carries only the Dusk Diamond claim, not the boss scroll, so the original encounter
-      has no retry path. A separate eligible Mireling may offer another attempt, but this is not recovery of the
-      accepted encounter and is not guaranteed. When the save lookup returns null, the handler also returns
+      had no retry path. A separate eligible Mireling could offer another attempt, but this was not recovery of the
+      accepted encounter and was not guaranteed. When the save lookup returned null, the handler also returned
       without owner feedback.
     **Evidence:** Full evidence:
       Temporary/Review/findings.md#rf29--keep-mireling-boss-scroll-claims-recoverable-after-player-save-failure-p2.
-    **Proposed repair:** Preserve a bounded server-owned, authenticated pending scroll entitlement or otherwise
-      retain a retryable source state until the owner’s player save contains both the discovery and learned
-      effect. Publish owner-only unavailable feedback on load/write failure, and make retry/recovery idempotent
-      across reconnect without granting the effect twice.
+    **Repair:** Eligible Mireling defeats now add an authenticated scroll entry to the existing bounded
+      world-population reward queue before the source is marked defeated. Delivery persists the canonical
+      world-seeded discovery and learned effect together, keeps the queue entry on player-save load/write failure,
+      and clears it only after the player save succeeds. Retry reports unavailable once until recovery, then
+      reports the owner-only scroll result. Cached player saves reapply learned support effects to replacement
+      pawns; no saved-data schema or serialized fields changed.
     **Dependencies:** After CR19 review acceptance; this finding is review handoff only and does not authorize
       implementation in CR03.
     **Acceptance:** With an eligible Mireling and injected player-save load/write failure, the defeated source
       retains a retryable owner-bound scroll outcome. After persistence recovers, the owner receives the
       world-canonical scroll and learned effect once, reconnect retains the entitlement, replay does not
       duplicate it, and other peers receive no private reward state.
-    **Focused validation:** Add a GameMode/wildlife two-peer boss-scroll recovery regression with injected
-      player-save outcomes; run it, `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`, and
-      `Scripts/Tests/Acceptance/VerticalSlice.ps1` after an Editor build. The vertical-slice runner is a broad
+    **Focused validation:** Added `Kalmala.Gameplay.Wildlife.MirelingBossScrollRecovery`, a two-player
+      GameMode/wildlife regression for injected load/write failures, owner-bound retry, reconnect, replay, and
+      observer privacy. After an Editor build, run it, `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`, and
+      `Scripts/Tests/Acceptance/VerticalSlice.ps1`. The vertical-slice runner is a broad
       combat/support baseline and must not be counted as boss-scroll coverage unless it is extended to assert
       that path.
 

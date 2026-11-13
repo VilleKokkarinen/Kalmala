@@ -9574,6 +9574,10 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         bool bReefMawHasTooth = false;
         const bool bReefMawReward = UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
             Reward.PersistentSpawnId, ReefMawSpawnId, bReefMawHasTooth);
+        FString MirelingBossScrollSpawnId;
+        const bool bMirelingBossScrollReward =
+            UKalmalaWorldPopulationSaveGame::TryGetMirelingBossSpawnIdFromPendingRewardClaimId(
+                Reward.PersistentSpawnId, MirelingBossScrollSpawnId);
         const bool bMirelingReward = Reward.PersistentSpawnId.StartsWith(MirelingGemRewardPrefix);
         FString DefeatedSpawnId = bMirelingReward
             ? Reward.PersistentSpawnId.Mid(MirelingGemRewardPrefix.Len()) : Reward.PersistentSpawnId;
@@ -9589,7 +9593,43 @@ void AKalmalaGameMode::DeliverPendingWildlifeRewards()
         else if (bHornedGoatReward) DefeatedSpawnId = HornedGoatSpawnId;
         else if (bThunderSentinelReward) DefeatedSpawnId = ThunderSentinelSpawnId;
         else if (bReefMawReward) DefeatedSpawnId = ReefMawSpawnId;
+        else if (bMirelingBossScrollReward) DefeatedSpawnId = MirelingBossScrollSpawnId;
         if (!PopulationSaveGame->IsDefeated(DefeatedSpawnId)) continue;
+
+        if (bMirelingBossScrollReward)
+        {
+            if (!Reward.GemItemId.IsNone() || !IsMirelingBossRewardId(DefeatedSpawnId)) continue;
+            for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+            {
+                APlayerController* Controller = Iterator->Get();
+                AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+                if (!IsValid(Character) || !Character->HasAuthority() || Character->GetPlayerState() == nullptr
+                    || KalmalaGameMode::GetAuthenticatedPlayerIdentity(Character->GetPlayerState()) != Reward.PlayerIdentity)
+                    continue;
+
+                bool bAlreadyClaimed = false;
+                if (!EnsureMirelingBossScrollEntitlement(Character, DefeatedSpawnId, bAlreadyClaimed)) break;
+
+                UKalmalaWorldPopulationSaveGame* CandidatePopulation = nullptr;
+                if (!TryCreatePopulationSaveCandidate(CandidatePopulation)
+                    || !CandidatePopulation->RemovePendingWildlifeReward(Reward.PersistentSpawnId)
+                    || !CandidatePopulation->MatchesWorld(WorldGenerationConfig)
+                    || !WritePopulationSaveObjectToSlot(CandidatePopulation))
+                {
+                    DeliveredWildlifeRewardSpawnIds.Add(Reward.PersistentSpawnId);
+                    UE_LOG(LogTemp, Warning,
+                        TEXT("Mireling boss scroll entitlement %s for %s was %s, but pending-queue cleanup did not reach disk."),
+                        *Reward.PersistentSpawnId, *Reward.PlayerIdentity,
+                        bAlreadyClaimed ? TEXT("already present") : TEXT("just saved"));
+                    break;
+                }
+
+                PopulationSaveGame = CandidatePopulation;
+                DeliveredWildlifeRewardSpawnIds.Add(Reward.PersistentSpawnId);
+                break;
+            }
+            continue;
+        }
 
         for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
         {
@@ -9900,13 +9940,32 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
     // PostLogin can run before GameMode::BeginPlay has copied the final server seed.
     // Bind player slots to the authoritative GameState identity before loading or caching them.
     WorldGenerationConfig = WorldState->GetWorldGenerationConfig();
+    const auto RestoreSupportEffects = [](AKalmalaCharacter* Character,
+        const UKalmalaPlayerDiscoverySaveGameV2* Save)
+    {
+        UKalmalaSupportMagicComponent* Support = Character != nullptr
+            ? Character->GetSupportMagicComponent() : nullptr;
+        if (Support == nullptr || Save == nullptr) return;
+        for (const EKalmalaSupportEffect Effect : { EKalmalaSupportEffect::Mending,
+            EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall })
+        {
+            if (Save->HasLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect)))
+            {
+                Support->LearnEffectFromServer(Effect);
+            }
+        }
+    };
 
     OutIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Interactor->GetPlayerState());
     if (OutIdentity.IsEmpty() || OutIdentity.Len() > FKalmalaM7SaveIdentity::MaxOwnerIdentityLength
         || RejectedPlayerDiscoverySaveIdentities.Contains(OutIdentity)) return nullptr;
     if (TObjectPtr<UKalmalaPlayerDiscoverySaveGameV2>* Existing = PlayerDiscoverySaves.Find(OutIdentity))
     {
-        if (*Existing != nullptr && (*Existing)->MatchesPlayer(WorldGenerationConfig, OutIdentity)) return *Existing;
+        if (*Existing != nullptr && (*Existing)->MatchesPlayer(WorldGenerationConfig, OutIdentity))
+        {
+            RestoreSupportEffects(Interactor, *Existing);
+            return *Existing;
+        }
         RejectedPlayerDiscoverySaveIdentities.Add(OutIdentity);
         UE_LOG(LogTemp, Warning,
             TEXT("Player discovery restore and writes blocked for authenticated player %s; cached save identity no longer matches the authoritative world."),
@@ -9980,17 +10039,7 @@ UKalmalaPlayerDiscoverySaveGameV2* AKalmalaGameMode::GetPlayerDiscoverySave(
         Interactor->ForceNetUpdate();
     }
 
-    if (UKalmalaSupportMagicComponent* Support = Interactor->GetSupportMagicComponent())
-    {
-        for (const EKalmalaSupportEffect Effect : { EKalmalaSupportEffect::Mending,
-            EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall })
-        {
-            if (Save->HasLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(Effect)))
-            {
-                Support->LearnEffectFromServer(Effect);
-            }
-        }
-    }
+    RestoreSupportEffects(Interactor, Save);
     return Save;
 }
 
@@ -11018,6 +11067,90 @@ bool AKalmalaGameMode::ClaimM9ExplorationReward(
     return true;
 }
 
+bool AKalmalaGameMode::EnsureMirelingBossScrollEntitlement(
+    AKalmalaCharacter* Attacker, const FString& PersistentSpawnId, bool& bOutAlreadyClaimed)
+{
+    bOutAlreadyClaimed = false;
+    if (!HasAuthority() || Attacker == nullptr || !Attacker->HasAuthority() || Attacker->GetWorld() != GetWorld()
+        || !IsMirelingBossRewardId(PersistentSpawnId))
+    {
+        return false;
+    }
+
+    const FString PlayerIdentity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(Attacker->GetPlayerState());
+    const FString PendingClaimId =
+        UKalmalaWorldPopulationSaveGame::MakeMirelingBossScrollPendingRewardClaimId(PersistentSpawnId);
+    if (PlayerIdentity.IsEmpty() || PendingClaimId.IsEmpty() || PopulationSaveGame == nullptr
+        || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
+        || !PopulationSaveGame->IsDefeated(PersistentSpawnId)) return false;
+
+    const FKalmalaPendingWildlifeReward* PendingReward = PopulationSaveGame->GetPendingWildlifeRewards().FindByPredicate(
+        [&PendingClaimId](const FKalmalaPendingWildlifeReward& Reward)
+        { return Reward.PersistentSpawnId == PendingClaimId; });
+    if (PendingReward == nullptr || PendingReward->PlayerIdentity != PlayerIdentity
+        || !PendingReward->GemItemId.IsNone()) return false;
+
+    UKalmalaDiscoveryProgressComponent* Feedback = Attacker->GetDiscoveryProgressComponent();
+    UKalmalaSupportMagicComponent* Support = Attacker->GetSupportMagicComponent();
+    const FString FeedbackKey = PlayerIdentity + TEXT("|") + PersistentSpawnId;
+    const auto PublishUnavailableOnce = [this, Feedback, &FeedbackKey]()
+    {
+        if (Feedback != nullptr && !MirelingBossScrollUnavailableFeedbackKeys.Contains(FeedbackKey))
+        {
+            MirelingBossScrollUnavailableFeedbackKeys.Add(FeedbackKey);
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable,
+                TEXT("Mireling scroll unavailable"));
+        }
+    };
+    if (Feedback == nullptr || Support == nullptr)
+    {
+        PublishUnavailableOnce();
+        return false;
+    }
+
+    const FString Definition = GetMirelingBossScrollDefinition(WorldGenerationConfig.WorldSeed);
+    const EKalmalaSupportEffect Effect = UKalmalaSupportMagicComponent::FromScrollDefinition(Definition);
+    const FString DiscoveryId = GetMirelingBossScrollId(WorldGenerationConfig.WorldSeed);
+    const FString EffectId = UKalmalaSupportMagicComponent::CanonicalId(Effect);
+    if (!UKalmalaSupportMagicComponent::IsKnownEffect(Effect) || EffectId.IsEmpty())
+    {
+        return false;
+    }
+
+    FString SaveIdentity;
+    UKalmalaPlayerDiscoverySaveGameV2* Save = GetPlayerDiscoverySave(Attacker, SaveIdentity);
+    if (Save == nullptr || SaveIdentity != PlayerIdentity)
+    {
+        PublishUnavailableOnce();
+        return false;
+    }
+
+    bOutAlreadyClaimed = Save->HasDiscovery(DiscoveryId);
+    if (bOutAlreadyClaimed)
+    {
+        if (!Save->HasLearnedEffect(EffectId)
+            && !PersistPlayerStateFromServer(Attacker, FString(), EffectId))
+        {
+            PublishUnavailableOnce();
+            return false;
+        }
+        Support->LearnEffectFromServer(Effect);
+        MirelingBossScrollUnavailableFeedbackKeys.Remove(FeedbackKey);
+        return true;
+    }
+
+    if (!PersistPlayerStateFromServer(Attacker, DiscoveryId, EffectId))
+    {
+        PublishUnavailableOnce();
+        return false;
+    }
+    Support->LearnEffectFromServer(Effect);
+    MirelingBossScrollUnavailableFeedbackKeys.Remove(FeedbackKey);
+    Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::ScrollFound,
+        FString::Printf(TEXT("Mireling boss scroll: %s"), *Definition));
+    return true;
+}
+
 bool AKalmalaGameMode::ClaimMirelingBossScroll(AKalmalaCharacter* Attacker, const FString& PersistentSpawnId)
 {
     if (!HasAuthority() || Attacker == nullptr || !Attacker->HasAuthority() || Attacker->GetWorld() != GetWorld()
@@ -11038,31 +11171,17 @@ bool AKalmalaGameMode::ClaimMirelingBossScroll(AKalmalaCharacter* Attacker, cons
     }
     if (!bDefeatedMireling) return false;
 
-    UKalmalaPlayerDiscoverySaveGameV2* Save = nullptr;
-    FString Identity;
-    Save = GetPlayerDiscoverySave(Attacker, Identity);
-    UKalmalaDiscoveryProgressComponent* Feedback = Attacker->GetDiscoveryProgressComponent();
-    UKalmalaSupportMagicComponent* Support = Attacker->GetSupportMagicComponent();
-    if (Save == nullptr || Feedback == nullptr || Support == nullptr) return false;
-
-    const FString Definition = GetMirelingBossScrollDefinition(WorldGenerationConfig.WorldSeed);
-    const EKalmalaSupportEffect Effect = UKalmalaSupportMagicComponent::FromScrollDefinition(Definition);
-    const FString DiscoveryId = GetMirelingBossScrollId(WorldGenerationConfig.WorldSeed);
-    if (!UKalmalaSupportMagicComponent::IsKnownEffect(Effect) || Save->HasDiscovery(DiscoveryId))
+    bool bAlreadyClaimed = false;
+    if (!EnsureMirelingBossScrollEntitlement(Attacker, PersistentSpawnId, bAlreadyClaimed)) return false;
+    if (bAlreadyClaimed)
     {
-        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound, TEXT("Mireling scroll already claimed"));
+        if (UKalmalaDiscoveryProgressComponent* Feedback = Attacker->GetDiscoveryProgressComponent())
+        {
+            Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::AlreadyFound,
+                TEXT("Mireling scroll already claimed"));
+        }
         return false;
     }
-    if (!PersistPlayerStateFromServer(Attacker, DiscoveryId,
-        UKalmalaSupportMagicComponent::CanonicalId(Effect)))
-    {
-        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Mireling scroll unavailable"));
-        return false;
-    }
-
-    Support->LearnEffectFromServer(Effect);
-    Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::ScrollFound,
-        FString::Printf(TEXT("Mireling boss scroll: %s"), *Definition));
     return true;
 }
 
@@ -12803,7 +12922,9 @@ bool AKalmalaGameMode::RecordMirelingDefeatReward(const FString& PersistentSpawn
         const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
         const FString ClaimId = TEXT("mireling-gem|") + PersistentSpawnId;
         if (!Identity.IsEmpty() && (!CandidateSave->TryQueuePendingWildlifeReward(ClaimId, Identity)
-            || !CandidateSave->SetPendingGemReward(ClaimId, SelectEnemyGemForSpawn(PersistentSpawnId, false)))) return false;
+            || !CandidateSave->SetPendingGemReward(ClaimId, SelectEnemyGemForSpawn(PersistentSpawnId, false))
+            || (IsMirelingBossRewardId(PersistentSpawnId)
+                && !CandidateSave->TryQueuePendingMirelingBossScrollReward(PersistentSpawnId, Identity)))) return false;
     }
     CandidateSave->MarkDefeated(PersistentSpawnId);
     if (!CandidateSave->MatchesWorld(WorldGenerationConfig) || !WritePopulationSaveObjectToSlot(CandidateSave))

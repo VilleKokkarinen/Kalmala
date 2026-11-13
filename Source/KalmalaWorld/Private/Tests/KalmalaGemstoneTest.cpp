@@ -132,6 +132,47 @@ bool FKalmalaEnemyGemPayloadTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Claim removal survives reload without losing the other owner's gem"), AfterClaim && AfterClaim->MatchesWorld(Config)
         && AfterClaim->GetPendingWildlifeRewards().Num() == 1 && AfterClaim->GetPendingWildlifeRewards()[0].PersistentSpawnId == DuskClaim
         && AfterClaim->GetPendingWildlifeRewards()[0].GemItemId == TEXT("DuskDiamond"));
+
+    auto* ScrollSave = NewObject<UKalmalaWorldPopulationSaveGame>();
+    ScrollSave->InitializeForWorld(Config);
+    const FString BossSpawn = TEXT("wildlife:mireling/2/12/13/14");
+    const FString ScrollClaim = UKalmalaWorldPopulationSaveGame::MakeMirelingBossScrollPendingRewardClaimId(BossSpawn);
+    FString DecodedBossSpawn;
+    TestTrue(TEXT("Mireling scroll queue identity is derived from its persistent spawn ID"),
+        !ScrollClaim.IsEmpty()
+            && UKalmalaWorldPopulationSaveGame::TryGetMirelingBossSpawnIdFromPendingRewardClaimId(
+                ScrollClaim, DecodedBossSpawn)
+            && DecodedBossSpawn == BossSpawn);
+    TestTrue(TEXT("Mireling scroll queue accepts the credited owner"),
+        ScrollSave->TryQueuePendingMirelingBossScrollReward(BossSpawn, TEXT("owner-b")));
+    TestFalse(TEXT("Mireling scroll queue cannot be reassigned to another owner"),
+        ScrollSave->TryQueuePendingMirelingBossScrollReward(BossSpawn, TEXT("owner-a")));
+    TestFalse(TEXT("Mireling scroll queue identities reject embedded claim delimiters"),
+        !UKalmalaWorldPopulationSaveGame::MakeMirelingBossScrollPendingRewardClaimId(
+            TEXT("wildlife:mireling|forged")).IsEmpty());
+    TArray<uint8> ScrollBytes;
+    TestTrue(TEXT("Pending Mireling scroll entitlement serializes in the population save"),
+        UGameplayStatics::SaveGameToMemory(ScrollSave, ScrollBytes));
+    auto* RestoredScrollSave = Cast<UKalmalaWorldPopulationSaveGame>(
+        UGameplayStatics::LoadGameFromMemory(ScrollBytes));
+    if (!TestNotNull(TEXT("Pending Mireling scroll entitlement reloads"), RestoredScrollSave)) return false;
+    const FString ExpectedScrollClaim = ScrollClaim;
+    TestTrue(TEXT("Mireling scroll entitlement retains its owner and no item payload"),
+        RestoredScrollSave->MatchesWorld(Config)
+            && RestoredScrollSave->GetPendingWildlifeRewards().ContainsByPredicate(
+                [&ExpectedScrollClaim](const FKalmalaPendingWildlifeReward& Reward)
+                {
+                    return Reward.PersistentSpawnId == ExpectedScrollClaim
+                        && Reward.PlayerIdentity == TEXT("owner-b") && Reward.GemItemId.IsNone();
+                }));
+    TestTrue(TEXT("Completed Mireling scroll entitlement can be removed from the pending queue"),
+        RestoredScrollSave->RemovePendingWildlifeReward(ScrollClaim));
+    auto* InvalidScrollSave = NewObject<UKalmalaWorldPopulationSaveGame>();
+    InvalidScrollSave->InitializeForWorld(Config);
+    TestTrue(TEXT("Generic pending queue can stage a deliberately malformed scroll record"),
+        InvalidScrollSave->TryQueuePendingWildlifeReward(TEXT("mireling-scroll|"), TEXT("owner-b")));
+    TestFalse(TEXT("Malformed Mireling scroll claim identities fail world-save validation"),
+        InvalidScrollSave->MatchesWorld(Config));
     return true;
 }
 

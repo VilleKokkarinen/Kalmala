@@ -2573,11 +2573,14 @@ reconnect journey.
 
 The focused `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` automation
 checks the bounded server-derived stable-ID gate and world-seed-only optional
-boss-scroll identity. It does not exercise a generated Mireling defeat,
-successful owner delivery, or peer privacy. The baseline `VerticalSlice.ps1`
-does not include a Mireling peer or boss-scroll delivery scenario. M4 does not
-require a rendered two-player boss-reward scenario. If boss-scroll recovery
-needs runtime verification, that work is tracked separately under RF29.
+boss-scroll identity. The dedicated
+`Kalmala.Gameplay.Wildlife.MirelingBossScrollRecovery` GameMode regression adds
+an eligible generated defeat, injected player-save load/write failures,
+owner-bound retry after persistence recovers, same-session reconnect, duplicate
+prevention, and observer privacy. Run both focused automations after an Editor
+build, then run `Scripts/Tests/Acceptance/VerticalSlice.ps1` as the broader
+combat/support baseline. That runner does not count as Mireling boss-scroll
+coverage. M4 does not require a rendered two-player boss-reward scenario.
 
 ## M4 vertical-slice harness
 

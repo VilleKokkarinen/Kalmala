@@ -1,3 +1,41 @@
+## RF29 — Keep Mireling boss scroll claims recoverable after player-save failure — 2026-11-13
+
+- **Work completed:** Eligible Mireling defeats now persist a separate,
+  authenticated boss-scroll entry in the existing world-population reward
+  queue. The server writes the canonical player discovery and learned effect
+  before removing that entry; player-save load/write failure keeps it retryable
+  and reports owner-only unavailable feedback. Cached player saves reapply
+  learned effects to replacement pawns. Added a two-player GameMode/wildlife
+  regression for incompatible-load rejection, injected write failure, recovery,
+  reconnect, replay, and observer privacy. No save schema or serialized fields
+  changed.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaMirelingBossScrollRecoveryTest.cpp`,
+  `Source/KalmalaWorld/Public/KalmalaWorldPopulationSaveGame.h`,
+  `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp`,
+  `Source/KalmalaWorld/Private/Tests/KalmalaGemstoneTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Careful source review of queue ownership, save-write
+  ordering, owner-only feedback, and retry/reconnect behavior; `git diff --check`
+  and changed-path length check passed.
+- **Full verification:** Deferred. No Editor build, automation, or
+  `VerticalSlice.ps1` run; this is not milestone-final verification.
+- **Observable impact:** A failed player-save operation no longer consumes the
+  eligible Mireling's boss-scroll entitlement. The owner receives the
+  world-canonical discovery and learned effect once persistence recovers; other
+  peers receive no private result.
+- **Networking/authority:** The authoritative GameMode validates the defeated
+  stable source, authenticated owner, world save, and player save. The pending
+  queue and discovery feedback remain server-owned/owner-only.
+- **Known limits:** The new automation has not been compiled or executed. A
+  player slot rejected as incompatible remains fail-closed for that GameMode;
+  recovery from a repaired slot requires a fresh GameMode/session. Integrated
+  M4 boss-scroll acceptance remains unverified.
+- **Next eligible task:** RF30 — cover M9 exploration reward rollback on
+  player-save failure. The overall CR remediation goal remains active.
+
 ## RF28 — Recover Ocean discovery rewards when claim rollback fails — 2026-11-13
 
 - **Work completed:** Ocean claims now preflight stack-plus-packed-tool capacity

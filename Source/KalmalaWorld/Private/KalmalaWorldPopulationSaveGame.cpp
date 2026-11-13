@@ -25,6 +25,7 @@ namespace
     constexpr TCHAR ReefMawRewardClaimPrefix[] = TEXT("reefmaw-reward|");
     constexpr TCHAR ReefToothRewardSuffix[] = TEXT("|tooth");
     constexpr TCHAR NoReefToothRewardSuffix[] = TEXT("|notooth");
+    constexpr TCHAR MirelingBossScrollRewardClaimPrefix[] = TEXT("mireling-scroll|");
 }
 
 void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorldConfig)
@@ -42,9 +43,18 @@ bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGeneration
 {
     if (SchemaVersion != 2 || WorldConfig != InWorldConfig || Gemstones.Num() > 65536) return false;
     for (const auto& Reward : PendingWildlifeRewards)
+    {
+        FString MirelingBossSpawnId;
+        const bool bHasMirelingScrollPrefix = Reward.PersistentSpawnId.StartsWith(
+            MirelingBossScrollRewardClaimPrefix, ESearchCase::CaseSensitive);
+        const bool bIsMirelingScrollReward = TryGetMirelingBossSpawnIdFromPendingRewardClaimId(
+            Reward.PersistentSpawnId, MirelingBossSpawnId);
+        if (bHasMirelingScrollPrefix && (!bIsMirelingScrollReward || !Reward.GemItemId.IsNone()
+            || Reward.PlayerIdentity.IsEmpty() || Reward.PlayerIdentity.Len() > 128)) return false;
         if (!Reward.GemItemId.IsNone() && !(Reward.GemItemId == TEXT("Moonstone")
             && Reward.PersistentSpawnId.StartsWith(TEXT("moonbear-reward|")))
             && !(Reward.GemItemId == TEXT("DuskDiamond") && Reward.PersistentSpawnId.StartsWith(TEXT("mireling-gem|")))) return false;
+    }
     if (Treasures.Num() > 65536) return false;
     TSet<FString> TreasureIds;
     for (const auto& Treasure : Treasures)
@@ -121,6 +131,36 @@ bool UKalmalaWorldPopulationSaveGame::TryQueuePendingWildlifeReward(
     FKalmalaPendingWildlifeReward& Reward = PendingWildlifeRewards.AddDefaulted_GetRef();
     Reward.PersistentSpawnId = RewardClaimId;
     Reward.PlayerIdentity = PlayerIdentity;
+    return true;
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryQueuePendingMirelingBossScrollReward(
+    const FString& PersistentSpawnId, const FString& PlayerIdentity)
+{
+    const FString ClaimId = MakeMirelingBossScrollPendingRewardClaimId(PersistentSpawnId);
+    return !ClaimId.IsEmpty() && TryQueuePendingWildlifeReward(ClaimId, PlayerIdentity);
+}
+
+FString UKalmalaWorldPopulationSaveGame::MakeMirelingBossScrollPendingRewardClaimId(
+    const FString& PersistentSpawnId)
+{
+    const int32 PrefixLength = UE_ARRAY_COUNT(MirelingBossScrollRewardClaimPrefix) - 1;
+    if (PersistentSpawnId.IsEmpty() || PersistentSpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)
+        || PersistentSpawnId.Len() > 128 - PrefixLength) return FString();
+    return FString(MirelingBossScrollRewardClaimPrefix) + PersistentSpawnId;
+}
+
+bool UKalmalaWorldPopulationSaveGame::TryGetMirelingBossSpawnIdFromPendingRewardClaimId(
+    const FString& ClaimId, FString& OutPersistentSpawnId)
+{
+    OutPersistentSpawnId.Reset();
+    const int32 PrefixLength = UE_ARRAY_COUNT(MirelingBossScrollRewardClaimPrefix) - 1;
+    if (!ClaimId.StartsWith(MirelingBossScrollRewardClaimPrefix, ESearchCase::CaseSensitive)
+        || ClaimId.Len() <= PrefixLength || ClaimId.Len() > 128) return false;
+
+    const FString SpawnId = ClaimId.RightChop(PrefixLength);
+    if (SpawnId.Contains(TEXT("|"), ESearchCase::CaseSensitive)) return false;
+    OutPersistentSpawnId = SpawnId;
     return true;
 }
 
