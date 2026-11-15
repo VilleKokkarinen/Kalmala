@@ -11,6 +11,7 @@
 
 #include "GameFramework/Controller.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
 
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
@@ -12177,6 +12178,16 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
     Super::PostLogin(NewPlayer);
 
 #if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldBoundaryTest"))
+        && NewPlayer != nullptr && NewPlayer->GetPlayerState<APlayerState>() != nullptr)
+    {
+        const FString TestRole = NewPlayer->IsLocalController() ? TEXT("Host")
+            : (WorldBoundaryPeerLoginCount++ == 0 ? TEXT("Owner") : TEXT("Observer"));
+        NewPlayer->GetPlayerState<APlayerState>()->SetPlayerName(
+            FString::Printf(TEXT("KalmalaBoundary%s"), *TestRole));
+        UE_LOG(LogTemp, Display, TEXT("World boundary fixture assigned peer role: Role=%s"), *TestRole);
+    }
+
     if (bM9Schema2CandidatePeerTestEnabled && NewPlayer != nullptr && NewPlayer->GetPlayerState<APlayerState>() != nullptr)
     {
         FString TestRole;
@@ -12270,10 +12281,12 @@ void AKalmalaGameMode::PostLogin(APlayerController* NewPlayer)
 
 #if !UE_BUILD_SHIPPING
     const bool bAmbientAudioTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaAmbientAudioTest"));
+    const bool bWorldBoundaryPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldBoundaryTest"));
 #else
     const bool bAmbientAudioTest = false;
+    const bool bWorldBoundaryPeerTest = false;
 #endif
-    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")) && !bM9Schema2CandidatePeerTestEnabled && !bAmbientAudioTest) || NewPlayer == nullptr)
+    if ((!bTraversalTestEnabled && ReconnectVerificationMode.IsEmpty() && !bExposureInspectionEnabled && !bExposureReplicationTestEnabled && !bCampConditionInspectionEnabled && !bBiomeFeatureInspectionEnabled && !bWorldProfileEnabled && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaCampChoiceTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest")) && !FParse::Param(FCommandLine::Get(), TEXT("KalmalaOceanJourneyPeerTest")) && !bM9Schema2CandidatePeerTestEnabled && !bAmbientAudioTest && !bWorldBoundaryPeerTest) || NewPlayer == nullptr)
     {
         return;
     }

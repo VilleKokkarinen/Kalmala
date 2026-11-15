@@ -49,6 +49,9 @@ private:
     UPROPERTY(Replicated) bool bSprintExhausted = false;
     bool GetGeneratedOceanDepth(float& OutDepth) const;
     bool bSprintRequested = false;
+#if !UE_BUILD_SHIPPING
+    bool bWorldBoundaryTestProjectionLogged = false;
+#endif
 };
 
 class FSavedMove_Kalmala : public FSavedMove_Character

@@ -176,9 +176,35 @@ void UKalmalaCharacterMovementComponent::OnMovementUpdated(float DeltaSeconds, c
         CharacterOwner->GetSimpleCollisionRadius() + 2.0);
     if (!Bounded.Equals(FVector2D(Location), 0.001))
     {
+#if !UE_BUILD_SHIPPING
+        const FVector VelocityBeforeBoundaryConstraint = Velocity;
+#endif
         UpdatedComponent->SetWorldLocation(FVector(Bounded, Location.Z), false, nullptr, ETeleportType::TeleportPhysics);
         const FVector Outward(Bounded.GetSafeNormal(), 0);
         Velocity -= Outward * FMath::Max(0.0, FVector::DotProduct(Velocity, Outward));
+#if !UE_BUILD_SHIPPING
+        if (!bWorldBoundaryTestProjectionLogged
+            && FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldBoundaryTest")))
+        {
+            const FVector2D Radial = Bounded.GetSafeNormal();
+            const FVector2D Tangent(-Radial.Y, Radial.X);
+            const double RadialBefore = FVector2D::DotProduct(FVector2D(VelocityBeforeBoundaryConstraint), Radial);
+            const double RadialAfter = FVector2D::DotProduct(FVector2D(Velocity), Radial);
+            const double TangentialBefore = FVector2D::DotProduct(FVector2D(VelocityBeforeBoundaryConstraint), Tangent);
+            const double TangentialAfter = FVector2D::DotProduct(FVector2D(Velocity), Tangent);
+            const double VerticalBefore = VelocityBeforeBoundaryConstraint.Z;
+            const double VerticalAfter = Velocity.Z;
+            const bool bRemovedOutward = RadialBefore > 0.0 && FMath::Abs(RadialAfter) <= 1.0;
+            const bool bPreservedTangential = FMath::IsNearlyEqual(TangentialBefore, TangentialAfter, 0.01);
+            const bool bPreservedVertical = FMath::IsNearlyEqual(VerticalBefore, VerticalAfter, 0.01);
+            UE_LOG(LogTemp, Display,
+                TEXT("World boundary projection: Role=%s RemovedOutward=%d PreservedTangential=%d PreservedVertical=%d RadialBefore=%.2f RadialAfter=%.2f TangentialBefore=%.2f TangentialAfter=%.2f VerticalBefore=%.2f VerticalAfter=%.2f"),
+                CharacterOwner->HasAuthority() ? TEXT("Server") : TEXT("Owner"),
+                bRemovedOutward ? 1 : 0, bPreservedTangential ? 1 : 0, bPreservedVertical ? 1 : 0,
+                RadialBefore, RadialAfter, TangentialBefore, TangentialAfter, VerticalBefore, VerticalAfter);
+            bWorldBoundaryTestProjectionLogged = true;
+        }
+#endif
     }
 }
 

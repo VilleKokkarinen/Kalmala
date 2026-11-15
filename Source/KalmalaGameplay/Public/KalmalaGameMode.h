@@ -755,6 +755,9 @@ private:
     bool bM9Schema2CandidatePeerTestEnabled = false;
     FString M9Schema2CandidatePeerTestPhase;
     int32 M9Schema2CandidatePeerLoginCount = 0;
+#if !UE_BUILD_SHIPPING
+    int32 WorldBoundaryPeerLoginCount = 0;
+#endif
     FString ReconnectVerificationMode;
     FVector2D TraversalTestTarget = FVector2D::ZeroVector;
     float TraversalTestNextProgressReportTime = 0.0f;

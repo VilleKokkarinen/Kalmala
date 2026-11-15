@@ -181,6 +181,7 @@ private:
     void AdvanceWildlifeKnockbackFromServer(float DeltaSeconds);
     void UpdateDodgeRollPresentation(float DeltaSeconds);
     void VerifyPlayerControls(float DeltaSeconds);
+    void VerifyWorldBoundaryMovement(float DeltaSeconds);
     void VerifyA9Peer();
 #if !UE_BUILD_SHIPPING
     void VerifyInteractionCadencePeer();
@@ -283,6 +284,15 @@ private:
     bool bControlsTestJumpObserved = false;
     bool bControlsTestReleaseObserved = false;
     bool bControlsTestLocalJumpObserved = false;
+    int32 WorldBoundaryTestStage = 0;
+    double WorldBoundaryTestStartedAt = -1.0;
+    bool bWorldBoundaryContactObserved = false;
+    bool bWorldBoundaryResultReported = false;
+    FVector WorldBoundaryContactLocation = FVector::ZeroVector;
+    double WorldBoundaryContactRadius = 0.0;
+    double WorldBoundaryContactRadialVelocity = 0.0;
+    double WorldBoundaryContactTangentialVelocity = 0.0;
+    double WorldBoundaryContactVerticalVelocity = 0.0;
     bool bSwimmingTestEnabled = false;
     bool bSwimmingTargetSearchAttempted = false;
     bool bSwimmingTargetConfigured = false;

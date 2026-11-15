@@ -1285,7 +1285,7 @@
       world-mismatch rejection. The Editor build, callback automation, six species contract automations, and
       shared live Rat scenario remain deferred to milestone-final verification under the one-increment workflow.
 
-  - [ ] **RF47 — Exercise finite-world movement bounds through remote prediction (P3; CR04-022/CR16-031).**
+  - [x] **RF47 — Exercise finite-world movement bounds through remote prediction (P3; CR04-022/CR16-031).**
     `KalmalaWorldBoundaryMovementTest` currently checks an authority pawn and
     manually invokes the movement update; the peer runner does not approach
     the finite edge with a remote owner. Extend the listen-server movement
@@ -1294,11 +1294,18 @@
     radius-minus-capsule margin while tangential and vertical movement remain
     available. Acceptance: neither owner nor server crosses the radius after
     correction; outward velocity is removed, tangential/vertical components
-    remain, and the observer sees the same bounded transform. Dependencies:
-    after CR19 review acceptance. Focused validation: build the Editor target,
-    run `Kalmala.Gameplay.Movement.WorldBoundary`, and run the extended remote
-    owner/observer scenario through `Scripts/Tests/Presentation/PlayerControls.ps1`.
+    remain unchanged, and the observer sees the same bounded transform.
+    Dependencies: after CR19 review acceptance. Focused validation: build the
+    Editor target, run `Kalmala.Gameplay.Movement.WorldBoundary`, and run
+    `Scripts/Tests/Presentation/PlayerControls.ps1 -WorldBoundary`.
     Evidence: `Temporary/Review/findings.md#rf47--exercise-finite-world-movement-bounds-through-remote-prediction-p3`.
+    **Development checks:** The PowerShell parser and `git diff --check` passed.
+    Static inspection confirms the peer fixture uses normal forward/right input,
+    stages only the remote owner at a sampled edge position, checks radial
+    velocity removal and exact tangent/vertical preservation on both owner and
+    server, and compares the observer's bounded transform to the server result.
+    The Editor build, `Kalmala.Gameplay.Movement.WorldBoundary`, and the live
+    three-role peer scenario remain deferred to milestone-final verification.
 
   - [ ] **RF48 — Reject ineligible melee requests before target traces (P3; CR04-023).**
     **Source:** CR04-023; Source/KalmalaGameplay/Public/KalmalaCombatComponent.h:25,47-60;

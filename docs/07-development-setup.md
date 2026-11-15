@@ -3624,6 +3624,8 @@ Restart the editor after building the native modules, then play `L_Prototype`. T
 
 After an editor build, run `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered`. It launches a hidden listen server and client, exercises the bound jump/sprint/release delegates through normal movement prediction, and checks server-observed remote sprint, upward jump, release, landing, matching world identity, and nine collision-free model parts. It retains host/client screenshots and logs in its printed temporary directory and stops its own processes. Physical keyboard input is not simulated by this test. Run the focused `Kalmala.Gameplay.Movement.SprintSavedMoves` headless automation to verify compressed flags, release, move-combination boundaries, and saved-move clearing.
 
+After an editor build, run `Scripts/Tests/Presentation/PlayerControls.ps1 -WorldBoundary` for the remote movement boundary check. It starts a listen host, remote owner, and observer; the server stages the owner just inside the sampled finite-world edge, then the owner sends forward and right movement through the normal character input handlers. Both server and owner must remain inside the capsule margin, lose only outward radial velocity at the boundary, and preserve tangential and vertical velocity. The observer must receive the bounded transform within 300 cm of the server's final position. The fixture uses a Development-only role label and staging teleport; it does not change normal spawn or movement behavior.
+
 ## Boar encounter verification
 
 The completed M7 Boar peer run is retained as historical evidence. Do not rerun
