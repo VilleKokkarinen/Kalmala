@@ -2007,6 +2007,15 @@ replication seam:
 & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7CombinedUser' -abslog='C:\temp\KalmalaM7Combined.log' -ExecCmds="Automation RunTests Kalmala.World.M7.PersistenceContract+Kalmala.Gameplay.Progression.ReplicationContract+Kalmala.Gameplay.Progression.SkillContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
+For the three-role live replication path, run
+`Scripts/Tests/Progression/SkillPrivacyPeer.ps1`. Its remote owner makes ten
+accepted Hearth Broth craft requests and reaches Cooking level two. The owner
+must receive the complete six-skill ledger and derived badge; the observer must
+receive the same aggregate badge with an empty detailed ledger. The fixture also
+checks that a client-side award attempt changes no progression. Run
+`Scripts/Tests/Construction/Crafting.ps1` for the existing owner-local crafting
+skill presentation check.
+
 ### M7 first-wave biome content identity
 
 `FKalmalaBiomeContentContract` defines one original default gathering-source

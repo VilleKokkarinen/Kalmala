@@ -95,6 +95,18 @@ discovery claims and gem acquisition independently of enemy combat. Historical
 per-species commands and rendered captures in older handoffs describe the old
 launchers; the commands above supersede them. The new runner is headless.
 
+`Progression/SkillPrivacyPeer.ps1` runs a listen host, remote owner, and observer.
+It uses ten accepted Hearth Broth craft RPCs to reach Cooking level two, checks
+all six owner skill entries plus the aggregate badge on the owner, verifies the
+observer receives only that badge with no per-skill ledger, and rejects a
+client-side award attempt.
+The existing `Construction/Crafting.ps1` continues to check the owner's crafting
+skill presentation.
+
+```powershell
+Scripts/Tests/Progression/SkillPrivacyPeer.ps1 -Port 17945
+```
+
 `Progression/FreshStartBronzeAndIron.ps1 -ProjectPath C:/km/Kalmala.uproject`
 checks the fresh starter kit through Wood/Copper/Tin harvest, Kiln Coal,
 Smelter bars, Forge Bronze alloy, and Bronze/Iron Pick acquisition without

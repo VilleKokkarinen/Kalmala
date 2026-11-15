@@ -1213,7 +1213,7 @@
       Inventory owner-only check remain deferred to milestone-final verification under the one-increment
       workflow.
 
-  - [ ] **RF45 — Verify detailed skill replication privacy with an observer (P3; CR04-020).**
+  - [x] **RF45 — Verify detailed skill replication privacy with an observer (P3; CR04-020).**
     **Source:** CR04-020; `Source/KalmalaGameplay/Private/KalmalaSkillProgressionComponent.cpp:46-67`,
       `Source/KalmalaGameplay/Private/Tests/KalmalaSkillProgressionReplicationTest.cpp:11-46`, and
       `Scripts/Tests/Construction/Crafting.ps1:22-46`.
@@ -1234,8 +1234,14 @@
       state; the observer has no detailed state for that pawn; both peers receive only the validated
       highest-level/unlock presentation; no client-authored skill outcome is accepted.
     **Focused validation:** Build the Editor target, run `Kalmala.Gameplay.Progression.ReplicationContract` and
-      `Kalmala.Gameplay.Progression.SkillContract`, then run the new three-role skill privacy scenario and the
-      existing crafting owner presentation check.
+      `Kalmala.Gameplay.Progression.SkillContract`, then run
+      `Scripts/Tests/Progression/SkillPrivacyPeer.ps1` and the existing
+      `Scripts/Tests/Construction/Crafting.ps1` owner presentation check.
+    **Development checks:** PowerShell parsing and `git diff --check` passed. Static inspection confirms the peer
+      fixture earns experience through ten accepted remote craft RPCs, validates the exact owner six-skill state
+      and derived badge, rejects a local client award attempt, and checks observer detail privacy. The Editor build,
+      automation, three-role peer run, and existing crafting owner-presentation run remain deferred to milestone-final
+      verification under the one-increment workflow.
 
   - [ ] **RF46 — Cover remaining wildlife defeat reward callbacks (P3; CR04-021 and CR04-022).**
     **Source:** CR04-021 and CR04-022; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-583`;

@@ -1162,6 +1162,7 @@ void UKalmalaCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickTy
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bWolfPeltBootsPeerTest"))) RunA8bWolfPeltBootsPeerVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA8bFangSpearPeerTest"))) RunA8bFangSpearPeerVerification(DeltaTime);
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaOpalHelmPeerTest"))) RunOpalHelmPeerVerification(DeltaTime);
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaSkillPrivacyPeerTest"))) RunSkillPrivacyPeerVerification(DeltaTime);
 #endif
 }
 

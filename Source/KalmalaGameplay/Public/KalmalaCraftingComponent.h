@@ -143,6 +143,7 @@ private:
     void RunA8bWolfPeltBootsPeerVerification(float DeltaTime);
     void RunA8bFangSpearPeerVerification(float DeltaTime);
     void RunOpalHelmPeerVerification(float DeltaTime);
+    void RunSkillPrivacyPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     bool ClearStorageView();
@@ -334,5 +335,20 @@ private:
     int32 OpalHelmPeerLocalStage = 0;
     float OpalHelmPeerLocalElapsed = 0.0f;
     uint32 OpalHelmPeerLocalResultSerial = 0;
+    int32 SkillPrivacyPeerStage = 0;
+    float SkillPrivacyPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> SkillPrivacyPeerTarget;
+    TWeakObjectPtr<AKalmalaConstructionActor> SkillPrivacyPeerCauldron;
+    TWeakObjectPtr<AKalmalaCampfire> SkillPrivacyPeerFire;
+    uint32 SkillPrivacyPeerResultSerial = 0;
+    int32 SkillPrivacyPeerBaselineDeerMeat = 0;
+    int32 SkillPrivacyPeerBaselineOnion = 0;
+    int32 SkillPrivacyPeerBaselineHearthBroth = 0;
+    int32 SkillPrivacyPeerBaselineWood = 0;
+    int32 SkillPrivacyPeerLocalStage = 0;
+    float SkillPrivacyPeerLocalElapsed = 0.0f;
+    uint32 SkillPrivacyPeerLocalResultSerial = 0;
+    int32 SkillPrivacyPeerLocalAcceptedCrafts = 0;
+    int32 SkillPrivacyPeerObservedOwnerPlayerId = INDEX_NONE;
 #endif
 };
