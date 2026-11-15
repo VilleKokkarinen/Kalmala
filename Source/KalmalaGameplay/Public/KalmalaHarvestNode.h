@@ -87,6 +87,7 @@ private:
     friend class AKalmalaCharacter;
     friend class AKalmalaGameMode;
     friend class UKalmalaInventoryComponent;
+    friend class FKalmalaGemstoneClaimReceiptTest;
 
     /** Only the server patch owner may supply an already generated descriptor. */
     bool InitializeGeneratedForestServer(const FKalmalaForestTreeDescriptor& Tree);

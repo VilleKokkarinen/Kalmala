@@ -253,13 +253,13 @@ bool UKalmalaCraftingComponent::CraftFromServer(FName RecipeId, int32 Batch, FSt
         Tool.InstanceGuid = FGuid::NewGuid();
         if (Tool.ItemId == TEXT("BasicTorch"))
             Tool.RemainingBurnSeconds = FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
-        if (!Inventory->TryCommitStacksFromServer(Before, After)) return false;
+        if (!Inventory->TryCommitStacksFromServer(Before, After, false)) return false;
         Character->CarriedTools.Add(Tool);
         auto* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (!GameMode || !GameMode->PersistPlayerStateFromServer(Character))
         {
             Character->CarriedTools = PreviousTools;
-            if (!Inventory->TryCommitStacksFromServer(After, Before))
+            if (!Inventory->TryCommitStacksFromServer(After, Before, false))
                 UE_LOG(LogTemp, Error, TEXT("Failed to roll back carried-tool material payment."));
             Reason = TEXT("Could not save the crafted tool; no materials were spent");
             return false;
@@ -413,7 +413,7 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ItemId, FStri
         return false;
     }
     if (!Inventory->CanFitContents(CandidateInventory, Inventory->CountPackedTools(CandidateTools))
-        || !Inventory->TryCommitStacksFromServer(Before, CandidateInventory))
+        || !Inventory->TryCommitStacksFromServer(Before, CandidateInventory, false))
     {
         Reason = TEXT("Pack changed; tool progression was not applied");
         return false;
@@ -425,7 +425,7 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ItemId, FStri
     if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(Character))
     {
         Character->CarriedTools = PreviousTools;
-        if (!Inventory->TryCommitStacksFromServer(CandidateInventory, Before))
+        if (!Inventory->TryCommitStacksFromServer(CandidateInventory, Before, false))
         {
             UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player tool progression persistence was rejected."));
         }
@@ -433,6 +433,8 @@ bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ItemId, FStri
         return false;
     }
 
+    if (!Inventory->PublishAcceptedGainsFromServer(Before, CandidateInventory))
+        UE_LOG(LogTemp, Error, TEXT("Tool progression gain receipts could not be published after player persistence succeeded."));
     Inventory->SynchronizeGridFromServer();
     Character->ForceNetUpdate();
     if (Entry->PreviousItemId.IsNone())
@@ -527,7 +529,13 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     if (BuildableId == TEXT("CampfireKit")) return PlaceFromServer(Reason);
     Reason = TEXT("Unknown buildable identity");
     if (!FKalmalaPlacementPreview::IsSupportedKit(BuildableId)) return false;
-    const FKalmalaPlacementPreview Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), Character, BuildableId);
+    FKalmalaPlacementPreview Preview;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (ConstructionPlacementForTests)
+        Preview.bIsValid = ConstructionPlacementForTests(BuildableId, Preview.Location, Preview.Rotation);
+    else
+#endif
+        Preview = FKalmalaPlacementPreview::Evaluate(GetWorld(), Character, BuildableId);
     Reason = Preview.Message;
     if (!Preview.bIsValid || FVector::DistSquared(Character->GetActorLocation(), Preview.Location) > FMath::Square(250.0f)) return false;
 
@@ -579,7 +587,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
         if (!Inventory->TryExchangeFromServer(Cost, NAME_None, 0, Reason)) return false;
         if (!GameMode->ReplaceWallWithDoor(Wall))
         {
-            Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore);
+            Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore, false);
             Reason = TEXT("Could not save the Timber Door; materials restored");
             return false;
         }
@@ -605,7 +613,7 @@ bool UKalmalaCraftingComponent::PlaceConstructionFromServer(const FName Buildabl
     if (bPersistentConstruction && !GameMode->PersistConstruction(Construction))
     {
         Construction->Destroy();
-        Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore);
+        Inventory->TryCommitStacksFromServer(Scratch, InventoryBefore, false);
         Reason = TEXT("Could not save construction; materials restored");
         return false;
     }
@@ -802,7 +810,7 @@ bool UKalmalaCraftingComponent::RefuelTorchFromServer(const FGuid ToolInstanceGu
     TArray<FKalmalaInventoryStack> After;
     if (!UKalmalaInventoryComponent::BuildExchange(Before, {{TEXT("Wood"), 1}}, NAME_None, 0, After, Reason)) return false;
     const float PreviousFuel = Torch->RemainingBurnSeconds;
-    if (!Inventory->TryCommitStacksFromServer(Before, After))
+    if (!Inventory->TryCommitStacksFromServer(Before, After, false))
     {
         Reason = TEXT("Could not spend 1 Wood to refuel the Basic Torch");
         return false;
@@ -812,11 +820,13 @@ bool UKalmalaCraftingComponent::RefuelTorchFromServer(const FGuid ToolInstanceGu
     if (!GameMode || !GameMode->PersistPlayerStateFromServer(Character))
     {
         Torch->RemainingBurnSeconds = PreviousFuel;
-        if (!Inventory->TryCommitStacksFromServer(After, Before))
+        if (!Inventory->TryCommitStacksFromServer(After, Before, false))
             UE_LOG(LogTemp, Error, TEXT("Failed to roll back Basic Torch refuel material payment."));
         Reason = TEXT("Could not save the refuelled Basic Torch; no Wood was spent");
         return false;
     }
+    if (!Inventory->PublishAcceptedGainsFromServer(Before, After))
+        UE_LOG(LogTemp, Error, TEXT("Refuel gain receipts could not be published after player persistence succeeded."));
     Inventory->SynchronizeGridFromServer();
     Character->ForceNetUpdate();
     Reason = TEXT("Refuelled Basic Torch with 1 Wood; 300 seconds available");
@@ -1196,7 +1206,7 @@ bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FS
     const TArray<FKalmalaInventoryStack>& Before = Inventory->GetStacks();
     TArray<FKalmalaInventoryStack> Candidate;
     if (!UKalmalaInventoryComponent::BuildExchange(Before, {{FoodItemId, 1}}, NAME_None, 0, Candidate, Reason)) return false;
-    if (!Inventory->TryCommitStacksFromServer(Before, Candidate))
+    if (!Inventory->TryCommitStacksFromServer(Before, Candidate, false))
     {
         Reason = TEXT("Pack changed; food was not consumed");
         return false;
@@ -1206,7 +1216,7 @@ bool UKalmalaCraftingComponent::ConsumeFoodFromServer(const FName FoodItemId, FS
         : Status->ApplyFoodFromServer(FoodItemId);
     if (!bEffectApplied)
     {
-        Inventory->TryCommitStacksFromServer(Candidate, Before);
+        Inventory->TryCommitStacksFromServer(Candidate, Before, false);
         Reason = TEXT("Status changed; the consumed item was restored");
         return false;
     }

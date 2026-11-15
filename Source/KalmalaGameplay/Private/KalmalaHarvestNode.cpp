@@ -256,14 +256,14 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
             return;
         }
         if (!PrepareHarvestedStateFromServer()) return;
-        if (!Inventory->TryCommitStacksFromServer(Before, After))
+        if (!Inventory->TryCommitStacksFromServer(Before, After, false))
         {
             RollbackHarvestedStateFromServer();
             return;
         }
         if (!GameMode->PersistPlayerStateFromServer(Interactor))
         {
-            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(After, Before);
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(After, Before, false);
             if (!bInventoryRestored)
                 UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player persistence rejected a tree bundle."));
             if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
@@ -274,11 +274,13 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
             {
                 CommitHarvestedStateFromServer();
             }
+            if (UKalmalaCraftingComponent* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+                Crafting->PublishInteractionResultFromServer(TEXT("Harvest could not be saved"), false);
             return;
         }
         if (!CommitHarvestedStateFromServer())
         {
-            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(After, Before);
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(After, Before, false);
             if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
             {
                 RollbackHarvestedStateFromServer();
@@ -288,7 +290,10 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
                 CommitHarvestedStateFromServer();
                 UE_LOG(LogTemp, Error, TEXT("Failed to restore player state after a tree bundle commit was rejected."));
             }
+            return;
         }
+        if (!Inventory->PublishAcceptedGainsFromServer(Before, After))
+            UE_LOG(LogTemp, Error, TEXT("Tree bundle gain receipts could not be published after persistence succeeded."));
         return;
     }
     if (IsHandGatherablePatch())
@@ -336,14 +341,14 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
             return;
         }
         if (!PrepareHarvestedStateFromServer()) return;
-        if (!Inventory->TryCommitStacksFromServer(Before, *FinalStacks))
+        if (!Inventory->TryCommitStacksFromServer(Before, *FinalStacks, false))
         {
             RollbackHarvestedStateFromServer();
             return;
         }
         if (!GameMode->PersistPlayerStateFromServer(Interactor))
         {
-            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(*FinalStacks, Before);
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(*FinalStacks, Before, false);
             if (!bInventoryRestored)
                 UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player persistence rejected a wild crop harvest."));
             if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
@@ -354,11 +359,13 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
             {
                 CommitHarvestedStateFromServer();
             }
+            if (UKalmalaCraftingComponent* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+                Crafting->PublishInteractionResultFromServer(TEXT("Harvest could not be saved"), false);
             return;
         }
         if (!CommitHarvestedStateFromServer())
         {
-            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(*FinalStacks, Before);
+            const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(*FinalStacks, Before, false);
             if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(Interactor))
             {
                 RollbackHarvestedStateFromServer();
@@ -368,7 +375,10 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
                 CommitHarvestedStateFromServer();
                 UE_LOG(LogTemp, Error, TEXT("Failed to restore player state after a crop commit was rejected."));
             }
+            return;
         }
+        if (!Inventory->PublishAcceptedGainsFromServer(Before, *FinalStacks))
+            UE_LOG(LogTemp, Error, TEXT("Wild crop gain receipts could not be published after persistence succeeded."));
         return;
     }
     // Generated biome sources must pass through the server trace/tool transaction.
@@ -378,16 +388,18 @@ void AKalmalaHarvestNode::Interact_Implementation(AKalmalaCharacter* Interactor)
     auto* Inventory = Interactor->FindComponentByClass<UKalmalaInventoryComponent>();
     if (!IsValid(Inventory)) return;
     const TArray<FKalmalaInventoryStack> BeforeGrant = Inventory->GetStacks();
-    if (Inventory->TryGrantFromServer(GetHarvestItemId(), 1))
+    TArray<FKalmalaInventoryStack> GrantedStacks;
+    FString GrantFailure;
+    if (!UKalmalaInventoryComponent::BuildGrant(BeforeGrant, GetHarvestItemId(), 1, GrantedStacks, GrantFailure)
+        || !Inventory->TryCommitStacksFromServer(BeforeGrant, GrantedStacks, false)) return;
+    if (!CommitHarvestedStateFromServer())
     {
-        const TArray<FKalmalaInventoryStack> GrantedStacks = Inventory->GetStacks();
-        if (!CommitHarvestedStateFromServer())
-        {
-            if (!Inventory->TryCommitStacksFromServer(GrantedStacks, BeforeGrant))
-                UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after population depletion persistence rejected a harvest."));
-            return;
-        }
+        if (!Inventory->TryCommitStacksFromServer(GrantedStacks, BeforeGrant, false))
+            UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after population depletion persistence rejected a harvest."));
+        return;
     }
+    if (!Inventory->PublishAcceptedGainsFromServer(BeforeGrant, GrantedStacks))
+        UE_LOG(LogTemp, Error, TEXT("Harvest gain receipts could not be published after source persistence succeeded."));
 }
 
 bool AKalmalaHarvestNode::InteractWithToolIntentFromServer(AKalmalaCharacter* Interactor,

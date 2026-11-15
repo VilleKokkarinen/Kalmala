@@ -92,6 +92,8 @@ public:
         return AcceptedCraftingActionReceipts;
     }
 #if WITH_DEV_AUTOMATION_TESTS
+    friend class FKalmalaDurableGainReceiptRollbackTest;
+    TFunction<bool(FName, FVector&, FRotator&)> ConstructionPlacementForTests;
     void PublishResultForTest(const FString& Result, bool bAccepted, FName RecipeId,
         EKalmalaCraftingActionKind Kind)
     {

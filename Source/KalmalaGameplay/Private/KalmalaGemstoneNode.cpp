@@ -68,19 +68,23 @@ bool AKalmalaHarvestNode::ClaimGemFromServer(AKalmalaCharacter* Interactor)
             Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full"), false);
         return false;
     }
-    if (!Inventory->TryCommitStacksFromServer(Before, After)) return false;
+    if (!Inventory->TryCommitStacksFromServer(Before, After, false)) return false;
     FKalmalaGemstoneState Claimed;
     Claimed.SpawnId = PersistentSpawnId; Claimed.SourceId = GatheringSourceId; Claimed.Hits = 3; Claimed.Outcome = 3;
     if (!Mode->PersistGemstoneState(Claimed, GemHits, GemOutcome))
     {
-        if (!Inventory->TryCommitStacksFromServer(After, Before))
+        if (!Inventory->TryCommitStacksFromServer(After, Before, false))
             UE_LOG(LogTemp, Error, TEXT("Rejected gemstone claim inventory rollback failed."));
+        if (UKalmalaCraftingComponent* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
+            Crafting->PublishInteractionResultFromServer(TEXT("Gem claim could not be saved"), false);
         return false;
     }
     GemOutcome = 3;
     bHarvested = true;
     ApplyHarvestedState();
     ForceNetUpdate();
+    if (!Inventory->PublishAcceptedGainsFromServer(Before, After))
+        UE_LOG(LogTemp, Error, TEXT("Gemstone gain receipt could not be published after its claim save succeeded."));
     return true;
 }
 

@@ -891,7 +891,16 @@ bool AKalmalaGameMode::PersistConstruction(AKalmalaConstructionActor* Constructi
     const bool bAdded = bCandidateReady && (FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId)
         ? Candidate->AddStationAttachmentRecord(Record) : Candidate->AddRecord(Record));
     if (!bAdded || !Candidate->MatchesWorld(WorldGenerationConfig)) return false;
-    if (!UGameplayStatics::SaveGameToSlot(Candidate, KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0))
+    bool bSaved = false;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (ConstructionSaveWriteAttemptForTests)
+        bSaved = ConstructionSaveWriteAttemptForTests(Candidate,
+            KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0);
+    else
+#endif
+        bSaved = UGameplayStatics::SaveGameToSlot(Candidate,
+            KalmalaGameMode::ConstructionSaveSlot(WorldGenerationConfig), 0);
+    if (!bSaved)
     {
         UE_LOG(LogTemp, Error, TEXT("Construction save failed for %s."), *Record.ConstructionId);
         return false;
@@ -13314,7 +13323,7 @@ bool AKalmalaGameMode::PersistGemstoneState(const FKalmalaGemstoneState& State,
     const bool bHadExisting = Existing != nullptr;
     const FKalmalaGemstoneState Before = Existing ? *Existing : FKalmalaGemstoneState();
     if (!PopulationSaveGame->SetGemstone(State)) return false;
-    if (UGameplayStatics::SaveGameToSlot(PopulationSaveGame, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0)) return true;
+    if (WritePopulationSaveObjectToSlot(PopulationSaveGame)) return true;
     if (bHadExisting) PopulationSaveGame->SetGemstone(Before);
     else PopulationSaveGame->RemoveGemstone(State.SpawnId);
     return false;

@@ -2381,7 +2381,7 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
         return false;
     }
 
-    if (!Inventory->TryCommitStacksFromServer(ExistingInventory, CandidateInventory))
+    if (!Inventory->TryCommitStacksFromServer(ExistingInventory, CandidateInventory, false))
     {
         Node->RollbackHarvestedStateFromServer();
         return false;
@@ -2391,7 +2391,7 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
     if (!GameMode->PersistPlayerStateFromServer(this))
     {
         CarriedTools = ExistingTools;
-        const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory);
+        const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory, false);
         if (!bInventoryRestored)
             UE_LOG(LogTemp, Error, TEXT("Failed to roll back inventory after player tool persistence rejected harvesting."));
         if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(this))
@@ -2402,13 +2402,15 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
         {
             Node->CommitHarvestedStateFromServer();
         }
+        if (Crafting)
+            Crafting->PublishInteractionResultFromServer(TEXT("Harvest could not be saved"), false);
         ForceNetUpdate();
         return false;
     }
     if (!Node->CommitHarvestedStateFromServer())
     {
         CarriedTools = ExistingTools;
-        const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory);
+        const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(CandidateInventory, ExistingInventory, false);
         if (bInventoryRestored && GameMode->PersistPlayerStateFromServer(this))
         {
             Node->RollbackHarvestedStateFromServer();
@@ -2420,6 +2422,8 @@ bool AKalmalaCharacter::CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, c
         }
         return false;
     }
+    if (!Inventory->PublishAcceptedGainsFromServer(ExistingInventory, CandidateInventory))
+        UE_LOG(LogTemp, Error, TEXT("Harvest gain receipts could not be published after player and source persistence succeeded."));
     ForceNetUpdate();
     return true;
 }

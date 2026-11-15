@@ -130,6 +130,9 @@ public:
     /** Publish a previously validated candidate only if the live pack still matches its snapshot. */
     bool TryCommitStacksFromServer(const TArray<FKalmalaInventoryStack>& ExpectedBefore,
         const TArray<FKalmalaInventoryStack>& CandidateAfter, bool bPublishGainReceipts = true);
+    /** Publish positive gains only after the caller's durable transaction has committed. */
+    bool PublishAcceptedGainsFromServer(const TArray<FKalmalaInventoryStack>& ExpectedBefore,
+        const TArray<FKalmalaInventoryStack>& ExpectedAfter);
     bool TryExchangeFromServer(const TArray<FKalmalaInventoryStack>& Costs,
         FName Output, int32 OutputCount, FString& Reason);
     static bool BuildTransfer(const TArray<FKalmalaInventoryStack>& Source,
@@ -156,11 +159,12 @@ private:
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaWorldTreasureClaimTransactionTest;
     friend class FKalmalaM9ExplorationRewardRollbackTest;
+    friend class FKalmalaM9SourceAcceptanceTest;
+    friend class FKalmalaPopulationDepletionWriteRetryTest;
+    friend class FKalmalaGemstoneClaimReceiptTest;
+    friend class FKalmalaDurableGainReceiptRollbackTest;
     TFunction<void(FName, int32)> GainReceiptPublicationForTests;
 #endif
-    /** Publish receipts only after GameMode has durably committed the related claim. */
-    bool PublishAcceptedGainsFromServer(const TArray<FKalmalaInventoryStack>& ExpectedBefore,
-        const TArray<FKalmalaInventoryStack>& ExpectedAfter);
     void RecordAcceptedGains(const TArray<FKalmalaInventoryStack>& Before,
         const TArray<FKalmalaInventoryStack>& After);
     UFUNCTION(Client, Reliable) void ClientAcceptedGain(FName ItemId, int32 Quantity);

@@ -166,6 +166,15 @@ bool FKalmalaPopulationDepletionWriteRetryTest::RunTest(const FString& Parameter
         || !TestFalse(TEXT("Generated source has its canonical primary reward"), RewardItemId.IsNone())
         || !TestNotNull(TEXT("Harvest owner inventory exists"), Inventory)) return false;
     const int32 RewardBefore = Inventory->GetQuantity(RewardItemId);
+    TArray<TPair<FName, int32>> PublishedOwnerReceipts;
+    Inventory->GainReceiptPublicationForTests = [&PublishedOwnerReceipts](const FName ItemId, const int32 Quantity)
+    {
+        PublishedOwnerReceipts.Emplace(ItemId, Quantity);
+    };
+    ON_SCOPE_EXIT
+    {
+        if (IsValid(Inventory)) Inventory->GainReceiptPublicationForTests = {};
+    };
 
     TArray<uint8> DurablePopulationBytes;
     if (!TestTrue(TEXT("Initial empty population ledger serializes"),
@@ -195,6 +204,7 @@ bool FKalmalaPopulationDepletionWriteRetryTest::RunTest(const FString& Parameter
         PopulationSave->IsHarvested(HarvestId));
     TestFalse(TEXT("Failed population write leaves the source available"), HarvestNode->IsHarvested());
     TestEqual(TEXT("Harvest performs one failed immediate write"), PopulationWriteAttempts, 1);
+    TestTrue(TEXT("Failed population write publishes no owner gain receipt"), PublishedOwnerReceipts.IsEmpty());
     TestTrue(TEXT("Failed population write leaves the durable player save unchanged"),
         PlayerSaveBytes == InitialPlayerSaveBytes);
 
@@ -222,6 +232,7 @@ bool FKalmalaPopulationDepletionWriteRetryTest::RunTest(const FString& Parameter
     TestFalse(TEXT("Compensated harvest leaves no pending depletion"),
         Mode->PendingPopulationDepletionWriteIds.Contains(HarvestId));
     TestEqual(TEXT("Population prewrite and compensation each write once"), PopulationWriteAttempts, 3);
+    TestTrue(TEXT("Compensated player-save failure publishes no owner gain receipt"), PublishedOwnerReceipts.IsEmpty());
     const TArray<uint8> CompensatedHarvestBytes = DurablePopulationBytes;
     UKalmalaWorldPopulationSaveGame* CompensatedHarvestReload =
         Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(CompensatedHarvestBytes));
@@ -230,6 +241,7 @@ bool FKalmalaPopulationDepletionWriteRetryTest::RunTest(const FString& Parameter
         CompensatedHarvestReload->IsHarvested(HarvestId));
     Mode->PlayerStateSaveGateForTests = TFunction<bool()>();
 
+    const TArray<FKalmalaInventoryStack> InventoryBeforeRetry = Inventory->GetStacks();
     TestTrue(TEXT("The same source succeeds once the population write becomes available"),
         HarvestNode->InteractWithToolIntentFromServer(Player, 100.0f, 250.0f, NAME_None,
             static_cast<uint8>(EKalmalaToolAction::Gathering)));
@@ -239,6 +251,31 @@ bool FKalmalaPopulationDepletionWriteRetryTest::RunTest(const FString& Parameter
         PopulationSave->IsHarvested(HarvestId));
     TestEqual(TEXT("Successful harvest writes the population ledger after the injected failure"),
         PopulationWriteAttempts, 4);
+    TMap<FName, int32> ExpectedReceipts;
+    TMap<FName, int32> BeforeTotals;
+    TMap<FName, int32> AfterTotals;
+    for (const FKalmalaInventoryStack& Stack : InventoryBeforeRetry)
+        BeforeTotals.FindOrAdd(Stack.ItemId) += Stack.Quantity;
+    for (const FKalmalaInventoryStack& Stack : Inventory->GetStacks())
+        AfterTotals.FindOrAdd(Stack.ItemId) += Stack.Quantity;
+    for (const TPair<FName, int32>& Entry : AfterTotals)
+    {
+        const int32 Increase = Entry.Value - BeforeTotals.FindRef(Entry.Key);
+        if (Increase > 0) ExpectedReceipts.Add(Entry.Key, Increase);
+    }
+    TMap<FName, int32> ActualReceipts;
+    for (const TPair<FName, int32>& Receipt : PublishedOwnerReceipts)
+        ActualReceipts.Add(Receipt.Key, Receipt.Value);
+    TestEqual(TEXT("Successful retry publishes one receipt per gained item"),
+        PublishedOwnerReceipts.Num(), ExpectedReceipts.Num());
+    TestEqual(TEXT("Successful retry publishes each exact positive inventory delta"),
+        ActualReceipts.Num(), ExpectedReceipts.Num());
+    for (const TPair<FName, int32>& Expected : ExpectedReceipts)
+    {
+        const int32* ActualQuantity = ActualReceipts.Find(Expected.Key);
+        TestTrue(TEXT("Successful retry receipt matches the granted item and quantity"),
+            ActualQuantity != nullptr && *ActualQuantity == Expected.Value);
+    }
 
     const int32 RewardAfterAcceptedHarvest = Inventory->GetQuantity(RewardItemId);
     TestFalse(TEXT("A durably harvested source cannot be accepted a second time"),
@@ -246,6 +283,8 @@ bool FKalmalaPopulationDepletionWriteRetryTest::RunTest(const FString& Parameter
             static_cast<uint8>(EKalmalaToolAction::Gathering)));
     TestEqual(TEXT("Rejected duplicate does not grant a second item"),
         Inventory->GetQuantity(RewardItemId), RewardAfterAcceptedHarvest);
+    TestEqual(TEXT("Rejected duplicate does not publish another owner receipt"),
+        PublishedOwnerReceipts.Num(), ExpectedReceipts.Num());
     TestEqual(TEXT("Rejected duplicate does not issue another population write"), PopulationWriteAttempts, 4);
 
     UKalmalaWorldPopulationSaveGame* HarvestReload =

@@ -4,12 +4,14 @@
 #include "KalmalaCombatComponent.h"
 #include "Components/SphereComponent.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaCraftingComponent.h"
 #include "KalmalaForestLayout.h"
 #include "KalmalaForestResourceContract.h"
 #include "KalmalaHarvestNode.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaM9SourceLootContract.h"
 #include "KalmalaM7PersistenceContract.h"
+#include "KalmalaPlayerDiscoverySaveGame.h"
 #include "KalmalaSkillProgressionComponent.h"
 #include "KalmalaToolLifecycleContract.h"
 #include "KalmalaWorldGenerationGameState.h"
@@ -328,6 +330,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         }
         TArray<uint8> ProductionPickupBytes;
         int32 ProductionWrites = 0;
+        TArray<bool> ProductionDepletionSnapshots;
         const FString PopulationSlot = FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"),
             WorldState->GetWorldGenerationConfig().WorldSeed);
         const bool bCaseUsesSlot = bRealSlots && Source.bGeneratedForest;
@@ -354,8 +357,7 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
                 {
                     ++ProductionWrites;
                     TestTrue(TEXT("Real pickup writes the production population save"), WrittenSave == PickupSave);
-                    TestTrue(TEXT("Real pickup marks exact depletion before production write"),
-                        WrittenSave->IsHarvested(Node->GetPersistentSpawnId()));
+                    ProductionDepletionSnapshots.Add(WrittenSave->IsHarvested(Node->GetPersistentSpawnId()));
                     TestEqual(TEXT("Real pickup uses seed-scoped population slot"), Slot,
                         FString::Printf(TEXT("KalmalaPopulationDeltas_%llu"), WorldState->GetWorldGenerationConfig().WorldSeed));
                     TestEqual(TEXT("Real pickup uses population user zero"), UserIndex, 0);
@@ -625,6 +627,61 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             TestEqual(TEXT("Crosshair item matches the server reward"), PickupItem, Source.ItemId);
             TestEqual(TEXT("Crosshair quantity matches the deterministic server grant"), PickupQuantity, ExpectedYield);
         }
+        bool bAcceptedByReceiptRetry = false;
+        if (Source.bGeneratedForest && Source.SourceId == TEXT("elderwood-ironheart-trunk"))
+        {
+            auto* Inventory = Pawn->GetInventoryComponent();
+            TArray<TPair<FName, int32>> OwnerReceipts;
+            Inventory->GainReceiptPublicationForTests = [&OwnerReceipts](const FName ItemId, const int32 Quantity)
+            {
+                OwnerReceipts.Emplace(ItemId, Quantity);
+            };
+            TArray<uint8> PlayerSaveBytes;
+            PickupMode->PlayerDiscoverySaveLoaderForTests = [](const FString&, const int32, USaveGame*& OutSaveGame)
+            {
+                OutSaveGame = nullptr;
+                return false;
+            };
+            PickupMode->PlayerDiscoverySaveWriterForTests = [&PlayerSaveBytes](
+                UKalmalaPlayerDiscoverySaveGameV2* Candidate, const FString&, const int32)
+            {
+                return Candidate != nullptr && UGameplayStatics::SaveGameToMemory(Candidate, PlayerSaveBytes);
+            };
+            int32 PlayerSaveAttempts = 0;
+            PickupMode->PlayerStateSaveGateForTests = [&PlayerSaveAttempts]()
+            {
+                return ++PlayerSaveAttempts > 1;
+            };
+            UKalmalaCraftingComponent* Crafting = Pawn->FindComponentByClass<UKalmalaCraftingComponent>();
+            TestNotNull(TEXT("Forest pickup failure feedback component exists"), Crafting);
+            const uint32 FailureFeedbackSerial = Crafting ? Crafting->GetResultSerial() : 0;
+            const int32 WoodBeforeRejectedPickup = Inventory->GetQuantity(Source.ItemId);
+            TestFalse(TEXT("Forest wood-drop player-save rejection leaves the drop available"),
+                Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+            TestEqual(TEXT("Forest wood-drop retries the player save only for rollback state"), PlayerSaveAttempts, 2);
+            TestFalse(TEXT("Failed forest wood-drop persistence does not deplete the source"), Node->IsHarvested());
+            TestEqual(TEXT("Failed forest wood-drop persistence restores its inventory"),
+                Inventory->GetQuantity(Source.ItemId), WoodBeforeRejectedPickup);
+            TestFalse(TEXT("Failed forest wood-drop persistence rolls back the durable population row"),
+                PickupSave->IsHarvested(Node->GetPersistentSpawnId()));
+            TestTrue(TEXT("Failed forest wood-drop persistence publishes no owner receipt"), OwnerReceipts.IsEmpty());
+            TestTrue(TEXT("Failed forest wood-drop persistence reports failure to its owner"), Crafting
+                && Crafting->GetResultSerial() == FailureFeedbackSerial + 1
+                && !Crafting->WasLastResultAccepted()
+                && Crafting->GetLastResult() == TEXT("Harvest could not be saved"));
+            PickupMode->PlayerStateSaveGateForTests = {};
+            TestTrue(TEXT("Forest wood-drop retry commits after the player save recovers"),
+                Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+            TestEqual(TEXT("Successful forest retry publishes one exact item receipt"), OwnerReceipts.Num(), 1);
+            TestTrue(TEXT("Successful forest retry receipt matches its authored reward"),
+                OwnerReceipts.Num() == 1 && OwnerReceipts[0].Key == Source.ItemId
+                    && OwnerReceipts[0].Value == ExpectedYield);
+            bAcceptedByReceiptRetry = true;
+            PickupMode->PlayerDiscoverySaveLoaderForTests = {};
+            PickupMode->PlayerDiscoverySaveWriterForTests = {};
+            PickupMode->PlayerStateSaveGateForTests = {};
+            Inventory->GainReceiptPublicationForTests = {};
+        }
         if (bAutomaticPickupCase)
         {
             Pawn->SetActorLocation(Node->GetHarvestInteractionLocation() + FVector(0, 80, 88));
@@ -643,7 +700,8 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         else
         {
             TestTrue(FString::Printf(TEXT("%s accepts manual harvest or wood pickup with auto disabled"), *SourceLabel),
-                Node->InteractWithToolIntentFromServer(Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
+                bAcceptedByReceiptRetry || Node->InteractWithToolIntentFromServer(
+                    Pawn, 100.0f, 250.0f, Source.ToolItemId, ExpectedAction));
         }
         if (Rival)
         {
@@ -677,8 +735,16 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestEqual(TEXT("M9 source pickup emits its depletion callback"), M9ResourceCallbacks, Source.bGeneratedForest ? 0 : 1);
         TestEqual(TEXT("Sparse callback retains exact generated identity"), SparseId,
             Source.bGeneratedForest ? Node->GetPersistentSpawnId() : FString());
-        TestEqual(TEXT("Only successful generated pickup reaches production writer"),
-            ProductionWrites, Source.bGeneratedForest && !bCaseUsesSlot ? 1 : 0);
+        const int32 ExpectedProductionWrites = Source.bGeneratedForest && !bCaseUsesSlot
+            ? (Source.SourceId == TEXT("elderwood-ironheart-trunk") ? 3 : 1) : 0;
+        TestEqual(TEXT("Generated pickup and rollback writes reach the production writer"),
+            ProductionWrites, ExpectedProductionWrites);
+        TestEqual(TEXT("Each production write records its exact depletion state"),
+            ProductionDepletionSnapshots.Num(), ExpectedProductionWrites);
+        if (Source.SourceId == TEXT("elderwood-ironheart-trunk") && !bCaseUsesSlot)
+            TestTrue(TEXT("Forest failure rollback and successful retry persist true/false/true states"),
+                ProductionDepletionSnapshots.Num() == 3 && ProductionDepletionSnapshots[0]
+                    && !ProductionDepletionSnapshots[1] && ProductionDepletionSnapshots[2]);
         if (bCaseUsesSlot)
             TestTrue(TEXT("Successful generated pickup creates the real population slot"),
                 UGameplayStatics::DoesSaveGameExist(PopulationSlot, 0));
@@ -860,6 +926,22 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         auto* CarrotPopulationSave = NewObject<UKalmalaWorldPopulationSaveGame>(World);
         CarrotPopulationSave->InitializeForWorld(WorldState->GetWorldGenerationConfig());
         PlantGameMode->PopulationSaveGame = CarrotPopulationSave;
+        TArray<TPair<FName, int32>> CarrotOwnerReceipts;
+        CarrotInventory->GainReceiptPublicationForTests = [&CarrotOwnerReceipts](const FName ItemId, const int32 Quantity)
+        {
+            CarrotOwnerReceipts.Emplace(ItemId, Quantity);
+        };
+        TArray<uint8> CarrotPlayerSaveBytes;
+        PlantGameMode->PlayerDiscoverySaveLoaderForTests = [](const FString&, const int32, USaveGame*& OutSaveGame)
+        {
+            OutSaveGame = nullptr;
+            return false;
+        };
+        PlantGameMode->PlayerDiscoverySaveWriterForTests = [&CarrotPlayerSaveBytes](
+            UKalmalaPlayerDiscoverySaveGameV2* Candidate, const FString&, const int32)
+        {
+            return Candidate != nullptr && UGameplayStatics::SaveGameToMemory(Candidate, CarrotPlayerSaveBytes);
+        };
         int32 PopulationWrites = 0;
         PlantGameMode->PopulationSaveWriterForTests = [&](UKalmalaWorldPopulationSaveGame* Saved,
             const FString&, int32)
@@ -873,17 +955,29 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
         TestFalse(TEXT("Wild carrot rejects a trace beyond interaction range"), CarrotNode->InteractWithToolIntentFromServer(
             CarrotPawn, 251.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
         TestFalse(TEXT("A rejected trace leaves the wild carrot patch available"), CarrotNode->IsHarvested());
-        APlayerState* AuthenticatedPlayerState = CarrotPawn->GetPlayerState();
-        CarrotPawn->SetPlayerState(nullptr);
+        int32 CarrotSaveGateCalls = 0;
+        PlantGameMode->PlayerStateSaveGateForTests = [&CarrotSaveGateCalls]()
+        {
+            return ++CarrotSaveGateCalls > 1;
+        };
+        UKalmalaCraftingComponent* CarrotCrafting = CarrotPawn->FindComponentByClass<UKalmalaCraftingComponent>();
+        TestNotNull(TEXT("Wild carrot failure feedback component exists"), CarrotCrafting);
+        const uint32 CarrotFailureFeedbackSerial = CarrotCrafting ? CarrotCrafting->GetResultSerial() : 0;
         TestFalse(TEXT("Wild carrot rejects failed player-state persistence"), CarrotNode->InteractWithToolIntentFromServer(
             CarrotPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
+        TestEqual(TEXT("Rejected carrot save is followed by one rollback-state write"), CarrotSaveGateCalls, 2);
         TestFalse(TEXT("Failed player-state persistence leaves the patch available"), CarrotNode->IsHarvested());
         TestEqual(TEXT("Failed player-state persistence rolls back Carrot"),
             CarrotInventory->GetQuantity(TEXT("Carrot")), CarrotBefore);
         TestEqual(TEXT("Failed player-state persistence rolls back Carrot Seed"),
             CarrotInventory->GetQuantity(TEXT("CarrotSeed")), SeedBefore);
         TestEqual(TEXT("Failed player-state persistence does not record depletion"), PopulationWrites, 0);
-        CarrotPawn->SetPlayerState(AuthenticatedPlayerState);
+        TestTrue(TEXT("Failed carrot persistence emits no owner gain receipt"), CarrotOwnerReceipts.IsEmpty());
+        TestTrue(TEXT("Failed carrot persistence reports failure to its owner"), CarrotCrafting
+            && CarrotCrafting->GetResultSerial() == CarrotFailureFeedbackSerial + 1
+            && !CarrotCrafting->WasLastResultAccepted()
+            && CarrotCrafting->GetLastResult() == TEXT("Harvest could not be saved"));
+        PlantGameMode->PlayerStateSaveGateForTests = TFunction<bool()>();
         TestTrue(TEXT("A player can hand-gather wild carrots without a tool"), CarrotNode->InteractWithToolIntentFromServer(
             CarrotPawn, 100.0f, 250.0f, NAME_None, static_cast<uint8>(EKalmalaToolAction::Gathering)));
         TestTrue(TEXT("Accepted wild carrot harvest depletes exactly once"), CarrotNode->IsHarvested());
@@ -891,6 +985,12 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             CarrotInventory->GetQuantity(TEXT("Carrot")), CarrotBefore + 2);
         TestEqual(TEXT("Wild carrot harvest grants exactly one Carrot Seed"),
             CarrotInventory->GetQuantity(TEXT("CarrotSeed")), SeedBefore + 1);
+        TestEqual(TEXT("Successful carrot retry publishes a primary-item receipt"), CarrotOwnerReceipts.Num(), 2);
+        TestTrue(TEXT("Successful carrot retry publishes exactly two Carrots and one Seed"),
+            CarrotOwnerReceipts.ContainsByPredicate([](const TPair<FName, int32>& Receipt)
+                { return Receipt.Key == TEXT("Carrot") && Receipt.Value == 2; })
+            && CarrotOwnerReceipts.ContainsByPredicate([](const TPair<FName, int32>& Receipt)
+                { return Receipt.Key == TEXT("CarrotSeed") && Receipt.Value == 1; }));
         TestEqual(TEXT("Accepted wild carrot harvest broadcasts one depletion event"), DepletionEvents, 1);
         TestEqual(TEXT("Wild carrot depletion retains the generated spawn identity"), DepletedSpawnId,
             CarrotNode->GetPersistentSpawnId());
@@ -903,7 +1003,12 @@ bool FKalmalaM9SourceAcceptanceTest::RunTest(const FString& Parameters)
             CarrotInventory->GetQuantity(TEXT("Carrot")), CarrotBefore + 2);
         TestEqual(TEXT("Duplicate harvest leaves Carrot Seed unchanged"),
             CarrotInventory->GetQuantity(TEXT("CarrotSeed")), SeedBefore + 1);
+        TestEqual(TEXT("Duplicate carrot harvest publishes no extra receipt"), CarrotOwnerReceipts.Num(), 2);
         TestEqual(TEXT("Duplicate harvest does not rewrite depletion"), PopulationWrites, 1);
+        PlantGameMode->PlayerDiscoverySaveLoaderForTests = {};
+        PlantGameMode->PlayerDiscoverySaveWriterForTests = {};
+        PlantGameMode->PlayerStateSaveGateForTests = {};
+        CarrotInventory->GainReceiptPublicationForTests = {};
         PlantGameMode->PopulationSaveWriterForTests = {};
         PlantGameMode->PopulationSaveGame = nullptr;
         CarrotNode->OnHarvested.Clear();

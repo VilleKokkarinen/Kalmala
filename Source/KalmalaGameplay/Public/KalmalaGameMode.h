@@ -212,6 +212,8 @@ private:
     friend class FKalmalaOceanTravelSaveFailureRollbackTest;
     friend class FKalmalaOceanDiscoveryClaimTransactionTest;
     friend class FKalmalaWorldTreasureClaimTransactionTest;
+    friend class FKalmalaGemstoneClaimReceiptTest;
+    friend class FKalmalaDurableGainReceiptRollbackTest;
     // Isolate the owner-scoped Ocean discovery ledger while exercising GameMode claims.
     TFunction<bool(const FString&, int32, class USaveGame*&)> OceanDiscoverySaveLoaderForTests;
     TFunction<bool(class UKalmalaM7PersistenceSaveGame*, const FString&, int32)> OceanDiscoverySaveWriterForTests;
@@ -236,6 +238,7 @@ private:
     // Isolate exact player-slot existence and loading while exercising GameMode validation.
     TFunction<bool(const FString&, int32, class USaveGame*&)> PlayerDiscoverySaveLoaderForTests;
     TFunction<bool(class UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)> PlayerDiscoverySaveWriterForTests;
+    TFunction<bool(class UKalmalaConstructionSaveGameV2*, const FString&, int32)> ConstructionSaveWriteAttemptForTests;
     TFunction<bool(class USaveGame*, const FString&, int32)> WorldComponentSaveWriterForTests;
     TFunction<bool(class USaveGame*, const FString&, int32)> OceanTravelSaveWriterForTests;
     TFunction<ENetMode(const UWorld*)> HomeReturnNetModeForTests;

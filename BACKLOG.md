@@ -1116,7 +1116,7 @@
       inspection passed. The Editor build and live peer scenario were not run; full verification remains deferred
       under the one-increment workflow.
 
-  - [ ] **RF43 — Suppress owner gain receipts after durable rollback (P3; CR04-017/CR17-001).**
+  - [x] **RF43 — Suppress owner gain receipts after durable rollback (P3; CR04-017/CR17-001).**
     **Source:** CR04-017 and CR17-001; `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp:411-427`,
       `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp:450-470`,
       `Source/KalmalaGameplay/Private/KalmalaHarvestNode.cpp:258-263,311-318`,
@@ -1165,6 +1165,11 @@
       save failures, retry, and state rollback; then run a listen-server
       remote-owner scenario with existing harvest/gemstone coverage after an
       Editor build.
+    **Development checks:** `git diff --check` and source inspection passed.
+      Added focused source, gemstone, carried-tool, refuel, and construction
+      failure/retry receipt assertions. The Editor build, automation execution,
+      and listen-server remote-owner scenario remain deferred to milestone-final
+      verification under the one-increment workflow.
 
   - [ ] **RF44 — Add remote Opal Helm Forge-maintenance coverage (P3; CR04-018).**
     **Source:** CR04-018; `Source/KalmalaGameplay/Private/Tests/KalmalaOpalHelmTest.cpp:13-79`;

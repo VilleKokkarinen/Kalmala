@@ -2027,15 +2027,19 @@ gameplay menu.
 
 Accepted server inventory publications send a reliable client-only
 `ClientAcceptedGain` receipt to the owning connection. Direct grants record the
-accepted quantity. Exchanges, validated candidate commits and successful
-storage withdrawals record each positive net item increase after publication;
-consumption, deposits, unchanged commits, rejected/stale candidates and failed
-storage writes produce no gain. This feedback adds no server mutation RPC and
-cannot mint or consume inventory. Receipts do not depend on a later inventory
-snapshot, so gain followed by consumption between UI refreshes still announces
-the accepted gain. A same-item exchange announces its positive **net** increase,
-not its gross output. Carried-tool records are a separate inventory contract and
-are not newly announced by this child.
+accepted quantity. Non-durable exchanges, validated candidate commits and
+successful storage withdrawals record each positive net item increase after
+publication. A transaction tied to a durable player, source, gemstone or
+construction write stages its receipt until that write and the in-memory commit
+succeed; rollback discards the staged receipt. Refunds in these staged
+transactions never create positive gain receipts. Consumption, deposits,
+unchanged commits, rejected/stale candidates and failed storage writes produce
+no gain. This feedback adds no
+server mutation RPC and cannot mint or consume inventory. Receipts do not depend
+on a later inventory snapshot, so gain followed by consumption between UI
+refreshes still announces the accepted gain. A same-item exchange announces its
+positive **net** increase, not its gross output. Carried-tool records are a
+separate inventory contract and are not newly announced by this child.
 
 The owner stores only the latest 32 transient receipts with locally monotonic
 sequence numbers. Each receipt quantity is the total positive net gain for one
