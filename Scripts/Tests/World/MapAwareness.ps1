@@ -5,6 +5,36 @@ $repoPaths = Get-KalmalaPaths -StartPath $PSScriptRoot
 
 $ErrorActionPreference = 'Stop'
 $project = Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject'
+$mapHeaderPath = Join-Path $repoPaths.ProjectRoot 'Source\KalmalaGameplay\Public\KalmalaMapAwarenessComponent.h'
+$mapSourcePath = Join-Path $repoPaths.ProjectRoot 'Source\KalmalaGameplay\Private\KalmalaMapAwarenessComponent.cpp'
+$gameModePath = Join-Path $repoPaths.ProjectRoot 'Source\KalmalaGameplay\Private\KalmalaGameMode.cpp'
+$worldMapPath = Join-Path $repoPaths.ProjectRoot 'Source\KalmalaUI\Private\KalmalaWorldMapWidget.cpp'
+$mapHeader = Get-Content -LiteralPath $mapHeaderPath -Raw
+$mapSource = Get-Content -LiteralPath $mapSourcePath -Raw
+$gameMode = Get-Content -LiteralPath $gameModePath -Raw
+$worldMap = Get-Content -LiteralPath $worldMapPath -Raw
+$mapContractSources = $mapHeader + [Environment]::NewLine + $mapSource + [Environment]::NewLine + $gameMode + [Environment]::NewLine + $worldMap
+foreach ($obsoleteMapApi in @(
+    'ServerSetSharingEnabled', 'bMapSharingEnabled', 'AKalmalaMapPlayerState', 'FKalmalaMapPeerMarker',
+    'SetSharingEnabled', 'IsSharingEnabled', 'IsSharingRequested', 'GetPeerMarkers', 'GetStatusText', 'bLocalSharingRequested'
+)) {
+    if ($mapContractSources.IndexOf($obsoleteMapApi, [StringComparison]::Ordinal) -ge 0) {
+        throw "Retired map location-sharing API remains in production source: $obsoleteMapApi"
+    }
+}
+foreach ($requiredMapPattern in @(
+    @{ Pattern = 'UFUNCTION\(Server, Unreliable\)\s*void\s+ServerRequestPing'; Name = 'server-validated temporary ping request' },
+    @{ Pattern = 'DOREPLIFETIME_CONDITION\(UKalmalaMapAwarenessComponent, Inbox, COND_OwnerOnly\)'; Name = 'owner-only ping inbox' },
+    @{ Pattern = 'PingCooldown\s*=\s*2\.0'; Name = 'two-second sender cooldown' },
+    @{ Pattern = 'PingLifetime\s*=\s*10\.0'; Name = 'ten-second ping lifetime' },
+    @{ Pattern = 'MaxInboxPings\s*=\s*16'; Name = 'sixteen-ping inbox bound' },
+    @{ Pattern = 'Recipient->Inbox\.Num\(\) > MaxInboxPings'; Name = 'bounded recipient inbox write' },
+    @{ Pattern = 'DrawMapPings[\s\S]*GetVisiblePings'; Name = 'temporary ping rendering' }
+)) {
+    if ($mapContractSources -notmatch $requiredMapPattern.Pattern) {
+        throw "Map ping contract is missing: $($requiredMapPattern.Name)"
+    }
+}
 $editor = 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor.exe'
 $output = Join-Path $env:TEMP ('KalmalaMapAwareness-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $output | Out-Null
@@ -29,7 +59,7 @@ try {
         $serverText = if (Test-Path $serverLog) { Get-Content $serverLog -Raw } else { '' }
         $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
         if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:') { throw 'Unreal reported an assertion.' }
-        if ($serverText -match 'Map awareness share closed: Peers=0 Pings=0' -and $clientText -match 'Map awareness share closed: Peers=0 Pings=0') { break }
+        if ($serverText -match 'Map awareness verification: Seen=4 Expired=1' -and $clientText -match 'Map awareness verification: Seen=4 Expired=1') { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ((Get-Date) -ge $deadline) { throw 'Host/client awareness scenario timed out.' }
@@ -38,12 +68,9 @@ try {
     foreach ($result in @('Malformed', 'OutOfBounds', 'Excessive')) {
         if ([regex]::Matches($serverText, "Map ping request: Result=$result").Count -ne 2) { throw "Expected server rejection from both host and remote owner: $result" }
     }
-    # A valid global ping can arrive before the client's initial sample; peer positions remain private.
     foreach ($peerText in @($serverText, $clientText)) {
-        if ($peerText -notmatch 'Map awareness default: Private=1 Peers=0 Pings=\d+') { throw 'Default player-position privacy failed.' }
-        if ($peerText -notmatch 'Map ping without consent: Count=\d+') { throw 'A peer did not receive a ping while sharing was off.' }
-        if ($peerText -notmatch 'Map ping survives opt-out: Count=4') { throw 'Opting out removed global pings.' }
-        if ($peerText -notmatch 'Map awareness verification: Peers=0 Seen=4 Expired=1') { throw 'Ten-second expiry verification missing.' }
+        if ($peerText -notmatch 'Map awareness ping-only default: Pings=\d+') { throw 'Ping-only map verification did not start.' }
+        if ($peerText -notmatch 'Map awareness verification: Seen=4 Expired=1') { throw 'Ten-second ping expiry verification missing.' }
     }
     $pattern = 'Map ping observed: Sender=(\d+) Sequence=(\d+) Issued=([\d.]+) Expires=([\d.]+) X=([-\d.]+) Y=([-\d.]+)'
     $hostPings = [regex]::Matches($serverText, $pattern)
@@ -57,7 +84,7 @@ try {
     }
     if (-not ($hostPings | Where-Object { [double]::Parse($_.Groups[5].Value, [cultureinfo]::InvariantCulture) -eq 1000000.0 })) { throw 'Host did not receive the accepted remote-world ping.' }
     if (-not ($clientPings | Where-Object { [double]::Parse($_.Groups[5].Value, [cultureinfo]::InvariantCulture) -eq 1000000.0 })) { throw 'Client did not receive the accepted remote-world ping.' }
-    Write-Output 'PASS: private player positions, global pings without share consent, world-bound validation, remote-world relay, per-sender cooldown, host/client ordering, ten-second expiry, and opt-out independence.'
+    Write-Output 'PASS: ping-only map contract, owner-only inboxes, world-bound validation, remote-world relay, per-sender cooldown, host/client ordering, and ten-second expiry.'
 }
 finally {
     foreach ($peer in @($client, $server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

@@ -1378,7 +1378,7 @@
       slot writes across failure, throttling, independent-controller success, later retry, and duplicate success.
       The Editor build, automation, and live peer path remain deferred to milestone-final verification.
 
-  - [ ] **RF50 — Retire the remaining map-sharing RPC (P3; CR04-025).**
+  - [x] **RF50 — Retire the remaining map-sharing RPC (P3; CR04-025).**
     **Source:** CR04-025; `Source/KalmalaGameplay/Public/KalmalaMapAwarenessComponent.h:24-71`;
       `Source/KalmalaGameplay/Private/KalmalaMapAwarenessComponent.cpp:12-15,48-62,143-172`;
       `Source/KalmalaUI/Private/KalmalaWorldMapWidget.cpp:330-334,457-464`;
@@ -1410,6 +1410,12 @@
       the current no-sharing contract. After an Editor build, run `Scripts/Tests/World/MapAwareness.ps1` and a
       remote-owner/observer map check for ping validation, cooldown, expiry, inbox bounds and owner-only
       delivery; statically confirm no production call sites remain for sharing APIs.
+    **Development checks:** Removed the reliable sharing RPC, replicated PlayerState consent flag, peer-marker
+      lookup and co-op status API. Updated the two-peer verification to exercise only ping validation, relay,
+      cooldown and expiry, and added source-contract checks for the absent sharing API and retained owner-only,
+      cooldown, lifetime and inbox-bound ping path. `git diff --check`, PowerShell parser validation and static
+      source inspection passed. The Editor build, map-awareness automation and remote-owner/observer runtime
+      check remain deferred to milestone-final verification.
 
   - [ ] **RF51 — Bound repeated arrow-preference RPC work (P3; CR04-032).**
     `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:1431`,

@@ -3564,7 +3564,8 @@ Visibility is a transient local widget preference. It suppresses pin painting
 only: it does not request map data, change fog/exploration, mutate or remove
 pins, alter global pings, or add an RPC or save field. For integrated M14
 acceptance, build the editor and run the full `Automation RunTests Kalmala`
-queue, `Scripts/Tests/World/MapAwareness.ps1`, and the consolidated
+queue and `Scripts/Tests/World/MapAwareness.ps1` for the ping-only source
+contract and remote-owner validation/relay scenario. Also run the consolidated
 `Scripts/Tests/World/WorldMap.ps1`. The latter covers three resolutions,
 overview fitting, 150% text scale with high contrast, 125% and 150% application
 scale, close/max zoom, pins and fog privacy, cache reuse, profile/tile

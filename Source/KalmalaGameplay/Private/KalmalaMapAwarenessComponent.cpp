@@ -2,18 +2,12 @@
 
 #include "Engine/World.h"
 #include "GameFramework/GameStateBase.h"
-#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerState.h"
 #include "KalmalaWorldBounds.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Net/UnrealNetwork.h"
 #include <limits>
-
-void AKalmalaMapPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME(AKalmalaMapPlayerState, bMapSharingEnabled);
-}
 
 AKalmalaMapPlayerController::AKalmalaMapPlayerController()
 {
@@ -34,33 +28,6 @@ void UKalmalaMapAwarenessComponent::GetLifetimeReplicatedProps(TArray<FLifetimeP
 }
 
 APlayerController* UKalmalaMapAwarenessComponent::Controller() const { return Cast<APlayerController>(GetOwner()); }
-
-bool UKalmalaMapAwarenessComponent::IsEligible() const
-{
-    const APlayerController* PC = Controller();
-    const AKalmalaMapPlayerState* PS = PC ? PC->GetPlayerState<AKalmalaMapPlayerState>() : nullptr;
-    return PC && !PC->IsActorBeingDestroyed() && PC->GetPawn() && PS && !PS->IsInactive()
-        && !PS->IsOnlyASpectator() && PS->IsMapSharingEnabled();
-}
-
-bool UKalmalaMapAwarenessComponent::IsSharingEnabled() const { return bLocalSharingRequested && IsEligible(); }
-
-void UKalmalaMapAwarenessComponent::SetSharingEnabled(bool bEnabled)
-{
-    if (!Controller() || !Controller()->IsLocalController()) return;
-    bLocalSharingRequested = bEnabled;
-    ServerSetSharingEnabled(bEnabled);
-}
-
-void UKalmalaMapAwarenessComponent::ServerSetSharingEnabled_Implementation(bool bEnabled)
-{
-    if (!GetOwner()->HasAuthority() || !Controller()) return;
-    if (AKalmalaMapPlayerState* PS = Controller()->GetPlayerState<AKalmalaMapPlayerState>())
-    {
-        PS->bMapSharingEnabled = bEnabled && !PS->IsInactive() && !PS->IsOnlyASpectator() && Controller()->GetPawn();
-        PS->ForceNetUpdate();
-    }
-}
 
 double UKalmalaMapAwarenessComponent::ServerNow() const
 {
@@ -140,22 +107,6 @@ void UKalmalaMapAwarenessComponent::PruneInbox()
     if (Removed) GetOwner()->ForceNetUpdate();
 }
 
-TArray<FKalmalaMapPeerMarker> UKalmalaMapAwarenessComponent::GetPeerMarkers() const
-{
-    TArray<FKalmalaMapPeerMarker> Result;
-    const AGameStateBase* GS = GetWorld() ? GetWorld()->GetGameState() : nullptr;
-    if (!IsSharingEnabled() || !GS) return Result;
-    for (const APlayerState* State : GS->PlayerArray)
-    {
-        const auto* PS = Cast<AKalmalaMapPlayerState>(State);
-        const APawn* Pawn = PS ? PS->GetPawn() : nullptr;
-        if (PS && PS != Controller()->PlayerState && PS->IsMapSharingEnabled() && !PS->IsInactive()
-            && !PS->IsOnlyASpectator() && Pawn && !Pawn->IsActorBeingDestroyed() && !Pawn->IsHidden())
-            Result.Add({FVector2D(Pawn->GetActorLocation()), PS->GetPlayerId()});
-    }
-    return Result;
-}
-
 TArray<FKalmalaMapPing> UKalmalaMapAwarenessComponent::GetVisiblePings() const
 {
     TArray<FKalmalaMapPing> Result;
@@ -163,13 +114,6 @@ TArray<FKalmalaMapPing> UKalmalaMapAwarenessComponent::GetVisiblePings() const
         if (Ping.ExpiresAt > ServerNow()) Result.Add(Ping);
     Result.Sort(PingLess);
     return Result;
-}
-
-FString UKalmalaMapAwarenessComponent::GetStatusText() const
-{
-    if (!bLocalSharingRequested) return TEXT("Co-op OFF (private; resets on reconnect)");
-    if (!IsSharingEnabled()) return TEXT("Co-op awaiting server / unavailable");
-    return FString::Printf(TEXT("Co-op ON: sharing position; %d visible peers (offline/private peers hidden)"), GetPeerMarkers().Num());
 }
 
 void UKalmalaMapAwarenessComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -191,48 +135,21 @@ void UKalmalaMapAwarenessComponent::DeveloperVerification(float DeltaTime)
     const FVector2D Here(Controller()->GetPawn()->GetActorLocation());
     if (VerificationStage == 0)
     {
-        UE_LOG(LogTemp, Display, TEXT("Map awareness default: Private=%d Peers=%d Pings=%d"), !IsSharingEnabled(), GetPeerMarkers().Num(), GetVisiblePings().Num());
+        UE_LOG(LogTemp, Display, TEXT("Map awareness ping-only default: Pings=%d"), GetVisiblePings().Num());
         RequestPing(Here);
         VerificationStage = 1;
         VerificationStageTime = VerificationTime;
     }
-    else if (VerificationStage == 1 && VerificationTime - VerificationStageTime > 2.0)
-    {
-        SetSharingEnabled(true);
-        VerificationStage = 2;
-    }
-    else if (VerificationStage == 2 && IsSharingEnabled() && GetPeerMarkers().Num() == 1)
-    {
-        VerificationStage = 3;
-        VerificationStageTime = VerificationTime;
-    }
-    else if (VerificationStage == 3 && VerificationTime - VerificationStageTime > 2.5)
+    else if (VerificationStage == 1 && VerificationTime - VerificationStageTime > 2.5)
     {
         ServerRequestPing(FVector2D(std::numeric_limits<double>::quiet_NaN(), 0));
         ServerRequestPing(FVector2D(FKalmalaWorldBounds::Radius + 1.0, 0));
         ServerRequestPing(FVector2D(1000000.0, 0));
         ServerRequestPing(Here);
-        VerificationStage = 4;
-        VerificationStageTime = VerificationTime;
-    }
-    else if (VerificationStage == 4 && VerificationTime - VerificationStageTime > 0.5)
-    {
-        SetSharingEnabled(false);
-        VerificationStage = 5;
-        VerificationStageTime = VerificationTime;
+        VerificationStage = 2;
     }
 
     const TArray<FKalmalaMapPing> Pings = GetVisiblePings();
-    if (!IsSharingEnabled() && !Pings.IsEmpty() && !bVerificationNoConsentLogged)
-    {
-        bVerificationNoConsentLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("Map ping without consent: Count=%d"), Pings.Num());
-    }
-    if (VerificationStage >= 5 && !IsSharingEnabled() && Pings.Num() == 4 && !bVerificationSharingIndependentLogged)
-    {
-        bVerificationSharingIndependentLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("Map ping survives opt-out: Count=%d"), Pings.Num());
-    }
     for (const FKalmalaMapPing& Ping : Pings)
     {
         const uint64 Key = (uint64(uint32(Ping.SenderId)) << 32) | Ping.Sequence;
@@ -246,8 +163,7 @@ void UKalmalaMapAwarenessComponent::DeveloperVerification(float DeltaTime)
     if (VerificationSeen.Num() == 4 && Pings.IsEmpty() && !bVerificationExpiryLogged)
     {
         bVerificationExpiryLogged = true;
-        UE_LOG(LogTemp, Display, TEXT("Map awareness verification: Peers=%d Seen=4 Expired=1"), GetPeerMarkers().Num());
-        UE_LOG(LogTemp, Display, TEXT("Map awareness share closed: Peers=%d Pings=%d"), GetPeerMarkers().Num(), GetVisiblePings().Num());
+        UE_LOG(LogTemp, Display, TEXT("Map awareness verification: Seen=4 Expired=1"));
     }
 #endif
 }

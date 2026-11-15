@@ -535,7 +535,6 @@ AKalmalaGameMode::AKalmalaGameMode()
     PrimaryActorTick.bCanEverTick = true;
     DefaultPawnClass = AKalmalaCharacter::StaticClass();
     PlayerControllerClass = AKalmalaMapPlayerController::StaticClass();
-    PlayerStateClass = AKalmalaMapPlayerState::StaticClass();
     GameStateClass = AKalmalaWorldGenerationGameState::StaticClass();
 }
 

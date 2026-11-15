@@ -33578,3 +33578,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Retry deadlines are stored only in the authoritative GameMode per validated remote controller. They are transient, cleared on logout or successful return, and add no client-controlled save or timing state.
 - **Known limitations / remaining scope:** Runtime behavior and the live client retry path remain unverified until the CR milestone gate. RF50 and the broader CR remediation goal remain open.
 - **Next eligible task:** RF50 — Retire the remaining map-sharing RPC.
+
+## Run 2026-11-15 — RF50 retire map-sharing RPC
+
+- **Selected task:** RF50, remove the obsolete map-sharing request and replicated consent state.
+- **Work completed:** Removed `ServerSetSharingEnabled`, the replicated `bMapSharingEnabled` PlayerState subclass, peer-marker lookup, and the map co-op status API. The GameMode now uses its default PlayerState class. Simplified the development peer verification to exercise only temporary pings, and updated `MapAwareness.ps1` to check the ping-only contract, owner-only inbox replication, two-second cooldown, ten-second lifetime, sixteen-entry bound, validation, relay, ordering, and expiry. Updated the architecture and development setup descriptions.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Private/KalmalaMapAwarenessComponent.cpp`, `Source/KalmalaGameplay/Public/KalmalaMapAwarenessComponent.h`, `Scripts/Tests/World/MapAwareness.ps1`, `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** The PowerShell parser and map source-contract checks passed; `git diff --check` passed; no obsolete sharing symbols remain in production sources; all changed paths are below 260 characters. No Unreal build or gameplay automation has been run.
+- **Full verification:** Deferred; RF50 is not the final implementation task in the CR remediation milestone. The Editor build, `Scripts/Tests/World/MapAwareness.ps1`, and the remote-owner/observer map check remain for milestone-final verification.
+- **Observable impact:** Current production code no longer accepts a client location-sharing request or distributes a sharing-consent flag; the map awareness component exposes only temporary ping behavior.
+- **Networking/authority:** Ping admission remains server-authoritative and validates eligibility, finite/world-bounded coordinates, and the per-sender cooldown. Ping inboxes remain owner-only, bounded to 16 unexpired records, and expire after ten seconds. No remote marker or co-op status API remains.
+- **Known limitations / remaining scope:** The revised peer scenario and source-contract runner have not been executed in Unreal. RF51 and the broader CR remediation goal remain open.
+- **Next eligible task:** RF51 — Bound repeated arrow-preference RPC work.
