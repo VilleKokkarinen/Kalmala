@@ -119,6 +119,7 @@ public:
     AKalmalaCampfire* FindNearbyFire(bool bRequireUsable) const;
 private:
     bool AcceptRequest();
+    bool AcceptStorageCloseRequest();
     bool CommitRepairAllToolsFromServer(const TCHAR* StationName, FString& Reason);
     void PublishResult(const FString& Result, bool bAccepted, FName AcceptedRecipeId = NAME_None,
         EKalmalaCraftingActionKind AcceptedActionKind = EKalmalaCraftingActionKind::CraftedItem);
@@ -141,7 +142,7 @@ private:
     void RunA8bFangSpearPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
-    void ClearStorageView();
+    bool ClearStorageView();
     AKalmalaConstructionActor* GetCurrentCharcoalKilnFromServer() const;
     AKalmalaConstructionActor* GetCurrentSmelterFromServer() const;
     AKalmalaConstructionActor* FindNearbyConstruction(FName Kit, FName AlternateKit = NAME_None) const;
@@ -158,7 +159,17 @@ private:
     UPROPERTY(Replicated) uint32 StationContextInteractionSerial = 0;
     int32 StorageVerificationStage = 0;
     float StorageVerificationElapsed = 0;
+    double NextStorageCloseRequestTime = 0;
     double NextRequestTime = 0;
+#if !UE_BUILD_SHIPPING
+    int32 StorageCloseOpenAccepted = 0;
+    int32 StorageCloseClosedAccepted = 0;
+    int32 StorageCloseRateLimited = 0;
+    int32 StorageCloseClearUpdates = 0;
+    bool bStorageClosedWithdrawRejected = false;
+    bool bStorageClosedDepositRejected = false;
+    FGuid StorageVerificationItemGuid;
+#endif
     UPROPERTY(Replicated) FString LastResult;
     UPROPERTY(Replicated) uint32 ResultSerial = 0;
     UPROPERTY(Replicated) bool bLastResultAccepted = false;

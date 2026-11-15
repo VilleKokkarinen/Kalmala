@@ -1,3 +1,34 @@
+## RF39 — Rate-limit repeated storage-close requests — 2026-11-15
+
+- **Work completed:** Added an independent 200 ms close-request cadence. A
+  request always clears an open owner view immediately; repeats after closure
+  are rate-limited, and clearing an already-closed view no longer forces a
+  character update. Extended the two-peer storage fixture to flood close RPCs
+  in open and closed states and verify valid closed-view deposit/withdraw
+  requests are rejected, peer snapshots remain empty, and chest contents stay
+  unchanged.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`,
+  `Source/KalmalaGameplay/Private/KalmalaStorageVerification.cpp`,
+  `Scripts/Tests/Construction/Storage.ps1`, `docs/02-technical-architecture.md`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check`, PowerShell parser validation, and
+  source inspection of close admission, state clearing, and both peer-test
+  phases passed.
+- **Full verification:** Deferred. The storage peer scenario, Editor build,
+  and automation were not run under the one-increment workflow.
+- **Observable impact:** The owner’s first close promptly removes the private
+  chest snapshot. Repeated close requests against a closed view are bounded to
+  one accepted request per 200 ms, without redundant character updates.
+- **Networking/authority:** Close admission and clearing remain server-only.
+  Storage contents remain owner-only; closed transfers still pass through the
+  existing server validation and cannot mutate either container.
+- **Known limits:** The focused two-peer close-flood regression is source
+  complete but unexecuted. Editor builds, storage peer/restart runs, and full
+  automation remain deferred.
+- **Next eligible task:** RF40 — make the non-axe harvest-gate regression
+  reachable. The overall CR remediation goal remains active.
+
 ## RF38 — Suppress M9 receipts until claim persistence succeeds — 2026-11-15
 
 - **Work completed:** M9 reward grants now update inventory without publishing

@@ -35,9 +35,11 @@ function Invoke-StorageRun([int]$Run) {
             $clientText = if (Test-Path $clientLog) { Get-Content $clientLog -Raw } else { '' }
             if (($serverText + $clientText) -match 'Fatal error:|Assertion failed:|Ensure condition failed:|Storage fixture FAILED:') { throw "Run $Run failed; inspect retained logs." }
             $ready = [regex]::Matches($serverText, 'Storage server final: Passed=1 Wood=3').Count -eq 2 `
+                -and [regex]::Matches($serverText, 'Storage server close regression: Passed=1 OpenAccepted=[1-2] ClosedAccepted=[1-2] RateLimited=\d+ ClearUpdates=1').Count -eq 2 `
                 -and $serverText.Contains('Storage owner final: Passed=1 Authority=1 Private=1 Wood=3') `
                 -and $clientText.Contains('Storage owner final: Passed=1 Authority=0 Private=1 Wood=3') `
-                -and $clientText.Contains('Storage owner closed: Authority=0 Cleared=1')
+                -and $clientText.Contains('Storage owner closed: Authority=0 Cleared=1') `
+                -and $clientText.Contains('Storage owner close regression: Passed=1 Authority=0 Closed=1 WithdrawRejected=1 DepositRejected=1 PeerEmpty=1')
             if ($ready) { break }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
@@ -47,7 +49,7 @@ function Invoke-StorageRun([int]$Run) {
         if ($ids.Count -ne 2 -or $ids[0] -eq $ids[1]) { throw 'Expected two distinct chest IDs.' }
         if ($Run -eq 1) { $script:originalIds = $ids }
         elseif (@(Compare-Object $script:originalIds $ids).Count -ne 0) { throw 'Restart changed stable chest IDs.' }
-        Write-Output "PASS run ${Run}: paid workbench/chests, validated owner RPC transfers, private snapshots, exact saved contents and stable IDs."
+        Write-Output "PASS run ${Run}: paid workbench/chests, validated owner RPC transfers and close floods, private snapshots, exact saved contents and stable IDs."
     }
     finally {
         foreach ($peer in @($client,$server)) { if ($null -ne $peer -and !$peer.HasExited) { Stop-Process -Id $peer.Id } }

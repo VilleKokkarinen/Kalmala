@@ -110,7 +110,13 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
         auto* Mode = GetWorld()->GetAuthGameMode<AKalmalaGameMode>();
         // Local close intentionally discarded ActiveStorage; locate the same nearby server-selected chest.
         auto* Chest = FindNearbyConstruction(TEXT("StorageKit"));
-        const bool Passed = Mode && Chest && Mode->ReadStorage(Chest, Persisted) && Quantity(Persisted) == 3
+        const bool CloseRegressionPassed = StorageCloseOpenAccepted >= 1 && StorageCloseOpenAccepted <= 2
+            && StorageCloseClosedAccepted >= 1 && StorageCloseClosedAccepted <= 2
+            && StorageCloseRateLimited >= 2 && StorageCloseClearUpdates == 1;
+        Check(CloseRegressionPassed, TEXT("Close floods clear once and throttle repeated closed requests"));
+        UE_LOG(LogTemp, Display, TEXT("Storage server close regression: Passed=%d OpenAccepted=%d ClosedAccepted=%d RateLimited=%d ClearUpdates=%d"),
+            CloseRegressionPassed, StorageCloseOpenAccepted, StorageCloseClosedAccepted, StorageCloseRateLimited, StorageCloseClearUpdates);
+        const bool Passed = CloseRegressionPassed && Mode && Chest && Mode->ReadStorage(Chest, Persisted) && Quantity(Persisted) == 3
             && Pack->GetQuantity(TEXT("Wood")) == 1 && Pack->GetStacks().Num() == 1 && !HasStorageView() && StorageView.IsEmpty();
         Check(Passed, TEXT("RPC transfers conserve saved chest and private pack; closing clears view"));
         UE_LOG(LogTemp, Display, TEXT("Storage server final: Passed=%d Wood=%d"), Passed, Quantity(Persisted));
@@ -142,12 +148,48 @@ void UKalmalaCraftingComponent::RunStorageVerification(float DeltaTime)
         const bool Passed = Private && Quantity(StorageView) == 3 && Pack->GetQuantity(TEXT("Wood")) == 1;
         Check(Passed, TEXT("Owner snapshot matches; simulated peers have no chest contents"));
         UE_LOG(LogTemp, Display, TEXT("Storage owner final: Passed=%d Authority=%d Private=%d Wood=%d"), Passed, C->HasAuthority(), Private, Quantity(StorageView));
-        ServerCloseStorage(); LocalVerificationStage = 5; LocalVerificationElapsed = 0;
+        StorageVerificationItemGuid = FirstItemGuid(StorageView, TEXT("Wood"));
+        Check(StorageVerificationItemGuid.IsValid(), TEXT("Capture a valid stored GUID for the closed withdrawal check"));
+        for (int32 N = 0; N < 8; ++N) ServerCloseStorage();
+        LocalVerificationStage = 5; LocalVerificationElapsed = 0;
     }
     else if (LocalVerificationStage == 5 && LocalVerificationElapsed > 1 && !HasStorageView() && StorageView.IsEmpty())
     {
         UE_LOG(LogTemp, Display, TEXT("Storage owner closed: Authority=%d Cleared=1"), C->HasAuthority());
-        LocalVerificationStage = 6;
+        for (int32 N = 0; N < 8; ++N) ServerCloseStorage();
+        LocalVerificationStage = 6; LocalVerificationElapsed = 0;
+    }
+    else if (LocalVerificationStage == 6 && LocalVerificationElapsed > 1 && !HasStorageView() && StorageView.IsEmpty())
+    {
+        ServerWithdrawStorage(StorageVerificationItemGuid);
+        LocalVerificationStage = 7; LocalVerificationElapsed = 0;
+    }
+    else if (LocalVerificationStage == 7 && LocalVerificationElapsed > 1 && !HasStorageView() && StorageView.IsEmpty())
+    {
+        bStorageClosedWithdrawRejected = LastResult == TEXT("Inspect a visible chest within 2.5 m first") && !WasLastResultAccepted();
+        if (bStorageClosedWithdrawRejected)
+        {
+            const FGuid DepositGuid = FirstItemGuid(Pack->GetStacks(), TEXT("Wood"));
+            Check(DepositGuid.IsValid(), TEXT("Capture a valid packed GUID for the closed deposit check"));
+            ServerDepositStorage(DepositGuid);
+            LocalVerificationStage = 8; LocalVerificationElapsed = 0;
+        }
+    }
+    else if (LocalVerificationStage == 8 && LocalVerificationElapsed > 1)
+    {
+        bool PeerEmpty = true;
+        for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It) if (*It != C && It->GetPlayerState())
+        {
+            const auto* Other = It->FindComponentByClass<UKalmalaCraftingComponent>();
+            PeerEmpty &= Other && !Other->HasStorageView() && Other->GetStorageView().IsEmpty();
+        }
+        bStorageClosedDepositRejected = LastResult == TEXT("Inspect a visible chest within 2.5 m first") && !WasLastResultAccepted();
+        const bool Passed = !HasStorageView() && StorageView.IsEmpty() && bStorageClosedWithdrawRejected
+            && bStorageClosedDepositRejected && PeerEmpty;
+        Check(Passed, TEXT("Closed storage rejects valid deposit and withdrawal intents with private peer views"));
+        UE_LOG(LogTemp, Display, TEXT("Storage owner close regression: Passed=%d Authority=%d Closed=%d WithdrawRejected=%d DepositRejected=%d PeerEmpty=%d"),
+            Passed, C->HasAuthority(), !HasStorageView() && StorageView.IsEmpty(), bStorageClosedWithdrawRejected, bStorageClosedDepositRejected, PeerEmpty);
+        LocalVerificationStage = 9;
     }
 #endif
 }

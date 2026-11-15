@@ -86,10 +86,50 @@ FString UKalmalaCraftingComponent::GetNearbyConstructionText() const
                 : TEXT("No rain wear - minimum health from rain: 50%\nAn overhead roof prevents rain wear"));
 }
 
-void UKalmalaCraftingComponent::ClearStorageView()
+bool UKalmalaCraftingComponent::AcceptStorageCloseRequest()
 {
-    if (!GetOwner() || !GetOwner()->HasAuthority()) return;
-    ActiveStorage.Reset(); StorageView.Reset(); bStorageViewOpen = false; GetOwner()->ForceNetUpdate();
+    const auto* Owner = GetOwner();
+    const UWorld* World = GetWorld();
+    if (!Owner || !Owner->HasAuthority() || !World) return false;
+
+    constexpr double CloseRequestCadenceSeconds = 0.2;
+    const double Now = World->GetTimeSeconds();
+    const bool bHasViewState = bStorageViewOpen || !StorageView.IsEmpty() || ActiveStorage.IsValid();
+    if (bHasViewState)
+    {
+        // Clearing an open view cannot be delayed by another interaction's rate gate.
+        NextStorageCloseRequestTime = Now + CloseRequestCadenceSeconds;
+#if !UE_BUILD_SHIPPING
+        if (StorageVerificationStage == 1) ++StorageCloseOpenAccepted;
+#endif
+        return true;
+    }
+
+    if (Now < NextStorageCloseRequestTime)
+    {
+#if !UE_BUILD_SHIPPING
+        if (StorageVerificationStage == 1) ++StorageCloseRateLimited;
+#endif
+        return false;
+    }
+
+    NextStorageCloseRequestTime = Now + CloseRequestCadenceSeconds;
+#if !UE_BUILD_SHIPPING
+    if (StorageVerificationStage == 1) ++StorageCloseClosedAccepted;
+#endif
+    return true;
+}
+
+bool UKalmalaCraftingComponent::ClearStorageView()
+{
+    auto* Owner = GetOwner();
+    if (!Owner || !Owner->HasAuthority()) return false;
+    if (!bStorageViewOpen && StorageView.IsEmpty() && !ActiveStorage.IsValid()) return false;
+    ActiveStorage.Reset();
+    StorageView.Reset();
+    bStorageViewOpen = false;
+    Owner->ForceNetUpdate();
+    return true;
 }
 
 void UKalmalaCraftingComponent::RefreshStorageView()
@@ -297,7 +337,14 @@ void UKalmalaCraftingComponent::ServerOpenStorage_Implementation()
     const bool bAccepted = OpenStorageFromServer(FindNearbyConstruction(TEXT("StorageKit")));
     PublishResult(bAccepted ? TEXT("Nearby chest inspected") : TEXT("Need a registered, visible chest within 2.5 m"), bAccepted);
 }
-void UKalmalaCraftingComponent::ServerCloseStorage_Implementation() { ClearStorageView(); }
+void UKalmalaCraftingComponent::ServerCloseStorage_Implementation()
+{
+    if (!AcceptStorageCloseRequest()) return;
+    const bool bCleared = ClearStorageView();
+#if !UE_BUILD_SHIPPING
+    if (StorageVerificationStage == 1 && bCleared) ++StorageCloseClearUpdates;
+#endif
+}
 void UKalmalaCraftingComponent::ServerDepositStorage_Implementation(FGuid ItemGuid)
 {
     if (!AcceptRequest()) return;

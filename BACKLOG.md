@@ -1017,7 +1017,7 @@
       The rollback/retry automation captures owner receipt publication and checks failure, successful retry, and replay.
     **Development checks:** `git diff --check` and source inspection passed. The focused automation, Editor build,
       and M9 exploration peer scenario were not run; full verification remains deferred under the one-increment workflow.
-  - [ ] **RF39 — Rate-limit repeated storage-close requests (P3; CR04-013).**
+  - [x] **RF39 — Rate-limit repeated storage-close requests (P3; CR04-013).**
     `KalmalaStorageInteraction.cpp:89-92,300` lets the owning client call the
     reliable close RPC without the adjacent 200 ms request gate. Every call
     clears the storage view and asks its character for an immediate update
@@ -1028,6 +1028,12 @@
     Focused validation: add a two-peer close-flood regression for open and
     closed states, then run the storage peer scenario. Evidence:
     `Temporary/Review/findings.md#rf39--rate-limit-repeated-storage-close-requests-p3`.
+    **Implementation:** The first close of an open view clears immediately; an independent 200 ms cadence bounds
+      repeated closed-view RPCs, and clearing an already-empty view does not force a character update. Extended
+      the storage peer fixture to flood close requests in both states and reject valid deposit/withdraw GUIDs
+      while closed, checking private peer views and exact retained contents.
+    **Development checks:** `git diff --check`, PowerShell parser validation, and source inspection passed. The
+      storage peer scenario, Editor build, and automation were not run; full verification remains deferred.
   - [ ] **RF40 — Make the non-axe harvest-gate regression reachable (P3; CR04-014).**
     `KalmalaCombatLoopTest.cpp:72,165,174` adds only profiles accepted by
     `IsAttackItemAllowed` to its melee loop, then checks Hammer/Bow rejection
