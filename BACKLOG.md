@@ -1053,7 +1053,7 @@
     **Development checks:** `git diff --check` and source inspection passed. The
       Editor build and focused automation were not run; full verification remains
       deferred under the one-increment workflow.
-  - [ ] **RF41 — Add remote support-magic authority and privacy coverage (P3; CR04-015).**
+  - [x] **RF41 — Add remote support-magic authority and privacy coverage (P3; CR04-015).**
     `KalmalaDiscoveryProgressTest.cpp:70-73` checks pure gate helpers, while
     `KalmalaInventoryHotbarTest.cpp:63-66,116-127` calls the hotbar RPC wrapper
     directly in a local server-only world. `Scripts/Tests/Acceptance/VerticalSlice.ps1`
@@ -1072,6 +1072,17 @@
     validation: build the Editor target, run the support automation and peer
     scenario, and check observer replication. Evidence:
     `Temporary/Review/findings.md#rf41--add-remote-support-magic-authority-and-privacy-coverage-p3`.
+    **Implementation:** Added a headless listen-host/remote-owner/observer fixture.
+      The remote owner sends only slot 9; the server resolves the Hearth Shield
+      scroll, accepts one cast, rejects a repeat during its 300-second cooldown,
+      and confirms no second stamina charge. The owner checks learned entitlement,
+      cooldown, and feedback replication; the observer checks public shield state
+      and default owner-only values. Added the peer runner to `VerticalSlice.ps1`
+      and corrected the setup guide's activation and timing claims.
+    **Development checks:** `git diff --check`, PowerShell parser validation for
+      the peer runner and vertical-slice harness, and source inspection passed.
+      The Editor build, support automation, and peer scenario were not run; full
+      verification remains deferred under the one-increment workflow.
   - [ ] **RF42 — Bound repeated interaction RPC work (P3; CR04-016).**
     **Source:** CR04-016; `Source/KalmalaGameplay/Public/KalmalaCharacter.h:296-298`,
       `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1687-1973`,

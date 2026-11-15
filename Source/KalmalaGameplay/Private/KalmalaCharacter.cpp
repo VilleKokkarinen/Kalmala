@@ -749,6 +749,120 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
         }
     }
 
+    const bool bSupportMagicPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaSupportMagicPeerTest"));
+    if (bSupportMagicPeerTest && !HasAuthority() && IsLocallyControlled()
+        && !bSupportMagicPeerOwnerLogged && GetWorld() != nullptr)
+    {
+        UKalmalaSupportMagicComponent* Support = GetSupportMagicComponent();
+        UKalmalaInventoryComponent* Hotbar = GetInventoryComponent();
+        constexpr int32 TestHotbarSlot = 9;
+        const FName ScrollId = UKalmalaSupportMagicComponent::ScrollItemId(EKalmalaSupportEffect::HearthShield);
+        const float Now = GetWorld()->GetTimeSeconds();
+        if (!bSupportMagicPeerOwnerFirstRequestSent)
+        {
+            if (Support != nullptr && Hotbar != nullptr
+                && Support->HasLearnedEffect(EKalmalaSupportEffect::HearthShield)
+                && Hotbar->GetSlotItem(TestHotbarSlot) == ScrollId)
+            {
+                bSupportMagicPeerOwnerFirstRequestSent = true;
+                SupportMagicPeerOwnerFirstRequestTime = Now;
+                Hotbar->ServerUseHotbarSlot(TestHotbarSlot);
+                UE_LOG(LogTemp, Display, TEXT("Support magic peer owner sent slot-only hotbar request: Slot=%d."), TestHotbarSlot);
+            }
+        }
+        else if (!bSupportMagicPeerOwnerRepeatSent && Support != nullptr)
+        {
+            if (Support->GetFeedbackSerial() > 1
+                || (Support->GetFeedbackSerial() == 1 && Support->GetFeedback() != EKalmalaSupportFeedback::Accepted))
+            {
+                bSupportMagicPeerOwnerLogged = true;
+                UE_LOG(LogTemp, Error, TEXT("Support magic peer owner: Passed=0 FirstCastAccepted=0 Feedback=%d Serial=%u"),
+                    static_cast<int32>(Support->GetFeedback()), Support->GetFeedbackSerial());
+            }
+            else if (Support->GetFeedbackSerial() == 1 && Support->GetFeedback() == EKalmalaSupportFeedback::Accepted
+                && Now - SupportMagicPeerOwnerFirstRequestTime >= 0.25f)
+            {
+                bSupportMagicPeerOwnerRepeatSent = true;
+                Hotbar->ServerUseHotbarSlot(TestHotbarSlot);
+                UE_LOG(LogTemp, Display, TEXT("Support magic peer owner sent cooldown repeat: Slot=%d."), TestHotbarSlot);
+            }
+        }
+        else if (bSupportMagicPeerOwnerRepeatSent && Support != nullptr)
+        {
+            if (Support->GetFeedbackSerial() >= 2)
+            {
+                bSupportMagicPeerOwnerLogged = true;
+                const bool bPassed = Support->GetFeedbackSerial() == 2
+                    && Support->GetFeedback() == EKalmalaSupportFeedback::Unavailable
+                    && Support->HasLearnedEffect(EKalmalaSupportEffect::HearthShield)
+                    && Support->GetCooldownExpiry() > 0.0f
+                    && Support->GetActiveEffect() == EKalmalaSupportEffect::HearthShield
+                    && FMath::IsNearlyEqual(Support->GetHearthShieldStrength(), 40.0f)
+                    && Hotbar != nullptr && Hotbar->GetSlotItem(TestHotbarSlot) == ScrollId;
+                if (bPassed)
+                {
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Support magic peer owner: Passed=1 FirstCastAccepted=1 RepeatRejected=1 LearnedPrivate=1 CooldownPrivate=1 FeedbackPrivate=1 PublicShield=1"));
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error,
+                        TEXT("Support magic peer owner: Passed=0 FirstCastAccepted=1 RepeatRejected=%d LearnedPrivate=%d CooldownPrivate=%d FeedbackPrivate=%d PublicShield=%d"),
+                        Support->GetFeedback() == EKalmalaSupportFeedback::Unavailable ? 1 : 0,
+                        Support->HasLearnedEffect(EKalmalaSupportEffect::HearthShield) ? 1 : 0,
+                        Support->GetCooldownExpiry() > 0.0f ? 1 : 0,
+                        Support->GetFeedbackSerial() == 2 ? 1 : 0,
+                        Support->GetActiveEffect() == EKalmalaSupportEffect::HearthShield ? 1 : 0);
+                }
+            }
+        }
+        if (!bSupportMagicPeerOwnerLogged && bSupportMagicPeerOwnerFirstRequestSent
+            && Now - SupportMagicPeerOwnerFirstRequestTime > 15.0f)
+        {
+            bSupportMagicPeerOwnerLogged = true;
+            UE_LOG(LogTemp, Error, TEXT("Support magic peer owner: Passed=0 RequestFeedbackTimedOut=1"));
+        }
+    }
+
+    if (bSupportMagicPeerTest && !HasAuthority() && !IsLocallyControlled()
+        && !bSupportMagicPeerObserverLogged)
+    {
+        const UKalmalaSupportMagicComponent* Support = GetSupportMagicComponent();
+        if (Support != nullptr && Support->GetActiveEffect() == EKalmalaSupportEffect::HearthShield)
+        {
+            const float Now = GetWorld()->GetTimeSeconds();
+            if (SupportMagicPeerObserverActiveTime < 0.0f) SupportMagicPeerObserverActiveTime = Now;
+            // Sample after the owner has had time to send its cooldown repeat
+            // and the server has returned the private rejection feedback.
+            if (Now - SupportMagicPeerObserverActiveTime >= 2.0f)
+            {
+                bSupportMagicPeerObserverLogged = true;
+                const bool bPublicEffect = FMath::IsNearlyEqual(Support->GetHearthShieldStrength(), 40.0f)
+                    && Support->GetHearthShieldExpiry() > 0.0f;
+                const bool bPrivateFieldsHidden = !Support->HasLearnedEffect(EKalmalaSupportEffect::HearthShield)
+                    && Support->GetCooldownExpiry() <= 0.0f
+                    && Support->GetFeedback() == EKalmalaSupportFeedback::None
+                    && Support->GetFeedbackSerial() == 0;
+                const bool bPassed = bPublicEffect && bPrivateFieldsHidden;
+                if (bPassed)
+                {
+                    UE_LOG(LogTemp, Display,
+                        TEXT("Support magic peer observer: Passed=1 PublicEffect=1 LearnedPrivate=0 CooldownPrivate=0 FeedbackPrivate=0 SerialPrivate=0"));
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Error,
+                        TEXT("Support magic peer observer: Passed=0 PublicEffect=%d LearnedPrivate=%d CooldownPrivate=%d FeedbackPrivate=%d SerialPrivate=%d"),
+                        bPublicEffect ? 1 : 0,
+                        Support->HasLearnedEffect(EKalmalaSupportEffect::HearthShield) ? 1 : 0,
+                        Support->GetCooldownExpiry() > 0.0f ? 1 : 0,
+                        Support->GetFeedback() != EKalmalaSupportFeedback::None ? 1 : 0,
+                        Support->GetFeedbackSerial() != 0 ? 1 : 0);
+                }
+            }
+        }
+    }
+
     const bool bDiscoveryPeerPrivacyTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaDiscoveryPeerTest"));
     const bool bExplorationRewardPeerPrivacyTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaM9ExplorationRewardPeerTest"));
     const APlayerState* ReplicatedPlayerState = GetPlayerState();

@@ -1,3 +1,35 @@
+## RF41 — Add remote support-magic authority and privacy coverage — 2026-11-15
+
+- **Work completed:** Added a headless three-peer fixture for a listen host,
+  remote owner, and observer. The remote owner sends a hotbar slot index for
+  Hearth Shield; the server accepts the first cast and rejects a cooldown
+  repeat without another stamina charge. Owner and observer probes check the
+  owner-only entitlement/cooldown/feedback fields and public shield state.
+  Integrated the peer runner into the vertical-slice harness and aligned the
+  setup guide with slot-only intent and the 300-second shared cooldown.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Scripts/Tests/Progression/SupportMagicPeer.ps1`,
+  `Scripts/Tests/Acceptance/VerticalSlice.ps1`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check`, PowerShell parser validation for
+  the peer runner and vertical-slice harness, and source inspection passed.
+- **Full verification:** Deferred. No Editor build, support automation, or peer
+  scenario was run under the one-increment workflow.
+- **Observable impact:** The next vertical-slice acceptance run now exercises
+  actual remote slot-only support activation, cooldown rejection, stamina
+  preservation, and observer privacy.
+- **Networking/authority:** Test-fixture changes only. The client sends a slot
+  index; existing server code resolves the owned scroll and validates payment,
+  entitlement, cooldown, and effect state. Private values remain owner-only.
+- **Known limits:** The new peer scenario has not been executed or compiled;
+  the focused support automation and Editor build remain required at milestone
+  final verification.
+- **Next eligible task:** RF42 — bound repeated interaction RPC work. The
+  overall CR remediation goal remains active.
+
 ## RF40 — Make the non-axe harvest-gate regression reachable — 2026-11-15
 
 - **Work completed:** Moved the negative tree-hit assertion out of the filtered

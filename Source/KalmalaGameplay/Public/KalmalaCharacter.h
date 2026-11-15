@@ -282,6 +282,12 @@ private:
     double LastOceanSkiffInputSendTime = -1.0;
     bool bDiscoveryPeerPrivacyLogged = false;
     float OwnerOnlyPrivacyProbeNextTime = 0.0f;
+    bool bSupportMagicPeerOwnerFirstRequestSent = false;
+    bool bSupportMagicPeerOwnerRepeatSent = false;
+    bool bSupportMagicPeerOwnerLogged = false;
+    bool bSupportMagicPeerObserverLogged = false;
+    float SupportMagicPeerOwnerFirstRequestTime = -1.0f;
+    float SupportMagicPeerObserverActiveTime = -1.0f;
     bool bOceanTravelFeedbackPeerPrivacyLogged = false;
     float OceanTravelFeedbackPeerStartTime = -1.0f;
     float DiscoveryPeerTestStartTime = -1.0f;

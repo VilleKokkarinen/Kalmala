@@ -5248,6 +5248,195 @@ void AKalmalaGameMode::DriveDiscoveryPeerTest()
 #endif
 }
 
+void AKalmalaGameMode::DriveSupportMagicPeerTest()
+{
+#if !UE_BUILD_SHIPPING
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaSupportMagicPeerTest"))
+        || !HasAuthority() || GetWorld() == nullptr || SupportMagicPeerTestStage >= 99)
+    {
+        return;
+    }
+
+    const auto Fail = [this](const TCHAR* Reason)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Support magic peer verification FAILED: %s"), Reason);
+        SupportMagicPeerTestStage = 99;
+    };
+    const float Now = GetWorld()->GetTimeSeconds();
+    if (SupportMagicPeerTestStage == 0)
+    {
+        AKalmalaCharacter* ListenHost = nullptr;
+        TArray<AKalmalaCharacter*> RemotePlayers;
+        for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+        {
+            APlayerController* Controller = It->Get();
+            AKalmalaCharacter* Candidate = Controller != nullptr
+                ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+            if (Candidate == nullptr || Candidate->GetPlayerState() == nullptr) continue;
+            if (Controller->IsLocalController()) ListenHost = Candidate;
+            else RemotePlayers.Add(Candidate);
+        }
+        if (ListenHost == nullptr || RemotePlayers.Num() < 2) return;
+        AKalmalaCharacter* Owner = nullptr;
+        AKalmalaCharacter* Observer = nullptr;
+        for (AKalmalaCharacter* Candidate : RemotePlayers)
+        {
+            if (Owner == nullptr || Candidate->GetPlayerState()->GetPlayerId() < Owner->GetPlayerState()->GetPlayerId())
+            {
+                Observer = Owner;
+                Owner = Candidate;
+            }
+            else if (Observer == nullptr
+                || Candidate->GetPlayerState()->GetPlayerId() < Observer->GetPlayerState()->GetPlayerId())
+            {
+                Observer = Candidate;
+            }
+        }
+        if (Owner == nullptr || Observer == nullptr) return;
+        UKalmalaSupportMagicComponent* Support = Owner->GetSupportMagicComponent();
+        UKalmalaInventoryComponent* Inventory = Owner->GetInventoryComponent();
+        UKalmalaCharacterMovementComponent* Movement = Cast<UKalmalaCharacterMovementComponent>(Owner->GetCharacterMovement());
+        if (Support == nullptr || Inventory == nullptr || Movement == nullptr || Owner->GetController() == nullptr
+            || Owner->GetController()->IsLocalController())
+        {
+            Fail(TEXT("remote owner components or controller were unavailable"));
+            return;
+        }
+
+        const EKalmalaSupportEffect Effect = EKalmalaSupportEffect::HearthShield;
+        const FName ScrollId = UKalmalaSupportMagicComponent::ScrollItemId(Effect);
+        if (ScrollId.IsNone() || !Support->LearnEffectFromServer(Effect))
+        {
+            Fail(TEXT("could not grant the server-owned Hearth Shield entitlement"));
+            return;
+        }
+        Inventory->SynchronizeGridFromServer();
+        int32 ScrollSlot = INDEX_NONE;
+        for (int32 Slot = 0; Slot < UKalmalaInventoryComponent::MaxSlots; ++Slot)
+        {
+            if (Inventory->GetSlotItem(Slot) == ScrollId) { ScrollSlot = Slot; break; }
+        }
+        if (ScrollSlot == INDEX_NONE)
+        {
+            Fail(TEXT("the learned Hearth Shield scroll was not present in the owner inventory"));
+            return;
+        }
+        constexpr int32 TestHotbarSlot = 9;
+        if (ScrollSlot != TestHotbarSlot
+            && !Inventory->MoveSlotFromServer(ScrollSlot, TestHotbarSlot, ScrollId,
+                Inventory->GetSlotItem(TestHotbarSlot)))
+        {
+            Fail(TEXT("could not assign Hearth Shield to the verification hotbar cell"));
+            return;
+        }
+        Inventory->SynchronizeGridFromServer();
+        if (Inventory->GetSlotItem(TestHotbarSlot) != ScrollId)
+        {
+            Fail(TEXT("the server-resolved verification hotbar cell did not contain Hearth Shield"));
+            return;
+        }
+
+        if (UCharacterMovementComponent* CharacterMovement = Owner->GetCharacterMovement())
+        {
+            CharacterMovement->StopMovementImmediately();
+            CharacterMovement->SetMovementMode(MOVE_Flying);
+        }
+        SupportMagicPeerTestOwner = Owner;
+        SupportMagicPeerTestObserver = Observer;
+        SupportMagicPeerTestInitialStamina = Movement->GetStamina();
+        SupportMagicPeerTestFirstCastStamina = 0.0f;
+        SupportMagicPeerTestStage = 1;
+        SupportMagicPeerTestStageTime = Now;
+        Owner->ForceNetUpdate();
+        Observer->ForceNetUpdate();
+        return;
+    }
+
+    AKalmalaCharacter* Owner = SupportMagicPeerTestOwner.Get();
+    AKalmalaCharacter* Observer = SupportMagicPeerTestObserver.Get();
+    UKalmalaSupportMagicComponent* Support = Owner != nullptr ? Owner->GetSupportMagicComponent() : nullptr;
+    UKalmalaInventoryComponent* Inventory = Owner != nullptr ? Owner->GetInventoryComponent() : nullptr;
+    UKalmalaCharacterMovementComponent* Movement = Owner != nullptr
+        ? Cast<UKalmalaCharacterMovementComponent>(Owner->GetCharacterMovement()) : nullptr;
+    if (Owner == nullptr || Observer == nullptr || Support == nullptr || Inventory == nullptr || Movement == nullptr)
+    {
+        Fail(TEXT("a peer or support component disappeared during the scenario"));
+        return;
+    }
+    if (Now - SupportMagicPeerTestStageTime > 30.0f)
+    {
+        Fail(TEXT("remote owner activation or cooldown rejection timed out"));
+        return;
+    }
+
+    if (SupportMagicPeerTestStage == 1)
+    {
+        if (Support->GetFeedbackSerial() == 1 && Support->GetFeedback() != EKalmalaSupportFeedback::Accepted)
+        {
+            Fail(TEXT("the first remote cast was rejected instead of accepted"));
+            return;
+        }
+        if (Support->GetFeedbackSerial() > 1)
+        {
+            Fail(TEXT("owner feedback advanced before the first cast was accepted"));
+            return;
+        }
+        if (Support->GetFeedbackSerial() == 1 && Support->GetFeedback() == EKalmalaSupportFeedback::Accepted)
+        {
+            SupportMagicPeerTestFirstCastStamina = Movement->GetStamina();
+            const bool bServerResolvedScroll = Inventory->GetSlotItem(9)
+                == UKalmalaSupportMagicComponent::ScrollItemId(EKalmalaSupportEffect::HearthShield);
+            const bool bPublicEffect = Support->GetActiveEffect() == EKalmalaSupportEffect::HearthShield
+                && FMath::IsNearlyEqual(Support->GetHearthShieldStrength(), 40.0f)
+                && Support->GetHearthShieldExpiry() > Now;
+            const bool bPaidOnce = SupportMagicPeerTestInitialStamina - SupportMagicPeerTestFirstCastStamina >= 15.0f;
+            if (!bServerResolvedScroll || !bPublicEffect || !bPaidOnce
+                || !Support->HasLearnedEffect(EKalmalaSupportEffect::HearthShield)
+                || Support->GetCooldownExpiry() < Now + UKalmalaSupportMagicComponent::CooldownSeconds - 5.0f)
+            {
+                Fail(TEXT("accepted remote cast did not resolve, activate, pay, or start the owner cooldown"));
+                return;
+            }
+            SupportMagicPeerTestStage = 2;
+            SupportMagicPeerTestStageTime = Now;
+        }
+        return;
+    }
+
+    if (SupportMagicPeerTestStage == 2)
+    {
+        if (Support->GetFeedbackSerial() == 2 && Support->GetFeedback() != EKalmalaSupportFeedback::Unavailable)
+        {
+            Fail(TEXT("the cooldown repeat was accepted instead of rejected"));
+            return;
+        }
+        if (Support->GetFeedbackSerial() > 2)
+        {
+            Fail(TEXT("the repeat request produced an unexpected extra feedback result"));
+            return;
+        }
+        if (Support->GetFeedbackSerial() == 2 && Support->GetFeedback() == EKalmalaSupportFeedback::Unavailable)
+        {
+            const float StaminaAfterRepeat = Movement->GetStamina();
+            const bool bNoSecondPayment = StaminaAfterRepeat >= SupportMagicPeerTestFirstCastStamina - 1.0f;
+            const bool bStillActive = Support->GetActiveEffect() == EKalmalaSupportEffect::HearthShield
+                && FMath::IsNearlyEqual(Support->GetHearthShieldStrength(), 40.0f)
+                && Support->GetHearthShieldExpiry() > Now;
+            if (!bNoSecondPayment || !bStillActive
+                || Support->GetCooldownExpiry() <= Now
+                || !Support->HasLearnedEffect(EKalmalaSupportEffect::HearthShield))
+            {
+                Fail(TEXT("cooldown repeat spent stamina or changed active/owner state"));
+                return;
+            }
+            UE_LOG(LogTemp, Display,
+                TEXT("Support magic peer server: Passed=1 RemoteOwner=1 Slot=9 FirstCast=1 CooldownReject=1 NoRepeatPayment=1 PublicShield=1 PrivateOwnerState=1 ObserverConnected=1"));
+            SupportMagicPeerTestStage = 99;
+        }
+    }
+#endif
+}
+
 void AKalmalaGameMode::DriveM9ExplorationRewardPeerTest()
 {
 #if !UE_BUILD_SHIPPING
@@ -8115,6 +8304,7 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveReefMawPeerTest();
     DriveA9PeerTest();
     DriveDiscoveryPeerTest();
+    DriveSupportMagicPeerTest();
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();
     DriveOceanWeatherPeerTest();

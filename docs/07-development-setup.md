@@ -2544,41 +2544,50 @@ and requires a probe after the server accepts the duplicate check. This fixture
 sends no descriptor, target, reward, identity, or progression payload from
 client to server and does not expose a discovery list.
 
-## Support-magic foundation regression
+## Support-magic authority, persistence, and peer regressions
 
 After an editor build, run `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`
 with the normal headless automation flags. It verifies canonical scroll-to-effect
 mapping, entitled-player learned-effect persistence through memory
-serialization, immutable-world identity rejection, and the authority,
-entitlement, sequence, cooldown, and stamina gates. Runtime activation accepts
-only the enum/sequence intent. It also covers the Deer Call empty-set gate.
-The regression also checks all four allowlisted effects against malformed
-effect values, client-role activation, and replay/zero-sequence input; verifies
-every learned token survives matching-world reconnect serialization; and audits
-that every support effect is non-damaging. Active-effect fields remain ordinary
-replicated presentation state. The M4 roadmap requires focused authority,
-persistence and peer regressions, and does not require a rendered two-player
-acceptance scenario. The baseline `VerticalSlice.ps1` does not run a rendered
-live support cast or live peer reconnect journey.
+serialization, immutable-world identity rejection, the pure authority,
+entitlement, cooldown, request-cadence, and stamina gates, all four allowlisted
+non-damaging effects, effect-specific gates, and current cooldown/duration
+constants. The local hotbar wrapper coverage does not exercise a remote RPC.
+M13 runtime activation accepts only a numbered hotbar cell index; the server
+resolves its owned scroll to the canonical effect. The server owns the shared
+300-second per-caster cooldown and all effect data. Public active-effect fields
+replicate to relevant peers; learned entitlement, cooldown, and feedback remain
+owner-only.
+
+After the Editor build, run `Scripts/Tests/Progression/SupportMagicPeer.ps1`.
+It starts a listen host, remote owner, and observer. The owner sends a hotbar
+cell request for its server-assigned Hearth Shield scroll; the server accepts
+the first cast and rejects a repeat during cooldown without charging stamina
+again. The owner must receive its entitlement, cooldown, and feedback while the
+observer sees the public shield and retains no owner-only support state. The
+script runs as part of `Scripts/Tests/Acceptance/VerticalSlice.ps1`; it is
+headless peer coverage, not a rendered UI or reconnect journey. The M4 roadmap
+requires focused authority, persistence, and peer regressions but does not
+require rendered two-player acceptance.
+
 Live Deer Call activation must remain server-owned: it may influence at most
 three existing idle Deer within 900 cm, must reject before stamina payment when
 none are eligible, and must not create wildlife or alter damage, harvest, loot,
 or saved progression.
 
-The M5 balance pass uses an 18-stamina base for every support activation. The
+The M5 balance pass set an 18-stamina base for every support activation. The
 server runs that base through `UKalmalaPlayerStatusComponent` before checking
 or charging stamina, so an active Wet status costs 20.7; the client supplies
 neither value. The focused status and discovery automations cover the shared
-cost calculation and tuned base constant. Every support effect also uses a
-five-second server-owned cooldown after a successful activation; the client
-supplies neither cost nor timing. Hearth Shield now keeps its bounded 40-point
-absorption for ten seconds; the focused discovery regression covers that
-server-owned duration constant. Bear's Vigor now keeps its existing 1.4x
-strength and 140-point stamina cap for ten seconds; the same focused discovery
-regression covers its server-owned duration constant. The M4 baseline runs the
-focused `PlayerScopedPersistence` automation for support authority and
-matching-world save/restore; it does not run a live support cast or peer
-reconnect journey.
+cost calculation and tuned base constant. M13 supersedes the earlier five-
+second cooldown and ten-second duration values: accepted casts share a
+server-owned 300-second per-caster cooldown; Hearth Shield, Bear's Vigor, and
+Deer Call last 180 seconds, while Mending is instantaneous. Hearth Shield keeps
+its bounded 40-point absorption; Bear's Vigor keeps its 1.4x strength and
+140-point stamina cap. The focused discovery regression checks these current
+server-owned constants. The M4 baseline combines this automation with the
+three-peer support cast; it does not run a rendered UI or peer reconnect
+journey.
 
 ## Mireling boss scroll verification
 
@@ -2601,9 +2610,9 @@ invokes `Scripts/Tests/Combat/EnemyPeers.ps1` for `SharedCombat` (Rat),
 `Kalmala.Gameplay.Discovery.PlayerScopedPersistence` for the four support
 effects. The harness covers shared Rat reward retry, owner privacy, replicated
 defeat and restart; Boar charge; Deer herd alert; and focused support authority,
-non-damage and matching-world persistence checks. It does not exercise a
-Mireling defeat or boss-scroll delivery, or run rendered support casts or a
-live support peer reconnect.
+non-damage and matching-world persistence checks; and remote support activation,
+cooldown rejection, and observer privacy. It does not exercise a Mireling defeat
+or boss-scroll delivery, a rendered support cast, or a support peer reconnect.
 The M4 roadmap accepts focused server-authority, persistence and peer
 regressions; a rendered two-player acceptance scenario is not required.
 

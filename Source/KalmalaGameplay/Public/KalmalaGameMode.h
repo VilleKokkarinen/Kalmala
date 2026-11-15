@@ -431,6 +431,7 @@ private:
     int32 A9PickBefore = 0;
     bool bA9FullPackObserved = false;
     void DriveDiscoveryPeerTest();
+    void DriveSupportMagicPeerTest();
     void DriveM9ExplorationRewardPeerTest();
     void RunM9Schema2CandidateWorldPeerTest();
     void RunM9Schema2CandidatePlayerPeerTest(APlayerController* PlayerController);
@@ -599,6 +600,12 @@ private:
     TWeakObjectPtr<class AKalmalaCharacter> DiscoveryPeerTestEntitled;
     TWeakObjectPtr<class AKalmalaCharacter> DiscoveryPeerTestRemote;
     TWeakObjectPtr<class AKalmalaDiscoveryActor> DiscoveryPeerTestActor;
+    int32 SupportMagicPeerTestStage = 0;
+    float SupportMagicPeerTestStageTime = 0.0f;
+    float SupportMagicPeerTestInitialStamina = 0.0f;
+    float SupportMagicPeerTestFirstCastStamina = 0.0f;
+    TWeakObjectPtr<class AKalmalaCharacter> SupportMagicPeerTestOwner;
+    TWeakObjectPtr<class AKalmalaCharacter> SupportMagicPeerTestObserver;
     int32 M9ExplorationRewardPeerTestStage = 0;
     float M9ExplorationRewardPeerTestStageTime = 0.0f;
     FKalmalaM9ExplorationRewardDescriptor M9ExplorationRewardPeerTestDescriptor;

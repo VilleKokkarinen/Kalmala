@@ -20,18 +20,23 @@ function Invoke-SupportRegression {
     $editorCmd = Join-Path (Split-Path $Editor) 'UnrealEditor-Cmd.exe'
     $automationLog = Join-Path $output 'support-magic.log'
     $automation = Start-Process $editorCmd -WindowStyle Hidden -PassThru -ArgumentList "`"$(Join-Path ($repoPaths.ProjectRoot) 'Kalmala.uproject')`" -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -ExecCmds=`"Automation RunTests Kalmala.Gameplay.Discovery.PlayerScopedPersistence`" -TestExit=`"Automation Test Queue Empty`" -abslog=`"$automationLog`""
+    $automationPassed = $false
     try {
         $deadline = (Get-Date).AddSeconds(90)
         do {
             $text = if (Test-Path $automationLog) { Get-Content $automationLog -Raw } else { '' }
-            if ($text -match 'Result=\{Success\}.*PlayerScopedPersistence') { return }
+            if ($text -match 'Result=\{Success\}.*PlayerScopedPersistence') { $automationPassed = $true; break }
             if ($text -match 'No automation tests matched|PlayerScopedPersistence.*(Fail|Error)|Fatal error:|Assertion failed:|Ensure condition failed:') { throw 'M4 support-magic regression failed; inspect support-magic.log.' }
             if ($automation.HasExited) { throw 'M4 support-magic regression exited before completing.' }
             Start-Sleep -Milliseconds 500
         } while ((Get-Date) -lt $deadline)
-        throw 'M4 support-magic regression timed out.'
+        if (!$automationPassed) { throw 'M4 support-magic regression timed out.' }
     }
     finally { if (!$automation.HasExited) { Stop-Process -Id $automation.Id } }
+
+    Write-Output 'Running the three-peer support-magic authority/privacy scenario.'
+    & (Join-Path $repoPaths.TestsRoot 'Progression/SupportMagicPeer.ps1') `
+        -Port 18163 -OutputDirectory (Join-Path $output 'support-peer') -Editor $Editor
 }
 
 try {
