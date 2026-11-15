@@ -246,6 +246,7 @@ private:
     TFunction<ENetMode(const UWorld*)> HomeReturnNetModeForTests;
     TFunction<bool(const APlayerController*)> HomeReturnLocalControllerForTests;
     TFunction<bool(const APlayerController*)> HomeReturnConnectionForTests;
+    TFunction<double(const UWorld*)> HomeReturnRetryTimeForTests;
     TFunction<void(class AKalmalaCharacter*, bool)> HomeReturnClientResponseForTests;
     TFunction<void(APlayerController*)> HomeReturnTravelForTests;
     TFunction<bool(UWorld*)> ListenHostNetDriverTeardownForTests;
@@ -253,6 +254,7 @@ private:
     TFunction<bool(int32)> PopulationActorSpawnAllowedForTests;
     // Force the player-slot write boundary to fail after a candidate save is prepared.
     TFunction<bool()> PlayerStateSaveGateForTests;
+    TFunction<void()> PlayerStateCandidateSerializationAttemptForTests;
 #endif
 
     void ActivateTerrainPatch(const FIntPoint& PatchCoordinate);
@@ -703,6 +705,8 @@ private:
     TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;
     TArray<TWeakObjectPtr<APlayerController>> PendingOceanTravelRestores;
     TSet<TWeakObjectPtr<APlayerController>> PendingNetworkHomeReturns;
+    static constexpr double NetworkHomeReturnRetryIntervalSeconds = 1.0;
+    TMap<TWeakObjectPtr<APlayerController>, double> FailedNetworkHomeReturnRetryAfterSeconds;
     TSet<TWeakObjectPtr<APlayerController>> PendingListenHostReturnClients;
     TWeakObjectPtr<APlayerController> ListenHostReturningController;
     bool bOceanTravelPersistenceWritable = false;

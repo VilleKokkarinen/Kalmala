@@ -4506,6 +4506,9 @@ and listen-host retry state; verifies a network client writes only its own
 record; reopens successful in-memory checkpoints; and holds listen-host travel
 until snapshotted and in-flight clients log out and driver teardown completes.
 It also checks that new joins are rejected after return begins. This automation
+counts player-save candidate serialization and slot writes across failed,
+throttled, and recovered client returns, while confirming another controller can
+return during one client's backoff and a successful return remains guarded. It
 does not replace the live peer attempt to join during return or the documented
 create/save/logout/reopen acceptance.
 

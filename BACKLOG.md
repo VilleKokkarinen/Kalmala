@@ -1341,7 +1341,7 @@
       sweeps across non-authority, zero/stale, busy, bow-drawing, unavailable-swing, and eligible requests.
       The Editor build, automation, and remote-owner burst remain deferred to milestone-final verification.
 
-  - [ ] **RF49 — Bound repeated Home-return persistence attempts after save failure (P3; CR04-023).**
+  - [x] **RF49 — Bound repeated Home-return persistence attempts after save failure (P3; CR04-023).**
     **Source:** CR04-023; Source/KalmalaGameplay/Public/KalmalaCharacter.h:299-303;
       Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1645-1661;
       Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9520-9585,9635-9654;
@@ -1371,6 +1371,12 @@
       requests, verifies one later retry succeeds, and confirms successful returns remain idempotently guarded.
       Then run the existing client Home-return peer path with injected failure and recovery after an Editor
       build.
+    **Development checks:** `git diff --check` passed. Static inspection confirms the first request remains
+      immediate, failed requests receive a one-second per-controller retry deadline, requests before expiry
+      return before player-save candidate serialization, and success retains the existing pending-return guard.
+      Extended `Kalmala.Gameplay.Persistence.WorldHomeReturnTransaction` to count candidate serialization and
+      slot writes across failure, throttling, independent-controller success, later retry, and duplicate success.
+      The Editor build, automation, and live peer path remain deferred to milestone-final verification.
 
   - [ ] **RF50 — Retire the remaining map-sharing RPC (P3; CR04-025).**
     **Source:** CR04-025; `Source/KalmalaGameplay/Public/KalmalaMapAwarenessComponent.h:24-71`;

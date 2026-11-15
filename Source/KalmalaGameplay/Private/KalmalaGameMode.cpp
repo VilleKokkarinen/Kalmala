@@ -10265,6 +10265,10 @@ bool AKalmalaGameMode::PersistPlayerStateFromServer(
     UKalmalaPlayerDiscoverySaveGameV2* Current = GetPlayerDiscoverySave(Character, Identity);
     if (Current == nullptr) return false;
 
+#if WITH_DEV_AUTOMATION_TESTS
+    if (PlayerStateCandidateSerializationAttemptForTests)
+        PlayerStateCandidateSerializationAttemptForTests();
+#endif
     TArray<uint8> CurrentBytes;
     if (!UGameplayStatics::SaveGameToMemory(Current, CurrentBytes)) return false;
     UKalmalaPlayerDiscoverySaveGameV2* Candidate =
@@ -10455,12 +10459,26 @@ bool AKalmalaGameMode::TryReturnNetworkClientToHomeFromServer(
 
     const TWeakObjectPtr<APlayerController> ReturnOwner(RequestingController);
     if (PendingNetworkHomeReturns.Contains(ReturnOwner)) return false;
+
+#if WITH_DEV_AUTOMATION_TESTS
+    const double NowSeconds = HomeReturnRetryTimeForTests
+        ? HomeReturnRetryTimeForTests(World) : World->GetRealTimeSeconds();
+#else
+    const double NowSeconds = World->GetRealTimeSeconds();
+#endif
+    if (!FMath::IsFinite(NowSeconds)) return false;
+    if (const double* RetryAfterSeconds = FailedNetworkHomeReturnRetryAfterSeconds.Find(ReturnOwner);
+        RetryAfterSeconds != nullptr && NowSeconds < *RetryAfterSeconds) return false;
+
     PendingNetworkHomeReturns.Add(ReturnOwner);
     if (!PersistPlayerStateFromServer(Character))
     {
         PendingNetworkHomeReturns.Remove(ReturnOwner);
+        FailedNetworkHomeReturnRetryAfterSeconds.Add(ReturnOwner,
+            NowSeconds + NetworkHomeReturnRetryIntervalSeconds);
         return false;
     }
+    FailedNetworkHomeReturnRetryAfterSeconds.Remove(ReturnOwner);
     return true;
 }
 
@@ -12123,6 +12141,7 @@ void AKalmalaGameMode::Logout(AController* Exiting)
         if (APlayerController* PlayerController = Cast<APlayerController>(Exiting))
         {
             PendingNetworkHomeReturns.Remove(TWeakObjectPtr<APlayerController>(PlayerController));
+            FailedNetworkHomeReturnRetryAfterSeconds.Remove(TWeakObjectPtr<APlayerController>(PlayerController));
             bCompleteListenHostReturn = bListenHostReturnInProgress
                 && PendingListenHostReturnClients.Remove(TWeakObjectPtr<APlayerController>(PlayerController)) > 0
                 && PendingListenHostReturnClients.IsEmpty();

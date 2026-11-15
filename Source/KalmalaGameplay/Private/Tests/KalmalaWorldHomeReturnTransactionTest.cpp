@@ -73,6 +73,7 @@ bool FKalmalaWorldHomeReturnTransactionTest::RunTest(const FString& Parameters)
     TSet<const APlayerController*> LocalControllers;
     TSet<const APlayerController*> ConnectedRemoteControllers;
     TMap<FString, FString> IdentityByPlayerSlot;
+    int32 PlayerStateCandidateSerializationAttempts = 0;
     const auto AddPlayer = [this, World, &LocalControllers, &ConnectedRemoteControllers,
         &IdentityByPlayerSlot, &WorldConfig](const FString& Role, const bool bLocal, const int32 PlayerId)
     {
@@ -109,7 +110,9 @@ bool FKalmalaWorldHomeReturnTransactionTest::RunTest(const FString& Parameters)
     };
 
     ENetMode FixtureNetMode = NM_Standalone;
+    double HomeReturnNowSeconds = 0.0;
     Mode->HomeReturnNetModeForTests = [&FixtureNetMode](const UWorld*) { return FixtureNetMode; };
+    Mode->HomeReturnRetryTimeForTests = [&HomeReturnNowSeconds](const UWorld*) { return HomeReturnNowSeconds; };
     Mode->HomeReturnLocalControllerForTests = [&LocalControllers](const APlayerController* Controller)
     {
         return LocalControllers.Contains(Controller);
@@ -122,6 +125,10 @@ bool FKalmalaWorldHomeReturnTransactionTest::RunTest(const FString& Parameters)
     FString FailedSlot;
     TMap<FString, TArray<uint8>> SavedSlots;
     TMap<FString, int32> WriteAttempts;
+    Mode->PlayerStateCandidateSerializationAttemptForTests = [&PlayerStateCandidateSerializationAttempts]()
+    {
+        ++PlayerStateCandidateSerializationAttempts;
+    };
     const auto WriteSave = [this, &FailedSlot, &SavedSlots, &WriteAttempts](USaveGame* SaveGame,
         const FString& Slot)
     {
@@ -258,15 +265,44 @@ bool FKalmalaWorldHomeReturnTransactionTest::RunTest(const FString& Parameters)
         Mode->TryReturnNetworkClientToHomeFromServer(Owner.Controller, Owner.Character));
     FixtureNetMode = NM_DedicatedServer;
     FailedSlot = Owner.Slot;
+    const int32 CandidateAttemptsBeforeFailure = PlayerStateCandidateSerializationAttempts;
     TestFalse(TEXT("Client save failure leaves the client connected and retryable"),
         Mode->TryReturnNetworkClientToHomeFromServer(Owner.Controller, Owner.Character));
+    TestEqual(TEXT("First failed client return prepares one save candidate"),
+        PlayerStateCandidateSerializationAttempts, CandidateAttemptsBeforeFailure + 1);
+    TestEqual(TEXT("First failed client return attempts one owner-slot write"), WriteAttempts.FindRef(Owner.Slot), 1);
     TestFalse(TEXT("Failed client save clears its pending return token"),
         Mode->PendingNetworkHomeReturns.Contains(TWeakObjectPtr<APlayerController>(Owner.Controller)));
+
+    const int32 CandidateAttemptsAfterFailure = PlayerStateCandidateSerializationAttempts;
+    TestFalse(TEXT("Immediate failed client return retry is throttled"),
+        Mode->TryReturnNetworkClientToHomeFromServer(Owner.Controller, Owner.Character));
+    TestEqual(TEXT("Immediate retry does not serialize another save candidate"),
+        PlayerStateCandidateSerializationAttempts, CandidateAttemptsAfterFailure);
+    TestEqual(TEXT("Immediate retry does not attempt another owner-slot write"), WriteAttempts.FindRef(Owner.Slot), 1);
+    TestFalse(TEXT("Throttled retry does not create a pending return token"),
+        Mode->PendingNetworkHomeReturns.Contains(TWeakObjectPtr<APlayerController>(Owner.Controller)));
+
+    HomeReturnNowSeconds = AKalmalaGameMode::NetworkHomeReturnRetryIntervalSeconds - 0.01;
+    TestFalse(TEXT("A request just inside the retry interval remains throttled"),
+        Mode->TryReturnNetworkClientToHomeFromServer(Owner.Controller, Owner.Character));
+    TestEqual(TEXT("Pre-expiry retry does not serialize another candidate"),
+        PlayerStateCandidateSerializationAttempts, CandidateAttemptsAfterFailure);
+    TestEqual(TEXT("Pre-expiry retry does not perform another write"), WriteAttempts.FindRef(Owner.Slot), 1);
+
+    TestTrue(TEXT("Another controller can return while the failed owner is backed off"),
+        Mode->TryReturnNetworkClientToHomeFromServer(Observer.Controller, Observer.Character));
+    TestEqual(TEXT("Independent controller persists its own record"), WriteAttempts.FindRef(Observer.Slot), 1);
+
+    HomeReturnNowSeconds = AKalmalaGameMode::NetworkHomeReturnRetryIntervalSeconds;
     FailedSlot.Reset();
     SavedSlots.Reset();
     WriteAttempts.Reset();
+    const int32 CandidateAttemptsBeforeRetry = PlayerStateCandidateSerializationAttempts;
     TestTrue(TEXT("Network client return persists the authenticated requesting owner"),
         Mode->TryReturnNetworkClientToHomeFromServer(Owner.Controller, Owner.Character));
+    TestEqual(TEXT("Later client retry prepares one new save candidate"),
+        PlayerStateCandidateSerializationAttempts, CandidateAttemptsBeforeRetry + 1);
     TestEqual(TEXT("Client return writes only the requesting player's record"),
         WriteAttempts.FindRef(Owner.Slot), 1);
     TestEqual(TEXT("Client return does not write another player's record"),
@@ -276,6 +312,12 @@ bool FKalmalaWorldHomeReturnTransactionTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Client return writes no storage checkpoint"), WriteAttempts.FindRef(StorageSlot), 0);
     TestTrue(TEXT("Client return tracks only the authenticated controller"),
         Mode->PendingNetworkHomeReturns.Contains(TWeakObjectPtr<APlayerController>(Owner.Controller)));
+    const int32 CandidateAttemptsAfterSuccess = PlayerStateCandidateSerializationAttempts;
+    TestFalse(TEXT("Successful client return retains its one-return guard"),
+        Mode->TryReturnNetworkClientToHomeFromServer(Owner.Controller, Owner.Character));
+    TestEqual(TEXT("Duplicate successful return does not serialize a candidate"),
+        PlayerStateCandidateSerializationAttempts, CandidateAttemptsAfterSuccess);
+    TestEqual(TEXT("Duplicate successful return does not write its player slot"), WriteAttempts.FindRef(Owner.Slot), 1);
     TestFalse(TEXT("Client cannot submit another player's pawn"),
         Mode->TryReturnNetworkClientToHomeFromServer(Owner.Controller, Observer.Character));
 

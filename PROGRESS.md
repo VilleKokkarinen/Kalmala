@@ -33566,3 +33566,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The request admission remains server-authoritative. Test counters and the bow-state fixture setter compile only with Development automation; client input still cannot choose a target or damage value.
 - **Known limitations / remaining scope:** Runtime and remote burst behavior remain unverified until the CR milestone gate. RF49 and the broader CR remediation goal remain open.
 - **Next eligible task:** RF49 — Bound repeated Home-return persistence attempts after save failure.
+
+## Run 2026-11-15 — RF49 Home-return save retry backoff
+
+- **Selected task:** RF49, bound repeated remote Home-return persistence work after a player-save failure.
+- **Work completed:** Added a server-owned one-second retry deadline per remote controller, using world real time. The first return request still attempts immediately; after failure, requests before the deadline return without rebuilding the player-save candidate or attempting a slot write. A later request can retry, successful return remains guarded by the existing pending token, and logout clears failed-controller retry state. Extended `Kalmala.Gameplay.Persistence.WorldHomeReturnTransaction` to count candidate serialization and player-slot writes across initial failure, immediate/pre-expiry rejection, another controller's independent success, later recovery, and duplicate success. Documented the client retry delay and focused checks.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaWorldHomeReturnTransactionTest.cpp`, `Source/KalmalaGameplay/Public/KalmalaGameMode.h`, `docs/07-development-setup.md`, and `docs/startmenu.md`.
+- **Lightweight checks:** `git diff --check` passed. Statically inspected the failure timestamp, pre-persistence rejection, exact candidate-serialization and slot-writer count hooks, per-controller isolation, retry success, pending-return idempotency, and logout cleanup. Checked changed paths against the 260-character limit. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF49 is not the final implementation task in the CR remediation milestone. The Editor build, `Kalmala.Gameplay.Persistence.WorldHomeReturnTransaction`, and the client Home-return peer path with injected failure and recovery remain for milestone-final verification.
+- **Observable impact:** A failing save can no longer trigger repeated serialization and disk-write work on every rapid Home-return RPC; the client stays connected and may retry after one second.
+- **Networking/authority:** Retry deadlines are stored only in the authoritative GameMode per validated remote controller. They are transient, cleared on logout or successful return, and add no client-controlled save or timing state.
+- **Known limitations / remaining scope:** Runtime behavior and the live client retry path remain unverified until the CR milestone gate. RF50 and the broader CR remediation goal remain open.
+- **Next eligible task:** RF50 — Retire the remaining map-sharing RPC.

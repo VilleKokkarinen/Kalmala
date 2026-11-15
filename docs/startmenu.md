@@ -328,8 +328,9 @@ Home only after the menu controller is active in that map. A network client asks
 the server through its owning character; the server validates that character and
 controller, saves the existing authenticated player record, and only then sends
 the client to local Home. A rejected save leaves the client connected and able to
-retry. The listen host saves every active player's existing record before
-requesting remote clients to return locally. It waits for their disconnects,
+retry after the one-second per-controller server delay. The listen host saves
+every active player's existing record before requesting remote clients to return
+locally. It waits for their disconnects,
 retains the existing logout saves, closes its listen net driver, and then opens
 Home locally. Once return begins, PreLogin rejects new clients. A client already
 past PreLogin is added to the pending drain at PostLogin and its player record is
