@@ -64,11 +64,68 @@ bool FKalmalaBowDrawTest::RunTest(const FString& Parameters)
     const auto Before = Inventory->GetStacks();
     if (!TestEqual(TEXT("Two stack fixture exists"), Before.Num(), 2)) return false;
     const FGuid Preferred = Before[1].InstanceGuid;
+#if WITH_DEV_AUTOMATION_TESTS
+    Combat->ResetArrowPreferenceRequestCountsForTests();
+#endif
     Combat->ServerPreferArrowStack(Before[1].ItemGuids[0]);
     TestEqual(TEXT("Inventory unit selection resolves the exact arrow stack"), Combat->GetPreferredArrowStack(), Preferred);
     TestEqual(TEXT("Selected arrow type is available for HUD display"), Combat->GetArrowItemIdForDisplay(), FName(TEXT("WoodenArrow")));
+    TestEqual(TEXT("First selection is applied without a cadence delay"),
+        Combat->GetArrowPreferenceReplicationUpdatesForTests(), 1);
+    Combat->ServerPreferArrowStack(Before[1].ItemGuids[0]);
+    Combat->ServerPreferArrowStack(Before[0].ItemGuids[0]);
+    Combat->ServerPreferArrowStack(FGuid());
+    TestEqual(TEXT("Rapid duplicate, alternating, and clear requests preserve the first selection"),
+        Combat->GetPreferredArrowStack(), Preferred);
+    TestEqual(TEXT("Requests inside the cadence do not resolve inventory again"),
+        Combat->GetArrowPreferenceInventoryResolutionsForTests(), 1);
+    TestEqual(TEXT("Requests inside the cadence do not schedule replication"),
+        Combat->GetArrowPreferenceReplicationUpdatesForTests(), 1);
+    TestEqual(TEXT("Duplicate, alternating, and clear bursts are rate-limited"),
+        Combat->GetArrowPreferenceRateLimitedRequestsForTests(), 3);
+
+    World->Tick(LEVELTICK_TimeOnly, static_cast<float>(UKalmalaCombatComponent::ArrowPreferenceRequestCadenceSeconds + 0.05));
+    Combat->ServerPreferArrowStack(Before[0].ItemGuids[0]);
+    TestEqual(TEXT("A later alternating selection is accepted"),
+        Combat->GetPreferredArrowStack(), Before[0].InstanceGuid);
+    TestEqual(TEXT("A later selection schedules one owner-state update"),
+        Combat->GetArrowPreferenceReplicationUpdatesForTests(), 2);
+    Combat->ServerPreferArrowStack(Before[0].InstanceGuid);
+    TestEqual(TEXT("Same-value request inside the cadence is rejected before inventory resolution"),
+        Combat->GetArrowPreferenceInventoryResolutionsForTests(), 2);
+
+    World->Tick(LEVELTICK_TimeOnly, static_cast<float>(UKalmalaCombatComponent::ArrowPreferenceRequestCadenceSeconds + 0.05));
+    Combat->ServerPreferArrowStack(Before[0].InstanceGuid);
+    TestEqual(TEXT("Same resolved selection after the cadence remains selected"),
+        Combat->GetPreferredArrowStack(), Before[0].InstanceGuid);
+    TestEqual(TEXT("An unchanged resolved selection still performs only its one lookup"),
+        Combat->GetArrowPreferenceInventoryResolutionsForTests(), 3);
+    TestEqual(TEXT("An unchanged resolved selection does not schedule replication"),
+        Combat->GetArrowPreferenceReplicationUpdatesForTests(), 2);
+
+    World->Tick(LEVELTICK_TimeOnly, static_cast<float>(UKalmalaCombatComponent::ArrowPreferenceRequestCadenceSeconds + 0.05));
     Combat->ServerPreferArrowStack(FGuid::NewGuid());
-    TestEqual(TEXT("Forged stack request does not change preference"), Combat->GetPreferredArrowStack(), Preferred);
+    TestEqual(TEXT("Forged stack request does not change preference"),
+        Combat->GetPreferredArrowStack(), Before[0].InstanceGuid);
+    TestEqual(TEXT("Forged stack request is checked against the inventory"),
+        Combat->GetArrowPreferenceInventoryResolutionsForTests(), 4);
+    TestEqual(TEXT("Forged stack request does not schedule replication"),
+        Combat->GetArrowPreferenceReplicationUpdatesForTests(), 2);
+
+    World->Tick(LEVELTICK_TimeOnly, static_cast<float>(UKalmalaCombatComponent::ArrowPreferenceRequestCadenceSeconds + 0.05));
+    Combat->ServerPreferArrowStack(FGuid());
+    TestFalse(TEXT("Clear immediately removes the selected preference after the cadence"),
+        Combat->GetPreferredArrowStack().IsValid());
+    TestEqual(TEXT("Clear schedules one update only when the preference changes"),
+        Combat->GetArrowPreferenceReplicationUpdatesForTests(), 3);
+    Combat->ServerPreferArrowStack(FGuid());
+    TestEqual(TEXT("Repeated clear inside the cadence is rate-limited"),
+        Combat->GetArrowPreferenceRateLimitedRequestsForTests(), 5);
+    World->Tick(LEVELTICK_TimeOnly, static_cast<float>(UKalmalaCombatComponent::ArrowPreferenceRequestCadenceSeconds + 0.05));
+    Combat->ServerPreferArrowStack(FGuid());
+    TestFalse(TEXT("A later clear leaves automatic selection active"), Combat->GetPreferredArrowStack().IsValid());
+    TestEqual(TEXT("Clearing an already-empty preference does not schedule replication"),
+        Combat->GetArrowPreferenceReplicationUpdatesForTests(), 3);
     TestEqual(TEXT("Light Bow draw duration loads from catalogue"), Combat->GetBowDrawDuration(), 2.0f);
     Combat->ServerRequestAttack(1);
     TestEqual(TEXT("Bow has no melee attack"), Combat->GetActionSerial(), uint32(0));

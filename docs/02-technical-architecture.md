@@ -58,7 +58,9 @@ holds a draw pose and does not play a melee chop when the shot serial arrives.
 PreferredArrowStack is an owner-only transient stack-row GUID. Inventory's new
 action submits a selected stack/unit GUID; server accepts only an owned nonempty
 WoodenArrow or authored arrow stack, resolving unit to row, or clears preference
-with an empty GUID. Missing/exhausted preference falls back to WoodenArrow,
+with an empty GUID. The server applies a 200 ms per-owner request cadence before
+inventory resolution or clear, and an unchanged resolved value does not schedule
+replication. Missing/exhausted preference falls back to WoodenArrow,
 then StoneArrow. Release removes one physical unit from that exact stack, spends
 one bow condition,
 persists the combined player snapshot, and only then finishes spawning the

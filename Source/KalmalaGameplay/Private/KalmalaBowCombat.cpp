@@ -8,6 +8,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/Controller.h"
 #include "Engine/World.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 namespace
 {
@@ -118,13 +120,67 @@ void UKalmalaCombatComponent::ReleaseBowDraw(uint32 Sequence, bool bCancel)
 void UKalmalaCombatComponent::ServerPreferArrowStack_Implementation(FGuid Guid)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
-    if (!Guid.IsValid()) { PreferredArrowStack.Invalidate(); GetOwner()->ForceNetUpdate(); return; }
-    const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
-    if (!Pawn) return;
-    for (const auto& Stack : Pawn->GetInventoryComponent()->GetStacks())
-        if (IsSupportedArrowStack(Stack)
-            && (Stack.InstanceGuid == Guid || Stack.ItemGuids.Contains(Guid)))
-        { PreferredArrowStack = Stack.InstanceGuid; GetOwner()->ForceNetUpdate(); return; }
+    const UWorld* World = GetWorld();
+    if (!World) return;
+    const bool bPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaArrowPreferencePeerTest"));
+    const auto LogPeerResult = [this, bPeerTest](const TCHAR* Result)
+    {
+        if (!bPeerTest) return;
+#if WITH_DEV_AUTOMATION_TESTS
+        UE_LOG(LogTemp, Display, TEXT("Arrow preference server: Result=%s Resolutions=%d Updates=%d"),
+            Result, ArrowPreferenceInventoryResolutionsForTests, ArrowPreferenceReplicationUpdatesForTests);
+#endif
+    };
+    const double Now = World->GetRealTimeSeconds();
+    if (Now - LastArrowPreferenceRequestRealTime < ArrowPreferenceRequestCadenceSeconds)
+    {
+#if WITH_DEV_AUTOMATION_TESTS
+        ++ArrowPreferenceRateLimitedRequestsForTests;
+#endif
+        LogPeerResult(TEXT("RateLimited"));
+        return;
+    }
+    LastArrowPreferenceRequestRealTime = Now;
+
+    FGuid ResolvedPreference;
+    if (Guid.IsValid())
+    {
+        const auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
+        const auto* Inventory = Pawn ? Pawn->GetInventoryComponent() : nullptr;
+        if (!Inventory)
+        {
+            LogPeerResult(TEXT("Invalid"));
+            return;
+        }
+#if WITH_DEV_AUTOMATION_TESTS
+        ++ArrowPreferenceInventoryResolutionsForTests;
+#endif
+        for (const auto& Stack : Inventory->GetStacks())
+        {
+            if (IsSupportedArrowStack(Stack) && (Stack.InstanceGuid == Guid || Stack.ItemGuids.Contains(Guid)))
+            {
+                ResolvedPreference = Stack.InstanceGuid;
+                break;
+            }
+        }
+        if (!ResolvedPreference.IsValid())
+        {
+            LogPeerResult(TEXT("Invalid"));
+            return;
+        }
+    }
+
+    if (PreferredArrowStack == ResolvedPreference)
+    {
+        LogPeerResult(TEXT("Unchanged"));
+        return;
+    }
+    PreferredArrowStack = ResolvedPreference;
+#if WITH_DEV_AUTOMATION_TESTS
+    ++ArrowPreferenceReplicationUpdatesForTests;
+#endif
+    GetOwner()->ForceNetUpdate();
+    LogPeerResult(TEXT("Changed"));
 }
 void UKalmalaCombatComponent::CancelBowDrawFromServer()
 {

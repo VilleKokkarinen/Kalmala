@@ -30,6 +30,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerBeginBowDraw(uint32 Sequence);
     UFUNCTION(Server, Reliable) void ServerReleaseBow(uint32 Sequence, bool bCancel);
     UFUNCTION(Server, Reliable) void ServerPreferArrowStack(FGuid StackOrUnitGuid);
+    static constexpr double ArrowPreferenceRequestCadenceSeconds = 0.2;
     FGuid GetPreferredArrowStack() const { return PreferredArrowStack; }
     FName GetArrowItemIdForDisplay() const;
     bool IsBowDrawing() const;
@@ -51,14 +52,43 @@ public:
     void ResetTargetQueryCountsForTests() { TargetLineTraceCountForTests = 0; TargetLowerSweepCountForTests = 0; }
     int32 GetTargetLineTraceCountForTests() const { return TargetLineTraceCountForTests; }
     int32 GetTargetLowerSweepCountForTests() const { return TargetLowerSweepCountForTests; }
+    void ResetArrowPreferenceRequestCountsForTests()
+    {
+        ArrowPreferenceInventoryResolutionsForTests = 0;
+        ArrowPreferenceReplicationUpdatesForTests = 0;
+        ArrowPreferenceRateLimitedRequestsForTests = 0;
+    }
+    int32 GetArrowPreferenceInventoryResolutionsForTests() const { return ArrowPreferenceInventoryResolutionsForTests; }
+    int32 GetArrowPreferenceReplicationUpdatesForTests() const { return ArrowPreferenceReplicationUpdatesForTests; }
+    int32 GetArrowPreferenceRateLimitedRequestsForTests() const { return ArrowPreferenceRateLimitedRequestsForTests; }
     void SetBowDrawingForTests(bool bDrawing) { bBowDrawing = bDrawing; }
 #endif
 private:
     void CancelBowDrawFromServer();
     int32 FindArrowStack() const;
+#if WITH_DEV_AUTOMATION_TESTS
+    void TickArrowPreferencePeerTest();
+#endif
     UPROPERTY(ReplicatedUsing=OnRep_BowDrawing) bool bBowDrawing = false;
     UPROPERTY(Replicated) double BowDrawStartTime = 0;
     UPROPERTY(Replicated) FGuid PreferredArrowStack;
+    double LastArrowPreferenceRequestRealTime = -1.0e30;
+#if WITH_DEV_AUTOMATION_TESTS
+    int32 ArrowPreferenceInventoryResolutionsForTests = 0;
+    int32 ArrowPreferenceReplicationUpdatesForTests = 0;
+    int32 ArrowPreferenceRateLimitedRequestsForTests = 0;
+    bool bArrowPreferencePeerFixtureReady = false;
+    bool bArrowPreferencePeerObserverPassed = false;
+    bool bArrowPreferencePeerObserverFailed = false;
+    int32 ArrowPreferencePeerStage = 0;
+    double ArrowPreferencePeerStageStartedAt = 0.0;
+    double ArrowPreferencePeerObserverStartTime = -1.0;
+    double ArrowPreferencePeerObserverJoinedAt = -1.0;
+    FGuid ArrowPreferencePeerWoodenRow;
+    FGuid ArrowPreferencePeerWoodenUnit;
+    FGuid ArrowPreferencePeerStoneRow;
+    FGuid ArrowPreferencePeerStoneUnit;
+#endif
     UFUNCTION() void OnRep_BowDrawing();
     FGuid DrawingBowGuid;
     bool bLocalBowDrawing = false;

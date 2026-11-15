@@ -33590,3 +33590,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Ping admission remains server-authoritative and validates eligibility, finite/world-bounded coordinates, and the per-sender cooldown. Ping inboxes remain owner-only, bounded to 16 unexpired records, and expire after ten seconds. No remote marker or co-op status API remains.
 - **Known limitations / remaining scope:** The revised peer scenario and source-contract runner have not been executed in Unreal. RF51 and the broader CR remediation goal remain open.
 - **Next eligible task:** RF51 — Bound repeated arrow-preference RPC work.
+
+## Run 2026-11-15 — RF51 arrow-preference request cadence
+
+- **Selected task:** RF51, bound repeated remote-owner arrow-preference requests and avoid redundant replication.
+- **Work completed:** Added a server-owned 200 ms real-time cadence before valid-GUID inventory resolution or clear. Resolved preferences now schedule replication only when the selected row changes. Extended `Kalmala.Gameplay.Combat.BowDrawAndArrows` with test counters and assertions for immediate selection, duplicate/alternating/clear bursts, later selection, unchanged values, forged GUIDs, and repeated clears. Added an `ArrowPreference` remote-owner/observer case to `EnemyPeers.ps1` and documented the cadence and focused scenarios.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaBowCombat.cpp`, `Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp`, `Source/KalmalaGameplay/Public/KalmalaCombatComponent.h`, `Source/KalmalaGameplay/Private/Tests/KalmalaBowDrawTest.cpp`, `Scripts/Tests/Combat/EnemyPeers.ps1`, `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** The PowerShell parser passed; `git diff --check` passed; static inspection confirmed the cadence precedes lookup/clear, unchanged preferences return before `ForceNetUpdate`, the owned-arrow validation remains, and `PreferredArrowStack` remains owner-only. All changed paths are below 260 characters. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF51 is not the final implementation task in the CR remediation milestone. The Editor build, `Kalmala.Gameplay.Combat.BowDrawAndArrows`, and `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario ArrowPreference` remain for milestone-final verification.
+- **Observable impact:** Rapid duplicate or alternating selection requests no longer rescan the server inventory or repeatedly schedule actor replication; supported selections and clears apply after the cadence.
+- **Networking/authority:** The cadence and resolved preference remain server-owned. Only supported GUIDs from the owner's current arrow inventory can select a stack. The preference remains `COND_OwnerOnly`; the Development automation's observer fixture checks that privacy.
+- **Known limitations / remaining scope:** The Editor automation and live remote-owner/observer scenario have not been run. RF52 and the broader CR remediation goal remain open.
+- **Next eligible task:** RF52 — Verify remote ownership of world-seed selection.

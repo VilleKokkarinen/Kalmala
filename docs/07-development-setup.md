@@ -291,10 +291,14 @@ exit 0, no controller/fatal/assertion/ensure errors:
 
 - `Kalmala.Gameplay.Combat.BowDrawAndArrows`: per-attribute draw timing, future
   skill-speed math, circle shrinking, no-ammo rejection, actual bow equip,
-  hammer/Bow melee rejection, exact-stack preference/forged selection, partial,
+  hammer/Bow melee rejection, exact-stack preference/forged selection, repeated
+  selection cadence, unchanged-value replication and clear behavior, partial,
   full and immediate release, one arrow/condition payment, duplicate release,
   cancellation, auto selection, real swept flight hitting wildlife at 600 cm,
   persistence-failure rollback and weapon swap cancellation.
+- `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario ArrowPreference`: remote-owner
+  first selection, alternating and duplicate request cadence, clear, and
+  owner-only preference privacy from a connected observer.
 - `Kalmala.Gameplay.Combat.AllItemSwings`: remaining 15 melee profiles plus fists.
 - `Kalmala.Gameplay.Combat.AxeSwing`, `Kalmala.Gameplay.Inventory.TwoHanded`,
   `Kalmala.Gameplay.Tools.HeldModel`: existing focused regressions passed.

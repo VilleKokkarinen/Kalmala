@@ -1417,7 +1417,7 @@
       source inspection passed. The Editor build, map-awareness automation and remote-owner/observer runtime
       check remain deferred to milestone-final verification.
 
-  - [ ] **RF51 — Bound repeated arrow-preference RPC work (P3; CR04-032).**
+  - [x] **RF51 — Bound repeated arrow-preference RPC work (P3; CR04-032).**
     `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:1431`,
     `Source/KalmalaGameplay/Public/KalmalaCombatComponent.h:32,55`,
     `Source/KalmalaGameplay/Private/KalmalaBowCombat.cpp:118-128`,
@@ -1451,6 +1451,15 @@
     for selection, clear, duplicate and cadence behavior; after an Editor
     build, add or run a remote-owner/observer check for the actual RPC route,
     owner preference update and observer privacy.
+    **Development checks:** Added a 200 ms server-owned cadence before lookup or
+      clear, and skip ForceNetUpdate when the resolved preference is unchanged.
+      Extended BowDrawAndArrows with selection, rapid duplicate/alternating and
+      clear requests, after-cadence updates, unchanged-value, and forged-GUID
+      assertions. Added the ArrowPreference case to EnemyPeers.ps1 to exercise
+      the actual remote RPC and owner/observer privacy. `git diff --check`, the
+      PowerShell parser, and static source inspection passed. The Editor build,
+      automation, and remote peer scenario remain deferred to milestone-final
+      verification.
   - [ ] **RF52 — Verify remote ownership of world-seed selection (P3; CR04-039).**
     `Source/KalmalaGameplay/Public/KalmalaMenuContext.h:18,28-35`,
     `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp:34-73,115-142`,

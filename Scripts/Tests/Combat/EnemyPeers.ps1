@@ -1,7 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Run')]
 param(
     [Parameter(Mandatory, ParameterSetName = 'Run')]
-    [ValidateSet('SharedCombat', 'CombatFeedback', 'BoarCharge', 'DeerHerd', 'WolfPack', 'LynxLeap', 'PolarBearCharge', 'HornedGoatPush', 'MosquitoCounterplay', 'PeatHuskSweep', 'ThunderSentinelSlam', 'ReefMawBite')]
+    [ValidateSet('SharedCombat', 'CombatFeedback', 'ArrowPreference', 'BoarCharge', 'DeerHerd', 'WolfPack', 'LynxLeap', 'PolarBearCharge', 'HornedGoatPush', 'MosquitoCounterplay', 'PeatHuskSweep', 'ThunderSentinelSlam', 'ReefMawBite')]
     [string]$Scenario,
     [Parameter(Mandatory, ParameterSetName = 'List')][switch]$ListScenarios,
     [ValidateRange(1024, 65535)][int]$Port = 18149,
@@ -45,6 +45,36 @@ $cases = [ordered]@{
             $clientNoRemoteCombatCue = $clientText -notmatch 'Ambient audio combat context: Local=1 Feedback=(Hit|Defeat) Serial=[1-9][0-9]* CueSubmitted=1 Asset=CombatResultCue'
             $passed = $serverText -match 'Combat verification server: Passed=1 ' -and $serverHitCue -and $serverDefeatCue -and $clientUnavailableWithoutCue -and $clientNoRemoteCombatCue
             return $passed
+        }
+    }
+    ArrowPreference = @{
+        Flag = 'KalmalaArrowPreferencePeerTest'; Seed = 418; Clients = 2
+        OwnerFlag = 'KalmalaArrowPreferenceOwner'; ObserverFlag = 'KalmalaArrowPreferenceObserver'
+        Description = 'Remote owner arrow selection cadence and owner-only observer privacy'
+        Check = {
+            param($serverText, $clientText, $observerText, $State)
+            $requests = [regex]::Matches($serverText,
+                'Arrow preference server: Result=(Changed|Unchanged|RateLimited) Resolutions=(\d+) Updates=(\d+)')
+            if ($requests.Count -ne 10) { return $false }
+            $changed = 0; $unchanged = 0; $rateLimited = 0
+            foreach ($request in $requests) {
+                switch ($request.Groups[1].Value) {
+                    'Changed' { ++$changed }
+                    'Unchanged' { ++$unchanged }
+                    'RateLimited' { ++$rateLimited }
+                }
+            }
+            $lastRequest = $requests[$requests.Count - 1]
+            $serverPassed = $serverText -match 'Arrow preference fixture: Ready=1'
+            $serverPassed = $serverPassed -and $changed -eq 3 -and $unchanged -eq 1 -and $rateLimited -eq 6
+            $serverPassed = $serverPassed -and $lastRequest.Groups[1].Value -eq 'RateLimited'
+            $serverPassed = $serverPassed -and $lastRequest.Groups[2].Value -eq '3' -and $lastRequest.Groups[3].Value -eq '3'
+            $ownerPassed = $clientText -match 'Arrow preference owner: First=WoodenArrow Applied=1'
+            $ownerPassed = $ownerPassed -and $clientText -match 'Arrow preference owner: Alternating=StoneArrow Applied=1'
+            $ownerPassed = $ownerPassed -and $clientText -match 'Arrow preference owner: Passed=1 Cleared=1'
+            $observerPassed = $observerText -match 'Arrow preference observer: Passed=1 Private=1'
+            $observerPassed = $observerPassed -and $observerText -notmatch 'Arrow preference observer verification FAILED'
+            return $serverPassed -and $ownerPassed -and $observerPassed
         }
     }
     BoarCharge = @{
@@ -275,11 +305,15 @@ function Wait-EnemyState([scriptblock]$Condition, [int]$Seconds, [string]$Descri
 try {
     $server = Start-EnemyPeer 'server' '/Game/Kalmala/Maps/Prototype/L_Prototype?listen' $seed "$common -port=$Port"
     Wait-EnemyState { (Read-PeerLog 'server') -match 'GameNetDriver.*listening on port' } 120 'listen startup'
-    $client = Start-EnemyPeer 'client' "127.0.0.1:$Port" 999 $common
+    $clientFlags = $common
+    if ($case.OwnerFlag) { $clientFlags += " -$($case.OwnerFlag)" }
+    $client = Start-EnemyPeer 'client' "127.0.0.1:$Port" 999 $clientFlags
     if ($case.Clients -eq 2) {
         # Stable owner/observer ordering matters for pack, charge and poison fixtures.
         Wait-EnemyState { (Read-PeerLog 'server') -match 'LogNet: Join succeeded:' } 60 'first remote join'
-        $observer = Start-EnemyPeer 'observer' "127.0.0.1:$Port" 1000 $common
+        $observerFlags = $common
+        if ($case.ObserverFlag) { $observerFlags += " -$($case.ObserverFlag)" }
+        $observer = Start-EnemyPeer 'observer' "127.0.0.1:$Port" 1000 $observerFlags
     }
     Wait-EnemyState {
         Test-EnemyEvidence $case (Read-PeerLog 'server') (Read-PeerLog 'client') (Read-PeerLog 'observer') $state $seed

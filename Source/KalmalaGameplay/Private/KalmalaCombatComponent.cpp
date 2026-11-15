@@ -6,6 +6,8 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaHarvestNode.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
+#include "GameFramework/GameStateBase.h"
 #include "GameFramework/Pawn.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -63,6 +65,9 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
     if (bLocalBowDrawing && !CanDrawBow()) bLocalBowDrawing = false;
     if (GetOwner() && GetOwner()->HasAuthority() && bBowDrawing && !CanDrawBow()) CancelBowDrawFromServer();
+#if WITH_DEV_AUTOMATION_TESTS
+    TickArrowPreferencePeerTest();
+#endif
     const bool bCombatPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaCombatPeerTest"));
     const bool bMirelingPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaMirelingPeerTest"));
     const bool bBoarPeerTest = FParse::Param(FCommandLine::Get(), TEXT("KalmalaBoarPeerTest"));
@@ -171,6 +176,131 @@ void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelT
     }
     ActionPhase = EKalmalaCombatActionPhase::Idle; PendingTarget.Reset(); GetOwner()->ForceNetUpdate();
 }
+#if WITH_DEV_AUTOMATION_TESTS
+void UKalmalaCombatComponent::TickArrowPreferencePeerTest()
+{
+    if (!GetWorld() || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaArrowPreferencePeerTest"))) return;
+    auto* Pawn = Cast<AKalmalaCharacter>(GetOwner());
+    auto* Inventory = Pawn ? Pawn->GetInventoryComponent() : nullptr;
+    if (!Pawn || !Inventory) return;
+    const double Now = GetWorld()->GetRealTimeSeconds();
+
+    if (Pawn->HasAuthority())
+    {
+        if (!Pawn->GetController() || Pawn->GetController()->IsLocalController() || bArrowPreferencePeerFixtureReady) return;
+        if (Inventory->GetQuantity(TEXT("WoodenArrow")) == 0)
+            Inventory->TryGrantFromServer(TEXT("WoodenArrow"), 1);
+        if (Inventory->GetQuantity(TEXT("StoneArrow")) == 0)
+            Inventory->TryGrantFromServer(TEXT("StoneArrow"), 1);
+        const auto* Wooden = Inventory->GetStacks().FindByPredicate(
+            [](const auto& Stack) { return Stack.ItemId == TEXT("WoodenArrow") && Stack.Quantity > 0; });
+        const auto* Stone = Inventory->GetStacks().FindByPredicate(
+            [](const auto& Stack) { return Stack.ItemId == TEXT("StoneArrow") && Stack.Quantity > 0; });
+        if (!Wooden || Wooden->ItemGuids.IsEmpty() || !Stone || Stone->ItemGuids.IsEmpty()) return;
+        bArrowPreferencePeerFixtureReady = true;
+        ResetArrowPreferenceRequestCountsForTests();
+        UE_LOG(LogTemp, Display, TEXT("Arrow preference fixture: Ready=1"));
+        return;
+    }
+
+    if (Pawn->IsLocallyControlled() && FParse::Param(FCommandLine::Get(), TEXT("KalmalaArrowPreferenceOwner")))
+    {
+        const auto* Wooden = Inventory->GetStacks().FindByPredicate(
+            [](const auto& Stack) { return Stack.ItemId == TEXT("WoodenArrow") && Stack.Quantity > 0; });
+        const auto* Stone = Inventory->GetStacks().FindByPredicate(
+            [](const auto& Stack) { return Stack.ItemId == TEXT("StoneArrow") && Stack.Quantity > 0; });
+        if (ArrowPreferencePeerStage == 0)
+        {
+            if (!Wooden || Wooden->ItemGuids.IsEmpty() || !Stone || Stone->ItemGuids.IsEmpty()) return;
+            ArrowPreferencePeerWoodenRow = Wooden->InstanceGuid;
+            ArrowPreferencePeerWoodenUnit = Wooden->ItemGuids[0];
+            ArrowPreferencePeerStoneRow = Stone->InstanceGuid;
+            ArrowPreferencePeerStoneUnit = Stone->ItemGuids[0];
+            ServerPreferArrowStack(ArrowPreferencePeerWoodenUnit);
+            ServerPreferArrowStack(ArrowPreferencePeerWoodenUnit);
+            ServerPreferArrowStack(ArrowPreferencePeerStoneUnit);
+            ServerPreferArrowStack(FGuid());
+            ArrowPreferencePeerStage = 1;
+            ArrowPreferencePeerStageStartedAt = Now;
+            return;
+        }
+        if (ArrowPreferencePeerStage == 1 && GetPreferredArrowStack() == ArrowPreferencePeerWoodenRow)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Arrow preference owner: First=WoodenArrow Applied=1"));
+            ArrowPreferencePeerStage = 2;
+            ArrowPreferencePeerStageStartedAt = Now;
+        }
+        else if (ArrowPreferencePeerStage == 2
+            && Now - ArrowPreferencePeerStageStartedAt >= ArrowPreferenceRequestCadenceSeconds + 0.15)
+        {
+            ServerPreferArrowStack(ArrowPreferencePeerStoneUnit);
+            ArrowPreferencePeerStage = 3;
+            ArrowPreferencePeerStageStartedAt = Now;
+        }
+        else if (ArrowPreferencePeerStage == 3 && GetPreferredArrowStack() == ArrowPreferencePeerStoneRow)
+        {
+            UE_LOG(LogTemp, Display, TEXT("Arrow preference owner: Alternating=StoneArrow Applied=1"));
+            ServerPreferArrowStack(ArrowPreferencePeerStoneRow);
+            ServerPreferArrowStack(FGuid());
+            ArrowPreferencePeerStage = 4;
+            ArrowPreferencePeerStageStartedAt = Now;
+        }
+        else if (ArrowPreferencePeerStage == 4
+            && Now - ArrowPreferencePeerStageStartedAt >= ArrowPreferenceRequestCadenceSeconds + 0.15)
+        {
+            ServerPreferArrowStack(ArrowPreferencePeerStoneUnit);
+            ArrowPreferencePeerStage = 5;
+            ArrowPreferencePeerStageStartedAt = Now;
+        }
+        else if (ArrowPreferencePeerStage == 5)
+        {
+            const AGameStateBase* GameState = GetWorld()->GetGameState();
+            if (GameState && GameState->PlayerArray.Num() >= 3)
+            {
+                if (ArrowPreferencePeerObserverJoinedAt < 0.0) ArrowPreferencePeerObserverJoinedAt = Now;
+                if (Now - ArrowPreferencePeerObserverJoinedAt >= 2.0)
+                {
+                    ServerPreferArrowStack(FGuid());
+                    ServerPreferArrowStack(FGuid());
+                    ArrowPreferencePeerStage = 6;
+                }
+            }
+        }
+        else if (ArrowPreferencePeerStage == 6 && !GetPreferredArrowStack().IsValid())
+        {
+            UE_LOG(LogTemp, Display, TEXT("Arrow preference owner: Passed=1 Cleared=1"));
+            ArrowPreferencePeerStage = 7;
+        }
+        return;
+    }
+
+    if (!Pawn->IsLocallyControlled()
+        || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaArrowPreferenceObserver"))) return;
+    if (ArrowPreferencePeerObserverStartTime < 0.0) ArrowPreferencePeerObserverStartTime = Now;
+    int32 CharacterCount = 0;
+    for (TActorIterator<AKalmalaCharacter> It(GetWorld()); It; ++It)
+    {
+        ++CharacterCount;
+        if (*It == Pawn) continue;
+        const auto* OtherCombat = (*It)->FindComponentByClass<UKalmalaCombatComponent>();
+        if (OtherCombat && OtherCombat->GetPreferredArrowStack().IsValid())
+        {
+            if (!bArrowPreferencePeerObserverFailed)
+            {
+                bArrowPreferencePeerObserverFailed = true;
+                UE_LOG(LogTemp, Error, TEXT("Arrow preference observer verification FAILED: remote preference became visible."));
+            }
+            return;
+        }
+    }
+    if (CharacterCount >= 3 && Now - ArrowPreferencePeerObserverStartTime >= 1.0
+        && !bArrowPreferencePeerObserverPassed)
+    {
+        bArrowPreferencePeerObserverPassed = true;
+        UE_LOG(LogTemp, Display, TEXT("Arrow preference observer: Passed=1 Private=1"));
+    }
+}
+#endif
 AActor* UKalmalaCombatComponent::FindServerTarget() const
 {
     const APawn* Pawn = Cast<APawn>(GetOwner()); if (Pawn == nullptr || GetWorld() == nullptr) return nullptr;
