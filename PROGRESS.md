@@ -1,3 +1,32 @@
+## RF37 — Keep Ocean save caches reachable through garbage collection — 2026-11-15
+
+- **Work completed:** Marked the Ocean discovery and passenger save maps as
+  `UPROPERTY(Transient)` so GameMode garbage collection follows their cached
+  SaveGame objects. Extended the isolated discovery recovery and travel save
+  automations to force full GC after cache population, check the same saved
+  object remains alive, retry the pending claim, accept a new discovery once
+  after collection, and repeat seat persistence and restoration.
+- **Files changed:** `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryClaimTransactionTest.cpp`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaOceanTravelSaveFailureRollbackTest.cpp`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` and source inspection of both
+  reflected caches and the post-collection retry paths passed.
+- **Full verification:** Deferred; RF38 remains in this remediation queue. No
+  Editor build or automation was executed.
+- **Observable impact:** Ocean discovery and seat records stay reachable while
+  the server reuses their per-player GameMode cache after full garbage
+  collection. Save formats are unchanged.
+- **Networking/authority:** No authority or networking changes. Cache loading,
+  discovery claims, passenger persistence and seat restoration remain on the
+  existing server-authoritative paths and preserve authenticated player/world
+  identity checks.
+- **Known limits:** The focused forced-GC automations are source-complete but
+  have not been executed. Editor build, full automation and live peer/restart
+  verification remain deferred.
+- **Next eligible task:** RF38 — suppress M9 reward receipts when claim
+  persistence fails. The overall CR remediation goal remains active.
+
 ## RF36 — Keep treasure failure feedback consistent — 2026-11-15
 
 - **Work completed:** Combined packed-tool capacity rejection now publishes the

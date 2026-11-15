@@ -671,10 +671,12 @@ private:
     TSet<FString> RejectedPlayerDiscoverySaveIdentities;
     TSet<FString> DeliveredWildlifeRewardSpawnIds;
     TSet<FString> MirelingBossScrollUnavailableFeedbackKeys;
+    UPROPERTY(Transient)
     TMap<FString, TObjectPtr<class UKalmalaM7PersistenceSaveGame>> OceanDiscoverySaves;
     TMap<FString, TWeakObjectPtr<class AKalmalaCharacter>> OceanDiscoveryRewardDeliveryPawnsThisSession;
     TMap<FString, TSet<FString>> SessionM9ExplorationClaims;
     UPROPERTY(Transient) TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame> OceanTravelWorldSave;
+    UPROPERTY(Transient)
     TMap<FString, TObjectPtr<class UKalmalaOceanTravelPersistenceSaveGame>> OceanTravelPlayerSaves;
     TWeakObjectPtr<class AKalmalaOceanSkiff> RestoredOceanSkiff;
     TArray<TWeakObjectPtr<APlayerController>> PendingOceanTravelRestores;

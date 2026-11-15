@@ -1968,10 +1968,12 @@ exact rejected slot bytes, and retains a valid current-format restore case.
 `Kalmala.Gameplay.OceanTravel.SaveFailureRollback` injects world and passenger
 write failures, checks that launch and boarding are rejected without attaching
 the requester, preserves incompatible passenger bytes, and verifies the valid
-vessel and helm seat restore after restart.
+vessel and helm seat restore after restart. It forces full garbage collection
+after the authenticated passenger save enters the GameMode cache, verifies the
+same record remains valid, then repeats seat persistence and restoration.
 
 ```powershell
-& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.Gameplay.OceanTravel.WorldSlotFailClosed+Kalmala.Gameplay.OceanTravel.SaveFailureRollback+Kalmala.Gameplay.OceanTravel.SkiffRestoreContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
+& 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM8TravelSaveUser' -abslog='C:\temp\KalmalaM8TravelSave.log' -ExecCmds="Automation RunTests Kalmala.World.OceanTravel.PersistenceContract+Kalmala.Gameplay.OceanTravel.WorldSlotFailClosed+Kalmala.Gameplay.OceanTravel.SaveFailureRollback+Kalmala.Gameplay.OceanTravel.DiscoveryClaimRecovery+Kalmala.Gameplay.OceanTravel.SkiffRestoreContract+Kalmala.World.M7.PersistenceContract; Quit" -TestExit="Automation Test Queue Empty"
 ```
 
 ### M7 skill progression contract
@@ -4226,7 +4228,10 @@ After the Editor build, also run
 checks the combined forty-cell stack/packed-tool preflight, retry after freeing
 capacity, an injected inventory rejection with failed ledger compensation,
 pending reward recovery through a fresh GameMode and player, failed completion
-write retry without a second grant, and completed-claim replay rejection.
+write retry without a second grant, and completed-claim replay rejection. It
+loads a valid pending owner ledger during recovery, caches it in the GameMode,
+forces full garbage collection, checks that the same ledger remains valid for
+the claim retry, then accepts a new discovery once and rejects its replay.
 
 ## M8 combined-voyage late-join and restart verification
 

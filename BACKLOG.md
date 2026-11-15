@@ -962,9 +962,9 @@
       inspection passed. The Editor automation and live two-client peer/restart run were not executed; full
       verification remains deferred under the normal one-increment workflow.
 
-  - [ ] **RF37 — Keep per-player Ocean save caches reachable through garbage collection (P2; CR03-002).**
-    **Source:** CR03-002; `Source/KalmalaGameplay/Public/KalmalaGameMode.h:567,570`,
-      `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:9802-9821,9840-9881,9999-10043,10121-10203`, and
+  - [x] **RF37 — Keep per-player Ocean save caches reachable through garbage collection (P2; CR03-002).**
+    **Source:** CR03-002; `Source/KalmalaGameplay/Public/KalmalaGameMode.h:675,680`,
+      `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10408-10427,10429-10488,10638-10694,10743-10980`, and
       [Epic's UE 5.8 Object Pointers
       documentation](https://dev.epicgames.com/documentation/en-us/unreal-engine/object-pointers-in-unreal-engine).
     **Affected path:** Ocean discovery claims and authenticated ocean-skiff seat persistence/restoration after
@@ -993,6 +993,12 @@
     **Focused validation:** Add an isolated GameMode automation that loads each cache, forces full garbage
       collection, verifies cached objects remain valid, then exercises the discovery-claim retry and
       seat-persistence/restoration paths. Run the focused automation after an Editor build.
+    **Implementation:** Marked both save caches `UPROPERTY(Transient)` and extended the isolated discovery
+      recovery and travel-save GameMode automations to force full garbage collection, verify the cached save
+      remains valid, then retry the pending claim and accept a new discovery exactly once or repeat seat
+      persistence/restoration.
+    **Development checks:** `git diff --check` and source inspection passed. The focused automations and Editor
+      build were not run; full verification remains deferred under the one-increment workflow.
   - [ ] **RF38 — Suppress M9 reward receipts when claim persistence fails (P3; CR04-010).**
     `KalmalaGameMode.cpp:10269-10282` commits the M9 reward inventory before
     saving the player's discovery claim. A failed player-save write rolls back

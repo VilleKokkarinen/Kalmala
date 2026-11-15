@@ -25,6 +25,7 @@
 #include "Misc/Paths.h"
 #include "Misc/ScopeExit.h"
 #include "OnlineSubsystemTypes.h"
+#include "UObject/UObjectGlobals.h"
 
 namespace
 {
@@ -287,6 +288,30 @@ bool FKalmalaOceanTravelSaveFailureRollbackTest::RunTest(const FString& Paramete
     RestoreController->SetPlayerState(RestorePlayerState);
     RestoreCharacter->SetPlayerState(RestorePlayerState);
     RestoreController->Possess(RestoreCharacter);
+    RestartWorld.GameMode->RestoreOceanTravelForPlayer(RestoreController);
+
+    const TObjectPtr<UKalmalaOceanTravelPersistenceSaveGame>* CachedPassengerSave =
+        RestartWorld.GameMode->OceanTravelPlayerSaves.Find(PlayerIdentity);
+    if (!TestNotNull(TEXT("Seat restoration caches the loaded authenticated player save"), CachedPassengerSave)
+        || !TestTrue(TEXT("Loaded player save matches the authenticated identity"),
+            CachedPassengerSave->Get() != nullptr && CachedPassengerSave->Get()->Matches(PlayerIdentityScope)))
+    {
+        return false;
+    }
+    const TWeakObjectPtr<UKalmalaOceanTravelPersistenceSaveGame> PassengerSaveBeforeCollection(
+        CachedPassengerSave->Get());
+    CollectGarbage(RF_NoFlags, true);
+    TestTrue(TEXT("Full garbage collection keeps the cached seat save valid"),
+        PassengerSaveBeforeCollection.IsValid());
+    const TObjectPtr<UKalmalaOceanTravelPersistenceSaveGame>* CachedPassengerAfterCollection =
+        RestartWorld.GameMode->OceanTravelPlayerSaves.Find(PlayerIdentity);
+    if (!TestNotNull(TEXT("Authenticated seat save remains cached after collection"),
+            CachedPassengerAfterCollection)) return false;
+    TestTrue(TEXT("The cached seat save remains the loaded player record"),
+        CachedPassengerAfterCollection->Get() == PassengerSaveBeforeCollection.Get());
+    TestTrue(TEXT("The same GameMode persists the restored helm seat after collection"),
+        RestartWorld.GameMode->PersistOceanTravelPassenger(
+            RestoreCharacter, TEXT("ocean-skiff:primary"), EKalmalaOceanSkiffSeat::Helm));
     RestartWorld.GameMode->RestoreOceanTravelForPlayer(RestoreController);
 
     TestTrue(TEXT("Restart restores the exact vessel identity and safe transform"),

@@ -19,6 +19,7 @@
 #include "Misc/Crc.h"
 #include "Misc/ScopeExit.h"
 #include "OnlineSubsystemTypes.h"
+#include "UObject/UObjectGlobals.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanDiscoveryClaimTransactionTest,
     "Kalmala.Gameplay.OceanTravel.DiscoveryClaimRecovery",
@@ -32,12 +33,16 @@ bool FKalmalaOceanDiscoveryClaimTransactionTest::RunTest(const FString& Paramete
     WorldConfig.WorldSeed = 418;
     FKalmalaOceanDiscoveryDescriptor CapacityDescriptor;
     FKalmalaOceanDiscoveryDescriptor RecoveryDescriptor;
+    FKalmalaOceanDiscoveryDescriptor PostCollectionDescriptor;
     bool bFoundCapacityDescriptor = false;
     bool bFoundRecoveryDescriptor = false;
+    bool bFoundPostCollectionDescriptor = false;
     TSet<FString> FoundClaimIds;
-    for (int32 Y = -64; Y <= 64 && (!bFoundCapacityDescriptor || !bFoundRecoveryDescriptor); ++Y)
+    for (int32 Y = -64; Y <= 64
+        && (!bFoundCapacityDescriptor || !bFoundRecoveryDescriptor || !bFoundPostCollectionDescriptor); ++Y)
     {
-        for (int32 X = -64; X <= 64 && (!bFoundCapacityDescriptor || !bFoundRecoveryDescriptor); ++X)
+        for (int32 X = -64; X <= 64
+            && (!bFoundCapacityDescriptor || !bFoundRecoveryDescriptor || !bFoundPostCollectionDescriptor); ++X)
         {
             const TArray<FKalmalaOceanDiscoveryDescriptor> Descriptors =
                 FKalmalaOceanDiscoveryCatalogue::BuildDescriptors(WorldConfig, FIntPoint(X, Y));
@@ -51,22 +56,33 @@ bool FKalmalaOceanDiscoveryClaimTransactionTest::RunTest(const FString& Paramete
                 CapacityDescriptor = Descriptors[0];
                 bFoundCapacityDescriptor = true;
             }
-            else
+            else if (!bFoundRecoveryDescriptor)
             {
                 RecoveryDescriptor = Descriptors[0];
                 bFoundRecoveryDescriptor = true;
             }
+            else
+            {
+                PostCollectionDescriptor = Descriptors[0];
+                bFoundPostCollectionDescriptor = true;
+            }
         }
     }
     if (!TestTrue(TEXT("Fixture finds a canonical Ocean discovery for capacity retry"), bFoundCapacityDescriptor)
-        || !TestTrue(TEXT("Fixture finds a second canonical Ocean discovery for recovery"), bFoundRecoveryDescriptor)) return false;
+        || !TestTrue(TEXT("Fixture finds a second canonical Ocean discovery for recovery"), bFoundRecoveryDescriptor)
+        || !TestTrue(TEXT("Fixture finds a third canonical Ocean discovery for post-collection claim"),
+            bFoundPostCollectionDescriptor)) return false;
 
     const FKalmalaOceanDiscoveryDefinition* CapacityDefinition =
         FKalmalaOceanDiscoveryCatalogue::FindDefinition(CapacityDescriptor.DiscoveryId);
     const FKalmalaOceanDiscoveryDefinition* RecoveryDefinition =
         FKalmalaOceanDiscoveryCatalogue::FindDefinition(RecoveryDescriptor.DiscoveryId);
+    const FKalmalaOceanDiscoveryDefinition* PostCollectionDefinition =
+        FKalmalaOceanDiscoveryCatalogue::FindDefinition(PostCollectionDescriptor.DiscoveryId);
     if (!TestNotNull(TEXT("Capacity discovery resolves its canonical reward"), CapacityDefinition)
-        || !TestNotNull(TEXT("Recovery discovery resolves its canonical reward"), RecoveryDefinition)) return false;
+        || !TestNotNull(TEXT("Recovery discovery resolves its canonical reward"), RecoveryDefinition)
+        || !TestNotNull(TEXT("Post-collection discovery resolves its canonical reward"),
+            PostCollectionDefinition)) return false;
 
     const FUniqueNetIdStringRef NetId = FUniqueNetIdString::Create(
         TEXT("rf28-ocean-discovery-owner"), FName(TEXT("KalmalaRF28Test")));
@@ -322,6 +338,27 @@ bool FKalmalaOceanDiscoveryClaimTransactionTest::RunTest(const FString& Paramete
         PendingAfterCompletionWriteFailure->HasSparseDelta(
             EKalmalaM7SparseDeltaKind::DiscoveryClaimed, RecoveryClaimId));
 
+    const TObjectPtr<UKalmalaM7PersistenceSaveGame>* CachedPendingLedger =
+        Recovery.GameMode->OceanDiscoverySaves.Find(PlayerIdentity);
+    if (!TestNotNull(TEXT("Failed completion retry caches the loaded pending owner ledger"),
+            CachedPendingLedger)
+        || !TestTrue(TEXT("Cached pending ledger still matches the authenticated owner"),
+            CachedPendingLedger->Get() != nullptr && CachedPendingLedger->Get()->Matches(PlayerSaveIdentity)))
+    {
+        return false;
+    }
+    const TWeakObjectPtr<UKalmalaM7PersistenceSaveGame> PendingLedgerBeforeCollection(
+        CachedPendingLedger->Get());
+    CollectGarbage(RF_NoFlags, true);
+    TestTrue(TEXT("Full garbage collection keeps the cached pending owner ledger valid"),
+        PendingLedgerBeforeCollection.IsValid());
+    const TObjectPtr<UKalmalaM7PersistenceSaveGame>* CachedLedgerAfterCollection =
+        Recovery.GameMode->OceanDiscoverySaves.Find(PlayerIdentity);
+    if (!TestNotNull(TEXT("Pending owner ledger stays in the GameMode cache after collection"),
+            CachedLedgerAfterCollection)) return false;
+    TestTrue(TEXT("The cached pending ledger remains the loaded owner save"),
+        CachedLedgerAfterCollection->Get() == PendingLedgerBeforeCollection.Get());
+
     const int32 RewardQuantityAfterRecovery = Recovery.Inventory->GetQuantity(RecoveryDefinition->RewardItemId);
     const int32 WritesBeforeFinalizeRetry = WriteAttempts;
     TestFalse(TEXT("A same-session retry finalizes without granting the reward again"),
@@ -344,6 +381,26 @@ bool FKalmalaOceanDiscoveryClaimTransactionTest::RunTest(const FString& Paramete
     TestEqual(TEXT("Completed replay performs no extra save write"), WriteAttempts, WritesBeforeDuplicate);
     TestEqual(TEXT("Completed replay reports AlreadyFound"),
         Recovery.Feedback->GetFeedback(), EKalmalaDiscoveryFeedback::AlreadyFound);
+
+    Recovery.Player->SetActorLocation(PostCollectionDescriptor.Location);
+    const int32 PostCollectionRewardBefore =
+        Recovery.Inventory->GetQuantity(PostCollectionDefinition->RewardItemId);
+    const int32 WritesBeforePostCollectionClaim = WriteAttempts;
+    TestTrue(TEXT("The same GameMode accepts a new discovery after full garbage collection"),
+        Recovery.GameMode->ClaimOceanDiscovery(Recovery.Player, PostCollectionDescriptor));
+    TestEqual(TEXT("The post-collection claim grants its exact reward once"),
+        Recovery.Inventory->GetQuantity(PostCollectionDefinition->RewardItemId),
+        PostCollectionRewardBefore + PostCollectionDefinition->RewardQuantity);
+    const int32 WritesBeforePostCollectionReplay = WriteAttempts;
+    TestFalse(TEXT("The post-collection discovery cannot be replayed"),
+        Recovery.GameMode->ClaimOceanDiscovery(Recovery.Player, PostCollectionDescriptor));
+    TestEqual(TEXT("Post-collection replay grants no extra reward"),
+        Recovery.Inventory->GetQuantity(PostCollectionDefinition->RewardItemId),
+        PostCollectionRewardBefore + PostCollectionDefinition->RewardQuantity);
+    TestEqual(TEXT("Post-collection replay performs no extra save write"),
+        WriteAttempts, WritesBeforePostCollectionReplay);
+    TestEqual(TEXT("Post-collection discovery claim writes one pending and one completion record"),
+        WriteAttempts, WritesBeforePostCollectionClaim + 2);
     return true;
 }
 
