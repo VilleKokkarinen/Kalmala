@@ -47,6 +47,12 @@ public:
     static bool IsAttackItemAllowed(FName ItemId);
     static bool CanSwingWithoutTarget(FName ItemId, int32 Level, int32 Condition);
     static bool IsAttackRequestAllowed(bool bAuthority, bool bNewSequence, uint32 Sequence, bool bActionIdle, bool bSwingAvailable);
+#if WITH_DEV_AUTOMATION_TESTS
+    void ResetTargetQueryCountsForTests() { TargetLineTraceCountForTests = 0; TargetLowerSweepCountForTests = 0; }
+    int32 GetTargetLineTraceCountForTests() const { return TargetLineTraceCountForTests; }
+    int32 GetTargetLowerSweepCountForTests() const { return TargetLowerSweepCountForTests; }
+    void SetBowDrawingForTests(bool bDrawing) { bBowDrawing = bDrawing; }
+#endif
 private:
     void CancelBowDrawFromServer();
     int32 FindArrowStack() const;
@@ -57,6 +63,10 @@ private:
     FGuid DrawingBowGuid;
     bool bLocalBowDrawing = false;
     double LocalBowDrawStart = 0;
+#if WITH_DEV_AUTOMATION_TESTS
+    mutable int32 TargetLineTraceCountForTests = 0;
+    mutable int32 TargetLowerSweepCountForTests = 0;
+#endif
     AActor* FindServerTarget() const;
     bool IsServerTargetValid(const AActor* Target) const;
     void BeginRecovery();

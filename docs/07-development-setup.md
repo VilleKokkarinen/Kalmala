@@ -6430,3 +6430,13 @@ and stops its peers on exit. `-Editor` overrides the executable;
 `-OutputDirectory` must be new and short to avoid stale saves/pass markers.
 These headless fixtures stage materials rather than earn source drops and do
 not prove rendered UI acceptance. Historical A8 results remain in `PROGRESS.md`.
+
+## Melee attack target-query admission — 2026-11-15
+
+`Kalmala.Gameplay.Combat.AllItemSwings` counts actual server melee line traces
+and lower sweeps. It asserts that non-authority, zero or stale sequence, busy,
+bow-drawing, and unavailable-swing requests run neither query, while an eligible
+target-free swing runs one of each. Its accepted-hit case continues to verify
+server-selected target damage after windup. The Editor automation and remote
+owner burst with a server trace counter remain part of CR milestone-final
+verification; they were not run during this normal backlog increment.

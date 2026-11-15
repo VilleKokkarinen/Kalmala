@@ -33554,3 +33554,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Only the Development-only fixture stages the remote owner. The owner submits ordinary movement input; the server remains responsible for clamping and accepted movement, and the observer reads the replicated owner transform. Shipping gameplay behavior is unchanged.
 - **Known limitations / remaining scope:** Runtime behavior remains unverified pending the CR milestone gate. RF48 and the broader CR remediation goal remain open.
 - **Next eligible task:** RF48 — Reject ineligible melee requests before target traces.
+
+## Run 2026-11-15 — RF48 melee request target-query admission
+
+- **Selected task:** RF48, reject ineligible melee attack requests before running target scene queries.
+- **Work completed:** Moved server authority, request-sequence, action-phase, bow-draw, and swing-availability admission ahead of melee target selection. Added Development-automation-only line-trace and lower-sweep counters. Extended `Kalmala.Gameplay.Combat.AllItemSwings` to assert that simulated non-authority, zero/stale, busy, bow-drawing, and unavailable-swing requests run neither query, while an eligible target-free swing runs one line trace and one lower sweep. Documented the admission and verification contract.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaCombatLoopTest.cpp`, `Source/KalmalaGameplay/Public/KalmalaCombatComponent.h`, `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** `git diff --check` passed. Statically inspected request ordering, test counter increments at the actual trace/sweep calls, rejection cases, accepted target-free behavior, and unchanged impact-time target validation. Checked all changed paths against the 260-character limit. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF48 is not the final implementation task in the CR remediation milestone. The Editor build, combat action/item automations, and remote-owner request burst with server trace counts remain for milestone-final verification.
+- **Observable impact:** Stale, busy, bow-drawing, unavailable, and non-authority melee requests no longer invoke server target traces or sweeps. Eligible requests still resolve targets on the server and retain existing windup and impact behavior.
+- **Networking/authority:** The request admission remains server-authoritative. Test counters and the bow-state fixture setter compile only with Development automation; client input still cannot choose a target or damage value.
+- **Known limitations / remaining scope:** Runtime and remote burst behavior remain unverified until the CR milestone gate. RF49 and the broader CR remediation goal remain open.
+- **Next eligible task:** RF49 — Bound repeated Home-return persistence attempts after save failure.

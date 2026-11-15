@@ -34,25 +34,28 @@ bool UKalmalaCombatComponent::CanSwingWithoutTarget(const FName ItemId, const in
 void UKalmalaCombatComponent::ServerRequestAttack_Implementation(const uint32 RequestSequence)
 {
     // Every usable held item can make a melee swing; bow shooting remains separate.
+    const APawn* Pawn = Cast<APawn>(GetOwner());
+    if (Pawn == nullptr || !Pawn->HasAuthority()) return;
     const auto* Character = Cast<AKalmalaCharacter>(GetOwner());
     const auto* Inventory = Character ? Character->GetInventoryComponent() : nullptr;
     const FName EquippedItem = Inventory ? Inventory->GetActiveItem() : NAME_None;
     if (!IsAttackItemAllowed(EquippedItem)) return;
-    APawn* Pawn = Cast<APawn>(GetOwner()); AActor* Target = FindServerTarget();
     const bool bSwingAvailable = Character && !Character->IsWildlifeStaggered()
         && FMath::IsFinite(Character->GetHealth()) && Character->GetHealth() > 1.0f
         && CanSwingWithoutTarget(EquippedItem, Character->GetCarriedToolLevel(EquippedItem),
             Character->GetToolDurability(EquippedItem));
-    const bool bAllowed = Pawn != nullptr && IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence, RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle && !bBowDrawing, bSwingAvailable);
+    const bool bAllowed = IsAttackRequestAllowed(Pawn->HasAuthority(), RequestSequence != 0 && RequestSequence > LastRequestSequence,
+        RequestSequence, ActionPhase == EKalmalaCombatActionPhase::Idle && !bBowDrawing, bSwingAvailable);
     if (!bAllowed)
     {
-        if (Pawn != nullptr && Pawn->HasAuthority() && GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= LastUnavailableFeedbackTime + 0.25f)
+        if (GetWorld() != nullptr && GetWorld()->GetTimeSeconds() >= LastUnavailableFeedbackTime + 0.25f)
         {
             LastUnavailableFeedbackTime = GetWorld()->GetTimeSeconds();
             PublishFeedbackFromServer(EKalmalaCombatFeedback::Unavailable);
         }
         return;
     }
+    AActor* Target = FindServerTarget();
     LastRequestSequence = RequestSequence; ++ActionSerial; PendingTarget = Target; ActionPhase = EKalmalaCombatActionPhase::Windup; PhaseEndTime = GetWorld()->GetTimeSeconds() + WindupSeconds; GetOwner()->ForceNetUpdate();
 }
 void UKalmalaCombatComponent::TickComponent(const float DeltaTime, const ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -172,6 +175,9 @@ AActor* UKalmalaCombatComponent::FindServerTarget() const
 {
     const APawn* Pawn = Cast<APawn>(GetOwner()); if (Pawn == nullptr || GetWorld() == nullptr) return nullptr;
     const FVector Start = Pawn->GetActorLocation() + FVector(0, 0, 55); FHitResult Hit; FCollisionQueryParams Params(SCENE_QUERY_STAT(KalmalaCombatTarget), false, Pawn);
+#if WITH_DEV_AUTOMATION_TESTS
+    ++TargetLineTraceCountForTests;
+#endif
     const bool bLineHit = GetWorld()->LineTraceSingleByChannel(Hit, Start,
         Start + Pawn->GetActorForwardVector() * AttackRange, ECC_Visibility, Params);
 #if !UE_BUILD_SHIPPING
@@ -195,6 +201,9 @@ AActor* UKalmalaCombatComponent::FindServerTarget() const
         && (Cast<AKalmalaWildlifeSpawn>(Hit.GetActor()) || Cast<AKalmalaHarvestNode>(Hit.GetActor()))) return Hit.GetActor();
     // The lower melee sweep reaches fallen logs and small wildlife below the ordinary aim trace.
     const FVector LowStart = Pawn->GetActorLocation() - FVector(0, 0, 30);
+#if WITH_DEV_AUTOMATION_TESTS
+    ++TargetLowerSweepCountForTests;
+#endif
     const bool bLowSweepHit = GetWorld()->SweepSingleByChannel(Hit, LowStart,
         LowStart + Pawn->GetActorForwardVector() * AttackRange, FQuat::Identity, ECC_Visibility,
         FCollisionShape::MakeSphere(60.0f), Params);

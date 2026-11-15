@@ -1307,7 +1307,7 @@
     The Editor build, `Kalmala.Gameplay.Movement.WorldBoundary`, and the live
     three-role peer scenario remain deferred to milestone-final verification.
 
-  - [ ] **RF48 — Reject ineligible melee requests before target traces (P3; CR04-023).**
+  - [x] **RF48 — Reject ineligible melee requests before target traces (P3; CR04-023).**
     **Source:** CR04-023; Source/KalmalaGameplay/Public/KalmalaCombatComponent.h:25,47-60;
       Source/KalmalaGameplay/Private/KalmalaCombatComponent.cpp:15-20,34-56,171-203; RF42 covers the separate
       ServerRequestInteract trace path.
@@ -1335,6 +1335,11 @@
     **Focused validation:** Extend the combat request contract test to assert trace count for rejected versus
       eligible requests. After an Editor build, run the combat action/item acceptance tests and a remote-owner
       burst with a server trace counter; verify ordinary attack timing and target/damage gates remain intact.
+    **Development checks:** `git diff --check` passed. Static inspection confirms authority, sequence, action,
+      bow-draw and swing-availability gates now precede `FindServerTarget`, with target and impact validation
+      unchanged. Extended `Kalmala.Gameplay.Combat.AllItemSwings` to count real target line traces and lower
+      sweeps across non-authority, zero/stale, busy, bow-drawing, unavailable-swing, and eligible requests.
+      The Editor build, automation, and remote-owner burst remain deferred to milestone-final verification.
 
   - [ ] **RF49 — Bound repeated Home-return persistence attempts after save failure (P3; CR04-023).**
     **Source:** CR04-023; Source/KalmalaGameplay/Public/KalmalaCharacter.h:299-303;

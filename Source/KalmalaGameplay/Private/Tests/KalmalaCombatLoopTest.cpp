@@ -137,11 +137,23 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
             World->Tick(LEVELTICK_TimeOnly, Seconds);
             Combat->TickComponent(Seconds, LEVELTICK_All, nullptr);
         };
+        Pawn->SetRole(ROLE_SimulatedProxy);
+        Combat->ResetTargetQueryCountsForTests();
+        Combat->ServerRequestAttack_Implementation(1);
+        TestEqual(TEXT("Non-authority melee request performs no line trace"), Combat->GetTargetLineTraceCountForTests(), 0);
+        TestEqual(TEXT("Non-authority melee request performs no lower sweep"), Combat->GetTargetLowerSweepCountForTests(), 0);
+        Pawn->SetRole(ROLE_Authority);
+        Combat->ResetTargetQueryCountsForTests();
         Combat->ServerRequestAttack(0);
         TestEqual(TEXT("Zero request sequence cannot swing"), Combat->GetActionSerial(), uint32(0));
+        TestEqual(TEXT("Zero-sequence melee request performs no line trace"), Combat->GetTargetLineTraceCountForTests(), 0);
+        TestEqual(TEXT("Zero-sequence melee request performs no lower sweep"), Combat->GetTargetLowerSweepCountForTests(), 0);
+        Combat->ResetTargetQueryCountsForTests();
         Combat->ServerRequestAttack(1);
         TestEqual(*FString::Printf(TEXT("%s starts a swing without any nearby target"), *Item.ToString()),
             Combat->GetActionPhase(), EKalmalaCombatActionPhase::Windup);
+        TestEqual(TEXT("Eligible target-free swing performs its line trace"), Combat->GetTargetLineTraceCountForTests(), 1);
+        TestEqual(TEXT("Eligible target-free swing performs its lower sweep"), Combat->GetTargetLowerSweepCountForTests(), 1);
         TestEqual(TEXT("Free swing publishes its animation serial"), Combat->GetActionSerial(), uint32(1));
         auto* Model = Pawn->FindComponentByClass<UKalmalaPlayerModelComponent>();
         Model->TickComponent(0.18f, LEVELTICK_All, nullptr);
@@ -151,14 +163,38 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
         const auto* Arm = Meshes.FindByPredicate([](const auto* Part) { return Part->GetFName() == TEXT("PlayerRightArm"); });
         TestTrue(TEXT("Every item's accepted swing animates the actual arm"), Arm
             && (*Arm)->GetRelativeRotation().Quaternion().Equals(FRotator(-115, 0, 0).Quaternion(), 0.001f));
+        Combat->ResetTargetQueryCountsForTests();
         Combat->ServerRequestAttack(2);
         TestEqual(TEXT("Busy requests cannot restart any item's swing"), Combat->GetActionSerial(), uint32(1));
+        TestEqual(TEXT("Busy melee request performs no line trace"), Combat->GetTargetLineTraceCountForTests(), 0);
+        TestEqual(TEXT("Busy melee request performs no lower sweep"), Combat->GetTargetLowerSweepCountForTests(), 0);
         Advance(0.20f);
         TestEqual(TEXT("Every air swing completes quietly"), Combat->GetFeedback(), EKalmalaCombatFeedback::None);
         TestEqual(TEXT("Every miss preserves held condition"), Pawn->GetToolDurability(Item), Condition);
         Advance(0.20f); Advance(0.20f);
+        Combat->ResetTargetQueryCountsForTests();
         Combat->ServerRequestAttack(1);
         TestEqual(TEXT("Duplicate sequences cannot swing again"), Combat->GetActionSerial(), uint32(1));
+        TestEqual(TEXT("Stale melee request performs no line trace"), Combat->GetTargetLineTraceCountForTests(), 0);
+        TestEqual(TEXT("Stale melee request performs no lower sweep"), Combat->GetTargetLowerSweepCountForTests(), 0);
+        Combat->SetBowDrawingForTests(true);
+        Combat->ResetTargetQueryCountsForTests();
+        Combat->ServerRequestAttack(2);
+        TestEqual(TEXT("Bow-drawing state rejects melee before its line trace"), Combat->GetTargetLineTraceCountForTests(), 0);
+        TestEqual(TEXT("Bow-drawing state rejects melee before its lower sweep"), Combat->GetTargetLowerSweepCountForTests(), 0);
+        Combat->SetBowDrawingForTests(false);
+        if (!Item.IsNone())
+        {
+            auto& MutableTools = const_cast<TArray<FKalmalaToolState>&>(Pawn->GetCarriedToolInventory());
+            auto* MutableTool = MutableTools.FindByPredicate([Item](const auto& Tool) { return Tool.ItemId == Item; });
+            if (!TestNotNull(TEXT("Unavailable-swing fixture has its equipped tool"), MutableTool)) return false;
+            MutableTool->Durability = 0;
+            Combat->ResetTargetQueryCountsForTests();
+            Combat->ServerRequestAttack(2);
+            TestEqual(TEXT("Unavailable melee swing performs no line trace"), Combat->GetTargetLineTraceCountForTests(), 0);
+            TestEqual(TEXT("Unavailable melee swing performs no lower sweep"), Combat->GetTargetLowerSweepCountForTests(), 0);
+            MutableTool->Durability = Condition;
+        }
         auto* Wildlife = World->SpawnActor<AKalmalaWildlifeSpawn>(Origin + FVector(140, 0, 55), FRotator::ZeroRotator);
         // This isolated weapon fixture has no persistent population owner.
         // Mireling defeats now require that owner for their durable gem queue;
