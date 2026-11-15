@@ -9360,8 +9360,7 @@ bool AKalmalaGameMode::RecordBadgerDefeatReward(const FString& PersistentSpawnId
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawnId,
@@ -9383,8 +9382,7 @@ bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawn
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordViperDefeatReward(const FString& PersistentSpawnId,
@@ -9402,8 +9400,7 @@ bool AKalmalaGameMode::RecordViperDefeatReward(const FString& PersistentSpawnId,
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordGiantSnakeDefeatReward(const FString& PersistentSpawnId,
@@ -9421,8 +9418,7 @@ bool AKalmalaGameMode::RecordGiantSnakeDefeatReward(const FString& PersistentSpa
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordDeathAdderDefeatReward(const FString& PersistentSpawnId,
@@ -9440,8 +9436,7 @@ bool AKalmalaGameMode::RecordDeathAdderDefeatReward(const FString& PersistentSpa
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawnId,
@@ -9452,8 +9447,7 @@ bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawn
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
-        return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-            KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+        return WritePopulationSaveObjectToSlot(PopulationSaveGame);
     }
 
     if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
@@ -9477,15 +9471,23 @@ bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawn
                     break;
                 }
             }
-            if (!bFoundExistingClaim) bHasPeatHeart = FMath::FRand() < 0.25f;
+            if (!bFoundExistingClaim)
+            {
+                float RewardRoll = 0.0f;
+#if WITH_DEV_AUTOMATION_TESTS
+                if (WildlifeRewardRollForTests) RewardRoll = WildlifeRewardRollForTests();
+                else
+#endif
+                    RewardRoll = FMath::FRand();
+                bHasPeatHeart = RewardRoll < 0.25f;
+            }
             if (!PopulationSaveGame->TryQueuePendingPeatHuskReward(PersistentSpawnId, Identity, bHasPeatHeart))
                 return false;
         }
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
-    return UGameplayStatics::SaveGameToSlot(PopulationSaveGame,
-        KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0);
+    return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,

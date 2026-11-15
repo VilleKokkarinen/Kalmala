@@ -230,6 +230,8 @@ private:
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
     // Report whether a population-slot write succeeded, including injected failures.
     TFunction<bool(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriteAttemptForTests;
+    // Make optional wildlife reward outcomes deterministic while exercising GameMode callbacks.
+    TFunction<float()> WildlifeRewardRollForTests;
     bool bA9PopulationWriterInstalled = false;
     bool bA9FailNextTreasureSaveWrite = false;
     // Isolate the world-scoped M9 depletion slot while exercising real harvests.

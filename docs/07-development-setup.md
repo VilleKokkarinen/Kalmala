@@ -2454,6 +2454,16 @@ status effect. Focused source contracts may still check distinct authored
 profiles and claim data; they do not add another live loot-delivery,
 defeat-persistence, or combat-replication acceptance.
 
+After the Editor build, run
+`Kalmala.Gameplay.Wildlife.GameModeRewardCallbacks` for isolated callback
+coverage. Its in-memory population writer drives actual server lethal damage
+through `DefeatServer` for Badger, Moon Bear, Viper, Giant Snake, Death Adder,
+Peat Husk, Wolf, Lynx, Polar Bear, Horned Goat, Thunder Sentinel, and Reef Maw.
+It checks authenticated ownership, durable claim and defeated-ID ordering,
+species-specific outcome retention, retry idempotency, and world/identity
+rejection. This automation complements the shared live Rat scenario and does
+not add another per-species peer run.
+
 ## Elderwood Badger contract regression
 
 The editor automation `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach`

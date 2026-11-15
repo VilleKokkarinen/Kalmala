@@ -2,9 +2,12 @@
 
 #include "KalmalaCharacter.h"
 #include "KalmalaGameMode.h"
+#include "KalmalaBiomeClassifier.h"
+#include "KalmalaGemstoneContract.h"
 #include "KalmalaResistanceComponent.h"
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaWorldGenerationGameState.h"
+#include "KalmalaWorldFieldSampler.h"
 #include "KalmalaWorldPopulationLayout.h"
 #include "KalmalaWorldPopulationSaveGame.h"
 #include "Engine/Engine.h"
@@ -32,6 +35,24 @@ bool TryDecodeClaim(const FString& ClaimId, const EKalmalaWildlifeArchetype Arch
     bOutOptionalOutcome = false;
     switch (Archetype)
     {
+    case EKalmalaWildlifeArchetype::Badger:
+        return UKalmalaWorldPopulationSaveGame::TryGetBadgerSpawnIdFromPendingRewardClaimId(
+            ClaimId, OutSpawnId);
+    case EKalmalaWildlifeArchetype::MoonBear:
+        return UKalmalaWorldPopulationSaveGame::TryGetMoonBearSpawnIdFromPendingRewardClaimId(
+            ClaimId, OutSpawnId);
+    case EKalmalaWildlifeArchetype::Viper:
+        return UKalmalaWorldPopulationSaveGame::TryGetViperSpawnIdFromPendingRewardClaimId(
+            ClaimId, OutSpawnId);
+    case EKalmalaWildlifeArchetype::GiantSnake:
+        return UKalmalaWorldPopulationSaveGame::TryGetGiantSnakeSpawnIdFromPendingRewardClaimId(
+            ClaimId, OutSpawnId);
+    case EKalmalaWildlifeArchetype::DeathAdder:
+        return UKalmalaWorldPopulationSaveGame::TryGetDeathAdderSpawnIdFromPendingRewardClaimId(
+            ClaimId, OutSpawnId);
+    case EKalmalaWildlifeArchetype::PeatHusk:
+        return UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
+            ClaimId, OutSpawnId, bOutOptionalOutcome);
     case EKalmalaWildlifeArchetype::Wolf:
         return UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
             ClaimId, OutSpawnId, bOutOptionalOutcome);
@@ -55,10 +76,23 @@ bool TryDecodeClaim(const FString& ClaimId, const EKalmalaWildlifeArchetype Arch
     }
 }
 
-FString MakeClaimId(const EKalmalaWildlifeArchetype Archetype, const FString& SpawnId)
+FString MakeClaimId(const EKalmalaWildlifeArchetype Archetype, const FString& SpawnId,
+    const bool bOptionalOutcome = false)
 {
     switch (Archetype)
     {
+    case EKalmalaWildlifeArchetype::Badger:
+        return UKalmalaWorldPopulationSaveGame::MakeBadgerPendingRewardClaimId(SpawnId);
+    case EKalmalaWildlifeArchetype::MoonBear:
+        return UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(SpawnId);
+    case EKalmalaWildlifeArchetype::Viper:
+        return UKalmalaWorldPopulationSaveGame::MakeViperPendingRewardClaimId(SpawnId);
+    case EKalmalaWildlifeArchetype::GiantSnake:
+        return UKalmalaWorldPopulationSaveGame::MakeGiantSnakePendingRewardClaimId(SpawnId);
+    case EKalmalaWildlifeArchetype::DeathAdder:
+        return UKalmalaWorldPopulationSaveGame::MakeDeathAdderPendingRewardClaimId(SpawnId);
+    case EKalmalaWildlifeArchetype::PeatHusk:
+        return UKalmalaWorldPopulationSaveGame::MakePeatHuskPendingRewardClaimId(SpawnId, bOptionalOutcome);
     case EKalmalaWildlifeArchetype::Wolf:
         return UKalmalaWorldPopulationSaveGame::MakeWolfPendingRewardClaimId(SpawnId, false);
     case EKalmalaWildlifeArchetype::Lynx:
@@ -166,11 +200,67 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
         ++PopulationWriteAttempts;
         return UGameplayStatics::SaveGameToMemory(Candidate, DurablePopulationBytes);
     };
+    int32 PeatHuskRewardRollCalls = 0;
+    Mode->WildlifeRewardRollForTests = [&PeatHuskRewardRollCalls]()
+    {
+        ++PeatHuskRewardRollCalls;
+        return 0.1f;
+    };
 
-    const auto SpawnCreature = [this, World](const EKalmalaWildlifeArchetype Archetype,
+    const auto SpawnCreature = [this, World, Mode, Config](const EKalmalaWildlifeArchetype Archetype,
         const int32 Slot, AKalmalaCharacter* CreditedAttacker) -> AKalmalaWildlifeSpawn*
     {
-        const FVector SpawnLocation(static_cast<double>(Slot) * 1000.0, 0.0, 500.0);
+        FKalmalaWorldPopulationSpawn Descriptor;
+        if (Archetype == EKalmalaWildlifeArchetype::MoonBear)
+        {
+            bool bFoundMoonstoneSpawn = false;
+            for (int32 Y = -64; Y <= 64 && !bFoundMoonstoneSpawn; ++Y)
+            {
+                for (int32 X = -64; X <= 64 && !bFoundMoonstoneSpawn; ++X)
+                {
+                    for (const FKalmalaWorldPopulationSpawn& Candidate :
+                        FKalmalaWorldPopulationLayout::BuildSpawnDescriptors(Config, FIntPoint(X, Y),
+                            EKalmalaWorldPopulationKind::Wildlife))
+                    {
+                        const FString CandidateSpawnId =
+                            FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Candidate);
+                        const EKalmalaBiome Biome = FKalmalaBiomeClassifier::Classify(
+                            FKalmalaWorldFieldSampler::Sample(Config, FVector2D(Candidate.Location)));
+                        EKalmalaWildlifeArchetype CandidateArchetype;
+                        if (Mode->PopulationSaveGame->IsDefeated(CandidateSpawnId)
+                            || Biome != EKalmalaBiome::Elderwood
+                            || !AKalmalaWildlifeSpawn::TryGetSpawnArchetypeForBiome(
+                                Candidate.SpawnSeed, Biome, CandidateArchetype)
+                            || CandidateArchetype != EKalmalaWildlifeArchetype::MoonBear
+                            || FKalmalaGemstoneContract::SelectEnemyGem(true, Biome,
+                                Candidate.SpawnSeed ^ Config.WorldSeed) != TEXT("Moonstone")) continue;
+                        Descriptor = Candidate;
+                        bFoundMoonstoneSpawn = true;
+                        break;
+                    }
+                }
+            }
+            if (!bFoundMoonstoneSpawn)
+            {
+                TestTrue(TEXT("Canonical generated Moon Bear with a Moonstone result is available"), false);
+                return nullptr;
+            }
+            if (Mode->SelectEnemyGemForSpawn(
+                    FKalmalaWorldPopulationLayout::GetPersistentSpawnId(Descriptor), true) != TEXT("Moonstone"))
+            {
+                TestTrue(TEXT("GameMode accepts the fixture's canonical Moonstone spawn"), false);
+                return nullptr;
+            }
+        }
+        else
+        {
+            Descriptor.Kind = EKalmalaWorldPopulationKind::Wildlife;
+            Descriptor.SpatialKey = FIntPoint(Slot, 0);
+            Descriptor.SpawnSeed = 19418ull + static_cast<uint64>(Slot);
+            Descriptor.Location = FVector(static_cast<double>(Slot) * 1000.0, 0.0, 500.0);
+            Descriptor.ContentId = FName(TEXT("wildlife-game-mode-callback"));
+        }
+        const FVector SpawnLocation = Descriptor.Location;
         FActorSpawnParameters SpawnParameters;
         SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
         AKalmalaWildlifeSpawn* Creature = World->SpawnActor<AKalmalaWildlifeSpawn>(
@@ -181,12 +271,6 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
             return nullptr;
         }
 
-        FKalmalaWorldPopulationSpawn Descriptor;
-        Descriptor.Kind = EKalmalaWorldPopulationKind::Wildlife;
-        Descriptor.SpatialKey = FIntPoint(Slot, 0);
-        Descriptor.SpawnSeed = 19418ull + static_cast<uint64>(Slot);
-        Descriptor.Location = SpawnLocation;
-        Descriptor.ContentId = FName(TEXT("wildlife-game-mode-callback"));
         Creature->InitializeServer(Descriptor, Archetype);
         Creature->Health = 1.0f;
         if (UKalmalaResistanceComponent* Resistance = Creature->FindComponentByClass<UKalmalaResistanceComponent>())
@@ -236,6 +320,12 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
     {
         switch (Archetype)
         {
+        case EKalmalaWildlifeArchetype::Badger: return Mode->RecordBadgerDefeatReward(SpawnId, nullptr);
+        case EKalmalaWildlifeArchetype::MoonBear: return Mode->RecordMoonBearDefeatReward(SpawnId, nullptr);
+        case EKalmalaWildlifeArchetype::Viper: return Mode->RecordViperDefeatReward(SpawnId, nullptr);
+        case EKalmalaWildlifeArchetype::GiantSnake: return Mode->RecordGiantSnakeDefeatReward(SpawnId, nullptr);
+        case EKalmalaWildlifeArchetype::DeathAdder: return Mode->RecordDeathAdderDefeatReward(SpawnId, nullptr);
+        case EKalmalaWildlifeArchetype::PeatHusk: return Mode->RecordPeatHuskDefeatReward(SpawnId, nullptr);
         case EKalmalaWildlifeArchetype::Wolf: return Mode->RecordWolfDefeatReward(SpawnId, nullptr);
         case EKalmalaWildlifeArchetype::Lynx: return Mode->RecordLynxDefeatReward(SpawnId, nullptr);
         case EKalmalaWildlifeArchetype::PolarBear: return Mode->RecordPolarBearDefeatReward(SpawnId, nullptr);
@@ -252,6 +342,12 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
         const TCHAR* Name;
     };
     const FSpeciesCase SpeciesCases[] = {
+        { EKalmalaWildlifeArchetype::Badger, TEXT("Badger") },
+        { EKalmalaWildlifeArchetype::MoonBear, TEXT("Moon Bear") },
+        { EKalmalaWildlifeArchetype::Viper, TEXT("Viper") },
+        { EKalmalaWildlifeArchetype::GiantSnake, TEXT("Giant Snake") },
+        { EKalmalaWildlifeArchetype::DeathAdder, TEXT("Death Adder") },
+        { EKalmalaWildlifeArchetype::PeatHusk, TEXT("Peat Husk") },
         { EKalmalaWildlifeArchetype::Wolf, TEXT("Wolf") },
         { EKalmalaWildlifeArchetype::Lynx, TEXT("Lynx") },
         { EKalmalaWildlifeArchetype::PolarBear, TEXT("Polar Bear") },
@@ -326,42 +422,44 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
         if (!TestTrue(FString::Printf(TEXT("%s retry baseline writes through the isolated seam"), Species.Name),
                 Mode->WritePopulationSaveToSlot())) return false;
 
-        if (Species.Archetype == EKalmalaWildlifeArchetype::Lynx)
-        {
-            const FKalmalaWorldGenerationConfig OriginalConfig = Mode->WorldGenerationConfig;
-            const int32 WritesBeforeWorldReject = PopulationWriteAttempts;
-            TArray<uint8> WorldRejectLiveBytes;
-            if (!TestTrue(TEXT("Lynx world-mismatch baseline serializes"),
-                    UGameplayStatics::SaveGameToMemory(Mode->PopulationSaveGame, WorldRejectLiveBytes))) return false;
-            const TArray<uint8> WorldRejectDurableBytes = DurablePopulationBytes;
-            Mode->WorldGenerationConfig.WorldSeed = OriginalConfig.WorldSeed + 1;
-            TestFalse(TEXT("Lynx callback rejects a population save from another world"),
-                Creature->ApplyCombatDamageFromServer(100.0f, Attacker));
-            Mode->WorldGenerationConfig = OriginalConfig;
-            TestFalse(TEXT("Lynx world rejection leaves the actor undefeated"), Creature->IsDefeated());
-            TestTrue(TEXT("Lynx world rejection restores actor health"), Creature->GetHealth() > 0.0f);
-            TestEqual(TEXT("Lynx world rejection does not broadcast defeat"), Observation->BroadcastCount, 0);
-            TestEqual(TEXT("Lynx world rejection performs no slot write"),
-                PopulationWriteAttempts, WritesBeforeWorldReject);
-            TArray<uint8> WorldRejectLiveAfter;
-            TestTrue(TEXT("Lynx live state serializes after world rejection"),
-                UGameplayStatics::SaveGameToMemory(Mode->PopulationSaveGame, WorldRejectLiveAfter));
-            TestTrue(TEXT("Lynx world rejection leaves live save unchanged"),
-                WorldRejectLiveAfter == WorldRejectLiveBytes);
-            TestTrue(TEXT("Lynx world rejection leaves durable bytes unchanged"),
-                DurablePopulationBytes == WorldRejectDurableBytes);
-            TestFalse(TEXT("Lynx world rejection does not add a defeated ID"),
-                Mode->PopulationSaveGame->IsDefeated(SpawnId));
-            TestEqual(TEXT("Lynx world rejection creates no reward claim"),
-                CountClaimsForSpawn(Mode->PopulationSaveGame, Species.Archetype, SpawnId), 0);
-            UKalmalaWorldPopulationSaveGame* WorldRejectReload = Cast<UKalmalaWorldPopulationSaveGame>(
-                UGameplayStatics::LoadGameFromMemory(DurablePopulationBytes));
-            if (!TestNotNull(TEXT("Lynx world-rejection snapshot reloads"), WorldRejectReload)) return false;
-            TestFalse(TEXT("Lynx world rejection leaves the durable defeated ledger unchanged"),
-                WorldRejectReload->IsDefeated(SpawnId));
-            TestEqual(TEXT("Lynx world rejection leaves the durable claim queue unchanged"),
-                CountClaimsForSpawn(WorldRejectReload, Species.Archetype, SpawnId), 0);
-        }
+        const FString SpeciesName(Species.Name);
+        const FKalmalaWorldGenerationConfig OriginalConfig = Mode->WorldGenerationConfig;
+        const int32 WritesBeforeWorldReject = PopulationWriteAttempts;
+        TArray<uint8> WorldRejectLiveBytes;
+        if (!TestTrue(FString::Printf(TEXT("%s world-mismatch baseline serializes"), *SpeciesName),
+                UGameplayStatics::SaveGameToMemory(Mode->PopulationSaveGame, WorldRejectLiveBytes))) return false;
+        const TArray<uint8> WorldRejectDurableBytes = DurablePopulationBytes;
+        Mode->WorldGenerationConfig.WorldSeed = OriginalConfig.WorldSeed + 1;
+        TestFalse(FString::Printf(TEXT("%s callback rejects a population save from another world"), *SpeciesName),
+            Creature->ApplyCombatDamageFromServer(100.0f, Attacker));
+        Mode->WorldGenerationConfig = OriginalConfig;
+        TestFalse(FString::Printf(TEXT("%s world rejection leaves the actor undefeated"), *SpeciesName),
+            Creature->IsDefeated());
+        TestTrue(FString::Printf(TEXT("%s world rejection restores actor health"), *SpeciesName),
+            Creature->GetHealth() > 0.0f);
+        TestEqual(FString::Printf(TEXT("%s world rejection does not broadcast defeat"), *SpeciesName),
+            Observation->BroadcastCount, 0);
+        TestEqual(FString::Printf(TEXT("%s world rejection performs no slot write"), *SpeciesName),
+            PopulationWriteAttempts, WritesBeforeWorldReject);
+        TArray<uint8> WorldRejectLiveAfter;
+        TestTrue(FString::Printf(TEXT("%s live state serializes after world rejection"), *SpeciesName),
+            UGameplayStatics::SaveGameToMemory(Mode->PopulationSaveGame, WorldRejectLiveAfter));
+        TestTrue(FString::Printf(TEXT("%s world rejection leaves live save unchanged"), *SpeciesName),
+            WorldRejectLiveAfter == WorldRejectLiveBytes);
+        TestTrue(FString::Printf(TEXT("%s world rejection leaves durable bytes unchanged"), *SpeciesName),
+            DurablePopulationBytes == WorldRejectDurableBytes);
+        TestFalse(FString::Printf(TEXT("%s world rejection does not add a defeated ID"), *SpeciesName),
+            Mode->PopulationSaveGame->IsDefeated(SpawnId));
+        TestEqual(FString::Printf(TEXT("%s world rejection creates no reward claim"), *SpeciesName),
+            CountClaimsForSpawn(Mode->PopulationSaveGame, Species.Archetype, SpawnId), 0);
+        UKalmalaWorldPopulationSaveGame* WorldRejectReload = Cast<UKalmalaWorldPopulationSaveGame>(
+            UGameplayStatics::LoadGameFromMemory(DurablePopulationBytes));
+        if (!TestNotNull(FString::Printf(TEXT("%s world-rejection snapshot reloads"), *SpeciesName),
+                WorldRejectReload)) return false;
+        TestFalse(FString::Printf(TEXT("%s world rejection leaves the durable defeated ledger unchanged"),
+            *SpeciesName), WorldRejectReload->IsDefeated(SpawnId));
+        TestEqual(FString::Printf(TEXT("%s world rejection leaves the durable claim queue unchanged"),
+            *SpeciesName), CountClaimsForSpawn(WorldRejectReload, Species.Archetype, SpawnId), 0);
 
         const int32 WritesBeforeAccept = PopulationWriteAttempts;
         Observation->ExpectedWritesBeforeBroadcast = WritesBeforeAccept + 1;
@@ -390,6 +488,22 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
             TryDecodeClaim(Claim.PersistentSpawnId, Species.Archetype, DecodedSpawnId, bStoredOptionalOutcome));
         TestEqual(FString::Printf(TEXT("%s claim uses the actor's exact persistent identity"), Species.Name),
             DecodedSpawnId, SpawnId);
+        if (Species.Archetype == EKalmalaWildlifeArchetype::MoonBear)
+        {
+            const FName ExpectedGem = FKalmalaGemstoneContract::MoonstoneSourceAccepted
+                ? Mode->SelectEnemyGemForSpawn(SpawnId, true) : NAME_None;
+            TestEqual(TEXT("Canonical Moon Bear fixture exercises a Moonstone success"),
+                ExpectedGem, FName(TEXT("Moonstone")));
+            TestEqual(TEXT("Moon Bear claim retains the exact seeded optional gem result"),
+                Claim.GemItemId, ExpectedGem);
+        }
+        else if (Species.Archetype == EKalmalaWildlifeArchetype::PeatHusk)
+        {
+            TestTrue(TEXT("Peat Husk claim records the controlled successful optional roll"),
+                bStoredOptionalOutcome);
+            TestEqual(TEXT("Peat Husk claim encodes its one-time optional heart result"),
+                Claim.PersistentSpawnId, MakeClaimId(Species.Archetype, SpawnId, bStoredOptionalOutcome));
+        }
 
         UKalmalaWorldPopulationSaveGame* DurableReload = Cast<UKalmalaWorldPopulationSaveGame>(
             UGameplayStatics::LoadGameFromMemory(DurablePopulationBytes));
@@ -418,6 +532,8 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
             RepeatedClaim.PersistentSpawnId, Claim.PersistentSpawnId);
         TestEqual(FString::Printf(TEXT("%s repeat does not duplicate its claim"), Species.Name),
             CountClaimsForSpawn(Mode->PopulationSaveGame, Species.Archetype, SpawnId), 1);
+        if (Species.Archetype == EKalmalaWildlifeArchetype::PeatHusk)
+            TestEqual(TEXT("Peat Husk repeat keeps its one-time reward roll"), PeatHuskRewardRollCalls, 1);
     }
 
     APlayerState* UnauthenticatedState = World->SpawnActor<APlayerState>();
@@ -427,29 +543,42 @@ bool FKalmalaWildlifeGameModeRewardCallbackTest::RunTest(const FString& Paramete
     TestFalse(TEXT("Unauthenticated PlayerState has no stable owner identity"),
         UnauthenticatedState->GetUniqueId().IsValid());
     UnauthenticatedAttacker->SetPlayerState(UnauthenticatedState);
-    AKalmalaWildlifeSpawn* UncreditedGoat = SpawnCreature(
-        EKalmalaWildlifeArchetype::HornedGoat, Slot, UnauthenticatedAttacker);
-    if (!TestNotNull(TEXT("Uncredited Horned Goat actor created"), UncreditedGoat)) return false;
-    const FString UncreditedSpawnId = UncreditedGoat->GetPersistentSpawnId();
-    const TSharedRef<FDefeatBroadcastObservation> UncreditedObservation = BindSaveOrderObserver(
-        UncreditedGoat, EKalmalaWildlifeArchetype::HornedGoat, UncreditedSpawnId,
-        TEXT("Uncredited Horned Goat"), FString(), false, PopulationWriteAttempts + 1);
-    TestTrue(TEXT("An unauthenticated attacker can defeat without creating a misowned claim"),
-        UncreditedGoat->ApplyCombatDamageFromServer(100.0f, UnauthenticatedAttacker));
-    TestEqual(TEXT("Uncredited defeat broadcasts exactly once"), UncreditedObservation->BroadcastCount, 1);
-    TestTrue(TEXT("Uncredited defeat persists its stable defeated ID"),
-        Mode->PopulationSaveGame->IsDefeated(UncreditedSpawnId));
-    TestEqual(TEXT("Uncredited defeat creates no owner-bound claim"),
-        CountClaimsForSpawn(Mode->PopulationSaveGame, EKalmalaWildlifeArchetype::HornedGoat, UncreditedSpawnId), 0);
-    TestTrue(TEXT("Uncredited defeat still persists before broadcasting"),
-        UncreditedObservation->bSaveWasCommittedBeforeBroadcast);
-    UKalmalaWorldPopulationSaveGame* UncreditedReload = Cast<UKalmalaWorldPopulationSaveGame>(
-        UGameplayStatics::LoadGameFromMemory(DurablePopulationBytes));
-    if (!TestNotNull(TEXT("Uncredited defeat snapshot reloads"), UncreditedReload)) return false;
-    TestTrue(TEXT("Uncredited defeat persists its stable ID to the durable save"),
-        UncreditedReload->IsDefeated(UncreditedSpawnId));
-    TestEqual(TEXT("Uncredited durable save contains no owner-bound claim"),
-        CountClaimsForSpawn(UncreditedReload, EKalmalaWildlifeArchetype::HornedGoat, UncreditedSpawnId), 0);
+    const FSpeciesCase UncreditedSpeciesCases[] = {
+        { EKalmalaWildlifeArchetype::Badger, TEXT("Badger") },
+        { EKalmalaWildlifeArchetype::MoonBear, TEXT("Moon Bear") },
+        { EKalmalaWildlifeArchetype::Viper, TEXT("Viper") },
+        { EKalmalaWildlifeArchetype::GiantSnake, TEXT("Giant Snake") },
+        { EKalmalaWildlifeArchetype::DeathAdder, TEXT("Death Adder") },
+        { EKalmalaWildlifeArchetype::PeatHusk, TEXT("Peat Husk") }
+    };
+    for (const FSpeciesCase& Species : UncreditedSpeciesCases)
+    {
+        const FString SpeciesName(Species.Name);
+        AKalmalaWildlifeSpawn* Creature = SpawnCreature(Species.Archetype, Slot++, UnauthenticatedAttacker);
+        if (!TestNotNull(FString::Printf(TEXT("Uncredited %s actor created"), *SpeciesName), Creature)) return false;
+        const FString SpawnId = Creature->GetPersistentSpawnId();
+        const TSharedRef<FDefeatBroadcastObservation> Observation = BindSaveOrderObserver(
+            Creature, Species.Archetype, SpawnId, FString::Printf(TEXT("Uncredited %s"), *SpeciesName),
+            FString(), false, PopulationWriteAttempts + 1);
+        TestTrue(FString::Printf(TEXT("Unauthenticated %s defeat creates no misowned claim"), *SpeciesName),
+            Creature->ApplyCombatDamageFromServer(100.0f, UnauthenticatedAttacker));
+        TestEqual(FString::Printf(TEXT("Uncredited %s defeat broadcasts exactly once"), *SpeciesName),
+            Observation->BroadcastCount, 1);
+        TestTrue(FString::Printf(TEXT("Uncredited %s defeat persists its stable ID"), *SpeciesName),
+            Mode->PopulationSaveGame->IsDefeated(SpawnId));
+        TestEqual(FString::Printf(TEXT("Uncredited %s defeat creates no owner-bound claim"), *SpeciesName),
+            CountClaimsForSpawn(Mode->PopulationSaveGame, Species.Archetype, SpawnId), 0);
+        TestTrue(FString::Printf(TEXT("Uncredited %s state is durable before broadcasting"), *SpeciesName),
+            Observation->bSaveWasCommittedBeforeBroadcast);
+        UKalmalaWorldPopulationSaveGame* Reloaded = Cast<UKalmalaWorldPopulationSaveGame>(
+            UGameplayStatics::LoadGameFromMemory(DurablePopulationBytes));
+        if (!TestNotNull(FString::Printf(TEXT("Uncredited %s snapshot reloads"), *SpeciesName), Reloaded))
+            return false;
+        TestTrue(FString::Printf(TEXT("Uncredited %s durable state retains the defeated ID"), *SpeciesName),
+            Reloaded->IsDefeated(SpawnId));
+        TestEqual(FString::Printf(TEXT("Uncredited %s durable save contains no owner-bound claim"), *SpeciesName),
+            CountClaimsForSpawn(Reloaded, Species.Archetype, SpawnId), 0);
+    }
 
     return true;
 }

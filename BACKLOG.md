@@ -1243,7 +1243,7 @@
       automation, three-role peer run, and existing crafting owner-presentation run remain deferred to milestone-final
       verification under the one-increment workflow.
 
-  - [ ] **RF46 — Cover remaining wildlife defeat reward callbacks (P3; CR04-021 and CR04-022).**
+  - [x] **RF46 — Cover remaining wildlife defeat reward callbacks (P3; CR04-021 and CR04-022).**
     **Source:** CR04-021 and CR04-022; `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-583`;
       `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8677-8814`;
       `Source/KalmalaGameplay/Private/Tests/KalmalaWildlifeBadgerTest.cpp:91-147`;
@@ -1275,10 +1275,15 @@
       expected persistent spawn ID and outcome, then persists the matching defeated ID. Retry is idempotent and
       preserves any optional roll; invalid world, identity or queue cases create no misplaced claim and do not
       write a false defeat record.
-    **Focused validation:** Build the Editor target, run the new isolated callback automation and the six
-      existing species contract automations. Use the existing Rat peer scenario for the shared
-      delivery/restart/privacy path; a separate per-species peer scenario is not required for those shared
-      checks.
+    **Focused validation:** Build the Editor target, run
+      `Kalmala.Gameplay.Wildlife.GameModeRewardCallbacks` and the six existing species contract automations.
+      Use `Scripts/Tests/Combat/EnemyPeers.ps1 -Scenario SharedCombat` for the shared delivery/restart/privacy
+      path; a separate per-species peer scenario is not required for those shared checks.
+    **Development checks:** `git diff --check` passed. Static inspection confirms all six remaining archetypes use
+      actual lethal damage through `DefeatServer`, with isolated in-memory population writes, exact owner-bound
+      claims and outcome data, durable state before broadcast, retries, conflicting-owner rejection, and
+      world-mismatch rejection. The Editor build, callback automation, six species contract automations, and
+      shared live Rat scenario remain deferred to milestone-final verification under the one-increment workflow.
 
   - [ ] **RF47 — Exercise finite-world movement bounds through remote prediction (P3; CR04-022/CR16-031).**
     `KalmalaWorldBoundaryMovementTest` currently checks an authority pawn and
