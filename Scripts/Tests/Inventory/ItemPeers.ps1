@@ -1,7 +1,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Run')]
 param(
     [Parameter(Mandatory, ParameterSetName = 'Run')]
-    [ValidateSet('CraftEquipment', 'WeaponProgression', 'Meal', 'Antidote', 'PoisonedArrows')]
+    [ValidateSet('CraftEquipment', 'WeaponProgression', 'Meal', 'Antidote', 'OpalHelmMaintenance', 'PoisonedArrows')]
     [string]$Scenario,
     [Parameter(Mandatory, ParameterSetName = 'List')][switch]$ListScenarios,
     [ValidateRange(1024, 65535)][int]$Port = 17892,
@@ -45,6 +45,14 @@ $scenarios = [ordered]@{
         Server = @('A8b Antidote peer server: Passed=1 Craft=2 Payment=1 Output=2 ClearWeak=1 ReduceMajor=1 Resist=1 CooldownReject=1 DosePreserved=1', 'A8b Antidote peer listen host: Passed=1 HostItems=Stable')
         Owner = 'A8b Antidote peer owner: Passed=1 Authority=0 Resistance=1 CooldownReject=1 DosePreserved=1'
         Observer = 'A8b Antidote peer observer: Passed=1 Authority=0 PublicPoisonDamage=1 TargetPrivate=1'
+    }
+    'OpalHelmMaintenance' = @{
+        Description = 'Opal Helm Forge upgrade/repair, rejection cases, cadence and owner privacy'
+        Flag = '-KalmalaOpalHelmPeerTest'
+        Label = 'Opal Helm peer'
+        Server = @('Opal Helm peer server: Passed=1 RemoteOwner=1 WrongLevel=1 Distant=1 Occluded=1 ForeignGuid=1 Insufficient=1 Payment=1 Upgrade=1 Repair=1 Cadence=1', 'Opal Helm peer listen host: Passed=1 OwnHelm=0')
+        Owner = 'Opal Helm peer owner: Passed=1 Authority=0 Upgrade=1 Repair=1 Feedback=1 Cadence=1'
+        Observer = 'Opal Helm peer observer: Passed=1 Authority=0 TargetPrivate=1'
     }
     'PoisonedArrows' = @{
         Description = 'Crafted ammunition, accepted projectile hit and poison tick'

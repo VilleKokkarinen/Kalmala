@@ -33506,3 +33506,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Harvest, claim, crafting, refuel, construction, persistence, rollback, and gain publication remain server-authoritative. Gain details continue through the owner-only receipt path; test save and receipt hooks compile only for Development automation.
 - **Known limitations / remaining scope:** The added automation has not been compiled or run in Unreal. Remote owner and observer privacy coverage remains scheduled for milestone-final verification. RF44 onward and the broader CR remediation goal remain open.
 - **Next eligible task:** RF44 — Add remote Opal Helm Forge-maintenance coverage.
+
+## Run 2026-11-15 — RF44 remote Opal Helm maintenance coverage
+
+- **Selected task:** RF44, add a listen-server peer scenario for remote Opal Helm Forge upgrade and repair RPCs.
+- **Work completed:** Added a Development-only three-role fixture that has the remote owner invoke the actual upgrade and repair RPCs. It checks a visible level-one Forge rejection, distant and occluded Forge rejection, a valid foreign GUID, insufficient Iron, rapid duplicate requests, authored level-two payment and stats, free wear repair, owner result/state delivery, and observer privacy. Registered the scenario in the shared inventory peer runner and documented how to launch it.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Scripts/Tests/Inventory/ItemPeers.ps1`, `Scripts/Tests/README.md`, `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp`, `Source/KalmalaGameplay/Private/KalmalaOpalHelmPeerVerification.cpp`, `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** PowerShell parsing passed; `ItemPeers.ps1 -ListScenarios` listed `OpalHelmMaintenance`; inspected the fixture stages and actual RPC calls; `git diff --check` passed. No Unreal build or gameplay test was run.
+- **Full verification:** Deferred; RF44 is not the final implementation task in the CR remediation milestone. The Editor build, `Kalmala.Gameplay.Inventory.OpalHelm`, the three-role peer scenario, and the existing inventory owner-only check remain uncompiled or unexecuted until milestone-final verification.
+- **Observable impact:** The remote Opal Helm maintenance RPC path now has live peer coverage for accepted upgrade/repair, rejection safety, owner feedback, and private gear replication.
+- **Networking/authority:** The host prepares fixtures and inspects authoritative state; only the owning remote client sends upgrade and repair RPCs. The observer checks that equipped gear stays private. Production gameplay authority and replication behavior were not changed.
+- **Known limitations / remaining scope:** The fixture and scenario have not been compiled or run in Unreal. Runtime behavior remains unverified pending the CR milestone gate. RF45 and the broader CR remediation goal remain open.
+- **Next eligible task:** RF45 — Verify detailed skill replication privacy with an observer.

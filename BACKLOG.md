@@ -1171,7 +1171,7 @@
       and listen-server remote-owner scenario remain deferred to milestone-final
       verification under the one-increment workflow.
 
-  - [ ] **RF44 — Add remote Opal Helm Forge-maintenance coverage (P3; CR04-018).**
+  - [x] **RF44 — Add remote Opal Helm Forge-maintenance coverage (P3; CR04-018).**
     **Source:** CR04-018; `Source/KalmalaGameplay/Private/Tests/KalmalaOpalHelmTest.cpp:13-79`;
       `Source/KalmalaGameplay/Private/KalmalaOpalHelm.cpp:59-89`;
       `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp:407-415`;
@@ -1203,9 +1203,15 @@
       Forge, insufficient material, and too-rapid repeat requests do not change level, condition, or payment.
       The owner receives the updated gear and one owner-only result; the observer receives no private
       equipped-gear data.
-    **Focused validation:** Build the Editor target; run `Kalmala.Gameplay.Inventory.OpalHelm`, the new
-      three-role Opal Helm peer scenario, and the existing `Scripts/Tests/Inventory/Inventory.ps1` owner-only
-      inventory check.
+    **Focused validation:** Build the Editor target; run `Kalmala.Gameplay.Inventory.OpalHelm`,
+      `Scripts/Tests/Inventory/ItemPeers.ps1 -Scenario OpalHelmMaintenance`, and the existing
+      `Scripts/Tests/Inventory/Inventory.ps1` owner-only inventory check.
+    **Development checks:** The PowerShell parser passed and `ItemPeers.ps1 -ListScenarios` lists
+      `OpalHelmMaintenance`. Static inspection confirms the scenario invokes both owner RPCs and checks
+      exact GUID, station level/range/visibility, material payment, cadence, upgrade/repair feedback, and
+      observer privacy. `git diff --check` passed. The Editor build, automation, live peer scenario, and
+      Inventory owner-only check remain deferred to milestone-final verification under the one-increment
+      workflow.
 
   - [ ] **RF45 — Verify detailed skill replication privacy with an observer (P3; CR04-020).**
     **Source:** CR04-020; `Source/KalmalaGameplay/Private/KalmalaSkillProgressionComponent.cpp:46-67`,

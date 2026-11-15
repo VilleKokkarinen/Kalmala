@@ -142,6 +142,7 @@ private:
     void RunA8bPeatHeartStewPeerVerification(float DeltaTime);
     void RunA8bWolfPeltBootsPeerVerification(float DeltaTime);
     void RunA8bFangSpearPeerVerification(float DeltaTime);
+    void RunOpalHelmPeerVerification(float DeltaTime);
 #endif
     void RefreshStorageView();
     bool ClearStorageView();
@@ -321,5 +322,17 @@ private:
     float A8bFangSpearPeerBaselineWildlifeHealth = 0.0f;
     int32 A8bFangSpearPeerObservedOwnerPlayerId = INDEX_NONE;
     bool bA8bFangSpearPeerFixtureObserved = false;
+    int32 OpalHelmPeerStage = 0;
+    float OpalHelmPeerElapsed = 0.0f;
+    TWeakObjectPtr<AKalmalaCharacter> OpalHelmPeerTarget;
+    TWeakObjectPtr<AKalmalaConstructionActor> OpalHelmPeerForge;
+    TWeakObjectPtr<AKalmalaConstructionActor> OpalHelmPeerOccluder;
+    FGuid OpalHelmPeerItemGuid;
+    uint32 OpalHelmPeerResultSerial = 0;
+    int32 OpalHelmPeerObservedOwnerPlayerId = INDEX_NONE;
+    bool bOpalHelmPeerFixtureObserved = false;
+    int32 OpalHelmPeerLocalStage = 0;
+    float OpalHelmPeerLocalElapsed = 0.0f;
+    uint32 OpalHelmPeerLocalResultSerial = 0;
 #endif
 };

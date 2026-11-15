@@ -6387,6 +6387,7 @@ entry point:
 ```powershell
 Scripts/Tests/Inventory/ItemPeers.ps1 -ListScenarios
 Scripts/Tests/Inventory/ItemPeers.ps1 -Scenario CraftEquipment -Port 17892 -Project C:/km/Kalmala.uproject
+Scripts/Tests/Inventory/ItemPeers.ps1 -Scenario OpalHelmMaintenance -Port 17892 -Project C:/km/Kalmala.uproject
 ```
 
 `CraftEquipment` uses Badger Fur Vest for shared craft/payment, GUID delivery,
@@ -6394,6 +6395,10 @@ equip, armor/wear and privacy. `WeaponProgression` retains Fang Spear's distinct
 Forge progression/Main Hand/melee path. `Meal` retains heated Cauldron cooking,
 Steady Meal and repeat-use rejection. `Antidote` covers treatment, resistance and
 cooldown. `PoisonedArrows` covers a real accepted shot, ammo payment and poison.
+`OpalHelmMaintenance` sends the owning remote client through the actual Forge
+upgrade and repair RPCs. It checks wrong Forge level, range and visibility,
+foreign item GUID, insufficient Iron, request cadence, authored upgrade payment,
+free repair, owner feedback, and observer privacy.
 Tonic, Scale Cuirass, Wolf Pelt Boots and Roasted Badger no longer require
 separate live runs of shared behavior. Automation still covers all six wearable
 slots, two-handed equipment and shared recipe transactions.

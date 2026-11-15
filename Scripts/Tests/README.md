@@ -31,11 +31,13 @@ coverage. Each scenario starts a listen host, remote owner and observer:
 | `WeaponProgression` | Fang Spear: Forge progression, Main Hand and accepted melee hit |
 | `Meal` | Peat Heart Stew: heated cooking, consumption, Steady Meal and repeat rejection |
 | `Antidote` | Poison treatment, resistance, cooldown and dose preservation |
+| `OpalHelmMaintenance` | Opal Helm Forge upgrade/repair RPCs, validation, cadence and equipped-gear privacy |
 | `PoisonedArrows` | Fang Arrows: craft, real shot, ammunition cost and poison damage |
 
 ```powershell
 Scripts/Tests/Inventory/ItemPeers.ps1 -ListScenarios
 Scripts/Tests/Inventory/ItemPeers.ps1 -Scenario CraftEquipment -Port 17892 -Project C:/km/Kalmala.uproject
+Scripts/Tests/Inventory/ItemPeers.ps1 -Scenario OpalHelmMaintenance -Port 17892 -Project C:/km/Kalmala.uproject
 ```
 
 `-Editor` overrides the UE executable. `-OutputDirectory` must name a new, short
