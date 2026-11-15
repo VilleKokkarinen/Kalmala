@@ -11044,7 +11044,7 @@ bool AKalmalaGameMode::ClaimM9ExplorationReward(
         return false;
     }
 
-    if (!Inventory->TryCommitStacksFromServer(ExistingStacks, CandidateStacks))
+    if (!Inventory->TryCommitStacksFromServer(ExistingStacks, CandidateStacks, false))
     {
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery reward could not be granted"));
         return false;
@@ -11052,7 +11052,7 @@ bool AKalmalaGameMode::ClaimM9ExplorationReward(
 
     if (!PersistPlayerStateFromServer(Interactor, FString(), FString(), StableIdentity))
     {
-        if (!Inventory->TryCommitStacksFromServer(CandidateStacks, ExistingStacks))
+        if (!Inventory->TryCommitStacksFromServer(CandidateStacks, ExistingStacks, false))
         {
             UE_LOG(LogTemp, Error,
                 TEXT("Failed to roll back inventory for player %s after M9 discovery persistence rejected the claim."),
@@ -11063,6 +11063,10 @@ bool AKalmalaGameMode::ClaimM9ExplorationReward(
     }
 
     SessionM9ExplorationClaims.FindOrAdd(PlayerIdentity).Add(StableIdentity);
+    if (!Inventory->PublishAcceptedGainsFromServer(ExistingStacks, CandidateStacks))
+    {
+        UE_LOG(LogTemp, Error, TEXT("M9 exploration gain receipts could not be published after the claim save succeeded."));
+    }
 
     Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::LandmarkFound,
         FString::Printf(TEXT("%s (+%d %s)"), *Definition->ObservationText,

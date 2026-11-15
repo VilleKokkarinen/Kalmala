@@ -999,8 +999,8 @@
       persistence/restoration.
     **Development checks:** `git diff --check` and source inspection passed. The focused automations and Editor
       build were not run; full verification remains deferred under the one-increment workflow.
-  - [ ] **RF38 — Suppress M9 reward receipts when claim persistence fails (P3; CR04-010).**
-    `KalmalaGameMode.cpp:10269-10282` commits the M9 reward inventory before
+  - [x] **RF38 — Suppress M9 reward receipts when claim persistence fails (P3; CR04-010).**
+    `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:10986-11075` commits the M9 reward inventory before
     saving the player's discovery claim. A failed player-save write rolls back
     the inventory but cannot retract the reliable owner gain receipt emitted by
     the first commit. Stage that receipt until the claim save succeeds, or make
@@ -1012,6 +1012,11 @@
     receipts and run it with the M9 exploration peer scenario after an Editor
     build. Related transaction work: RF30 and RF36. Evidence:
     `Temporary/Review/findings.md#rf38--suppress-m9-reward-receipts-when-claim-persistence-fails-p3`.
+    **Implementation:** The claim now stages inventory with receipts suppressed, restores the prior pack without
+      receipts on save failure, and publishes the exact gain only after the authenticated claim write succeeds.
+      The rollback/retry automation captures owner receipt publication and checks failure, successful retry, and replay.
+    **Development checks:** `git diff --check` and source inspection passed. The focused automation, Editor build,
+      and M9 exploration peer scenario were not run; full verification remains deferred under the one-increment workflow.
   - [ ] **RF39 — Rate-limit repeated storage-close requests (P3; CR04-013).**
     `KalmalaStorageInteraction.cpp:89-92,300` lets the owning client call the
     reliable close RPC without the adjacent 200 ms request gate. Every call

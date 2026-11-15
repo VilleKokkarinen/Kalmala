@@ -1,3 +1,32 @@
+## RF38 — Suppress M9 receipts until claim persistence succeeds — 2026-11-15
+
+- **Work completed:** M9 reward grants now update inventory without publishing
+  an owner receipt, save the authenticated discovery claim, then publish the
+  exact gain once. A failed save restores the previous inventory with receipts
+  suppressed. Extended the isolated GameMode regression to assert no receipt
+  on failure, one matching receipt on the successful retry, and no duplicate
+  receipt on replay.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaM9ExplorationRewardRollbackTest.cpp`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` and source inspection of the M9
+  transaction, rollback and post-save receipt publication passed.
+- **Full verification:** Deferred; RF39 remains in this remediation queue. No
+  Editor build, automation, or M9 exploration peer run was executed.
+- **Observable impact:** Failed player-save writes no longer show a false
+  item-gain receipt after inventory rollback. A recovered claim sends one
+  owner receipt for the catalogue reward; replay sends none.
+- **Networking/authority:** Receipt publication remains an owner-only client
+  RPC initiated by the authoritative GameMode after the player claim is saved.
+  Inventory mutation, save validation and rollback remain server-authoritative.
+- **Known limits:** Receipt and save-failure regression coverage is
+  source-complete but unexecuted. Editor builds, the M9 peer scenario and full
+  automation remain deferred.
+- **Next eligible task:** RF39 — rate-limit repeated storage-close requests.
+  The overall CR remediation goal remains active.
+
 ## RF37 — Keep Ocean save caches reachable through garbage collection — 2026-11-15
 
 - **Work completed:** Marked the Ocean discovery and passenger save maps as

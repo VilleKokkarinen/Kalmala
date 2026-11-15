@@ -1422,6 +1422,12 @@ pawn-lifetime inventory and is lost on reconnect. The claim is not re-awarded;
 the materials remain available from their ordinary sources. This contract does
 not claim general inventory persistence.
 
+M9 land-discovery reward transactions stage inventory without publishing an
+owner gain receipt, persist the authenticated claim, then publish the exact
+owner receipt. If the player-save write fails, the server rolls back the
+candidate inventory (logging if rollback itself fails) and reports the
+unavailable claim without sending a gain receipt.
+
 ## Development save-format policy
 
 The game is still in development and has no user save files to preserve. Do not

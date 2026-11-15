@@ -155,6 +155,7 @@ private:
     friend class AKalmalaGameMode;
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaWorldTreasureClaimTransactionTest;
+    friend class FKalmalaM9ExplorationRewardRollbackTest;
     TFunction<void(FName, int32)> GainReceiptPublicationForTests;
 #endif
     /** Publish receipts only after GameMode has durably committed the related claim. */

@@ -4449,11 +4449,13 @@ discovery's visual presentation in-world.
 `Kalmala.Gameplay.M9.ExplorationRewardRollback` exercises the actual GameMode
 claim transaction with the first authenticated player-save gate rejected. It
 checks exact inventory and item-identity rollback, unavailable owner feedback,
-and the absence of durable or session claims. The same canonical descriptor is
-then retried after persistence recovers; the regression checks the exact
-catalogue quantity, one durable and session claim, owner success feedback, and
-duplicate replay with no extra write or inventory change. Run this test after
-an Editor build with `Kalmala.Gameplay.M9.ExplorationRewardCatalogue`,
+and the absence of durable or session claims. It also records owner gain
+receipts and confirms the rejected save publishes none. The same canonical
+descriptor is then retried after persistence recovers; the regression checks
+the exact catalogue quantity, one matching owner receipt, one durable and
+session claim, owner success feedback, and duplicate replay with no extra
+receipt, write, or inventory change. Run this test after an Editor build with
+`Kalmala.Gameplay.M9.ExplorationRewardCatalogue`,
 `Scripts/Tests/Progression/ExplorationRewards.ps1`, and
 `Kalmala.Gameplay.Discovery.PlayerScopedPersistence`.
 

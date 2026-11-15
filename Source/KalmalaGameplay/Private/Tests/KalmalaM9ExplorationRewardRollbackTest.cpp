@@ -94,10 +94,23 @@ bool FKalmalaM9ExplorationRewardRollbackTest::RunTest(const FString& Parameters)
     if (!TestNotNull(TEXT("M9 player inventory created"), Inventory)
         || !TestNotNull(TEXT("M9 player feedback component created"), Feedback)) return false;
 
+    TArray<uint8> PersistedPlayerBytes;
+    TArray<TPair<FName, int32>> PublishedOwnerReceipts;
+    Inventory->GainReceiptPublicationForTests =
+        [this, &PersistedPlayerBytes, &PublishedOwnerReceipts](const FName ItemId, const int32 Quantity)
+    {
+        TestTrue(TEXT("Owner gain receipt publishes only after player-save persistence succeeds"),
+            !PersistedPlayerBytes.IsEmpty());
+        PublishedOwnerReceipts.Emplace(ItemId, Quantity);
+    };
+    ON_SCOPE_EXIT
+    {
+        if (IsValid(Inventory)) Inventory->GainReceiptPublicationForTests = {};
+    };
+
     int32 LoadAttempts = 0;
     int32 SaveGateAttempts = 0;
     int32 PlayerSaveWriteAttempts = 0;
-    TArray<uint8> PersistedPlayerBytes;
     GameMode->PlayerDiscoverySaveLoaderForTests = [this, &LoadAttempts, ExpectedSlot](
         const FString& Slot, const int32 UserIndex, USaveGame*& OutSaveGame)
     {
@@ -154,6 +167,7 @@ bool FKalmalaM9ExplorationRewardRollbackTest::RunTest(const FString& Parameters)
         HasSameInventoryState(Inventory->GetStacks(), InventoryBeforeClaim));
     TestEqual(TEXT("Rejected M9 claim grants no material"),
         Inventory->GetQuantity(Definition->RewardItemId), RewardQuantityBeforeClaim);
+    TestTrue(TEXT("Rejected M9 claim publishes no owner gain receipt"), PublishedOwnerReceipts.IsEmpty());
     TestTrue(TEXT("Failed first attempt creates no durable player-save bytes"), PersistedPlayerBytes.IsEmpty());
 
     const TObjectPtr<UKalmalaPlayerDiscoverySaveGameV2>* CachedAfterFailure =
@@ -176,6 +190,14 @@ bool FKalmalaM9ExplorationRewardRollbackTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Successful retry publishes one result after the failure"),
         Feedback->GetFeedbackSerial(), FeedbackSerialBeforeRetry + 1);
     TestEqual(TEXT("Only the recovered player-save write reaches the slot writer"), PlayerSaveWriteAttempts, 1);
+    TestEqual(TEXT("Successful retry publishes exactly one owner gain receipt"), PublishedOwnerReceipts.Num(), 1);
+    if (PublishedOwnerReceipts.Num() == 1)
+    {
+        TestEqual(TEXT("Owner receipt identifies the canonical M9 reward"),
+            PublishedOwnerReceipts[0].Key, Definition->RewardItemId);
+        TestEqual(TEXT("Owner receipt reports the exact catalogue quantity"),
+            PublishedOwnerReceipts[0].Value, Definition->RewardQuantity);
+    }
     TestTrue(TEXT("Successful retry creates durable player-save bytes"), !PersistedPlayerBytes.IsEmpty());
 
     UKalmalaPlayerDiscoverySaveGameV2* PersistedSave = Cast<UKalmalaPlayerDiscoverySaveGameV2>(
@@ -203,6 +225,7 @@ bool FKalmalaM9ExplorationRewardRollbackTest::RunTest(const FString& Parameters)
         Feedback->GetFeedbackSerial(), FeedbackSerialBeforeReplay + 1);
     TestEqual(TEXT("Completed replay grants no extra reward"),
         Inventory->GetQuantity(Definition->RewardItemId), RewardQuantityBeforeClaim + Definition->RewardQuantity);
+    TestEqual(TEXT("Completed replay publishes no duplicate owner gain receipt"), PublishedOwnerReceipts.Num(), 1);
     TestTrue(TEXT("Completed replay preserves every granted inventory identity"),
         HasSameInventoryState(Inventory->GetStacks(), InventoryAfterRetry));
     TestEqual(TEXT("Completed replay performs no save attempt"), PlayerSaveWriteAttempts, WritesBeforeReplay);
