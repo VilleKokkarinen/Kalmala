@@ -8,6 +8,7 @@
 #include "KalmalaWildlifeSpawn.h"
 #include "KalmalaM9ExplorationRewardCatalogue.h"
 #include "KalmalaInventoryComponent.h"
+#include "KalmalaToolLifecycleContract.h"
 #include "KalmalaInteractionGrid.h"
 #include "KalmalaGameMode.generated.h"
 
@@ -209,6 +210,7 @@ private:
     friend class FKalmalaOceanTravelWorldSlotFailClosedTest;
     friend class FKalmalaOceanTravelSaveFailureRollbackTest;
     friend class FKalmalaOceanDiscoveryClaimTransactionTest;
+    friend class FKalmalaWorldTreasureClaimTransactionTest;
     // Isolate the owner-scoped Ocean discovery ledger while exercising GameMode claims.
     TFunction<bool(const FString&, int32, class USaveGame*&)> OceanDiscoverySaveLoaderForTests;
     TFunction<bool(class UKalmalaM7PersistenceSaveGame*, const FString&, int32)> OceanDiscoverySaveWriterForTests;
@@ -225,6 +227,8 @@ private:
     TFunction<void(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriterForTests;
     // Report whether a population-slot write succeeded, including injected failures.
     TFunction<bool(class UKalmalaWorldPopulationSaveGame*, const FString&, int32)> PopulationSaveWriteAttemptForTests;
+    bool bA9PopulationWriterInstalled = false;
+    bool bA9FailNextTreasureSaveWrite = false;
     // Isolate the world-scoped M9 depletion slot while exercising real harvests.
     TFunction<class UKalmalaM7PersistenceSaveGame*(const FString&, int32)> M9ResourceSaveLoaderForTests;
     TFunction<bool(class UKalmalaM7PersistenceSaveGame*, const FString&, int32)> M9ResourceSaveWriteAttemptForTests;
@@ -414,6 +418,13 @@ private:
     TWeakObjectPtr<class AKalmalaDiscoveryActor> A9Treasure;
     TArray<FKalmalaInventoryStack> A9MinerBefore;
     TArray<FKalmalaInventoryStack> A9ContenderBefore;
+    TArray<FKalmalaToolState> A9MinerToolsBeforeTreasure;
+    TArray<FKalmalaInventoryStack> A9MinerTreasureExpected;
+    TArray<FKalmalaInventoryStack> A9ContenderTreasureExpected;
+    TArray<FKalmalaInventoryStack> A9TreasureFullPack;
+    TArray<FName> A9TreasureItems;
+    FString A9TreasureIdToFailSave;
+    int32 A9TreasurePhase = 0;
     int32 A9MinerRequestBaseline = 0;
     int32 A9ContenderRequestBaseline = 0;
     int32 A9PickBefore = 0;

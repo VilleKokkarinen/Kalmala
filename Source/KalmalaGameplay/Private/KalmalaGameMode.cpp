@@ -13181,31 +13181,48 @@ bool AKalmalaGameMode::ClaimWorldTreasure(AKalmalaCharacter* Interactor, const F
     FKalmalaTreasureState Claimed = *Existing;
     const auto Before = Inventory->GetStacks();
     auto After = Before;
+    auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>();
+    const auto PublishFailure = [Crafting](const TCHAR* Message)
+    {
+        if (Crafting) Crafting->PublishInteractionResultFromServer(Message, false);
+    };
     FString Reason;
     for (const FName Item : Claimed.Items)
     {
         TArray<FKalmalaInventoryStack> Next;
         if (!UKalmalaInventoryComponent::BuildGrant(After, Item, 1, Next, Reason))
         {
-            if (auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
-                Crafting->PublishInteractionResultFromServer(TEXT("Inventory is full; treasure remains"), false);
+            PublishFailure(TEXT("Inventory is full; treasure remains"));
             return false;
         }
         After = MoveTemp(Next);
     }
-    if (!Inventory->CanFitContents(After, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory()))
-        || !Inventory->TryCommitStacksFromServer(Before, After)) return false;
+    if (!Inventory->CanFitContents(After, Inventory->CountPackedTools(Interactor->GetCarriedToolInventory())))
+    {
+        PublishFailure(TEXT("Inventory is full; treasure remains"));
+        return false;
+    }
+    if (!Inventory->TryCommitStacksFromServer(Before, After, false))
+    {
+        PublishFailure(TEXT("Treasure remains; inventory changed"));
+        return false;
+    }
     Claimed.bClaimed = true;
     auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
     if (!CandidateSave || !CandidateSave->SetTreasure(Claimed) || !CandidateSave->MatchesWorld(WorldGenerationConfig)
-        || !UGameplayStatics::SaveGameToSlot(CandidateSave, KalmalaGameMode::PopulationSaveSlot(WorldGenerationConfig), 0))
+        || !WritePopulationSaveObjectToSlot(CandidateSave))
     {
-        if (!Inventory->TryCommitStacksFromServer(After, Before)) UE_LOG(LogTemp, Error, TEXT("Treasure inventory rollback failed."));
+        if (!Inventory->TryCommitStacksFromServer(After, Before, false))
+            UE_LOG(LogTemp, Error, TEXT("Treasure inventory rollback failed."));
+        PublishFailure(TEXT("Treasure remains; claim could not be saved"));
         return false;
     }
     PopulationSaveGame = CandidateSave;
-    if (auto* Crafting = Interactor->FindComponentByClass<UKalmalaCraftingComponent>())
-        Crafting->PublishInteractionResultFromServer(Claimed.Items.IsEmpty() ? TEXT("Treasure chest is empty") : TEXT("Treasure collected"), true);
+    if (!Inventory->PublishAcceptedGainsFromServer(Before, After))
+        UE_LOG(LogTemp, Error, TEXT("Treasure gain receipts could not be published after the claim save succeeded."));
+    if (Crafting)
+        Crafting->PublishInteractionResultFromServer(
+            Claimed.Items.IsEmpty() ? TEXT("Treasure chest is empty") : TEXT("Treasure collected"), true);
     return true;
 }
 

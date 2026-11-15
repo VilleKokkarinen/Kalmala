@@ -410,7 +410,8 @@ bool UKalmalaInventoryComponent::BuildUnequipGearTransaction(
 
 bool UKalmalaInventoryComponent::TryCommitStacksFromServer(
     const TArray<FKalmalaInventoryStack>& ExpectedBefore,
-    const TArray<FKalmalaInventoryStack>& CandidateAfter)
+    const TArray<FKalmalaInventoryStack>& CandidateAfter,
+    const bool bPublishGainReceipts)
 {
     AActor* Owner = GetOwner();
     TArray<FKalmalaInventoryStack> Candidate = CandidateAfter;
@@ -422,7 +423,20 @@ bool UKalmalaInventoryComponent::TryCommitStacksFromServer(
     const auto Before = Stacks;
     Stacks = MoveTemp(Candidate);
     SynchronizeGridFromServer();
-    RecordAcceptedGains(Before, Stacks);
+    if (bPublishGainReceipts) RecordAcceptedGains(Before, Stacks);
+    Owner->ForceNetUpdate();
+    return true;
+}
+
+bool UKalmalaInventoryComponent::PublishAcceptedGainsFromServer(
+    const TArray<FKalmalaInventoryStack>& ExpectedBefore,
+    const TArray<FKalmalaInventoryStack>& ExpectedAfter)
+{
+    AActor* Owner = GetOwner();
+    if (!Owner || !Owner->HasAuthority() || !IsValidInventoryState(ExpectedBefore, true)
+        || !IsValidInventoryState(ExpectedAfter, true) || !AreInventoryStatesEqual(Stacks, ExpectedAfter)) return false;
+
+    RecordAcceptedGains(ExpectedBefore, ExpectedAfter);
     Owner->ForceNetUpdate();
     return true;
 }

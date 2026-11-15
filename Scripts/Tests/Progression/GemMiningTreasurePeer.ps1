@@ -28,10 +28,12 @@ try {
         $texts = @($logs | ForEach-Object { Read-Log $_ })
         if (($texts -join "`n") -match 'Fatal error:|Assertion failed:|Ensure condition failed:|A9 peer FAILED:') { throw 'A9 peer failure; inspect retained logs.' }
         if (@($peers | Where-Object HasExited).Count) { throw 'An A9 peer exited early.' }
-        $ready = $texts[0] -match 'A9 peer mining: Passed=1 TotalGem=1 SavedOutcome=3 OwningRequests=2' -and $texts[0] -match 'A9 peer treasure: Passed=1 TotalGarnet=1 SavedClaim=1'
+        $ready = $texts[0] -match 'A9 peer mining: Passed=1 TotalGem=1 SavedOutcome=3 OwningRequests=2' -and $texts[0] -match 'A9 peer treasure: Passed=1 TotalGarnet=1 SavedClaim=1 SavedItems=1 CapacityRetry=1 SaveRetry=1'
         foreach ($index in 1,2) {
             $ready = $ready -and $texts[$index] -match 'A9 peer owner stats: Passed=1 .*ForeignGearHidden=1' -and $texts[$index] -match 'A9 peer owning interaction request: Target=KalmalaDiscoveryActor' -and $texts[$index] -match 'A9 peer replicated node: .*Hits=1 Outcome=0' -and $texts[$index] -match 'A9 peer replicated node: .*Hits=3 Outcome=2'
         }
+        $ownerTexts = @($texts[1], $texts[2]) -join "`n"
+        $ready = $ready -and $ownerTexts -match 'A9 peer treasure owner: CapacityFailure=1 GarnetReceiptDelta=0' -and $ownerTexts -match 'A9 peer treasure owner: SaveFailure=1 GarnetReceiptDelta=0' -and $ownerTexts -match 'A9 peer treasure owner: SuccessReceipt=1 GarnetReceiptDelta=1'
         if ($ready) { break }
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
@@ -50,6 +52,6 @@ try {
         Start-Sleep -Milliseconds 500
     } while ((Get-Date) -lt $deadline)
     if ($restart -notmatch 'A9 restart: Passed=1 GemClaimed=1 TreasureClaimed=1') { throw 'A9 restart timed out.' }
-    Write-Output 'PASS: two owning clients mined, retried full packs, contended for one gem and treasure reward, observed private accessory stats and replicated hit progress; a fresh process restored both claimed ledger entries.'
+    Write-Output 'PASS: two owning clients mined, retried full packs, contended for one gem and treasure reward, and observed owner-only treasure capacity/save failures without false receipts before one exact receipt on retry; a fresh process restored both claimed ledger entries.'
 }
 finally { Stop-Peers; Write-Output "A9 evidence: $output" }

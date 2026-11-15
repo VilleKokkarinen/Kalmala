@@ -129,7 +129,7 @@ public:
         TArray<FKalmalaInventoryStack>& After, FString& Reason);
     /** Publish a previously validated candidate only if the live pack still matches its snapshot. */
     bool TryCommitStacksFromServer(const TArray<FKalmalaInventoryStack>& ExpectedBefore,
-        const TArray<FKalmalaInventoryStack>& CandidateAfter);
+        const TArray<FKalmalaInventoryStack>& CandidateAfter, bool bPublishGainReceipts = true);
     bool TryExchangeFromServer(const TArray<FKalmalaInventoryStack>& Costs,
         FName Output, int32 OutputCount, FString& Reason);
     static bool BuildTransfer(const TArray<FKalmalaInventoryStack>& Source,
@@ -152,6 +152,14 @@ protected:
     virtual void BeginPlay() override;
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTick) override;
 private:
+    friend class AKalmalaGameMode;
+#if WITH_DEV_AUTOMATION_TESTS
+    friend class FKalmalaWorldTreasureClaimTransactionTest;
+    TFunction<void(FName, int32)> GainReceiptPublicationForTests;
+#endif
+    /** Publish receipts only after GameMode has durably committed the related claim. */
+    bool PublishAcceptedGainsFromServer(const TArray<FKalmalaInventoryStack>& ExpectedBefore,
+        const TArray<FKalmalaInventoryStack>& ExpectedAfter);
     void RecordAcceptedGains(const TArray<FKalmalaInventoryStack>& Before,
         const TArray<FKalmalaInventoryStack>& After);
     UFUNCTION(Client, Reliable) void ClientAcceptedGain(FName ItemId, int32 Quantity);

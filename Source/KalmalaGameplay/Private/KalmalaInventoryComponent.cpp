@@ -467,7 +467,17 @@ void UKalmalaInventoryComponent::RecordAcceptedGains(const TArray<FKalmalaInvent
     for (const TPair<FName, int32>& Entry : AfterTotals)
     {
         const int32 Increase = Entry.Value - BeforeTotals.FindRef(Entry.Key);
-        if (Increase > 0) ClientAcceptedGain(Entry.Key, Increase);
+        if (Increase > 0)
+        {
+#if WITH_DEV_AUTOMATION_TESTS
+            if (GainReceiptPublicationForTests)
+            {
+                GainReceiptPublicationForTests(Entry.Key, Increase);
+                continue;
+            }
+#endif
+            ClientAcceptedGain(Entry.Key, Increase);
+        }
     }
 }
 

@@ -13,9 +13,26 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "EngineUtils.h"
+#include "Kismet/GameplayStatics.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Crc.h"
 #include "Misc/Parse.h"
+
+namespace
+{
+bool AreA9PeerStacksEqual(const TArray<FKalmalaInventoryStack>& Left,
+    const TArray<FKalmalaInventoryStack>& Right)
+{
+    if (Left.Num() != Right.Num()) return false;
+    for (int32 Index = 0; Index < Left.Num(); ++Index)
+    {
+        if (Left[Index].ItemId != Right[Index].ItemId || Left[Index].Quantity != Right[Index].Quantity
+            || Left[Index].InstanceGuid != Right[Index].InstanceGuid
+            || Left[Index].ItemGuids != Right[Index].ItemGuids) return false;
+    }
+    return true;
+}
+}
 
 void AKalmalaGameMode::DriveA9PeerTest()
 {
@@ -35,6 +52,26 @@ void AKalmalaGameMode::DriveA9PeerTest()
         return;
     }
     if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaA9PeerTest")) || A9PeerStage == 99) return;
+#if WITH_DEV_AUTOMATION_TESTS
+    if (!bA9PopulationWriterInstalled)
+    {
+        PopulationSaveWriteAttemptForTests = [this](UKalmalaWorldPopulationSaveGame* Candidate,
+            const FString& Slot, const int32 UserIndex)
+        {
+            if (bA9FailNextTreasureSaveWrite && Candidate)
+            {
+                const FKalmalaTreasureState* Treasure = Candidate->FindTreasure(A9TreasureIdToFailSave);
+                if (Treasure && Treasure->bClaimed)
+                {
+                    bA9FailNextTreasureSaveWrite = false;
+                    return false;
+                }
+            }
+            return UGameplayStatics::SaveGameToSlot(Candidate, Slot, UserIndex);
+        };
+        bA9PopulationWriterInstalled = true;
+    }
+#endif
     TArray<AKalmalaCharacter*> Players;
     AKalmalaCharacter* Host = nullptr;
     for (auto It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -191,28 +228,147 @@ void AKalmalaGameMode::DriveA9PeerTest()
             for(const auto& Descriptor:FKalmalaWorldPopulationLayout::BuildDiscoveryDescriptors(WorldGenerationConfig,Key,EKalmalaWorldDiscoveryKind::PointOfInterest))
             {
                 const auto Biome=FKalmalaBiomeClassifier::Classify(FKalmalaWorldFieldSampler::Sample(WorldGenerationConfig,FVector2D(Descriptor.Location)));
-                if(!FKalmalaGemstoneContract::SelectTreasure(Biome,Descriptor.DescriptorSeed^WorldGenerationConfig.WorldSeed).Contains(TEXT("Garnet")))continue;
+                const TArray<FName> TreasureItems = FKalmalaGemstoneContract::SelectTreasure(
+                    Biome, Descriptor.DescriptorSeed ^ WorldGenerationConfig.WorldSeed);
+                if (TreasureItems.Num() != 1 || TreasureItems[0] != TEXT("Garnet")) continue;
                 auto* Chest=GetWorld()->SpawnActor<AKalmalaDiscoveryActor>(Descriptor.Location,FRotator::ZeroRotator);
                 if(!Chest){Fail(TEXT("treasure spawn"));return;}
                 Chest->InitializeServer(Descriptor);
                 if(!Chest->HasWorldTreasure() || Chest->IsTreasureClaimed()){Chest->Destroy();continue;}
+                const FString TreasureId = TEXT("treasure:") +
+                    FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Descriptor);
+                const FKalmalaTreasureState* SavedTreasure = PopulationSaveGame
+                    ? PopulationSaveGame->FindTreasure(TreasureId) : nullptr;
+                if (!SavedTreasure || SavedTreasure->Items != TreasureItems || SavedTreasure->bClaimed)
+                { Chest->Destroy(); continue; }
+                auto* MinerInventory = Miner->GetInventoryComponent();
+                auto* ContenderInventory = Players[2]->GetInventoryComponent();
+                if (!MinerInventory || !ContenderInventory)
+                { Chest->Destroy(); Fail(TEXT("treasure inventories")); return; }
+                const FKalmalaToolState* ExistingPick = Miner->GetCarriedToolInventory().FindByPredicate(
+                    [](const FKalmalaToolState& Tool) { return Tool.ItemId == TEXT("StonePick"); });
+                if (!ExistingPick) { Chest->Destroy(); Fail(TEXT("treasure pick fixture")); return; }
+                const FKalmalaToolState PickForBoundary = *ExistingPick;
+                A9MinerToolsBeforeTreasure = Miner->GetCarriedToolInventory();
+                Miner->CarriedTools.Reset();
+                Miner->CarriedTools.Add(PickForBoundary);
+                MinerInventory->SynchronizeGridFromServer();
+                Miner->ForceNetUpdate();
+                A9MinerBefore = MinerInventory->GetStacks();
+                A9ContenderBefore = ContenderInventory->GetStacks();
+                A9TreasureItems = SavedTreasure->Items;
+                const auto BuildExpected = [this](const TArray<FKalmalaInventoryStack>& Before,
+                    TArray<FKalmalaInventoryStack>& OutExpected)
+                {
+                    OutExpected = Before;
+                    FString Reason;
+                    for (const FName Item : A9TreasureItems)
+                    {
+                        TArray<FKalmalaInventoryStack> Next;
+                        if (!UKalmalaInventoryComponent::BuildGrant(OutExpected, Item, 1, Next, Reason)) return false;
+                        OutExpected = MoveTemp(Next);
+                    }
+                    return true;
+                };
+                if (!BuildExpected(A9MinerBefore, A9MinerTreasureExpected)
+                    || !BuildExpected(A9ContenderBefore, A9ContenderTreasureExpected))
+                { Chest->Destroy(); Fail(TEXT("treasure expected pack")); return; }
+                const UKalmalaItemCatalogue* Catalogue = UKalmalaItemCatalogue::Get();
+                if (!Catalogue) { Chest->Destroy(); Fail(TEXT("treasure item catalogue")); return; }
+                TArray<FKalmalaInventoryStack> NearlyFullPack;
+                for (const FKalmalaItemDefinition& Item : Catalogue->Items)
+                {
+                    if (Item.ItemId == TEXT("Garnet")) continue;
+                    TArray<FKalmalaInventoryStack> Candidate;
+                    FString Reason;
+                    if (UKalmalaInventoryComponent::BuildGrant(NearlyFullPack, Item.ItemId, 1, Candidate, Reason)
+                        && Candidate.Num() > NearlyFullPack.Num()) NearlyFullPack = MoveTemp(Candidate);
+                    if (NearlyFullPack.Num() == UKalmalaInventoryComponent::MaxSlots - 1) break;
+                }
+                const TArray<FKalmalaInventoryStack> EmptyPack;
+                if (NearlyFullPack.Num() != UKalmalaInventoryComponent::MaxSlots - 1
+                    || !MinerInventory->TryCommitStacksFromServer(A9MinerBefore, EmptyPack, false)
+                    || !MinerInventory->TryCommitStacksFromServer(EmptyPack, NearlyFullPack, false))
+                { Chest->Destroy(); Fail(TEXT("packed-tool treasure fixture")); return; }
+                TArray<FKalmalaInventoryStack> FullCandidate;
+                FString GrantReason;
+                if (!UKalmalaInventoryComponent::BuildGrant(NearlyFullPack, TEXT("Garnet"), 1,
+                        FullCandidate, GrantReason)
+                    || MinerInventory->CanFitContents(FullCandidate,
+                        MinerInventory->CountPackedTools(Miner->GetCarriedToolInventory())))
+                { Chest->Destroy(); Fail(TEXT("packed-tool treasure boundary")); return; }
                 A9Treasure=Chest;
                 Place(Miner,Descriptor.Location+FVector(-170,0,95),0);
-                Place(Players[2],Descriptor.Location+FVector(0,-170,95),90);
+                Place(Players[2],Descriptor.Location+FVector(-1000,300,95),0);
                 Place(Host,Descriptor.Location+FVector(-1000,0,100),0);
+                A9TreasureFullPack = MoveTemp(NearlyFullPack);
+                A9TreasureIdToFailSave = TreasureId;
+                A9TreasurePhase = 0;
+                A9MinerRequestBaseline = Miner->A9InteractionRequests;
                 A9PeerStage=6;return;
             }
         }
         if(A9SearchIndex>=6561)Fail(TEXT("no unclaimed canonical Garnet treasure"));
     }
-    else if(A9PeerStage==6 && A9Treasure.IsValid() && A9Treasure->IsTreasureClaimed())
+    else if(A9PeerStage==6 && A9Treasure.IsValid())
     {
-        int32 Total=0;for(auto* Pawn:Players)Total+=Pawn->GetInventoryComponent()->GetQuantity(TEXT("Garnet"));
-        const FString Id=TEXT("treasure:")+FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(A9Treasure->GetDescriptor());
-        const auto* Saved=PopulationSaveGame?PopulationSaveGame->FindTreasure(Id):nullptr;
-        if(Total!=1 || !Saved || !Saved->bClaimed){Fail(TEXT("treasure cardinality/save"));return;}
-        UE_LOG(LogTemp,Display,TEXT("A9 peer treasure: Passed=1 TotalGarnet=1 SavedClaim=1 Treasure=%s"),*Id);
-        A9PeerStage=99;
+        auto* Treasure = A9Treasure.Get();
+        auto* MinerInventory = Miner->GetInventoryComponent();
+        auto* MinerCrafting = Miner->FindComponentByClass<UKalmalaCraftingComponent>();
+        const FString Id = TEXT("treasure:") +
+            FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Treasure->GetDescriptor());
+        const FKalmalaTreasureState* Saved = PopulationSaveGame ? PopulationSaveGame->FindTreasure(Id) : nullptr;
+        if (!MinerInventory || !MinerCrafting || !Saved) { Fail(TEXT("treasure claim state")); return; }
+
+        if (A9TreasurePhase == 0)
+        {
+            if (Miner->A9InteractionRequests <= A9MinerRequestBaseline
+                || MinerCrafting->GetLastResult() != TEXT("Inventory is full; treasure remains")) return;
+            if (Treasure->IsTreasureClaimed() || Saved->bClaimed
+                || !AreA9PeerStacksEqual(MinerInventory->GetStacks(), A9TreasureFullPack))
+            { Fail(TEXT("packed-tool treasure failure state")); return; }
+            if (!MinerInventory->TryCommitStacksFromServer(A9TreasureFullPack, A9MinerBefore, false))
+            { Fail(TEXT("restore treasure owner pack")); return; }
+#if WITH_DEV_AUTOMATION_TESTS
+            bA9FailNextTreasureSaveWrite = true;
+#else
+            Fail(TEXT("A9 save failure injection unavailable")); return;
+#endif
+            A9MinerRequestBaseline = Miner->A9InteractionRequests;
+            A9TreasurePhase = 1;
+            return;
+        }
+
+        if (A9TreasurePhase == 1)
+        {
+            if (Miner->A9InteractionRequests <= A9MinerRequestBaseline
+                || MinerCrafting->GetLastResult() != TEXT("Treasure remains; claim could not be saved")) return;
+            if (Treasure->IsTreasureClaimed() || Saved->bClaimed
+                || !AreA9PeerStacksEqual(MinerInventory->GetStacks(), A9MinerBefore))
+            { Fail(TEXT("treasure save failure rollback")); return; }
+            Place(Players[2], Treasure->GetActorLocation() + FVector(0,-170,95), 90);
+            A9TreasurePhase = 2;
+            return;
+        }
+
+        if (A9TreasurePhase == 2 && Treasure->IsTreasureClaimed())
+        {
+            auto* ContenderInventory = Players[2]->GetInventoryComponent();
+            const int32 TotalGarnet = MinerInventory->GetQuantity(TEXT("Garnet"))
+                + ContenderInventory->GetQuantity(TEXT("Garnet"));
+            const bool bMinerReceived = AreA9PeerStacksEqual(MinerInventory->GetStacks(), A9MinerTreasureExpected)
+                && AreA9PeerStacksEqual(ContenderInventory->GetStacks(), A9ContenderBefore);
+            const bool bContenderReceived = AreA9PeerStacksEqual(ContenderInventory->GetStacks(), A9ContenderTreasureExpected)
+                && AreA9PeerStacksEqual(MinerInventory->GetStacks(), A9MinerBefore);
+            if (TotalGarnet != 1 || !Saved->bClaimed || Saved->Items != A9TreasureItems
+                || bMinerReceived == bContenderReceived)
+            { Fail(TEXT("treasure cardinality, contents, or saved claim")); return; }
+            Miner->CarriedTools = A9MinerToolsBeforeTreasure;
+            MinerInventory->SynchronizeGridFromServer();
+            Miner->ForceNetUpdate();
+            UE_LOG(LogTemp,Display,TEXT("A9 peer treasure: Passed=1 TotalGarnet=1 SavedClaim=1 SavedItems=1 CapacityRetry=1 SaveRetry=1 Treasure=%s"),*Id);
+            A9PeerStage=99;
+        }
     }
 #endif
 }
@@ -252,6 +408,94 @@ void AKalmalaCharacter::VerifyA9Peer()
         {Target=*It;bMine=It->GetGemOutcome()==0;break;}
     if(!Target)for(TActorIterator<AKalmalaDiscoveryActor> It(GetWorld());It;++It)
         if(It->HasWorldTreasure() && !It->IsTreasureClaimed() && FVector::DistSquared(GetActorLocation(),It->GetActorLocation())<FMath::Square(240.f)) {Target=*It;break;}
+    auto* Crafting = FindComponentByClass<UKalmalaCraftingComponent>();
+    const auto GetGarnetReceiptTotals = [this](int32& OutCount, int32& OutQuantity)
+    {
+        OutCount = 0;
+        OutQuantity = 0;
+        for (const FKalmalaItemGainReceipt& Receipt : Inventory->GetGainReceipts())
+            if (Receipt.ItemId == TEXT("Garnet"))
+            { ++OutCount; OutQuantity += Receipt.Quantity; }
+    };
+    if (const auto* Treasure = Cast<AKalmalaDiscoveryActor>(Target))
+    {
+        const FString Id = TEXT("treasure:") +
+            FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(Treasure->GetDescriptor());
+        if (A9TreasureOwnerObservedId != Id)
+        {
+            A9TreasureOwnerObservedId = Id;
+            A9TreasureOwnerLastResultSerial = Crafting ? Crafting->GetResultSerial() : 0;
+            GetGarnetReceiptTotals(A9TreasureOwnerGarnetReceiptCountBaseline,
+                A9TreasureOwnerGarnetQuantityBaseline);
+            A9TreasureOwnerPendingFailure = 0;
+            A9TreasureOwnerFailureCheckTime = 0.0;
+            bA9TreasureOwnerSuccessResultObserved = false;
+            A9TreasureOwnerSuccessReceiptDeadline = 0.0;
+            bA9TreasureOwnerCapacityFailureObserved = false;
+            bA9TreasureOwnerSaveFailureObserved = false;
+            bA9TreasureOwnerSuccessReceiptObserved = false;
+        }
+    }
+    if (Crafting && Inventory && !A9TreasureOwnerObservedId.IsEmpty()
+        && Crafting->GetResultSerial() != A9TreasureOwnerLastResultSerial)
+    {
+        A9TreasureOwnerLastResultSerial = Crafting->GetResultSerial();
+        const FString Result = Crafting->GetLastResult();
+        if (Result == TEXT("Inventory is full; treasure remains")
+            && !bA9TreasureOwnerCapacityFailureObserved)
+        {
+            A9TreasureOwnerPendingFailure = 1;
+            A9TreasureOwnerFailureCheckTime = GetWorld()->GetTimeSeconds() + 0.5;
+        }
+        else if (Result == TEXT("Treasure remains; claim could not be saved")
+            && !bA9TreasureOwnerSaveFailureObserved)
+        {
+            A9TreasureOwnerPendingFailure = 2;
+            A9TreasureOwnerFailureCheckTime = GetWorld()->GetTimeSeconds() + 0.5;
+        }
+        else if (Result == TEXT("Treasure collected") && !bA9TreasureOwnerSuccessResultObserved)
+        {
+            bA9TreasureOwnerSuccessResultObserved = true;
+            A9TreasureOwnerSuccessReceiptDeadline = GetWorld()->GetTimeSeconds() + 5.0;
+        }
+    }
+    const double A9Now = GetWorld()->GetTimeSeconds();
+    if (A9TreasureOwnerPendingFailure != 0 && A9Now >= A9TreasureOwnerFailureCheckTime)
+    {
+        int32 GarnetReceiptCount = 0;
+        int32 GarnetReceiptQuantity = 0;
+        GetGarnetReceiptTotals(GarnetReceiptCount, GarnetReceiptQuantity);
+        if (GarnetReceiptCount != A9TreasureOwnerGarnetReceiptCountBaseline
+            || GarnetReceiptQuantity != A9TreasureOwnerGarnetQuantityBaseline)
+            UE_LOG(LogTemp, Error, TEXT("A9 peer FAILED: owner received a Garnet receipt on treasure failure"));
+        else if (A9TreasureOwnerPendingFailure == 1)
+        {
+            bA9TreasureOwnerCapacityFailureObserved = true;
+            UE_LOG(LogTemp, Display, TEXT("A9 peer treasure owner: CapacityFailure=1 GarnetReceiptDelta=0"));
+        }
+        else
+        {
+            bA9TreasureOwnerSaveFailureObserved = true;
+            UE_LOG(LogTemp, Display, TEXT("A9 peer treasure owner: SaveFailure=1 GarnetReceiptDelta=0"));
+        }
+        A9TreasureOwnerPendingFailure = 0;
+    }
+    if (bA9TreasureOwnerSuccessResultObserved && !bA9TreasureOwnerSuccessReceiptObserved)
+    {
+        int32 GarnetReceiptCount = 0;
+        int32 GarnetReceiptQuantity = 0;
+        GetGarnetReceiptTotals(GarnetReceiptCount, GarnetReceiptQuantity);
+        if (GarnetReceiptCount == A9TreasureOwnerGarnetReceiptCountBaseline + 1
+            && GarnetReceiptQuantity == A9TreasureOwnerGarnetQuantityBaseline + 1)
+        {
+            bA9TreasureOwnerSuccessReceiptObserved = true;
+            UE_LOG(LogTemp, Display, TEXT("A9 peer treasure owner: SuccessReceipt=1 GarnetReceiptDelta=1"));
+        }
+        else if (GarnetReceiptCount > A9TreasureOwnerGarnetReceiptCountBaseline + 1
+            || GarnetReceiptQuantity > A9TreasureOwnerGarnetQuantityBaseline + 1
+            || A9Now >= A9TreasureOwnerSuccessReceiptDeadline)
+            UE_LOG(LogTemp, Error, TEXT("A9 peer FAILED: owner treasure retry receipt did not match the saved reward"));
+    }
     if(!Target){A9NextActionTime=0;return;}
     FVector View;FRotator ViewRotation;Controller->GetPlayerViewPoint(View,ViewRotation);
     Controller->SetControlRotation((Target->GetActorLocation()-View).Rotation());

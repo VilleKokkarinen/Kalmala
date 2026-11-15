@@ -176,6 +176,17 @@ private:
     double A9NextActionTime = 0;
     int32 A9LastLootCycle = -1;
     int32 A9InteractionRequests = 0;
+    FString A9TreasureOwnerObservedId;
+    uint32 A9TreasureOwnerLastResultSerial = 0;
+    int32 A9TreasureOwnerGarnetReceiptCountBaseline = 0;
+    int32 A9TreasureOwnerGarnetQuantityBaseline = 0;
+    int32 A9TreasureOwnerPendingFailure = 0;
+    double A9TreasureOwnerFailureCheckTime = 0.0;
+    bool bA9TreasureOwnerSuccessResultObserved = false;
+    double A9TreasureOwnerSuccessReceiptDeadline = 0.0;
+    bool bA9TreasureOwnerCapacityFailureObserved = false;
+    bool bA9TreasureOwnerSaveFailureObserved = false;
+    bool bA9TreasureOwnerSuccessReceiptObserved = false;
     void VerifyConstructionMovement(float DeltaSeconds);
     void VerifyForestDelivery(float DeltaSeconds);
     void VerifyForestStreaming();

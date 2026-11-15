@@ -1,3 +1,45 @@
+## RF36 — Keep treasure failure feedback consistent — 2026-11-15
+
+- **Work completed:** Combined packed-tool capacity rejection now publishes the
+  owner-facing “Inventory is full; treasure remains” result. Treasure grants
+  suppress gain receipts while the inventory candidate is staged, persist the
+  claimed treasure record, then publish receipts and success. Failed writes
+  restore the previous pack, retain the chest, publish a save-failure result,
+  and emit no gain receipt. Added a GameMode transaction regression covering
+  packed-tool capacity, failed save, recovered exact grant, and replay. Extended
+  the A9 peer fixture and runner to exercise the owner messages and receipt
+  behavior across two clients.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaInventoryComponent.h`,
+  `Source/KalmalaGameplay/Private/Tests/KalmalaWorldTreasureClaimTransactionTest.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaA9PeerTest.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+  `Scripts/Tests/Progression/GemMiningTreasurePeer.ps1`,
+  `docs/02-technical-architecture.md`, `docs/07-development-setup.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check`, PowerShell parser validation for
+  the A9 peer runner, and static inspection of the claim, rollback, receipt,
+  authority and peer marker paths passed.
+- **Full verification:** Deferred; this is not the final task in the current
+  remediation queue. No Unreal build, automation test, or live A9 peer/restart
+  run was executed.
+- **Observable impact:** Packed-tool capacity failures now explain why an A9
+  chest remains open. Save failures cannot show a false item-gain notice after
+  pack rollback. Recovery persists the claim and sends the owner the exact
+  reward receipt once.
+- **Networking/authority:** Claim validation, inventory staging and population
+  save writes remain server-authoritative. Failure and success results use the
+  owning character's replicated crafting feedback; gain receipts are published
+  only after the save succeeds.
+- **Known limits:** The focused GameMode regression and updated A9 peer/restart
+  scenario are source-complete but have not been executed. Editor/Game builds,
+  full automation and live two-client persistence evidence remain deferred.
+- **Next eligible task:** RF37 — keep per-player Ocean save caches reachable
+  through garbage collection. The overall CR remediation goal remains active.
+
 ## RF35 — Reconcile four-player terrain neighborhoods — 2026-11-13
 
 - **Work completed:** Raised the server terrain-patch cap from 25 to 36, matching

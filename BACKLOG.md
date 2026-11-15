@@ -926,7 +926,7 @@
       remain deferred to milestone-final verification, including a measured memory/replication profile at the
       new cap.
 
-  - [ ] **RF36 — Keep treasure failure feedback consistent with the claim transaction (P3; CR03-001b-113).**
+  - [x] **RF36 — Keep treasure failure feedback consistent with the claim transaction (P3; CR03-001b-113).**
     **Source:** CR03-001b-113; `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:12007-12030`,
       `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp:411-427`,
       `Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp:459-471`,
@@ -953,8 +953,14 @@
       inventory, save and chest unchanged and tells the owner the treasure remains. An injected treasure-save
       failure leaves inventory and chest unchanged and emits no gain receipt. After capacity or storage
       recovers, retry grants the exact contents once and persists one claimed record.
-    **Focused validation:** Add a GameMode transaction regression for the packed-tool slot boundary and save
-      failure, then run the A9 peer treasure claim/retry with owner notifications observed.
+    **Implementation:** Combined packed-tool capacity now reports the same owner-facing full-pack result as
+      grant construction failure. Inventory mutation suppresses gain receipts until the claimed treasure save
+      succeeds; a failed write rolls inventory back and reports that the treasure remains. Added a GameMode
+      transaction regression and extended the A9 peer runner to inject the save failure, observe both owner
+      failures without Garnet receipts, and verify one exact owner receipt after recovery.
+    **Lightweight checks:** `git diff --check`, PowerShell parser validation for the peer runner, and source
+      inspection passed. The Editor automation and live two-client peer/restart run were not executed; full
+      verification remains deferred under the normal one-increment workflow.
 
   - [ ] **RF37 — Keep per-player Ocean save caches reachable through garbage collection (P2; CR03-002).**
     **Source:** CR03-002; `Source/KalmalaGameplay/Public/KalmalaGameMode.h:567,570`,
