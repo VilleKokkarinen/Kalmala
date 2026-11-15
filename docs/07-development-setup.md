@@ -349,11 +349,18 @@ attack-exclusion and axe-only targetless descriptions below are historical.
 
 ## Nearby pickup regression — 2026-10-17
 
-Options > Accessibility > Automatic pickup defaults on and persists locally.
-It collects loose materials and broken-tree bundles within 150 cm, with server
-visibility and full-capacity checks. With it off, aim and use the existing
-Action/Interact binding; the crosshair shows `Pickup Wood` or `Pickup 2 Wood`.
-Manual pickup also remains available when automatic pickup is enabled.
+Options > Accessibility > Automatic pickup defaults on and persists locally as
+`LocalAutomaticPickup` in `GameUserSettings`. When the option, owning pawn, or
+controller changes, the local-player subsystem sends the pawn's reliable
+`ServerSetAutomaticPickupEnabled` RPC with only the boolean preference. The
+server keeps it transient and non-replicated. Its periodic scan selects current
+materialized drops and validates authority, same-world/living state, the 150 cm
+radius, visibility, and full inventory capacity before granting the
+server-selected item and quantity. The client supplies no drop target, item ID,
+or quantity, and no gameplay save field is added. With automatic pickup off,
+aim and use the existing Action/Interact binding; the crosshair shows
+`Pickup Wood` or `Pickup 2 Wood`. Manual pickup also remains available when
+automatic pickup is enabled.
 
 Short-mirror normal-access Development Editor incremental builds passed;
 last build `kmforest/auto-pickup-final-build.log`, four actions, exit 0. Final
@@ -3040,7 +3047,7 @@ After building, run `Scripts/Tests/World/Minimap.ps1 -Rendered -Width 1920 -Heig
 
 ## Local settings menu
 
-Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden until a candidate setting is selected. Graphics applies and saves resolution, V-Sync, window mode, render distance, and the local ray-tracing quality choice. Compatibility is the default; Balanced appears only when Windows DX12, SM6, project, shader-platform, and RHI support are present. Render distance is a snapped 64–576 m slider in 32 m increments. Its selected value caps the maximum draw distance of registered local-world primitive components while retaining any shorter authored component limit. The preferences are stored in the local `GameUserSettings` config. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. This is local presentation/preferences only: no setting, menu action, or quit request is sent to the server.
+Press Escape during normal play to open the local Settings menu; press Escape again to close it and restore game input. The menu's main screen provides Options and Quit. Options contains Keyboard & Mouse, Controller, Graphics, Audio, and Accessibility groups; Gameplay stays hidden until a candidate setting is selected. Graphics applies and saves resolution, V-Sync, window mode, render distance, and the local ray-tracing quality choice. Compatibility is the default; Balanced appears only when Windows DX12, SM6, project, shader-platform, and RHI support are present. Render distance is a snapped 64–576 m slider in 32 m increments. Its selected value caps the maximum draw distance of registered local-world primitive components while retaining any shorter authored component limit. The preferences are stored in the local `GameUserSettings` config. Run `Kalmala.UI.Settings.LocalPresentation` after an editor build for the render-distance bounds seam. Except for the Automatic pickup preference described below, setting changes, menu actions, and quit requests stay local and send no RPC.
 
 Graphics provides common resolution presets and an optional custom width/height
 input. Custom dimensions accept whole pixels from 320–7680 wide and 240–4320

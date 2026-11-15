@@ -2310,7 +2310,10 @@ or replicated to another player.
 
 This document defines the local settings and accessibility surface for the
 existing Kalmala settings shell. It covers presentation and input preferences
-only; it does not add gameplay tuning, a replicated option, a server setting,
+plus the existing Automatic pickup preference. Automatic pickup remains locally
+persisted but sends an owning-pawn boolean RPC that controls whether the
+server-owned pickup scan runs; it adds no replicated preference or save field.
+Other settings do not add gameplay tuning, replicated options, server settings,
 or a new save schema.
 
 M11 places Wet, meal, exposure, support and weather status markers in one
@@ -2705,15 +2708,27 @@ size and leaves a 16-unit inset at each edge when the available area is smaller.
 
 ## Local storage and authority boundary
 
-Settings are local presentation preferences. Graphics ray-tracing quality is
-stored in the local `GameUserSettings` configuration; Compatibility is the
-default, and Balanced is only applied after the runtime renderer capability
-gate succeeds. These settings may use the existing local
-user/configuration path alongside `GameUserSettings`, but must not be written
-to world saves, player progression saves, sparse world deltas, or replicated
-properties. Changing a setting sends no RPC and cannot alter world identity,
-terrain, population, interaction validation, weather, exposure, inventory,
-construction, combat, discoveries, learned effects, rewards, or persistence.
+Presentation, audio, accessibility, and input settings are local preferences.
+Graphics ray-tracing quality is stored in the local `GameUserSettings`
+configuration; Compatibility is the default, and Balanced is only applied after
+the runtime renderer capability gate succeeds. These preferences may use the
+existing local user/configuration path alongside `GameUserSettings`, but must
+not be written to world saves, player progression saves, sparse world deltas, or
+replicated properties. Changing them sends no RPC and cannot alter world
+identity, terrain, population, interaction validation, weather, exposure,
+inventory, construction, combat, discoveries, learned effects, rewards, or
+persistence.
+
+Automatic pickup is the explicit gameplay-facing settings exception. The
+settings widget persists `LocalAutomaticPickup` in `GameUserSettings`, and the
+local-player subsystem sends only its boolean through the reliable
+`ServerSetAutomaticPickupEnabled` RPC when the owning pawn/controller changes
+or the option changes. The server keeps this preference transient and
+non-replicated. Its own scan selects materialized drops and validates authority,
+same-world/living state, the 150 cm radius, visibility, and full inventory
+capacity. Only after those checks does the server grant the drop's item and
+quantity. The client supplies no target, item ID, or quantity; the preference
+adds no gameplay save field.
 
 The server continues to own gameplay outcomes. A client may use a local
 control binding to express the same existing movement or narrow action intent,
@@ -2737,7 +2752,11 @@ results; it creates no request, target, reward, or hidden-content indication.
 The runtime implementation is accepted when a fresh local profile can open,
 navigate, change, cancel, apply, reset, and persist each option group with
 keyboard and controller bindings, while a second player observes no
-replicated settings state. `Scripts/Tests/Presentation/SettingsAccessibility.ps1` runs
+replicated settings state. The Automatic pickup exception is covered separately
+by `Kalmala.UI.Settings.AutomaticPickup` and
+`Kalmala.Gameplay.Pickup.AutomaticRadius`: its boolean preference controls only
+server-selected pickups and creates no client-selected grant, replicated
+preference, or save field. `Scripts/Tests/Presentation/SettingsAccessibility.ps1` runs
 isolated host/client profiles, opens the Escape shell and live Keyboard & Mouse,
 Controller, Graphics, Audio, and Accessibility groups; it checks focusable targets, modal input
 ownership, and Escape recovery, persists every local option, and compares the

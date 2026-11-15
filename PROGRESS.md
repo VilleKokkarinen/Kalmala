@@ -33614,3 +33614,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Production selection remains server-authoritative and restricted to the server-local menu controller. Test fixtures and the actual save-listing invocation counter are Development-only; the peer scenario exercises the reliable RPC and client reply path using isolated per-peer save directories.
 - **Known limitations / remaining scope:** The Editor automation and live menu-map peer scenario have not been run. RF53 and the broader CR remediation goal remain open.
 - **Next eligible task:** RF53 — Reconcile Automatic Pickup with the settings authority contract.
+
+## Run 2026-11-15 — RF53 Automatic Pickup settings authority contract
+
+- **Selected task:** RF53, reconcile the Automatic pickup setting with the local settings and server-authority contract.
+- **Work completed:** Updated the architecture and development setup docs to record Automatic pickup as the explicit gameplay-facing settings exception. Both documents now describe the locally persisted boolean, reliable owning-pawn RPC, transient non-replicated server preference, server-selected drop candidates and quantities, and server-side authority, world, life, range, visibility, and capacity checks. Clarified that other settings, menu actions, and quit requests remain local, and linked the existing focused settings and pickup automations in the settings acceptance wording. Checked RF53 in the backlog.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** Compared the revised contract against the settings subsystem, character RPC, and harvest-node validation; `git diff --check` passed; all changed paths are below 260 characters. No code or test expectations changed, so no Unreal automation was run.
+- **Full verification:** Deferred; RF53 is not the final implementation task in the CR remediation milestone. The existing settings and automatic-pickup automations remain for the milestone verification gate.
+- **Observable impact:** The architecture and development setup now describe the same Automatic pickup behavior and clarify which settings send no RPC.
+- **Networking/authority:** The client sends only the boolean preference. The server chooses drops and quantities, validates eligible pickup state and capacity, and performs grants. The preference remains transient, non-replicated, and absent from save data.
+- **Known limitations / remaining scope:** Runtime settings and pickup behavior were not retested in this documentation-only increment. The remaining CR remediation work is still open.
+- **Next eligible task:** RF54 — Reconcile the current HUD ownership contract.

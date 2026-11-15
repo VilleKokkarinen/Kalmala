@@ -1511,7 +1511,7 @@
       gameplay travel. PowerShell parser validation and `git diff --check`
       passed; the Editor build, focused automations, and live peer scenario are
       deferred to CR milestone-final verification.
-  - [ ] **RF53 — Reconcile Automatic Pickup with the settings authority contract (P3; CR04-042).**
+  - [x] **RF53 — Reconcile Automatic Pickup with the settings authority contract (P3; CR04-042).**
     `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp:139-166`,
     `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp:1606-1618,2258-2263`,
     `Source/KalmalaGameplay/Public/KalmalaCharacter.h:74-78`,
