@@ -65,6 +65,7 @@ public:
     static FTransform SampleTreeFallPose(float Progress, float TrunkRadius);
 #if !UE_BUILD_SHIPPING
     const FVector4& GetForestDimensionsForVerification() const { return ForestDimensions; }
+    float GetTreeHealthForVerification() const { return TreeHealth; }
 #endif
     bool CanReceiveAxeAttack() const { return IsTreeResource() && !bHarvested && TreeStage < 2; }
     /** Settled timber uses its server-built surface, not the unmoved identity root. */

@@ -65,6 +65,24 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
     World->GetWorldSettings()->DefaultGameMode = AKalmalaGameMode::StaticClass();
     if (!World->SetGameMode(FURL())) return false;
     World->InitializeActorsForPlay(FURL());
+    auto* GameMode = World->GetAuthGameMode<AKalmalaGameMode>();
+    if (!TestNotNull(TEXT("All-item swing fixture GameMode exists"), GameMode)) return false;
+    int32 PlayerSaveWrites = 0;
+    GameMode->PlayerDiscoverySaveLoaderForTests = [](const FString&, int32, USaveGame*& OutSave)
+    {
+        OutSave = nullptr;
+        return false;
+    };
+    GameMode->PlayerDiscoverySaveWriterForTests = [&PlayerSaveWrites](UKalmalaPlayerDiscoverySaveGameV2*, const FString&, int32)
+    {
+        ++PlayerSaveWrites;
+        return true;
+    };
+    ON_SCOPE_EXIT
+    {
+        GameMode->PlayerDiscoverySaveLoaderForTests = {};
+        GameMode->PlayerDiscoverySaveWriterForTests = {};
+    };
     const auto* Catalogue = UKalmalaToolCatalogue::Get();
     if (!TestNotNull(TEXT("All carried item profiles load"), Catalogue)) return false;
     TArray<FName> Items;
@@ -162,20 +180,98 @@ bool FKalmalaAllItemSwingTest::RunTest(const FString& Parameters)
             Wildlife->GetHealth(), FMath::Max(0.0f, FixtureHealth - (AuthoredDamage > 0 ? AuthoredDamage : 25.0f)));
         TestTrue(FString::Printf(TEXT("%s reports a validated wildlife hit"), *Item.ToString()),
             Combat->GetFeedback() == EKalmalaCombatFeedback::Hit || Combat->GetFeedback() == EKalmalaCombatFeedback::Defeat);
-        if (Item == TEXT("ConstructionHammer") || Item == TEXT("Bow"))
-        {
-            FKalmalaWorldPopulationSpawn Spawn;
-            Spawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
-            Spawn.ContentId = TEXT("meadows-birch-trunk");
-            Spawn.Location = Origin + FVector(100, 0, 0);
-            auto* Tree = World->SpawnActor<AKalmalaHarvestNode>();
-            Tree->InitializeServer(Spawn);
-            FKalmalaDamageChannels Damage; Damage.Crush = 25;
-            TestFalse(TEXT("Improvised melee never bypasses the axe harvesting gate"), Tree->ApplyAxeDamageFromServer(Pawn, Damage));
-        }
         Pawn->Destroy();
     }
-    AddInfo(FString::Printf(TEXT("Verified free swing, arm animation and actual hit for %d carried profiles plus empty hands."), Items.Num() - 1));
+
+    const FName NonAxeMeleeItem(TEXT("StoneKnife"));
+    TestTrue(TEXT("Stone Knife is an allowed melee item"), UKalmalaCombatComponent::IsAttackItemAllowed(NonAxeMeleeItem));
+    TestTrue(TEXT("Stone Knife receives the all-item wildlife hit checks"), Items.Contains(NonAxeMeleeItem));
+    const FVector GateOrigin(0, 12000, 0);
+    auto* NonAxePawn = World->SpawnActor<AKalmalaCharacter>(GateOrigin, FRotator::ZeroRotator);
+    if (!TestNotNull(TEXT("Non-axe tree-gate pawn spawns"), NonAxePawn)) return false;
+    NonAxePawn->DispatchBeginPlay();
+    auto* PlayerState = World->SpawnActor<APlayerState>();
+    if (!TestNotNull(TEXT("Non-axe tree-gate pawn has a player state"), PlayerState)) return false;
+    const FUniqueNetIdStringRef NetId = FUniqueNetIdString::Create(
+        FString::Printf(TEXT("all-item-nonaxe-tree-%s"), *FGuid::NewGuid().ToString(EGuidFormats::Digits)),
+        FName(TEXT("KalmalaAllItemSwingTest")));
+    const FUniqueNetIdRef BaseNetId = NetId;
+    PlayerState->SetUniqueId(FUniqueNetIdRepl(BaseNetId));
+    NonAxePawn->SetPlayerState(PlayerState);
+
+    auto* Inventory = NonAxePawn->GetInventoryComponent();
+    auto& Tools = const_cast<TArray<FKalmalaToolState>&>(NonAxePawn->GetCarriedToolInventory());
+    auto* StoneKnife = Tools.FindByPredicate([NonAxeMeleeItem](const auto& Entry) { return Entry.ItemId == NonAxeMeleeItem; });
+    if (!StoneKnife)
+    {
+        StoneKnife = &Tools.AddDefaulted_GetRef();
+        StoneKnife->ItemId = NonAxeMeleeItem;
+        StoneKnife->InstanceGuid = FGuid::NewGuid();
+    }
+    StoneKnife->ToolLevel = 1;
+    StoneKnife->Durability = FKalmalaToolLifecycleContract::GetMaxDurability(NonAxeMeleeItem, 1);
+    Inventory->SynchronizeGridFromServer();
+    FString EquipReason;
+    if (Inventory->GetActiveItem() != NonAxeMeleeItem)
+        TestTrue(TEXT("Non-axe tree-gate fixture equips its Stone Knife"),
+            Inventory->SetMainHandFromServer(StoneKnife->InstanceGuid, EquipReason));
+    TestEqual(TEXT("Non-axe tree-gate fixture uses the valid melee item"), Inventory->GetActiveItem(), NonAxeMeleeItem);
+    TestTrue(TEXT("Non-axe tree-gate fixture has a living attacker"), NonAxePawn->GetHealth() > 1.0f);
+    if (!TestTrue(TEXT("Non-axe tree-gate fixture can persist player state in memory"),
+        GameMode->PersistPlayerStateFromServer(NonAxePawn))) return false;
+    const int32 SaveWritesBeforeGate = PlayerSaveWrites;
+    const int32 StartingCondition = NonAxePawn->GetToolDurability(NonAxeMeleeItem);
+    TestTrue(TEXT("Non-axe melee fixture starts with usable tool condition"), StartingCondition > 0);
+
+    FKalmalaWorldPopulationSpawn TreeSpawn;
+    TreeSpawn.Kind = EKalmalaWorldPopulationKind::HarvestNode;
+    TreeSpawn.SpatialKey = FIntPoint(71, -29);
+    TreeSpawn.SpawnSeed = 918275ull;
+    TreeSpawn.Location = GateOrigin + FVector(100, 0, 0);
+    TreeSpawn.ContentId = TEXT("meadows-birch-trunk");
+    auto* Tree = World->SpawnActor<AKalmalaHarvestNode>();
+    if (!TestNotNull(TEXT("Eligible tree for non-axe gate fixture spawns"), Tree)) return false;
+    Tree->InitializeServer(TreeSpawn);
+    TestTrue(TEXT("Non-axe gate fixture uses an authoritative tree"), Tree->HasAuthority());
+    TestTrue(TEXT("Non-axe gate fixture tree has stable server identity"), !Tree->GetPersistentSpawnId().IsEmpty());
+    TestTrue(TEXT("Non-axe gate fixture tree is eligible for axe hits"), Tree->CanReceiveAxeAttack());
+    TestTrue(TEXT("Non-axe attacker is in valid tree-hit range"), Tree->IsWithinAxeRange(NonAxePawn->GetActorLocation()));
+    const float StartingTreeHealth = Tree->GetTreeHealthForVerification();
+    TestTrue(TEXT("Non-axe gate fixture tree has positive health"), StartingTreeHealth > 0.0f);
+    const FKalmalaDamageChannels NonAxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(
+        NonAxeMeleeItem, 1, TEXT("Basic"));
+    TestTrue(TEXT("Stone Knife fixture supplies positive melee damage"), NonAxeDamage.Total() > 0.0f);
+    TestFalse(TEXT("Valid Stone Knife cannot damage an eligible tree through the axe-only operation"),
+        Tree->ApplyAxeDamageFromServer(NonAxePawn, NonAxeDamage));
+    TestEqual(TEXT("Rejected non-axe hit preserves tree health"), Tree->GetTreeHealthForVerification(), StartingTreeHealth);
+    TestEqual(TEXT("Rejected non-axe hit preserves tool condition"), NonAxePawn->GetToolDurability(NonAxeMeleeItem), StartingCondition);
+    TestEqual(TEXT("Rejected non-axe hit does not write player state"), PlayerSaveWrites, SaveWritesBeforeGate);
+
+    const FName AxeItem(TEXT("StoneAxe"));
+    auto* StoneAxe = Tools.FindByPredicate([AxeItem](const auto& Entry) { return Entry.ItemId == AxeItem; });
+    if (!StoneAxe)
+    {
+        StoneAxe = &Tools.AddDefaulted_GetRef();
+        StoneAxe->ItemId = AxeItem;
+        StoneAxe->InstanceGuid = FGuid::NewGuid();
+    }
+    StoneAxe->ToolLevel = 1;
+    StoneAxe->Durability = FKalmalaToolLifecycleContract::GetMaxDurability(AxeItem, 1);
+    Inventory->SynchronizeGridFromServer();
+    if (Inventory->GetActiveItem() != AxeItem)
+        TestTrue(TEXT("Axe positive control equips its Stone Axe"),
+            Inventory->SetMainHandFromServer(StoneAxe->InstanceGuid, EquipReason));
+    const float HealthBeforeAxe = Tree->GetTreeHealthForVerification();
+    const int32 AxeCondition = NonAxePawn->GetToolDurability(AxeItem);
+    const FKalmalaDamageChannels AxeDamage = FKalmalaToolLifecycleContract::GetAttackDamageBonuses(AxeItem, 1, TEXT("Basic"));
+    TestTrue(TEXT("Stone Axe positive control applies the eligible tree hit"),
+        Tree->ApplyAxeDamageFromServer(NonAxePawn, AxeDamage));
+    TestTrue(TEXT("Accepted axe hit reduces tree health"), Tree->GetTreeHealthForVerification() < HealthBeforeAxe);
+    TestEqual(TEXT("Accepted axe hit spends one tool condition"), NonAxePawn->GetToolDurability(AxeItem), AxeCondition - 1);
+    TestEqual(TEXT("Accepted axe hit writes player state once"), PlayerSaveWrites, SaveWritesBeforeGate + 1);
+    AddInfo(FString::Printf(
+        TEXT("Verified free swing, arm animation and actual hit for %d carried profiles plus empty hands; the valid Stone Knife was rejected and the Stone Axe positive control damaged the tree."),
+        Items.Num() - 1));
     return true;
 }
 

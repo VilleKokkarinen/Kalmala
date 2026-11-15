@@ -1034,7 +1034,7 @@
       while closed, checking private peer views and exact retained contents.
     **Development checks:** `git diff --check`, PowerShell parser validation, and source inspection passed. The
       storage peer scenario, Editor build, and automation were not run; full verification remains deferred.
-  - [ ] **RF40 — Make the non-axe harvest-gate regression reachable (P3; CR04-014).**
+  - [x] **RF40 — Make the non-axe harvest-gate regression reachable (P3; CR04-014).**
     `KalmalaCombatLoopTest.cpp:72,165,174` adds only profiles accepted by
     `IsAttackItemAllowed` to its melee loop, then checks Hammer/Bow rejection
     inside that loop. Both item types are explicitly excluded, so the negative
@@ -1044,6 +1044,15 @@
     `Kalmala.Gameplay.Combat.AllItemSwings` or `Kalmala.Gameplay.Combat.AxeSwing`
     after an Editor build. Evidence:
     `Temporary/Review/findings.md#rf40--make-the-non-axe-harvest-gate-regression-reachable-p3`.
+    **Implementation:** Moved the negative tree-hit assertion out of the filtered
+      attackable-item loop and added a valid, equipped Stone Knife against an
+      eligible standing Meadow tree. The fixture verifies tree health, knife
+      condition and save-writer count stay unchanged, then confirms a Stone Axe
+      positive control damages the same tree and spends one condition. Player
+      saves use the fixture's in-memory writer.
+    **Development checks:** `git diff --check` and source inspection passed. The
+      Editor build and focused automation were not run; full verification remains
+      deferred under the one-increment workflow.
   - [ ] **RF41 — Add remote support-magic authority and privacy coverage (P3; CR04-015).**
     `KalmalaDiscoveryProgressTest.cpp:70-73` checks pure gate helpers, while
     `KalmalaInventoryHotbarTest.cpp:63-66,116-127` calls the hotbar RPC wrapper

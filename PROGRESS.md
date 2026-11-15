@@ -1,3 +1,30 @@
+## RF40 — Make the non-axe harvest-gate regression reachable — 2026-11-15
+
+- **Work completed:** Moved the negative tree-hit assertion out of the filtered
+  attackable-item loop. Added a valid Stone Knife fixture with an authenticated
+  player, eligible standing Meadow tree, and successful in-memory save writer.
+  The test asserts the rejected hit preserves tree health and knife condition
+  without attempting persistence, then uses a Stone Axe positive control to
+  confirm tree damage, one condition spent, and one in-memory save write.
+- **Files changed:** `Source/KalmalaGameplay/Private/Tests/KalmalaCombatLoopTest.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaHarvestNode.h`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `docs/07-development-setup.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check` and source inspection of item
+  selection, tree eligibility/range, save isolation, and both knife/axe paths.
+- **Full verification:** Deferred. No Editor build or combat automation was run
+  under the one-increment workflow.
+- **Observable impact:** `Kalmala.Gameplay.Combat.AllItemSwings` now actually
+  exercises the non-axe tree gate, so a future regression that lets Stone Knife
+  damage an eligible tree or spend condition will fail the test.
+- **Networking/authority:** This is test coverage only. The test calls the
+  existing server-authoritative tree-damage API; production networking and
+  gameplay behavior are unchanged.
+- **Known limits:** The focused combat automation and Editor build remain
+  unexecuted. Full automation and peer verification remain deferred.
+- **Next eligible task:** RF41 — add remote support-magic authority and privacy
+  coverage. The overall CR remediation goal remains active.
+
 ## RF39 — Rate-limit repeated storage-close requests — 2026-11-15
 
 - **Work completed:** Added an independent 200 ms close-request cadence. A

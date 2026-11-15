@@ -485,6 +485,13 @@ bounded pose, non-finite time and broken/forged/non-axe rejection. Run it with
 null-RHI editor queue. Final run: four successful results, exit 0;
 `C:/Users/Ville/AppData/Local/Temp/kaxe-4e3e11c4/tests.log`.
 
+`Kalmala.Gameplay.Combat.AllItemSwings` also equips a valid Stone Knife and
+checks its axe-only tree-damage rejection against an eligible standing Meadow
+tree, asserting tree health, tool condition and player-save writes remain
+unchanged. A Stone Axe positive control damages the same tree and spends one
+condition. The test uses an in-memory player-save writer so a gate regression
+would commit and expose the mutation without writing a user save slot.
+
 The source-matched short mirror's unity Editor build passed 13 actions and three
 four-action test-fixture rebuilds; logs `kmforest/axe-swing-build2.log`,
 `axe-fixture-build.log`, `axe-final-build.log`, `axe-pose-build.log`.

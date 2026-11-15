@@ -205,6 +205,7 @@ private:
 
 #if WITH_DEV_AUTOMATION_TESTS
     friend class FKalmalaA10FreshStartBronzeAndIronTest;
+    friend class FKalmalaAllItemSwingTest;
     friend class FKalmalaBiomeBaselineArgumentTest;
     friend class FKalmalaBiomeComparisonFixtureTest;
     friend class FKalmalaOceanTravelWorldSlotFailClosedTest;
