@@ -1460,7 +1460,7 @@
       PowerShell parser, and static source inspection passed. The Editor build,
       automation, and remote peer scenario remain deferred to milestone-final
       verification.
-  - [ ] **RF52 — Verify remote ownership of world-seed selection (P3; CR04-039).**
+  - [x] **RF52 — Verify remote ownership of world-seed selection (P3; CR04-039).**
     `Source/KalmalaGameplay/Public/KalmalaMenuContext.h:18,28-35`,
     `Source/KalmalaGameplay/Private/KalmalaMenuContext.cpp:34-73,115-142`,
     `Source/KalmalaGameplay/Private/Tests/KalmalaMenuContextTest.cpp:8-19`,
@@ -1502,6 +1502,15 @@
     `Kalmala.Gameplay.MenuContext.WorldSeedSelection` automation and a
     Development-only remote-controller scenario; also run
     `Kalmala.UI.WorldSeedParser` for decimal and uint64-boundary coverage.
+    **Development checks:** Added a Development-only authorization predicate
+      automation and a menu-map listen-server/remote-client runner. The host
+      fixture writes an isolated current-revision save, accepts local new-seed
+      and confirmed-reuse requests, then checks two actual remote reliable RPCs
+      receive generic rejections without save enumeration or pending-selection
+      changes. The runner also checks exact seed/confirmation revalidation before
+      gameplay travel. PowerShell parser validation and `git diff --check`
+      passed; the Editor build, focused automations, and live peer scenario are
+      deferred to CR milestone-final verification.
   - [ ] **RF53 — Reconcile Automatic Pickup with the settings authority contract (P3; CR04-042).**
     `Source/KalmalaUI/Private/KalmalaSettingsSubsystem.cpp:139-166`,
     `Source/KalmalaUI/Private/KalmalaSettingsWidget.cpp:1606-1618,2258-2263`,

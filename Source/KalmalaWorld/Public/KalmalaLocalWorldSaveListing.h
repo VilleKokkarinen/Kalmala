@@ -54,6 +54,9 @@ class KALMALAWORLD_API FKalmalaLocalWorldSaveListing
 {
 public:
     static EKalmalaLocalWorldSaveListingAvailability Enumerate(TArray<FKalmalaLocalWorldSaveRecord>& OutRecords);
+#if WITH_DEV_AUTOMATION_TESTS
+    static int32 GetEnumerationCountForTests();
+#endif
     static EKalmalaWorldSeedReuseDecision ResolveSeedReuse(
         EKalmalaLocalWorldSaveListingAvailability Availability,
         const TArray<FKalmalaLocalWorldSaveRecord>& Records, uint64 Seed, int32 CurrentRevision);

@@ -5,6 +5,10 @@
 
 namespace
 {
+#if WITH_DEV_AUTOMATION_TESTS
+    int32 LocalWorldSaveEnumerationCountForTests = 0;
+#endif
+
     bool TryParseUnsignedDecimal(const FString& Text, uint64& OutValue)
     {
         if (Text.IsEmpty() || (Text.Len() > 1 && Text[0] == TEXT('0'))) return false;
@@ -144,9 +148,19 @@ bool FKalmalaLocalWorldSaveListing::ParseSlotName(const FString& SlotName,
     return true;
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
+int32 FKalmalaLocalWorldSaveListing::GetEnumerationCountForTests()
+{
+    return LocalWorldSaveEnumerationCountForTests;
+}
+#endif
+
 EKalmalaLocalWorldSaveListingAvailability FKalmalaLocalWorldSaveListing::Enumerate(
     TArray<FKalmalaLocalWorldSaveRecord>& OutRecords)
 {
+#if WITH_DEV_AUTOMATION_TESTS
+    ++LocalWorldSaveEnumerationCountForTests;
+#endif
     OutRecords.Reset();
 
     ISaveGameSystem* SaveSystem = IPlatformFeaturesModule::Get().GetSaveGameSystem();

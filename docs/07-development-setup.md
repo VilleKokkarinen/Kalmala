@@ -6448,3 +6448,17 @@ target-free swing runs one of each. Its accepted-hit case continues to verify
 server-selected target damage after windup. The Editor automation and remote
 owner burst with a server trace counter remain part of CR milestone-final
 verification; they were not run during this normal backlog increment.
+
+## Remote world-seed selection regression — 2026-11-15
+
+`Kalmala.Gameplay.MenuContext.WorldSeedSelection` checks the authority and local
+controller gate. `Scripts/Tests/World/MenuWorldSeed.ps1` starts a listen server
+on the menu map with an isolated `-UserDir`, writes one current-revision world
+record there, and verifies that the local host can select an unlisted seed or
+confirm that exact saved seed. A remote client then sends both requests through
+the reliable RPC. The server must return the same generic rejection without
+enumerating its save names or changing the host's pending selection. The runner
+also checks that solo/host launch revalidates the exact seed and confirmation
+before opening gameplay. Build the Development Editor and run the focused
+automation, `Kalmala.UI.WorldSeedParser`, and this peer scenario at CR
+milestone-final verification; none ran during this normal increment.

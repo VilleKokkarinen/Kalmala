@@ -17,6 +17,10 @@ public:
     AKalmalaMenuPlayerController();
     void RequestWorldSeedSelection(uint64 Seed, bool bConfirmedExisting, uint64 RequestToken);
     FKalmalaMenuWorldSeedSelectionResult& OnWorldSeedSelectionResult() { return WorldSeedSelectionResult; }
+#if WITH_DEV_AUTOMATION_TESTS
+    static bool CanProcessWorldSeedSelectionRequestForTests(bool bHasAuthority,
+        bool bIsLocalController, bool bHasWorld);
+#endif
 
 protected:
     virtual void BeginPlay() override;
@@ -24,6 +28,15 @@ protected:
     virtual ASpectatorPawn* SpawnSpectatorPawn() override;
 
 private:
+#if WITH_DEV_AUTOMATION_TESTS
+    void BeginWorldSeedSelectionPeerTest();
+    void SendWorldSeedSelectionPeerRequests();
+    void HandleWorldSeedSelectionPeerResult(uint64 RequestToken, uint64 Seed, bool bAccepted,
+        EKalmalaLocalWorldSaveListingAvailability Availability, EKalmalaWorldSeedReuseDecision Decision);
+    FDelegateHandle WorldSeedSelectionPeerReplyHandle;
+    int32 WorldSeedSelectionPeerReplyMask = 0;
+    bool bWorldSeedSelectionPeerRepliesGeneric = true;
+#endif
     UFUNCTION(Server, Reliable)
     void ServerRequestWorldSeedSelection(uint64 Seed, bool bConfirmedExisting, uint64 RequestToken);
 
@@ -57,6 +70,10 @@ public:
         uint64 Seed, bool bConfirmedExisting);
     /** Reopens the explicit menu launch gate after engine-reported travel failure. */
     void ResetGameplayLaunchAfterTravelFailure(class APlayerController* RequestingController);
+#if WITH_DEV_AUTOMATION_TESTS
+    int32 GetWorldSeedSaveEnumerationCountForTests() const { return WorldSeedSaveEnumerationCountForTests; }
+    void ResetWorldSeedSaveEnumerationCountForTests() { WorldSeedSaveEnumerationCountForTests = 0; }
+#endif
     bool HasPendingWorldSeedSelection() const { return bHasPendingWorldSeedSelection; }
     uint64 GetPendingWorldSeed() const { return PendingWorldSeed; }
     bool IsPendingWorldSeedExisting() const { return bPendingWorldSeedIsExisting; }
@@ -68,6 +85,9 @@ public:
 private:
     bool TryStartGameplayFromServer(class APlayerController* RequestingController,
         uint64 Seed, bool bConfirmedExisting, bool bListenHost);
+#if WITH_DEV_AUTOMATION_TESTS
+    int32 WorldSeedSaveEnumerationCountForTests = 0;
+#endif
     bool bHasPendingWorldSeedSelection = false;
     uint64 PendingWorldSeed = 0;
     bool bPendingWorldSeedIsExisting = false;

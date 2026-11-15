@@ -5,6 +5,26 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "KalmalaM7PersistenceContract.h"
+#include "KalmalaOceanTravelPersistenceContract.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "TimerManager.h"
+
+namespace
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    constexpr uint64 WorldSeedPeerUnlistedSeed = 86753091233ull;
+    constexpr uint64 WorldSeedPeerExistingSeed = 86753091234ull;
+    constexpr uint64 WorldSeedPeerUnlistedToken = 5201ull;
+    constexpr uint64 WorldSeedPeerExistingToken = 5202ull;
+#endif
+
+    bool IsWorldSeedSelectionRequesterAllowed(const bool bHasAuthority,
+        const bool bIsLocalController, const bool bHasWorld)
+    {
+        return bHasAuthority && bIsLocalController && bHasWorld;
+    }
+}
 
 AKalmalaMenuPlayerController::AKalmalaMenuPlayerController()
 {
@@ -14,6 +34,9 @@ AKalmalaMenuPlayerController::AKalmalaMenuPlayerController()
 void AKalmalaMenuPlayerController::BeginPlay()
 {
     Super::BeginPlay();
+#if WITH_DEV_AUTOMATION_TESTS
+    BeginWorldSeedSelectionPeerTest();
+#endif
     if (!IsLocalController()) return;
 
     // Establish menu ownership before the Home widget supplies its initial focus.
@@ -42,6 +65,14 @@ void AKalmalaMenuPlayerController::RequestWorldSeedSelection(const uint64 Seed,
     ServerRequestWorldSeedSelection(Seed, bConfirmedExisting, RequestToken);
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
+bool AKalmalaMenuPlayerController::CanProcessWorldSeedSelectionRequestForTests(
+    const bool bHasAuthority, const bool bIsLocalController, const bool bHasWorld)
+{
+    return IsWorldSeedSelectionRequesterAllowed(bHasAuthority, bIsLocalController, bHasWorld);
+}
+#endif
+
 void AKalmalaMenuPlayerController::ServerRequestWorldSeedSelection_Implementation(const uint64 Seed,
     const bool bConfirmedExisting, const uint64 RequestToken)
 {
@@ -51,11 +82,14 @@ void AKalmalaMenuPlayerController::ServerRequestWorldSeedSelection_Implementatio
 void AKalmalaMenuPlayerController::ProcessWorldSeedSelectionRequest(const uint64 Seed,
     const bool bConfirmedExisting, const uint64 RequestToken)
 {
+#if WITH_DEV_AUTOMATION_TESTS
+    const int32 SaveEnumerationCountBefore = FKalmalaLocalWorldSaveListing::GetEnumerationCountForTests();
+#endif
     EKalmalaLocalWorldSaveListingAvailability Availability = EKalmalaLocalWorldSaveListingAvailability::Unsupported;
     EKalmalaWorldSeedReuseDecision Decision = EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview;
     bool bAccepted = false;
 
-    if (HasAuthority() && IsLocalController() && GetWorld() != nullptr)
+    if (IsWorldSeedSelectionRequesterAllowed(HasAuthority(), IsLocalController(), GetWorld() != nullptr))
     {
         if (AKalmalaMenuGameMode* MenuGameMode = GetWorld()->GetAuthGameMode<AKalmalaMenuGameMode>())
         {
@@ -69,6 +103,25 @@ void AKalmalaMenuPlayerController::ProcessWorldSeedSelectionRequest(const uint64
         PublishWorldSeedSelectionResult(Seed, RequestToken, bAccepted, Availability, Decision);
         return;
     }
+
+#if WITH_DEV_AUTOMATION_TESTS
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldSeedSelectionPeerTest")))
+    {
+        const AKalmalaMenuGameMode* MenuGameMode = GetWorld()
+            ? GetWorld()->GetAuthGameMode<AKalmalaMenuGameMode>() : nullptr;
+        const bool bGenericRejection = !bAccepted
+            && Availability == EKalmalaLocalWorldSaveListingAvailability::Unsupported
+            && Decision == EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview;
+        UE_LOG(LogTemp, Display,
+            TEXT("World seed selection peer server: Token=%llu Generic=%d EnumerationBefore=%d EnumerationAfter=%d GateEnumerations=%d Pending=%d Seed=%llu Existing=%d"),
+            RequestToken, bGenericRejection ? 1 : 0,
+            SaveEnumerationCountBefore, FKalmalaLocalWorldSaveListing::GetEnumerationCountForTests(),
+            MenuGameMode ? MenuGameMode->GetWorldSeedSaveEnumerationCountForTests() : -1,
+            MenuGameMode && MenuGameMode->HasPendingWorldSeedSelection() ? 1 : 0,
+            MenuGameMode ? MenuGameMode->GetPendingWorldSeed() : 0,
+            MenuGameMode && MenuGameMode->IsPendingWorldSeedExisting() ? 1 : 0);
+    }
+#endif
 
     ClientWorldSeedSelectionResult(Seed, RequestToken, bAccepted,
         static_cast<uint8>(Availability), static_cast<uint8>(Decision));
@@ -104,6 +157,121 @@ void AKalmalaMenuPlayerController::PublishWorldSeedSelectionResult(const uint64 
     WorldSeedSelectionResult.Broadcast(RequestToken, Seed, bAccepted, Availability, Decision);
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
+void AKalmalaMenuPlayerController::BeginWorldSeedSelectionPeerTest()
+{
+    if (!FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldSeedSelectionPeerTest"))) return;
+
+    if (!HasAuthority())
+    {
+        if (!IsLocalController() || !GetWorld()
+            || !FParse::Param(FCommandLine::Get(), TEXT("KalmalaWorldSeedRemoteTest"))) return;
+
+        WorldSeedSelectionPeerRepliesGeneric = true;
+        WorldSeedSelectionPeerReplyMask = 0;
+        WorldSeedSelectionPeerReplyHandle = OnWorldSeedSelectionResult().AddUObject(
+            this, &AKalmalaMenuPlayerController::HandleWorldSeedSelectionPeerResult);
+        GetWorld()->GetTimerManager().SetTimerForNextTick(
+            FTimerDelegate::CreateUObject(this, &AKalmalaMenuPlayerController::SendWorldSeedSelectionPeerRequests));
+        return;
+    }
+
+    if (!IsLocalController() || !GetWorld()) return;
+    auto* MenuGameMode = GetWorld()->GetAuthGameMode<AKalmalaMenuGameMode>();
+    if (!MenuGameMode) return;
+
+    const FKalmalaM7SaveIdentity ExistingIdentity = FKalmalaM7SaveIdentity::ForWorld(WorldSeedPeerExistingSeed);
+    auto* ExistingSave = NewObject<UKalmalaOceanTravelPersistenceSaveGame>(this);
+    if (!ExistingSave || !ExistingIdentity.IsValid())
+    {
+        UE_LOG(LogTemp, Error, TEXT("World seed selection peer fixture: Local=Failed Reason=SaveFixture"));
+        return;
+    }
+    ExistingSave->Initialize(ExistingIdentity);
+    const FString ExistingSlot = FString::Printf(TEXT("KalmalaOceanTravelWorld_%llu_%d"),
+        WorldSeedPeerExistingSeed, ExistingIdentity.GeneratorRevision);
+    if (!UGameplayStatics::SaveGameToSlot(ExistingSave, ExistingSlot, 0))
+    {
+        UE_LOG(LogTemp, Error, TEXT("World seed selection peer fixture: Local=Failed Reason=SaveWrite"));
+        return;
+    }
+
+    MenuGameMode->ResetWorldSeedSaveEnumerationCountForTests();
+    bool bUnlistedResultPassed = false;
+    bool bExistingResultPassed = false;
+    auto& ResultDelegate = OnWorldSeedSelectionResult();
+    const FDelegateHandle ResultHandle = ResultDelegate.AddLambda(
+        [&bUnlistedResultPassed, &bExistingResultPassed](const uint64 RequestToken, const uint64 Seed,
+            const bool bAccepted, const EKalmalaLocalWorldSaveListingAvailability Availability,
+            const EKalmalaWorldSeedReuseDecision Decision)
+        {
+            if (RequestToken == WorldSeedPeerUnlistedToken)
+                bUnlistedResultPassed = Seed == WorldSeedPeerUnlistedSeed && bAccepted
+                    && Availability == EKalmalaLocalWorldSaveListingAvailability::Supported
+                    && Decision == EKalmalaWorldSeedReuseDecision::NoKnownRecord;
+            else if (RequestToken == WorldSeedPeerExistingToken)
+                bExistingResultPassed = Seed == WorldSeedPeerExistingSeed && bAccepted
+                    && Availability == EKalmalaLocalWorldSaveListingAvailability::Supported
+                    && Decision == EKalmalaWorldSeedReuseDecision::ConfirmExisting;
+        });
+    RequestWorldSeedSelection(WorldSeedPeerUnlistedSeed, false, WorldSeedPeerUnlistedToken);
+    const bool bUnlistedPendingPassed = MenuGameMode->HasPendingWorldSeedSelection()
+        && MenuGameMode->GetPendingWorldSeed() == WorldSeedPeerUnlistedSeed
+        && !MenuGameMode->IsPendingWorldSeedExisting();
+    RequestWorldSeedSelection(WorldSeedPeerExistingSeed, true, WorldSeedPeerExistingToken);
+    const bool bExistingPendingPassed = MenuGameMode->HasPendingWorldSeedSelection()
+        && MenuGameMode->GetPendingWorldSeed() == WorldSeedPeerExistingSeed
+        && MenuGameMode->IsPendingWorldSeedExisting();
+    ResultDelegate.Remove(ResultHandle);
+
+    const bool bPassed = bUnlistedResultPassed && bExistingResultPassed
+        && bUnlistedPendingPassed && bExistingPendingPassed
+        && MenuGameMode->GetWorldSeedSaveEnumerationCountForTests() == 2;
+    UE_LOG(LogTemp, Display,
+        TEXT("World seed selection peer fixture: Local=%s Enumerations=%d Pending=%d Seed=%llu Existing=%d"),
+        bPassed ? TEXT("Passed") : TEXT("Failed"), MenuGameMode->GetWorldSeedSaveEnumerationCountForTests(),
+        MenuGameMode->HasPendingWorldSeedSelection() ? 1 : 0, MenuGameMode->GetPendingWorldSeed(),
+        MenuGameMode->IsPendingWorldSeedExisting() ? 1 : 0);
+}
+
+void AKalmalaMenuPlayerController::SendWorldSeedSelectionPeerRequests()
+{
+    if (!IsLocalController() || HasAuthority()) return;
+    RequestWorldSeedSelection(WorldSeedPeerExistingSeed, true, WorldSeedPeerExistingToken);
+    RequestWorldSeedSelection(WorldSeedPeerUnlistedSeed, false, WorldSeedPeerUnlistedToken);
+}
+
+void AKalmalaMenuPlayerController::HandleWorldSeedSelectionPeerResult(const uint64 RequestToken,
+    const uint64 Seed, const bool bAccepted, const EKalmalaLocalWorldSaveListingAvailability Availability,
+    const EKalmalaWorldSeedReuseDecision Decision)
+{
+    bool bExpectedReply = false;
+    if (RequestToken == WorldSeedPeerExistingToken)
+    {
+        bExpectedReply = Seed == WorldSeedPeerExistingSeed;
+        WorldSeedSelectionPeerReplyMask |= 1;
+    }
+    else if (RequestToken == WorldSeedPeerUnlistedToken)
+    {
+        bExpectedReply = Seed == WorldSeedPeerUnlistedSeed;
+        WorldSeedSelectionPeerReplyMask |= 2;
+    }
+
+    WorldSeedSelectionPeerRepliesGeneric = WorldSeedSelectionPeerRepliesGeneric
+        && bExpectedReply && !bAccepted
+        && Availability == EKalmalaLocalWorldSaveListingAvailability::Unsupported
+        && Decision == EKalmalaWorldSeedReuseDecision::ExistingSeedNeedsReview;
+    if (WorldSeedSelectionPeerReplyMask == 3)
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("World seed selection peer client: Passed=%d Replies=2 Generic=%d"),
+            WorldSeedSelectionPeerRepliesGeneric ? 1 : 0,
+            WorldSeedSelectionPeerRepliesGeneric ? 1 : 0);
+        OnWorldSeedSelectionResult().Remove(WorldSeedSelectionPeerReplyHandle);
+    }
+}
+#endif
+
 AKalmalaMenuGameMode::AKalmalaMenuGameMode()
 {
     PlayerControllerClass = AKalmalaMenuPlayerController::StaticClass();
@@ -126,6 +294,9 @@ bool AKalmalaMenuGameMode::TrySelectWorldSeedFromServer(const uint64 Seed, const
     bPendingWorldSeedIsExisting = false;
 
     TArray<FKalmalaLocalWorldSaveRecord> Records;
+#if WITH_DEV_AUTOMATION_TESTS
+    ++WorldSeedSaveEnumerationCountForTests;
+#endif
     OutAvailability = FKalmalaLocalWorldSaveListing::Enumerate(Records);
     OutDecision = FKalmalaLocalWorldSaveListing::ResolveSeedReuse(
         OutAvailability, Records, Seed, FKalmalaM7SaveIdentity::ForWorld(Seed).GeneratorRevision);
