@@ -8305,6 +8305,9 @@ void AKalmalaGameMode::Tick(const float DeltaSeconds)
     DriveA9PeerTest();
     DriveDiscoveryPeerTest();
     DriveSupportMagicPeerTest();
+#if !UE_BUILD_SHIPPING
+    DriveInteractionCadencePeerTest();
+#endif
     DriveM9ExplorationRewardPeerTest();
     DriveOceanTravelFeedbackTest();
     DriveOceanWeatherPeerTest();

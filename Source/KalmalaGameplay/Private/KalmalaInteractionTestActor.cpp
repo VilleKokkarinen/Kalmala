@@ -36,8 +36,16 @@ void AKalmalaInteractionTestActor::Interact_Implementation(AKalmalaCharacter* In
     }
 }
 
+void AKalmalaInteractionTestActor::MarkAsInteractionCadencePeerTargetFromServer()
+{
+    if (!HasAuthority()) return;
+    bInteractionCadencePeerTarget = true;
+    ForceNetUpdate();
+}
+
 void AKalmalaInteractionTestActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaInteractionTestActor, InteractionCount);
+    DOREPLIFETIME(AKalmalaInteractionTestActor, bInteractionCadencePeerTarget);
 }

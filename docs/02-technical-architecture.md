@@ -271,7 +271,7 @@ The server owns player state, inventories, construction, damage, AI decisions, s
 | System | Authority | Replication approach |
 | --- | --- | --- |
 | Movement | UE Character Movement server authority | built-in movement replication |
-| Interaction | server reruns a short trace from the owning pawn | client sends intent only; no target actor is trusted |
+| Interaction | server reruns a short trace from the owning pawn after a 50 ms per-pawn request cadence; the first request is immediate | client sends intent only; no target actor is trusted; requests inside the cadence are dropped before tracing |
 | Abilities | server validates activation and outcomes | GAS replication/prediction where suitable |
 | Inventory/crafting | server | replicated components / owner-only detail |
 | Building | server | replicated building actors; save stable IDs |

@@ -1083,7 +1083,7 @@
       the peer runner and vertical-slice harness, and source inspection passed.
       The Editor build, support automation, and peer scenario were not run; full
       verification remains deferred under the one-increment workflow.
-  - [ ] **RF42 — Bound repeated interaction RPC work (P3; CR04-016).**
+  - [x] **RF42 — Bound repeated interaction RPC work (P3; CR04-016).**
     **Source:** CR04-016; `Source/KalmalaGameplay/Public/KalmalaCharacter.h:296-298`,
       `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1687-1973`,
       `Source/KalmalaGameplay/Private/Tests/KalmalaInventoryNetworkContractTest.cpp:14-30`, and
@@ -1107,6 +1107,14 @@
     **Focused validation:** Add a focused listen-server owner scenario that issues rapid interaction requests,
       verifies the first accepted request and bounded subsequent dispatches, and confirms a normally paced
       interaction still succeeds.
+    **Implementation:** Added a 50 ms per-character server cadence before interaction tracing; the first
+      request remains immediate and existing target validation remains in place. Added a listen-host/remote-owner
+      peer fixture and runner that sends an ordinary request, seven immediate repeats, then a paced retry.
+      Existing forest peer probes now send repeated interaction requests at the configured cadence, while the
+      isolated crafting fixture resets the interaction timer between its direct test dispatches.
+    **Development checks:** `git diff --check`, PowerShell parser validation for the new peer runner, and source
+      inspection passed. The Editor build and live peer scenario were not run; full verification remains deferred
+      under the one-increment workflow.
 
   - [ ] **RF43 — Suppress owner gain receipts after durable rollback (P3; CR04-017/CR17-001).**
     **Source:** CR04-017 and CR17-001; `Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp:411-427`,

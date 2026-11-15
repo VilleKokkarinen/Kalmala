@@ -494,6 +494,9 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     VerifyA9Peer();
+#if !UE_BUILD_SHIPPING
+    VerifyInteractionCadencePeer();
+#endif
     AdvanceWildlifeKnockbackFromServer(DeltaSeconds);
     AdvanceDodgeRollFromServer(DeltaSeconds);
     UpdateDodgeRollPresentation(DeltaSeconds);
@@ -1834,7 +1837,17 @@ void AKalmalaCharacter::ClientReturnToHomeResult_Implementation(const bool bSave
 
 void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientItemId, const uint8 ClientAction)
 {
+    UWorld* InteractionWorld = GetWorld();
+    if (!HasAuthority() || InteractionWorld == nullptr) return;
+    if (Controller == nullptr && Cast<AKalmalaOceanSkiff>(GetAttachParentActor()) == nullptr) return;
+
+    const double Now = InteractionWorld->GetTimeSeconds();
 #if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaInteractionCadencePeerTest")))
+    {
+        if (InteractionCadencePeerFirstRequestTime < 0.0) InteractionCadencePeerFirstRequestTime = Now;
+        ++InteractionCadencePeerRequestCount;
+    }
     if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaA9PeerTest"))) ++A9InteractionRequests;
 #endif
 #if !UE_BUILD_SHIPPING
@@ -1842,9 +1855,16 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
         && ClientItemId.IsNone() && ClientAction == 0)
     {
         UE_LOG(LogTemp, Display, TEXT("Forest contention received: LocalOwner=%d Id=%s At=%.3f"),
-            IsLocallyControlled(), *(IsLocallyControlled() ? ForestPickupId : ForestRemoteRangeId), GetWorld()->GetTimeSeconds());
+            IsLocallyControlled(), *(IsLocallyControlled() ? ForestPickupId : ForestRemoteRangeId), Now);
     }
 #endif
+    if (LastServerInteractionRequestTime >= 0.0
+        && Now - LastServerInteractionRequestTime < ServerInteractionRequestCadenceSeconds)
+    {
+        return;
+    }
+    LastServerInteractionRequestTime = Now;
+
     if (AKalmalaOceanSkiff* CurrentSkiff = Cast<AKalmalaOceanSkiff>(GetAttachParentActor()))
     {
         CurrentSkiff->TryDisembarkFromServer(this);
@@ -1861,6 +1881,13 @@ void AKalmalaCharacter::ServerRequestInteract_Implementation(const FName ClientI
     Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
 
     FHitResult Hit;
+#if !UE_BUILD_SHIPPING
+    if (FParse::Param(FCommandLine::Get(), TEXT("KalmalaInteractionCadencePeerTest")))
+    {
+        if (InteractionCadencePeerFirstTraceTime < 0.0) InteractionCadencePeerFirstTraceTime = Now;
+        ++InteractionCadencePeerTraceCount;
+    }
+#endif
     const bool bInteractionHit = TraceInteractionCandidate(this, ViewLocation, ViewRotation, InteractionRange, Hit);
 #if !UE_BUILD_SHIPPING
     bool bForestFullPackOrdinaryProbe = false;

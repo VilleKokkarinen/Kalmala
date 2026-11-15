@@ -102,6 +102,18 @@ rendered presentation, peer replication, or restart coverage. Point it at a
 compiled project mirror outside the source checkout so its player and
 construction SaveGames stay isolated.
 
+## Interaction cadence peer
+
+`Interaction/InteractionCadencePeer.ps1` starts a listen host and one remote
+owner. The owner sends one ordinary interaction followed by seven immediate
+repeats; the server verifies one immediate trace and dispatch for the burst,
+then accepts a normally paced retry. This focused runner needs a built Editor
+and retains both peer logs.
+
+```powershell
+Scripts/Tests/Interaction/InteractionCadencePeer.ps1 -Port 18164
+```
+
 ## Other tests
 
 | Directory | Choose for |

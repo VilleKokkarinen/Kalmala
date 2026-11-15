@@ -23,6 +23,11 @@ public:
     UFUNCTION(BlueprintPure, Category = "Interaction")
     int32 GetInteractionCount() const { return InteractionCount; }
 
+    UFUNCTION(BlueprintPure, Category = "Interaction")
+    bool IsInteractionCadencePeerTarget() const { return bInteractionCadencePeerTarget; }
+
+    void MarkAsInteractionCadencePeerTargetFromServer();
+
     static bool IsInteractionAllowed(bool bServerAuthority, const FVector& InteractorLocation, const FVector& TargetLocation, float MaximumDistance);
 
 private:
@@ -31,6 +36,9 @@ private:
 
     UPROPERTY(Replicated, VisibleAnywhere, Category = "Interaction")
     int32 InteractionCount = 0;
+
+    UPROPERTY(Replicated, VisibleAnywhere, Category = "Interaction")
+    bool bInteractionCadencePeerTarget = false;
 
     UPROPERTY(EditDefaultsOnly, Category = "Interaction", meta = (ClampMin = "1.0"))
     float MaximumInteractionDistance = 250.0f;

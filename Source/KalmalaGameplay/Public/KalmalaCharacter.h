@@ -80,6 +80,16 @@ public:
     bool GetLocalInteractionCandidate(FHitResult& OutHit) const;
     /** Submit the current local interaction intent; the server validates the request. */
     void RequestInteract();
+    static constexpr double ServerInteractionRequestCadenceSeconds = 0.05;
+#if !UE_BUILD_SHIPPING
+    void ConfigureInteractionCadencePeerTestView();
+    void ResetInteractionCadencePeerTestCounters();
+    void ResetInteractionRequestCadenceForVerification();
+    int32 GetInteractionCadencePeerRequestCount() const { return InteractionCadencePeerRequestCount; }
+    int32 GetInteractionCadencePeerTraceCount() const { return InteractionCadencePeerTraceCount; }
+    double GetInteractionCadencePeerFirstRequestTime() const { return InteractionCadencePeerFirstRequestTime; }
+    double GetInteractionCadencePeerFirstTraceTime() const { return InteractionCadencePeerFirstTraceTime; }
+#endif
     /** Ask the gameplay server to save this owner's state before local Home travel. */
     void RequestReturnToHome();
     FKalmalaNetworkHomeReturnResult& OnNetworkHomeReturnResult() { return NetworkHomeReturnResult; }
@@ -172,6 +182,9 @@ private:
     void UpdateDodgeRollPresentation(float DeltaSeconds);
     void VerifyPlayerControls(float DeltaSeconds);
     void VerifyA9Peer();
+#if !UE_BUILD_SHIPPING
+    void VerifyInteractionCadencePeer();
+#endif
     bool bA9StatsLogged = false;
     double A9NextActionTime = 0;
     int32 A9LastLootCycle = -1;
@@ -212,14 +225,17 @@ private:
     int32 ForestDriverStageWait = 0;
     int32 ForestDriverRequests = 0;
     int32 ForestForgedRequests = 0;
+    double ForestForgedNextRequestTime = 0.0;
     FString ForestForgedId;
     FString ForestRemoteRangeId;
     int32 ForestRemoteRangeRequests = 0;
+    double ForestRemoteRangeNextRequestTime = 0.0;
     int32 ForestRemoteRangeStableTicks = 0;
     float ForestRemoteRangeHealth = 0;
     bool bForestRemoteRangeStarted = false;
     bool bForestRemoteRangeReturned = false;
     int32 ForestDropRangeRequests = 0;
+    double ForestDropRangeNextRequestTime = 0.0;
     int32 ForestDropRangeStableTicks = 0;
     bool bForestDropRangeStarted = false;
     bool bForestDropRangeReturned = false;
@@ -231,6 +247,7 @@ private:
     int32 ForestPickupHostRequests = 0;
     int32 ForestPickupTicks = 0;
     int32 ForestPickupDepletedRequests = 0;
+    double ForestPickupNextDepletedRequestTime = 0.0;
     int32 ForestPickupStableTicks = 0;
     bool bForestPickupReported = false;
     bool bForestPickupRangeChecked = false;
@@ -280,6 +297,15 @@ private:
     float LocalOceanSkiffThrottle = 0.0f;
     float LocalOceanSkiffRudder = 0.0f;
     double LastOceanSkiffInputSendTime = -1.0;
+    double LastServerInteractionRequestTime = -1.0;
+#if !UE_BUILD_SHIPPING
+    int32 InteractionCadencePeerStage = 0;
+    double InteractionCadencePeerStageTime = 0.0;
+    int32 InteractionCadencePeerRequestCount = 0;
+    int32 InteractionCadencePeerTraceCount = 0;
+    double InteractionCadencePeerFirstRequestTime = -1.0;
+    double InteractionCadencePeerFirstTraceTime = -1.0;
+#endif
     bool bDiscoveryPeerPrivacyLogged = false;
     float OwnerOnlyPrivacyProbeNextTime = 0.0f;
     bool bSupportMagicPeerOwnerFirstRequestSent = false;

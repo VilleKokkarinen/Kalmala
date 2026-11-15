@@ -1,3 +1,40 @@
+## RF42 — Bound repeated interaction RPC work — 2026-11-15
+
+- **Work completed:** Added a 50 ms per-character server cadence before
+  interaction tracing. The first request remains immediate, and existing
+  server target and intent checks still run for accepted requests. Added a
+  focused listen-host/remote-owner fixture and runner that sends one ordinary
+  interaction, seven rapid repeats, then a normally paced retry. Updated forest
+  peer probes to pace their repeated requests and isolated the crafting
+  verification's direct dispatches from the server cadence.
+- **Files changed:** `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaCraftingVerification.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaForestDeliveryVerification.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaInteractionTestActor.cpp`,
+  `Source/KalmalaGameplay/Private/KalmalaInteractionCadencePeerTest.cpp`,
+  `Source/KalmalaGameplay/Public/KalmalaCharacter.h`,
+  `Source/KalmalaGameplay/Public/KalmalaGameMode.h`,
+  `Source/KalmalaGameplay/Public/KalmalaInteractionTestActor.h`,
+  `Scripts/Tests/Interaction/InteractionCadencePeer.ps1`,
+  `Scripts/Tests/README.md`, `docs/02-technical-architecture.md`,
+  `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** `git diff --check`, PowerShell parser validation for
+  the new runner, and source inspection passed.
+- **Full verification:** Deferred. No Editor build or live peer scenario was
+  run under the one-increment workflow.
+- **Observable impact:** The server performs at most one interaction trace per
+  character per 50 ms; remote players can interact immediately and continue
+  interacting when requests are normally paced.
+- **Networking/authority:** The timestamp and cadence decision are server-owned
+  and non-replicated. The client still submits only item/action intent; the
+  server remains responsible for view tracing and target-specific checks.
+- **Known limits:** The new peer fixture and runner have not been compiled or
+  executed. The Editor build and focused peer scenario remain for milestone-final
+  verification.
+- **Next eligible task:** RF43 — suppress owner gain receipts after durable
+  rollback. The overall CR remediation goal remains active.
+
 ## RF41 — Add remote support-magic authority and privacy coverage — 2026-11-15
 
 - **Work completed:** Added a headless three-peer fixture for a listen host,

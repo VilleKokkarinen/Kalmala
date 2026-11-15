@@ -78,6 +78,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
             const double NextRequestTimeBefore = NextRequestTime;
 
             NextRequestTime = 0.0;
+            C->ResetInteractionRequestCadenceForVerification();
             if (bRepairStoneVisible) C->ServerRequestInteract(NAME_None, 0);
             NextRequestTime = NextRequestTimeBefore;
 
@@ -237,6 +238,7 @@ void UKalmalaCraftingComponent::RunVerification(float DeltaTime)
                 {
                     continue;
                 }
+                C->ResetInteractionRequestCadenceForVerification();
                 C->ServerRequestInteract(NAME_None, 0);
                 Fire->SetActorTransform(PreviousFireTransform);
                 C->SetActorRotation(PreviousActorRotation);

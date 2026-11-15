@@ -589,8 +589,18 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             if (FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()) > FMath::Square(500.0f))
             {
                 Controller->SetControlRotation((Target->GetHarvestInteractionLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
-                // One aim-only tick, then three ordinary requests while far away.
-                if (++ForestRemoteRangeRequests > 1 && ForestRemoteRangeRequests <= 4) RequestInteract();
+                // One aim-only tick, then three normally paced requests while far away.
+                if (ForestRemoteRangeRequests == 0)
+                {
+                    ++ForestRemoteRangeRequests;
+                }
+                else if (ForestRemoteRangeRequests < 4 && GetWorld()->GetTimeSeconds() >= ForestRemoteRangeNextRequestTime)
+                {
+                    RequestInteract();
+                    ++ForestRemoteRangeRequests;
+                    ForestRemoteRangeNextRequestTime = GetWorld()->GetTimeSeconds()
+                        + ServerInteractionRequestCadenceSeconds;
+                }
                 return;
             }
             // Wait for the server's far phase and its return teleport before attacking.
@@ -602,7 +612,17 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             if (FVector::DistSquared(Target->GetHarvestInteractionLocation(), GetActorLocation()) > FMath::Square(500.0f))
             {
                 Controller->SetControlRotation((Target->GetHarvestInteractionLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
-                if (++ForestDropRangeRequests > 1 && ForestDropRangeRequests <= 4) RequestInteract();
+                if (ForestDropRangeRequests == 0)
+                {
+                    ++ForestDropRangeRequests;
+                }
+                else if (ForestDropRangeRequests < 4 && GetWorld()->GetTimeSeconds() >= ForestDropRangeNextRequestTime)
+                {
+                    RequestInteract();
+                    ++ForestDropRangeRequests;
+                    ForestDropRangeNextRequestTime = GetWorld()->GetTimeSeconds()
+                        + ServerInteractionRequestCadenceSeconds;
+                }
                 return;
             }
             // Wait for the authoritative far phase and return before collection.
@@ -721,10 +741,15 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
             // the initial three requests arrived after the successful pickup.
             if (ForestPickupTicks > 3 && Target->IsHarvested() && ForestPickupDepletedRequests < 3)
             {
-                RequestInteract();
-                ++ForestPickupDepletedRequests;
-                ForestPickupStableTicks = 0;
-                return; // Observe reward stability only on subsequent ticks.
+                if (GetWorld()->GetTimeSeconds() >= ForestPickupNextDepletedRequestTime)
+                {
+                    RequestInteract();
+                    ++ForestPickupDepletedRequests;
+                    ForestPickupNextDepletedRequestTime = GetWorld()->GetTimeSeconds()
+                        + ServerInteractionRequestCadenceSeconds;
+                    ForestPickupStableTicks = 0;
+                    return; // Observe reward stability only on subsequent ticks.
+                }
             }
             const int32 Delta = GetInventoryComponent()->GetQuantity(ForestPickupItem) - ForestPickupBefore;
             if (ForestPickupTicks > 3 && ForestPickupDepletedRequests == 3 && Target->IsHarvested() && Delta == ForestPickupExpected)
@@ -751,10 +776,19 @@ void AKalmalaCharacter::VerifyForestDelivery(const float DeltaSeconds)
         {
             ForestForgedId = Target->GetPersistentSpawnId();
             Controller->SetControlRotation((Target->GetHarvestInteractionLocation() + FVector(0, 0, 10) - GetPawnViewLocation()).Rotation());
-            // First tick only aims; subsequent ticks send malformed intent over
-            // the ordinary owned RPC before any legitimate attack can fell it.
-            if (++ForestForgedRequests > 1)
+            // First tick only aims; subsequent normally paced calls send malformed
+            // intent over the ordinary owned RPC before a legitimate attack.
+            if (ForestForgedRequests == 0)
+            {
+                ++ForestForgedRequests;
+            }
+            else if (GetWorld()->GetTimeSeconds() >= ForestForgedNextRequestTime)
+            {
                 ServerRequestInteract(TEXT("ForestForgedItem"), 255);
+                ++ForestForgedRequests;
+                ForestForgedNextRequestTime = GetWorld()->GetTimeSeconds()
+                    + ServerInteractionRequestCadenceSeconds;
+            }
             return;
         }
         // Optional trunk-only peer gate keeps this state stable while a third

@@ -432,6 +432,9 @@ private:
     bool bA9FullPackObserved = false;
     void DriveDiscoveryPeerTest();
     void DriveSupportMagicPeerTest();
+#if !UE_BUILD_SHIPPING
+    void DriveInteractionCadencePeerTest();
+#endif
     void DriveM9ExplorationRewardPeerTest();
     void RunM9Schema2CandidateWorldPeerTest();
     void RunM9Schema2CandidatePlayerPeerTest(APlayerController* PlayerController);
@@ -606,6 +609,12 @@ private:
     float SupportMagicPeerTestFirstCastStamina = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> SupportMagicPeerTestOwner;
     TWeakObjectPtr<class AKalmalaCharacter> SupportMagicPeerTestObserver;
+#if !UE_BUILD_SHIPPING
+    int32 InteractionCadencePeerTestStage = 0;
+    double InteractionCadencePeerTestStageTime = 0.0;
+    TWeakObjectPtr<class AKalmalaCharacter> InteractionCadencePeerTestOwner;
+    TWeakObjectPtr<class AKalmalaInteractionTestActor> InteractionCadencePeerTestTarget;
+#endif
     int32 M9ExplorationRewardPeerTestStage = 0;
     float M9ExplorationRewardPeerTestStageTime = 0.0f;
     FKalmalaM9ExplorationRewardDescriptor M9ExplorationRewardPeerTestDescriptor;
