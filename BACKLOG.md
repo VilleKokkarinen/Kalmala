@@ -1612,7 +1612,7 @@
     **Focused validation:** Extend the population-save contract automation with
     a serialized over-limit record and the 4,096/4,097 boundary; verify rejected
     slot bytes remain unchanged. No test was run during this review.
-  - [ ] **RF56 — Cover the M7 sparse-delta count bound (P3; CR04-048).**
+  - [x] **RF56 — Cover the M7 sparse-delta count bound (P3; CR04-048).**
     `Source/KalmalaWorld/Private/Tests/KalmalaM7PersistenceContractTest.cpp:36-52`,
     `Source/KalmalaWorld/Public/KalmalaM7PersistenceContract.h:89`, and
     `Source/KalmalaWorld/Private/KalmalaM7PersistenceContract.cpp:110,143-155`.

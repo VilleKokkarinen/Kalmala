@@ -33650,3 +33650,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The change applies to server-side local world-save validation. No client request or network authority path changed. Existing owner-bound retry behavior and reward schema remain unchanged.
 - **Known limitations / remaining scope:** The new C++ automation and production slot-preservation phase were not compiled or run in this increment. The existing Mireling owner-recovery regression remains source-level coverage for retry behavior. CR remediation remains open.
 - **Next eligible task:** RF56 — Cover the M7 sparse-delta count bound.
+
+## Run 2026-11-16 — RF56 M7 sparse-delta count boundary
+
+- **Selected task:** RF56, cover the M7 sparse world/player ledger's 256-row bound.
+- **Work completed:** Extended `Kalmala.World.M7.PersistenceContract` to fill all 256 entries with unique valid deltas, reject the 257th without changing the count, and serialize/reload the maximum-size record. Added an in-memory serialized 257-row fixture that `Matches` must reject. Updated the setup guide and checked RF56 in the backlog.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaWorld/Private/Tests/KalmalaM7PersistenceContractTest.cpp`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** Inspected `AddSparseDelta`, `Matches`, and stable-ID validation against the fixtures; `git diff --check` passed; all changed paths are below 260 characters. No Unreal build or automation test was run.
+- **Full verification:** Deferred; RF56 is not the final implementation task in the CR remediation queue.
+- **Observable impact:** Regression coverage now pins the maximum M7 record size, non-mutating overflow rejection, valid maximum-size reload, and over-cap load rejection. Runtime persistence behavior is unchanged.
+- **Networking/authority:** This increment changes tests and setup guidance only. M7 deltas remain server-selected and identity-scoped; no network authority path changed.
+- **Known limitations / remaining scope:** The automation has not been compiled or run. RF57 and later remediation tasks remain open.
+- **Next eligible task:** RF57 — Correct the generated population save version in the architecture table.

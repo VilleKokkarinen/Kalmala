@@ -1951,8 +1951,10 @@ when an inventory grant is finalized as `DiscoveryClaimed`. Schema 0, prior,
 and future schemas are rejected without migration. Invalid identities,
 duplicate IDs, over-cap entries, and path-like IDs fail closed. This contract
 does not extend existing save schemas or add progression, tool, food, or loot
-state. `Kalmala.World.M7.PersistenceContract` covers its round-trip, pending
-reward removal, prior-schema rejection, and identity validation.
+state. `Kalmala.World.M7.PersistenceContract` covers the 256/257 insertion
+boundary, a valid maximum-size in-memory round-trip, rejection of a serialized
+over-cap record, pending reward removal, prior-schema rejection, and identity
+validation.
 `Kalmala.Gameplay.M9.WorldDepletionPersistence` exercises
 the generated salt-source GameMode harvest, M7 write failure, fresh-load
 suppression, and world seed/revision isolation. `Kalmala.Gameplay.M9.SecondWaveHarvestAcceptance`
