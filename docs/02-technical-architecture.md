@@ -1308,6 +1308,14 @@ finalization. Destroying that pawn leaves the durable pending marker available
 to the next authenticated pawn. Ordinary inventory is not saved, so recovery
 after a process restart can safely deliver the pending reward again.
 
+Optional Ocean discovery candidate coordinates are sampled within their
+source 6,400 cm cell using the half-open range `[0, 1)` for each axis.
+Sixteen-bit samples divide by 65,536, so the upper sample cannot place a
+descriptor on the neighboring key boundary. Canonical descriptor validation
+also requires the floor-mapped location key to equal the stored source key;
+actor grouping, deterministic claim identity, and saved claims therefore name
+the same spatial cell.
+
 Launch is accepted only after its moored world record is saved. Boarding is
 accepted only after saving the moored vessel and authenticated requester's
 seat; a failed write rolls back the tentative seat before attaching the pawn

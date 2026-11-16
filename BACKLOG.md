@@ -1959,7 +1959,7 @@
     second per owner; average aggregate snapshot scheduling targets at most
     0.05 ms per server frame. Transition-driven snapshots must be reported
     separately. These are targets; measurements remain pending.
-  - [ ] **RF66 — Keep Ocean discovery candidates inside their source spatial key (P3; CR09-001c).**
+  - [x] **RF66 — Keep Ocean discovery candidates inside their source spatial key (P3; CR09-001c).**
     `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp:130-138,159-176`,
     `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:61-69`,
     `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp:190-214`,
@@ -1997,7 +1997,13 @@
     and reward behavior remain unchanged.
     **Focused validation:** Extend `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract`
     with source-key containment, including the upper 16-bit endpoint, and run it
-    after the required Editor build. No test was run during this review.
+    after the required Editor build. The test now covers four endpoint
+    combinations, a bounded grid of accepted descriptors, source-key validation,
+    and the existing identity/claim/reward checks. Automation was authored but
+    not built or run in this normal increment.
+    **Implementation:** Candidate coordinates now map 16-bit samples into a
+    half-open cell interval by dividing by 65,536. Canonical descriptor checks
+    also require the floor-mapped location to match the stored source key.
   - [ ] **RF67 — Correct the current storage save schema in architecture references (P3; CR11-001).**
     `docs/02-technical-architecture.md:664,1108,1401-1402,1416,1644` and
     `Source/KalmalaGameplay/Public/KalmalaStorageSaveGame.h:23`.

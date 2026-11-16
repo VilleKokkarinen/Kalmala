@@ -33770,3 +33770,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The server remains the only writer of live effects and timers. A separate snapshot is registered with `COND_OwnerOnly`; clients read that snapshot for presentation and movement prediction. No RPC or save field was added.
 - **Known limitations / remaining scope:** The new automation has not been compiled or run. Four-player profile targets are 1 KiB/second of status-property traffic per owner and 0.05 ms average aggregate snapshot scheduling per server frame; no profile data has been captured. RF66 and later CR remediation tasks remain open.
 - **Next eligible task:** RF66 — Keep Ocean discovery candidates inside their source spatial key. The overall CR remediation goal remains active.
+
+## Run 2026-11-16 — RF66 Ocean discovery source-key containment
+
+- **Selected task:** RF66, keep each generated Ocean discovery inside the source spatial key that owns its actor and claim identity.
+- **Work completed:** Replaced inclusive `sample / 65535` normalization with a half-open cell mapping that divides 16-bit samples by 65,536. Canonical descriptor validation now checks the generated location maps back to its stored key. Extended `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract` for four deterministic sample endpoints, a bounded accepted-descriptor grid, and mismatched-key rejection while retaining identity, claim replay, and reward checks. Documented the geometry contract and checked RF66 in the backlog.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, `docs/07-development-setup.md`, `Source/KalmalaGameplay/Public/KalmalaOceanDiscoveryCatalogue.h`, `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp`, and `Source/KalmalaGameplay/Private/Tests/KalmalaOceanDiscoveryClaimTest.cpp`.
+- **Lightweight checks:** `git diff --check` passed. Source search found no remaining `65535.0f` sample normalization and confirmed production candidate generation uses the tested half-open mapper. Manually traced endpoint coordinates, source-key validation, and unchanged stable identity/claim paths. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF66 is not the final implementation task in the CR remediation queue. `Kalmala.Gameplay.OceanTravel.DiscoveryClaimContract` remains uncompiled and unexecuted for milestone-final verification.
+- **Observable impact:** Accepted Ocean discovery actors and their stable claim identities remain within the same floor-mapped 6,400 cm key, including when either 16-bit sample is `0xFFFF`.
+- **Networking/authority:** Candidate generation and canonical validation remain server-side. No RPC, save schema, actor grouping, reward, or claim identity changed.
+- **Known limitations / remaining scope:** The new endpoint/grid coverage has not been built or run. RF67 and later CR remediation tasks remain open.
+- **Next eligible task:** RF67 — Correct the current storage save schema in architecture references. The overall CR remediation goal remains active.

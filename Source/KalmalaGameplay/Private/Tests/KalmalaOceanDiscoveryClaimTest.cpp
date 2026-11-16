@@ -8,6 +8,7 @@
 #include "KalmalaOceanSampler.h"
 #include "KalmalaWorldGenerationConfig.h"
 #include "KalmalaWorldBounds.h"
+#include "KalmalaWorldPopulationLayout.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
 
@@ -20,6 +21,25 @@ bool FKalmalaOceanDiscoveryClaimContractTest::RunTest(const FString& Parameters)
 {
     FKalmalaWorldGenerationConfig World;
     World.WorldSeed = 418;
+
+    const FIntPoint EndpointSpatialKey(-2, 3);
+    const uint16 EndpointSamples[] = { 0, static_cast<uint16>(0xFFFFu) };
+    for (const uint16 XSample : EndpointSamples)
+    {
+        for (const uint16 YSample : EndpointSamples)
+        {
+            const FVector2D Position = FKalmalaOceanDiscoveryCatalogue::GetCandidatePosition(
+                EndpointSpatialKey, XSample, YSample);
+            TestTrue(TEXT("Every 16-bit sample endpoint maps into its source spatial key"),
+                FKalmalaWorldPopulationLayout::GetSpatialKey(Position) == EndpointSpatialKey);
+        }
+    }
+    const FVector2D UpperEndpointPosition = FKalmalaOceanDiscoveryCatalogue::GetCandidatePosition(
+        EndpointSpatialKey, static_cast<uint16>(0xFFFFu), static_cast<uint16>(0xFFFFu));
+    const FVector2D UpperCellEdge = (FVector2D(EndpointSpatialKey) + FVector2D(1.0, 1.0))
+        * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
+    TestTrue(TEXT("Maximum 16-bit samples remain below both upper cell edges"),
+        UpperEndpointPosition.X < UpperCellEdge.X && UpperEndpointPosition.Y < UpperCellEdge.Y);
 
     TMap<FName, FKalmalaOceanDiscoveryDescriptor> FoundByKind;
     for (int32 Y = -64; Y <= 64 && FoundByKind.Num() < FKalmalaOceanDiscoveryCatalogue::MaxDefinitions; ++Y)
@@ -44,6 +64,8 @@ bool FKalmalaOceanDiscoveryClaimContractTest::RunTest(const FString& Parameters)
             const FKalmalaOceanDiscoveryDescriptor& Descriptor = First[0];
             TestEqual(TEXT("Repeated generation reproduces the stable discovery ID"), Repeat[0].DiscoveryId, Descriptor.DiscoveryId);
             TestTrue(TEXT("The server descriptor is canonical for the seed and cell"), FKalmalaOceanDiscoveryCatalogue::IsCurrentDescriptor(World, Descriptor));
+            TestTrue(TEXT("The generated candidate maps back to its source spatial key"),
+                FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Descriptor.Location)) == Descriptor.SpatialKey);
             TestTrue(TEXT("The generated candidate stays in the finite world"), FKalmalaWorldBounds::Contains(World, FVector2D(Descriptor.Location)));
             const FKalmalaOceanSample Ocean = FKalmalaOceanSampler::Sample(World, FVector2D(Descriptor.Location));
             TestTrue(TEXT("The generated candidate is in qualifying master-ocean water"), Ocean.IsWater() && Ocean.WaterDepth >= FKalmalaOceanDiscoveryCatalogue::MinimumOceanDepthCm);
@@ -56,6 +78,10 @@ bool FKalmalaOceanDiscoveryClaimContractTest::RunTest(const FString& Parameters)
             Forged = Descriptor;
             Forged.DiscoveryId = TEXT("ocean-forged-cache");
             TestFalse(TEXT("A forged discovery kind is rejected"), FKalmalaOceanDiscoveryCatalogue::IsCurrentDescriptor(World, Forged));
+            Forged = Descriptor;
+            ++Forged.SpatialKey.X;
+            TestFalse(TEXT("A descriptor cannot be claimed under a neighboring source key"),
+                FKalmalaOceanDiscoveryCatalogue::IsCurrentDescriptor(World, Forged));
 
             FoundByKind.Add(Descriptor.DiscoveryId, Descriptor);
         }
@@ -67,6 +93,33 @@ bool FKalmalaOceanDiscoveryClaimContractTest::RunTest(const FString& Parameters)
     {
         return false;
     }
+
+    const FIntPoint GridCenter = FoundByKind.CreateConstIterator().Value().SpatialKey;
+    constexpr int32 GridRadius = 8;
+    int32 AcceptedGridDescriptorCount = 0;
+    for (int32 GridY = GridCenter.Y - GridRadius; GridY <= GridCenter.Y + GridRadius; ++GridY)
+    {
+        for (int32 GridX = GridCenter.X - GridRadius; GridX <= GridCenter.X + GridRadius; ++GridX)
+        {
+            const FIntPoint SpatialKey(GridX, GridY);
+            const TArray<FKalmalaOceanDiscoveryDescriptor> GridDescriptors =
+                FKalmalaOceanDiscoveryCatalogue::BuildDescriptors(World, SpatialKey);
+            TestTrue(TEXT("A bounded spatial key contains at most one optional Ocean descriptor"),
+                GridDescriptors.Num() <= 1);
+            if (GridDescriptors.IsEmpty())
+            {
+                continue;
+            }
+
+            ++AcceptedGridDescriptorCount;
+            const FKalmalaOceanDiscoveryDescriptor& GridDescriptor = GridDescriptors[0];
+            TestTrue(TEXT("Accepted Ocean descriptors stay in their source key"),
+                FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(GridDescriptor.Location)) == SpatialKey);
+            TestTrue(TEXT("Accepted grid descriptors retain canonical seed identity"),
+                FKalmalaOceanDiscoveryCatalogue::IsCurrentDescriptor(World, GridDescriptor));
+        }
+    }
+    TestTrue(TEXT("The bounded grid includes accepted Ocean descriptors"), AcceptedGridDescriptorCount > 0);
 
     const auto ClaimIterator = FoundByKind.CreateConstIterator();
     const FKalmalaOceanDiscoveryDescriptor& Claim = ClaimIterator.Value();

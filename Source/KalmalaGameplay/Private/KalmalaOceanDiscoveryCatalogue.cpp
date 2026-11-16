@@ -108,6 +108,20 @@ FString FKalmalaOceanDiscoveryCatalogue::MakeStableIdentity(const FName Discover
     return FKalmalaM7SparseDelta::IsValidStableId(StableId) ? StableId : FString();
 }
 
+FVector2D FKalmalaOceanDiscoveryCatalogue::GetCandidatePosition(
+    const FIntPoint SpatialKey,
+    const uint16 XSample,
+    const uint16 YSample)
+{
+    constexpr double SampleDomainSize = 65536.0;
+    const double CellSize = FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
+    const FVector2D CellOrigin = FVector2D(SpatialKey) * CellSize;
+    const FVector2D CellOffset(
+        static_cast<double>(XSample) / SampleDomainSize,
+        static_cast<double>(YSample) / SampleDomainSize);
+    return CellOrigin + CellOffset * CellSize;
+}
+
 TArray<FKalmalaOceanDiscoveryDescriptor> FKalmalaOceanDiscoveryCatalogue::BuildDescriptors(
     const FKalmalaWorldGenerationConfig& Config,
     const FIntPoint SpatialKey)
@@ -127,14 +141,14 @@ TArray<FKalmalaOceanDiscoveryDescriptor> FKalmalaOceanDiscoveryCatalogue::BuildD
 
     const int32 DefinitionIndex = static_cast<int32>((CellSeed >> 8) % static_cast<uint64>(Definitions.Num()));
     const FKalmalaOceanDiscoveryDefinition& Definition = Definitions[DefinitionIndex];
-    const FVector2D CellOrigin = FVector2D(SpatialKey) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
     for (int32 CandidateIndex = 0; CandidateIndex < PlacementCandidateBudget; ++CandidateIndex)
     {
         const uint64 CandidateSeed = MixOceanDiscoverySeed(
             CellSeed ^ (static_cast<uint64>(CandidateIndex + 1) * 0x165667B19E3779F9ull));
-        const float XFraction = static_cast<float>(CandidateSeed & 0xFFFFu) / 65535.0f;
-        const float YFraction = static_cast<float>((CandidateSeed >> 16) & 0xFFFFu) / 65535.0f;
-        const FVector2D Position = CellOrigin + FVector2D(XFraction, YFraction) * FKalmalaWorldPopulationLayout::SpatialKeySizeCm;
+        const FVector2D Position = GetCandidatePosition(
+            SpatialKey,
+            static_cast<uint16>(CandidateSeed & 0xFFFFu),
+            static_cast<uint16>((CandidateSeed >> 16) & 0xFFFFu));
         if (!FKalmalaWorldBounds::Contains(Config, Position))
         {
             continue;
@@ -161,7 +175,8 @@ bool FKalmalaOceanDiscoveryCatalogue::IsCurrentDescriptor(
     const FKalmalaOceanDiscoveryDescriptor& Descriptor)
 {
     if (Descriptor.DiscoveryId.IsNone() || Descriptor.Location.ContainsNaN()
-        || MakeStableIdentity(Descriptor.DiscoveryId, Descriptor.SpatialKey).IsEmpty())
+        || MakeStableIdentity(Descriptor.DiscoveryId, Descriptor.SpatialKey).IsEmpty()
+        || FKalmalaWorldPopulationLayout::GetSpatialKey(FVector2D(Descriptor.Location)) != Descriptor.SpatialKey)
     {
         return false;
     }

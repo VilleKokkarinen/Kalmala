@@ -43,6 +43,8 @@ struct KALMALAGAMEPLAY_API FKalmalaOceanDiscoveryCatalogue
 
     /** World seed and generator revision are scoped by the enclosing save identity. */
     static FString MakeStableIdentity(FName DiscoveryId, FIntPoint SpatialKey);
+    /** Maps 16-bit samples into the source cell's half-open coordinate range. */
+    static FVector2D GetCandidatePosition(FIntPoint SpatialKey, uint16 XSample, uint16 YSample);
     static TArray<FKalmalaOceanDiscoveryDescriptor> BuildDescriptors(
         const FKalmalaWorldGenerationConfig& Config, FIntPoint SpatialKey);
     static bool IsCurrentDescriptor(

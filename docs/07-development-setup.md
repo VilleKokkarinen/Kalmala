@@ -4295,9 +4295,12 @@ seed-418 deterministic layout for all three optional kinds, checks qualifying
 100 cm master-ocean water, verifies the server rejects altered IDs and
 positions, and round-trips a player-scoped M7 `DiscoveryClaimed` delta to
 confirm replay rejection after load. It checks catalogue reward construction
-without mutating a live inventory. These focused checks and the editor build do
-not replace a live client interaction trace, owner feedback inspection, or
-rendered presentation review in the later two-player journey acceptance.
+without mutating a live inventory. The RF66 extension also checks all four
+16-bit endpoint combinations and a bounded grid of accepted descriptors against
+the shared floor-based source-key mapper, while retaining stable IDs and claim
+replay checks. These focused checks and the editor build do not replace a live
+client interaction trace, owner feedback inspection, or rendered presentation
+review in the later two-player journey acceptance.
 
 After the Editor build, also run
 `Kalmala.Gameplay.OceanTravel.DiscoveryClaimRecovery`. This GameMode regression
