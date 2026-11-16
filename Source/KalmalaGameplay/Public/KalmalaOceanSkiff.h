@@ -60,6 +60,11 @@ public:
     AKalmalaCharacter* GetPassengerOccupant() const { return PassengerOccupant; }
     EKalmalaOceanSkiffMode GetMode() const { return Mode; }
     EKalmalaOceanSkiffBlockReason GetBlockReason() const { return BlockReason; }
+    static EKalmalaOceanTravelFeedback GetMovementBlockFeedback(EKalmalaOceanSkiffBlockReason Reason);
+#if !UE_BUILD_SHIPPING
+    bool SimulateBlockedMovementForPeerTest(AKalmalaCharacter* Helm, AKalmalaCharacter* Passenger,
+        EKalmalaOceanSkiffBlockReason Reason);
+#endif
     static bool IsLaunchAllowed(bool bServerAuthority, bool bGeneratedTerrainHit, bool bInRange,
         bool bDeepOcean, bool bWorldBounded, bool bSessionSlotAvailable);
     static bool HasNavigableOceanFootprintForConfig(const FKalmalaWorldGenerationConfig& Config,
@@ -99,7 +104,7 @@ private:
     UPROPERTY(Replicated, VisibleAnywhere, Category = "Travel")
     EKalmalaOceanSkiffMode Mode = EKalmalaOceanSkiffMode::Moored;
 
-    UPROPERTY(Replicated, VisibleAnywhere, Category = "Travel")
+    UPROPERTY(VisibleAnywhere, Category = "Travel")
     EKalmalaOceanSkiffBlockReason BlockReason = EKalmalaOceanSkiffBlockReason::None;
 
     TWeakObjectPtr<AKalmalaCharacter> PresentedHelmOccupant;
@@ -113,6 +118,11 @@ private:
     void AdvanceServerMovement(float DeltaSeconds);
     void BlockMovementAtLastSafeTransform(const FVector& SafeLocation, const FRotator& SafeRotation,
         EKalmalaOceanSkiffBlockReason Reason);
+#if !UE_BUILD_SHIPPING
+    void ObserveBlockedMovementPeerTest();
+    float BlockedMovementPeerObservationStartSeconds = -1.0f;
+    bool bBlockedMovementPeerTestReported = false;
+#endif
     void SendFeedback(AKalmalaCharacter* Interactor, EKalmalaOceanTravelFeedback Feedback) const;
     void RefreshSeatOccupancyPresentation();
     bool SetSeatOccupant(AKalmalaCharacter* Interactor, EKalmalaOceanSkiffSeat Seat);

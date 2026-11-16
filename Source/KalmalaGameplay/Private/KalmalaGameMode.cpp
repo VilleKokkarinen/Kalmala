@@ -8375,59 +8375,108 @@ void AKalmalaGameMode::DriveOceanTravelFeedbackTest()
     if (OceanTravelFeedbackTestStage == 0)
     {
         AKalmalaCharacter* HostCharacter = nullptr;
-        AKalmalaCharacter* RemoteCharacter = nullptr;
+        TArray<AKalmalaCharacter*> RemoteCharacters;
+        int32 PlayerCount = 0;
         for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
         {
             APlayerController* Controller = It->Get();
             AKalmalaCharacter* Character = Controller != nullptr ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
             if (Character == nullptr) continue;
+            ++PlayerCount;
             if (Controller->IsLocalController()) HostCharacter = Character;
-            else RemoteCharacter = Character;
+            else RemoteCharacters.Add(Character);
         }
-        if (HostCharacter == nullptr || RemoteCharacter == nullptr) return;
+        if (HostCharacter == nullptr || RemoteCharacters.Num() < 2) return;
+        if (PlayerCount != 3 || RemoteCharacters.Num() != 2)
+        {
+            UE_LOG(LogTemp, Error, TEXT("Ocean skiff blockage peer verification FAILED: expected a listen host, helm, and observer."));
+            OceanTravelFeedbackTestStage = 2;
+            return;
+        }
 
         UKalmalaOceanTravelFeedbackComponent* HostFeedback = HostCharacter->GetOceanTravelFeedbackComponent();
-        UKalmalaOceanTravelFeedbackComponent* RemoteFeedback = RemoteCharacter->GetOceanTravelFeedbackComponent();
-        if (HostFeedback == nullptr || RemoteFeedback == nullptr
-            || !HostFeedback->SetFeedbackFromServer(EKalmalaOceanTravelFeedback::ShallowLaunch)
-            || !RemoteFeedback->SetFeedbackFromServer(EKalmalaOceanTravelFeedback::SeatsFull))
+        UKalmalaOceanTravelFeedbackComponent* HelmFeedback = RemoteCharacters[0]->GetOceanTravelFeedbackComponent();
+        UKalmalaOceanTravelFeedbackComponent* ObserverFeedback = RemoteCharacters[1]->GetOceanTravelFeedbackComponent();
+        if (HostFeedback == nullptr || HelmFeedback == nullptr || ObserverFeedback == nullptr
+            || HostFeedback->GetFeedback() != EKalmalaOceanTravelFeedback::None
+            || HostFeedback->GetFeedbackSerial() != 0
+            || HelmFeedback->GetFeedback() != EKalmalaOceanTravelFeedback::None
+            || HelmFeedback->GetFeedbackSerial() != 0
+            || ObserverFeedback->GetFeedback() != EKalmalaOceanTravelFeedback::None
+            || ObserverFeedback->GetFeedbackSerial() != 0)
         {
-            UE_LOG(LogTemp, Error, TEXT("Ocean skiff feedback verification FAILED: owner feedback component could not accept server state."));
+            UE_LOG(LogTemp, Error, TEXT("Ocean skiff blockage peer verification FAILED: feedback baselines were not empty."));
+            OceanTravelFeedbackTestStage = 2;
+            return;
+        }
+
+        FActorSpawnParameters SpawnParameters;
+        SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+        SpawnParameters.ObjectFlags |= RF_Transient;
+        AKalmalaOceanSkiff* TestSkiff = GetWorld()->SpawnActor<AKalmalaOceanSkiff>(
+            AKalmalaOceanSkiff::StaticClass(), HostCharacter->GetActorLocation(),
+            HostCharacter->GetActorRotation(), SpawnParameters);
+        if (TestSkiff == nullptr || !TestSkiff->SimulateBlockedMovementForPeerTest(
+            RemoteCharacters[0], HostCharacter, EKalmalaOceanSkiffBlockReason::GeneratedTerrainCollision))
+        {
+            if (IsValid(TestSkiff)) TestSkiff->Destroy();
+            UE_LOG(LogTemp, Error, TEXT("Ocean skiff blockage peer verification FAILED: the server could not create the blocked skiff fixture."));
             OceanTravelFeedbackTestStage = 2;
             return;
         }
 
         OceanTravelFeedbackTestHost = HostCharacter;
-        OceanTravelFeedbackTestRemote = RemoteCharacter;
+        OceanTravelFeedbackTestHelm = RemoteCharacters[0];
+        OceanTravelFeedbackTestObserver = RemoteCharacters[1];
+        OceanTravelFeedbackTestSkiff = TestSkiff;
         OceanTravelFeedbackTestStageTime = GetWorld()->GetTimeSeconds();
         OceanTravelFeedbackTestStage = 1;
         return;
     }
 
-    if (GetWorld()->GetTimeSeconds() - OceanTravelFeedbackTestStageTime < 1.0f) return;
+    if (GetWorld()->GetTimeSeconds() - OceanTravelFeedbackTestStageTime < 2.0f) return;
     const AKalmalaCharacter* HostCharacter = OceanTravelFeedbackTestHost.Get();
-    const AKalmalaCharacter* RemoteCharacter = OceanTravelFeedbackTestRemote.Get();
+    const AKalmalaCharacter* HelmCharacter = OceanTravelFeedbackTestHelm.Get();
+    const AKalmalaCharacter* ObserverCharacter = OceanTravelFeedbackTestObserver.Get();
+    const AKalmalaOceanSkiff* TestSkiff = OceanTravelFeedbackTestSkiff.Get();
     const UKalmalaOceanTravelFeedbackComponent* HostFeedback = HostCharacter != nullptr
         ? HostCharacter->GetOceanTravelFeedbackComponent() : nullptr;
-    const UKalmalaOceanTravelFeedbackComponent* RemoteFeedback = RemoteCharacter != nullptr
-        ? RemoteCharacter->GetOceanTravelFeedbackComponent() : nullptr;
-    const bool bPassed = HostFeedback != nullptr && RemoteFeedback != nullptr
-        && HostFeedback->GetFeedback() == EKalmalaOceanTravelFeedback::ShallowLaunch
-        && HostFeedback->GetFeedbackSerial() == 1
-        && RemoteFeedback->GetFeedback() == EKalmalaOceanTravelFeedback::SeatsFull
-        && RemoteFeedback->GetFeedbackSerial() == 1;
+    const UKalmalaOceanTravelFeedbackComponent* HelmFeedback = HelmCharacter != nullptr
+        ? HelmCharacter->GetOceanTravelFeedbackComponent() : nullptr;
+    const UKalmalaOceanTravelFeedbackComponent* ObserverFeedback = ObserverCharacter != nullptr
+        ? ObserverCharacter->GetOceanTravelFeedbackComponent() : nullptr;
+    const FVector StopLocation = IsValid(TestSkiff) ? TestSkiff->GetActorLocation() : FVector::ZeroVector;
+    const bool bPassed = IsValid(TestSkiff) && HostCharacter != nullptr && HelmCharacter != nullptr
+        && ObserverCharacter != nullptr && TestSkiff->GetMode() == EKalmalaOceanSkiffMode::Blocked
+        && TestSkiff->GetBlockReason() == EKalmalaOceanSkiffBlockReason::GeneratedTerrainCollision
+        && TestSkiff->GetHelmOccupant() == HelmCharacter
+        && TestSkiff->GetPassengerOccupant() == HostCharacter
+        && HelmFeedback != nullptr
+        && HelmFeedback->GetFeedback() == EKalmalaOceanTravelFeedback::SkiffBlockedGeneratedTerrainCollision
+        && HelmFeedback->GetFeedbackSerial() == 1
+        && HostFeedback != nullptr && HostFeedback->GetFeedback() == EKalmalaOceanTravelFeedback::None
+        && HostFeedback->GetFeedbackSerial() == 0
+        && ObserverFeedback != nullptr && ObserverFeedback->GetFeedback() == EKalmalaOceanTravelFeedback::None
+        && ObserverFeedback->GetFeedbackSerial() == 0;
     if (bPassed)
     {
         UE_LOG(LogTemp, Display,
-            TEXT("Ocean skiff feedback verification server: Passed=1 Host=ShallowLaunch Remote=SeatsFull HostSerial=%u RemoteSerial=%u"),
-            HostFeedback->GetFeedbackSerial(), RemoteFeedback->GetFeedbackSerial());
+            TEXT("Ocean skiff blockage peer server passed: Seed=%llu Reason=GeneratedTerrainCollision HelmFeedback=SkiffBlockedGeneratedTerrainCollision HelmSerial=%u PassengerFeedback=None PassengerSerial=0 ObserverFeedback=None ObserverSerial=0 Mode=Blocked Seats=Helm,Passenger StopX=%.0f StopY=%.0f StopZ=%.0f"),
+            static_cast<unsigned long long>(WorldGenerationConfig.WorldSeed), HelmFeedback->GetFeedbackSerial(),
+            StopLocation.X, StopLocation.Y, StopLocation.Z);
     }
     else
     {
         UE_LOG(LogTemp, Error,
-            TEXT("Ocean skiff feedback verification server: Passed=0 HostSerial=%u RemoteSerial=%u"),
+            TEXT("Ocean skiff blockage peer verification FAILED: Mode=%d Reason=%d HelmFeedback=%d/%u PassengerFeedback=%d/%u ObserverFeedback=%d/%u"),
+            IsValid(TestSkiff) ? static_cast<int32>(TestSkiff->GetMode()) : -1,
+            IsValid(TestSkiff) ? static_cast<int32>(TestSkiff->GetBlockReason()) : -1,
+            HelmFeedback != nullptr ? static_cast<int32>(HelmFeedback->GetFeedback()) : -1,
+            HelmFeedback != nullptr ? HelmFeedback->GetFeedbackSerial() : 0,
+            HostFeedback != nullptr ? static_cast<int32>(HostFeedback->GetFeedback()) : -1,
             HostFeedback != nullptr ? HostFeedback->GetFeedbackSerial() : 0,
-            RemoteFeedback != nullptr ? RemoteFeedback->GetFeedbackSerial() : 0);
+            ObserverFeedback != nullptr ? static_cast<int32>(ObserverFeedback->GetFeedback()) : -1,
+            ObserverFeedback != nullptr ? ObserverFeedback->GetFeedbackSerial() : 0);
     }
     OceanTravelFeedbackTestStage = 2;
 #endif

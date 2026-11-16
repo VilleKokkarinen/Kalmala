@@ -13,7 +13,7 @@ bool UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(
 	const bool bServerAuthority, const EKalmalaOceanTravelFeedback NewFeedback)
 {
 	return bServerAuthority && NewFeedback > EKalmalaOceanTravelFeedback::None
-		&& NewFeedback <= EKalmalaOceanTravelFeedback::TravelActionSaveUnavailable;
+		&& NewFeedback <= EKalmalaOceanTravelFeedback::SkiffBlockedSweepLimit;
 }
 
 FString UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(const EKalmalaOceanTravelFeedback InFeedback)
@@ -54,6 +54,12 @@ FString UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(const EKalmalaOcea
 		return TEXT("□ TRAVEL · SAVE UNAVAILABLE · The server could not update your saved seat, so disembarking was cancelled safely.");
 	case EKalmalaOceanTravelFeedback::TravelActionSaveUnavailable:
 		return TEXT("□ TRAVEL · SAVE UNAVAILABLE · The server could not save your travel state, so this action was cancelled safely.");
+	case EKalmalaOceanTravelFeedback::SkiffBlockedInvalidOceanFootprint:
+		return TEXT("▲ TRAVEL · WATER BLOCKED · The whole hull must stay over at least 1 m of open ocean. Steer back into deeper water.");
+	case EKalmalaOceanTravelFeedback::SkiffBlockedGeneratedTerrainCollision:
+		return TEXT("▲ TRAVEL · LAND BLOCKED · Generated terrain is in the skiff's path. Steer around it in deeper open water.");
+	case EKalmalaOceanTravelFeedback::SkiffBlockedSweepLimit:
+		return TEXT("□ TRAVEL · MOVEMENT STOPPED · The server stopped an unsafe movement step. Release the helm controls and steer again.");
 	default:
 		return FString();
 	}

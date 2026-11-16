@@ -24,10 +24,13 @@ enum class EKalmalaOceanTravelFeedback : uint8
 	NoSafeExit,
 	Disembarked,
 	TravelSaveUnavailable,
-	TravelActionSaveUnavailable
+	TravelActionSaveUnavailable,
+	SkiffBlockedInvalidOceanFootprint,
+	SkiffBlockedGeneratedTerrainCollision,
+	SkiffBlockedSweepLimit
 };
 
-/** Owner-only transient reasons for server-resolved ocean travel interactions. */
+/** Owner-only transient reasons for server-resolved ocean travel actions and helm movement. */
 UCLASS(ClassGroup=(Kalmala), meta=(BlueprintSpawnableComponent))
 class KALMALAGAMEPLAY_API UKalmalaOceanTravelFeedbackComponent : public UActorComponent
 {

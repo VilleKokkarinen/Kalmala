@@ -1704,7 +1704,7 @@
     check and a listen-host/remote-owner scenario. Verify the rejected and
     timed-out cases restore the original model transform. No runtime check was
     run during this review.
-  - [ ] **RF59 — Keep skiff blockage details private to the helmsman (P3; CR05-002).**
+  - [x] **RF59 — Keep skiff blockage details private to the helmsman (P3; CR05-002).**
     Affected: `Source/KalmalaGameplay/Public/KalmalaOceanSkiff.h:23-29,62,102-103`,
     `Source/KalmalaGameplay/Private/KalmalaOceanSkiff.cpp:80-86,283-292`,
     and `docs/02-technical-architecture.md:1220,1226,1273`.

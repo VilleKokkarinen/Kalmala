@@ -95,6 +95,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaOceanTravelFeedbackContractTest,
 bool FKalmalaOceanTravelFeedbackContractTest::RunTest(const FString& Parameters)
 {
     using Feedback = EKalmalaOceanTravelFeedback;
+    using BlockReason = EKalmalaOceanSkiffBlockReason;
     TestTrue(TEXT("A server may publish a known requester feedback reason"),
         UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(true, Feedback::ShallowLaunch));
     TestFalse(TEXT("A client cannot choose an ocean travel result"),
@@ -107,6 +108,25 @@ bool FKalmalaOceanTravelFeedbackContractTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Stop-before-exit text states the released-control speed limit"),
         UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Feedback::StopBeforeDisembarking)
             .Contains(TEXT("0.5 m/s or slower")));
+    TestEqual(TEXT("Invalid ocean footprint maps to a water-blocked helmsman message"),
+        AKalmalaOceanSkiff::GetMovementBlockFeedback(BlockReason::InvalidOceanFootprint),
+        Feedback::SkiffBlockedInvalidOceanFootprint);
+    TestEqual(TEXT("Generated-terrain collision maps to a land-blocked helmsman message"),
+        AKalmalaOceanSkiff::GetMovementBlockFeedback(BlockReason::GeneratedTerrainCollision),
+        Feedback::SkiffBlockedGeneratedTerrainCollision);
+    TestEqual(TEXT("Sweep-limit response maps to its own helmsman message"),
+        AKalmalaOceanSkiff::GetMovementBlockFeedback(BlockReason::SweepLimit),
+        Feedback::SkiffBlockedSweepLimit);
+    TestEqual(TEXT("No block has no requester feedback"),
+        AKalmalaOceanSkiff::GetMovementBlockFeedback(BlockReason::None), Feedback::None);
+    TestTrue(TEXT("Generated-terrain block feedback is an allowed server result"),
+        UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(true,
+            Feedback::SkiffBlockedGeneratedTerrainCollision));
+    TestTrue(TEXT("The final skiff block feedback enum remains within the server result range"),
+        UKalmalaOceanTravelFeedbackComponent::IsFeedbackAllowed(true, Feedback::SkiffBlockedSweepLimit));
+    TestTrue(TEXT("Generated-terrain text explains the specific blocked path"),
+        UKalmalaOceanTravelFeedbackComponent::GetFeedbackText(Feedback::SkiffBlockedGeneratedTerrainCollision)
+            .Contains(TEXT("Generated terrain is in the skiff's path")));
     return true;
 }
 

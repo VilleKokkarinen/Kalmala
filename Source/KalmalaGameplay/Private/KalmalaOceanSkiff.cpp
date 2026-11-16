@@ -14,6 +14,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
@@ -75,6 +76,9 @@ void AKalmalaOceanSkiff::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     if (HasAuthority()) AdvanceServerMovement(DeltaSeconds);
+#if !UE_BUILD_SHIPPING
+    else ObserveBlockedMovementPeerTest();
+#endif
 }
 
 void AKalmalaOceanSkiff::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -83,7 +87,22 @@ void AKalmalaOceanSkiff::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
     DOREPLIFETIME(AKalmalaOceanSkiff, HelmOccupant);
     DOREPLIFETIME(AKalmalaOceanSkiff, PassengerOccupant);
     DOREPLIFETIME(AKalmalaOceanSkiff, Mode);
-    DOREPLIFETIME(AKalmalaOceanSkiff, BlockReason);
+}
+
+EKalmalaOceanTravelFeedback AKalmalaOceanSkiff::GetMovementBlockFeedback(
+    const EKalmalaOceanSkiffBlockReason Reason)
+{
+    switch (Reason)
+    {
+    case EKalmalaOceanSkiffBlockReason::InvalidOceanFootprint:
+        return EKalmalaOceanTravelFeedback::SkiffBlockedInvalidOceanFootprint;
+    case EKalmalaOceanSkiffBlockReason::GeneratedTerrainCollision:
+        return EKalmalaOceanTravelFeedback::SkiffBlockedGeneratedTerrainCollision;
+    case EKalmalaOceanSkiffBlockReason::SweepLimit:
+        return EKalmalaOceanTravelFeedback::SkiffBlockedSweepLimit;
+    default:
+        return EKalmalaOceanTravelFeedback::None;
+    }
 }
 
 bool AKalmalaOceanSkiff::IsLaunchAllowed(const bool bServerAuthority, const bool bGeneratedTerrainHit,
@@ -289,8 +308,86 @@ void AKalmalaOceanSkiff::BlockMovementAtLastSafeTransform(const FVector& SafeLoc
     RudderInput = 0.0f;
     Mode = EKalmalaOceanSkiffMode::Blocked;
     BlockReason = Reason;
+    SendFeedback(HelmOccupant, GetMovementBlockFeedback(Reason));
     ForceNetUpdate();
 }
+
+#if !UE_BUILD_SHIPPING
+bool AKalmalaOceanSkiff::SimulateBlockedMovementForPeerTest(AKalmalaCharacter* Helm,
+    AKalmalaCharacter* Passenger, const EKalmalaOceanSkiffBlockReason Reason)
+{
+    if (!HasAuthority() || !IsValid(Helm) || !IsValid(Passenger)
+        || !Helm->HasAuthority() || !Passenger->HasAuthority()
+        || Helm->GetWorld() != GetWorld() || Passenger->GetWorld() != GetWorld() || Helm == Passenger
+        || Reason == EKalmalaOceanSkiffBlockReason::None || IsValid(HelmOccupant)
+        || IsValid(PassengerOccupant))
+    {
+        return false;
+    }
+
+    bAlwaysRelevant = true;
+    HelmOccupant = Helm;
+    PassengerOccupant = Passenger;
+    RefreshSeatOccupancyPresentation();
+    BlockMovementAtLastSafeTransform(GetActorLocation() + FVector(200.0f, 0.0f, 0.0f),
+        GetActorRotation(), Reason);
+    Helm->ForceNetUpdate();
+    Passenger->ForceNetUpdate();
+    return Mode == EKalmalaOceanSkiffMode::Blocked && BlockReason == Reason;
+}
+
+void AKalmalaOceanSkiff::ObserveBlockedMovementPeerTest()
+{
+    if (bBlockedMovementPeerTestReported || !FParse::Param(FCommandLine::Get(),
+        TEXT("KalmalaOceanSkiffFeedbackTest")) || GetWorld() == nullptr
+        || Mode != EKalmalaOceanSkiffMode::Blocked || !IsValid(HelmOccupant)
+        || !IsValid(PassengerOccupant))
+    {
+        return;
+    }
+
+    APlayerController* Controller = GetWorld()->GetFirstPlayerController();
+    AKalmalaCharacter* LocalCharacter = Controller != nullptr && Controller->IsLocalController()
+        ? Cast<AKalmalaCharacter>(Controller->GetPawn()) : nullptr;
+    if (LocalCharacter == nullptr) return;
+    if (BlockedMovementPeerObservationStartSeconds < 0.0f)
+    {
+        BlockedMovementPeerObservationStartSeconds = GetWorld()->GetTimeSeconds();
+        return;
+    }
+    if (GetWorld()->GetTimeSeconds() - BlockedMovementPeerObservationStartSeconds < 1.0f) return;
+
+    const bool bIsHelm = LocalCharacter == HelmOccupant;
+    const bool bIsPassenger = LocalCharacter == PassengerOccupant;
+    const TCHAR* Role = bIsHelm ? TEXT("Helm") : bIsPassenger ? TEXT("Passenger") : TEXT("Observer");
+    const EKalmalaOceanTravelFeedback ExpectedFeedback = bIsHelm
+        ? EKalmalaOceanTravelFeedback::SkiffBlockedGeneratedTerrainCollision
+        : EKalmalaOceanTravelFeedback::None;
+    const uint32 ExpectedSerial = bIsHelm ? 1u : 0u;
+    const UKalmalaOceanTravelFeedbackComponent* TravelFeedback = LocalCharacter->GetOceanTravelFeedbackComponent();
+    const FVector Location = GetActorLocation();
+    const bool bPassed = TravelFeedback != nullptr && TravelFeedback->GetFeedback() == ExpectedFeedback
+        && TravelFeedback->GetFeedbackSerial() == ExpectedSerial
+        && BlockReason == EKalmalaOceanSkiffBlockReason::None
+        && FMath::IsFinite(Location.X) && FMath::IsFinite(Location.Y) && FMath::IsFinite(Location.Z);
+    bBlockedMovementPeerTestReported = true;
+    if (bPassed)
+    {
+        UE_LOG(LogTemp, Display,
+            TEXT("Ocean skiff blockage peer passed: Authority=0 Role=%s Feedback=%s Serial=%u Mode=Blocked Reason=LocalNone X=%.0f Y=%.0f Z=%.0f"),
+            Role, bIsHelm ? TEXT("SkiffBlockedGeneratedTerrainCollision") : TEXT("None"),
+            TravelFeedback->GetFeedbackSerial(), Location.X, Location.Y, Location.Z);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error,
+            TEXT("Ocean skiff blockage peer verification FAILED: Role=%s Feedback=%d Serial=%u Mode=%d LocalReason=%d"),
+            Role, TravelFeedback != nullptr ? static_cast<int32>(TravelFeedback->GetFeedback()) : -1,
+            TravelFeedback != nullptr ? TravelFeedback->GetFeedbackSerial() : 0,
+            static_cast<int32>(Mode), static_cast<int32>(BlockReason));
+    }
+}
+#endif
 
 void AKalmalaOceanSkiff::AdvanceServerMovement(const float DeltaSeconds)
 {

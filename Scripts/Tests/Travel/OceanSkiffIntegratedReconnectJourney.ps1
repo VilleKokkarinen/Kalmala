@@ -15,7 +15,7 @@ $output = if ($OutputDirectory) { $OutputDirectory } else { Join-Path $env:TEMP 
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $processes = [System.Collections.Generic.List[System.Diagnostics.Process]]::new()
 $allLogs = [System.Collections.Generic.List[string]]::new()
-$failurePattern = 'FAILED:|Ocean skiff feedback verification server: Passed=0|Ocean skiff feedback verification client received another player|Fatal error:|Assertion failed:|Ensure condition failed:'
+$failurePattern = 'FAILED:|Ocean skiff feedback verification client received another player|Fatal error:|Assertion failed:|Ensure condition failed:'
 
 function Start-OceanPeer {
     param(
@@ -119,6 +119,19 @@ function Read-ResumeIdentity {
     return $match
 }
 
+function Read-BlockageLocation {
+    param([string]$Log, [string]$Role)
+    $text = Get-LogText $Log
+    $pattern = "Ocean skiff blockage peer passed: Authority=0 Role=$Role Feedback=[^ ]+ Serial=[0-9]+ Mode=Blocked Reason=LocalNone X=(?<x>-?[0-9]+) Y=(?<y>-?[0-9]+) Z=(?<z>-?[0-9]+)"
+    $match = [regex]::Match($text, $pattern)
+    if (!$match.Success) { throw "Could not read the blocked skiff replica location for $Role." }
+    return @{
+        X = [double]::Parse($match.Groups['x'].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+        Y = [double]::Parse($match.Groups['y'].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+        Z = [double]::Parse($match.Groups['z'].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+    }
+}
+
 $hostDirectory = Join-Path $output 'Host'
 $ownerDirectory = Join-Path $output 'ReturningOwner'
 $lateDirectory = Join-Path $output 'LateJoiner'
@@ -126,20 +139,52 @@ $hostPeer = $null
 $owner = $null
 $late = $null
 $feedbackHost = $null
-$feedbackOwner = $null
+$feedbackHelm = $null
+$feedbackObserver = $null
 try {
     $feedbackHost = Start-OceanPeer -Role 'host' -Phase 'Feedback' -Url '/Game/Kalmala/Maps/Prototype/L_Prototype?listen?Name=KalmalaFeedbackHost' -UserDirectory (Join-Path $output 'FeedbackHost') -PortArgument "-port=$Port" -Feedback
     Wait-ForLogPatterns -Checks @(@{ Log = $feedbackHost.Log; Pattern = 'GameNetDriver.*listening on port' }) -ActiveProcesses @($feedbackHost.Process) -Seconds 90 -FailureMessage 'Ocean feedback listen-server startup failed.'
-    $feedbackOwner = Start-OceanPeer -Role 'owner' -Phase 'Feedback' -Url "127.0.0.1:$Port`?Name=KalmalaFeedbackOwner" -UserDirectory (Join-Path $output 'FeedbackOwner') -Feedback
+    $feedbackHelm = Start-OceanPeer -Role 'helm' -Phase 'Feedback' -Url "127.0.0.1:$Port`?Name=KalmalaFeedbackHelm" -UserDirectory (Join-Path $output 'FeedbackHelm') -Feedback
+    Wait-ForLogPatterns -Checks @(@{ Log = $feedbackHelm.Log; Pattern = 'Client received world-generation identity: Seed=418' }) -ActiveProcesses @($feedbackHost.Process, $feedbackHelm.Process) -Seconds 120 -FailureMessage 'Ocean feedback helmsman startup failed.'
+    $feedbackObserver = Start-OceanPeer -Role 'observer' -Phase 'Feedback' -Url "127.0.0.1:$Port`?Name=KalmalaFeedbackObserver" -UserDirectory (Join-Path $output 'FeedbackObserver') -Feedback
     Wait-ForLogPatterns -Checks @(
-        @{ Log = $feedbackHost.Log; Pattern = 'Ocean skiff feedback verification server: Passed=1 Host=ShallowLaunch Remote=SeatsFull HostSerial=1 RemoteSerial=1' },
-        @{ Log = $feedbackHost.Log; Pattern = 'Ocean skiff feedback UI local: .*Serial=1 Message=.*SHALLOW WATER.*Wade or swim farther out' },
-        @{ Log = $feedbackOwner.Log; Pattern = 'Ocean skiff feedback UI local: .*Serial=1 Message=.*SEATS FULL.*Both skiff seats are occupied' },
-        @{ Log = $feedbackOwner.Log; Pattern = 'Ocean skiff feedback verification client retained no other-owner feedback\.' },
-        @{ Log = $feedbackOwner.Log; Pattern = 'Client received world-generation identity: Seed=418' }
-    ) -ActiveProcesses @($feedbackHost.Process, $feedbackOwner.Process) -Seconds 120 -FailureMessage 'Ocean owner-only travel feedback verification failed.'
-    Write-Output 'PASS: host and owner displayed their own server-selected travel feedback; the owner client received none for the host pawn.'
-    Stop-OceanPeer $feedbackOwner.Process; $feedbackOwner = $null
+        @{ Log = $feedbackHost.Log; Pattern = 'Ocean skiff blockage peer server passed: Seed=418 Reason=GeneratedTerrainCollision HelmFeedback=SkiffBlockedGeneratedTerrainCollision HelmSerial=1 PassengerFeedback=None PassengerSerial=0 ObserverFeedback=None ObserverSerial=0 Mode=Blocked Seats=Helm,Passenger StopX=-?[0-9]+ StopY=-?[0-9]+ StopZ=-?[0-9]+' },
+        @{ Log = $feedbackHelm.Log; Pattern = 'Ocean skiff blockage peer passed: Authority=0 Role=Helm Feedback=SkiffBlockedGeneratedTerrainCollision Serial=1 Mode=Blocked Reason=LocalNone X=-?[0-9]+ Y=-?[0-9]+ Z=-?[0-9]+' },
+        @{ Log = $feedbackHelm.Log; Pattern = 'Ocean skiff feedback UI local: .*Serial=1 Message=.*LAND BLOCKED.*Generated terrain is in the skiff''s path' },
+        @{ Log = $feedbackObserver.Log; Pattern = 'Ocean skiff blockage peer passed: Authority=0 Role=Observer Feedback=None Serial=0 Mode=Blocked Reason=LocalNone X=-?[0-9]+ Y=-?[0-9]+ Z=-?[0-9]+' },
+        @{ Log = $feedbackHelm.Log; Pattern = 'Client received world-generation identity: Seed=418' },
+        @{ Log = $feedbackObserver.Log; Pattern = 'Client received world-generation identity: Seed=418' }
+    ) -ActiveProcesses @($feedbackHost.Process, $feedbackHelm.Process, $feedbackObserver.Process) -Seconds 120 -FailureMessage 'Ocean blocked-movement owner-only feedback verification failed.'
+    $serverLocationMatch = [regex]::Match((Get-LogText $feedbackHost.Log), 'Ocean skiff blockage peer server passed: .*StopX=(?<x>-?[0-9]+) StopY=(?<y>-?[0-9]+) StopZ=(?<z>-?[0-9]+)')
+    if (!$serverLocationMatch.Success) { throw 'Could not read the server blocked-skiff location.' }
+    $serverLocation = @{
+        X = [double]::Parse($serverLocationMatch.Groups['x'].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+        Y = [double]::Parse($serverLocationMatch.Groups['y'].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+        Z = [double]::Parse($serverLocationMatch.Groups['z'].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+    }
+    foreach ($replica in @((Read-BlockageLocation $feedbackHelm.Log 'Helm'), (Read-BlockageLocation $feedbackObserver.Log 'Observer'))) {
+        if ([math]::Abs($replica.X - $serverLocation.X) -gt 2 -or [math]::Abs($replica.Y - $serverLocation.Y) -gt 2 -or [math]::Abs($replica.Z - $serverLocation.Z) -gt 2) {
+            throw 'A remote peer did not receive the server blocked-skiff transform.'
+        }
+    }
+    $privacyDeadline = (Get-Date).AddSeconds(15)
+    $privacyChecksPassed = $false
+    do {
+        $helmPrivateChecks = [regex]::Matches((Get-LogText $feedbackHelm.Log), 'Ocean skiff feedback verification client retained no other-owner feedback\.')
+        $observerPrivateChecks = [regex]::Matches((Get-LogText $feedbackObserver.Log), 'Ocean skiff feedback verification client retained no other-owner feedback\.')
+        if ($helmPrivateChecks.Count -ge 2 -and $observerPrivateChecks.Count -ge 2) {
+            $privacyChecksPassed = $true
+            break
+        }
+        Start-Sleep -Milliseconds 250
+    } while ((Get-Date) -lt $privacyDeadline)
+    if (!$privacyChecksPassed) { throw 'A remote peer did not verify both other players'' travel-feedback components remained private.' }
+    foreach ($peer in @($feedbackHelm, $feedbackObserver)) {
+        if ($peer.Process.HasExited) { throw 'A remote feedback peer exited before privacy checks completed.' }
+    }
+    Write-Output 'PASS: a listen host passenger, remote helmsman, and observer saw the blocked vessel; only the helmsman received its specific reason.'
+    Stop-OceanPeer $feedbackObserver.Process; $feedbackObserver = $null
+    Stop-OceanPeer $feedbackHelm.Process; $feedbackHelm = $null
     Stop-OceanPeer $feedbackHost.Process; $feedbackHost = $null
 
     $hostPeer = Start-OceanPeer -Role 'host' -Phase 'Journey' -Url '/Game/Kalmala/Maps/Prototype/L_Prototype?listen?Name=KalmalaReconnectHost' -UserDirectory $hostDirectory -PortArgument "-port=$Port" -Journey
@@ -200,7 +245,7 @@ try {
     Write-Output 'PASS: the late peer joined during the 2.4 km voyage without private rewards; the original authenticated seats and moored stop restored, and discovery replay was rejected after restart.'
 }
 finally {
-    foreach ($peer in @($late, $owner, $hostPeer, $feedbackOwner, $feedbackHost)) {
+    foreach ($peer in @($late, $owner, $hostPeer, $feedbackObserver, $feedbackHelm, $feedbackHost)) {
         if ($null -ne $peer) { Stop-OceanPeer $peer.Process }
     }
     Write-Output "Integrated voyage reconnect logs: $output"

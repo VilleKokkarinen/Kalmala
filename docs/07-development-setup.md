@@ -4341,8 +4341,12 @@ production RPC or saved-data field.
 This integrated reconnect runner supersedes the earlier standalone
 `Verify-OceanSkiffIntegratedJourney.ps1`: its voyage phase enables the same
 journey, discovery/disembark, and weather fixtures, then adds underway late
-join and restart/reconnect checks. Its preliminary feedback phase verifies
-owner-only messages on the host and returning owner's local HUD. Keep
+join and restart/reconnect checks. Its preliminary feedback phase uses a
+listen host as passenger, a remote helmsman, and a remote observer. The server
+forces the normal blocked-movement handler with a generated-terrain reason and
+checks that the mapped owner-only message reaches only the helmsman while all
+peers retain the blocked mode and replicated stop transform. The peer checks
+also require the local reason field to remain empty on remote replicas. Keep
 `OceanSkiffJourney.ps1` for a focused two-peer crossing.
 
 ## M9 tool stations and progression

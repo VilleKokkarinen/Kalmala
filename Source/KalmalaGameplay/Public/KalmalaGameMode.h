@@ -640,7 +640,9 @@ private:
     int32 OceanTravelFeedbackTestStage = 0;
     float OceanTravelFeedbackTestStageTime = 0.0f;
     TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestHost;
-    TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestRemote;
+    TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestHelm;
+    TWeakObjectPtr<class AKalmalaCharacter> OceanTravelFeedbackTestObserver;
+    TWeakObjectPtr<class AKalmalaOceanSkiff> OceanTravelFeedbackTestSkiff;
     int32 OceanWeatherPeerTestStage = 0;
     float OceanWeatherPeerTestStageTime = 0.0f;
     int32 OceanJourneyPeerTestStage = 0;
