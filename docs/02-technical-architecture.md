@@ -549,7 +549,7 @@ Generated harvest nodes now grant one material through that inventory. The serve
 
 ## M2 workbench and storage
 
-Accepted workbench/storage kits use the existing replicated construction actor and current schema-7 construction save. Visible workbenches within 250 cm satisfy camp kit assembly. Chest contents live only in a separate server-owned schema-2 save, bounded to 128 stable construction IDs with 16 unique catalogue-limited stacks each, under exact seed identity. Every unit in a chest stack has a saved item GUID. Current-format records must already contain valid item identities and GUIDs; invalid or incompatible saves fail closed without overwrite. The game mode retains both construction and storage save containers through reflected transient references.
+Accepted workbench/storage kits use the existing replicated construction actor and current schema-7 construction save. Visible workbenches within 250 cm satisfy camp kit assembly. Chest contents live only in a separate server-owned schema-3 save, bounded to 128 stable construction IDs with 16 unique catalogue-limited stacks each, under exact seed identity. Every unit in a chest stack has a saved item GUID. Current-format records must already contain valid item identities and GUIDs; invalid or incompatible saves fail closed without overwrite. The game mode retains both construction and storage save containers through reflected transient references.
 
 An accepted construction-station interaction may publish an owner-only station-context event containing the exact replicated actor reference, its station kit, stable construction ID, and a bounded serial. This is presentation context only: the client cannot choose the target, and every recipe, repair, upgrade, and storage action continues to resolve and validate its own current server-side station, range, sight line, inventory, and requirements. Context events add no RPC payload, save field, or gameplay authority.
 
@@ -675,7 +675,7 @@ Every feature needs an automated test where practical, plus a reproducible multi
 
 M9 supersedes the M7 tool-output replacement recipes and material-paid repair. The owner-local Inventory action submits only a carried tool ID; the server selects the owner's current record, validates a visible same-world Workbench or Forge within 250 cm, and restores that damaged or broken known tool to its authored maximum at no cost. Rejected requests preserve condition, and accepted repair awards no Crafting experience. The Workbench and Forge station menus expose a payload-free Repair All action instead of a tool-selection page. The server validates a visible same-world Workbench or Forge within 250 cm, builds a complete candidate from the bounded owner-only carried-tool array, then persists and publishes the accepted repairs together; clients send no list, tool ID, or condition. The paid buildable Grinding Stone keeps its in-world Repair All action and existing construction/save record, with the same atomic carried-list validation. The owner Inventory panel shows private tool condition and its selected-tool repair action; station Repair All does not open a menu. Current-format tool and station progression is persisted directly in player-discovery schema 3; construction records use schema 7. No compatibility migration runs during development. The parameterless sharpening multicast remains presentation-only and carries no repair state.
 
-The normal Chest is the sole storage construction. Current schema-4 food processing uses the Cooking Rack, Cauldron, and Frying Pan; it has no Smoke Frame or smoke recipe. Recipes consume direct Wood and Stone, and other listed material costs; intermediate Fuel and ConstructionSupply items no longer exist. Cooking recipes consume their listed ingredients only. Wood, Lightwood, Densewood, and Coal each add 60 seconds of hearth fuel, and a lit hearth burns one fuel second per elapsed server second. The server derives cooking heat requirements from the resolved station and a usable lit hearth near both the player and station. Current storage schema 2 requires current item IDs and per-item GUIDs in saved stacks; it does not convert retired IDs or backfill legacy GUIDs. Construction save schema 7 stores Kiln and Smelter processing state, Garden Plot crop mode and remaining active-game seconds, and Standing Light remaining fuel.
+The normal Chest is the sole storage construction. Current schema-4 food processing uses the Cooking Rack, Cauldron, and Frying Pan; it has no Smoke Frame or smoke recipe. Recipes consume direct Wood and Stone, and other listed material costs; intermediate Fuel and ConstructionSupply items no longer exist. Cooking recipes consume their listed ingredients only. Wood, Lightwood, Densewood, and Coal each add 60 seconds of hearth fuel, and a lit hearth burns one fuel second per elapsed server second. The server derives cooking heat requirements from the resolved station and a usable lit hearth near both the player and station. Current storage schema 3 requires current item IDs and per-item GUIDs in saved stacks; it does not convert retired IDs or backfill legacy GUIDs. Construction save schema 7 stores Kiln and Smelter processing state, Garden Plot crop mode and remaining active-game seconds, and Standing Light remaining fuel.
 
 M9 persistence uses the existing construction and player-discovery save owners and slots. Construction saves use schema 7; player-discovery saves use schema 3. World construction uses exact seed/revision-7 identity and bounded records for paid station attachments, Charcoal Kiln and Smelter queues/jobs, Garden Plot crop mode/active time, and Standing Light remaining fuel; station level remains derived from accepted nearby attachments. Player discovery uses exact seed/revision/player identity and bounded carried-item and discovery records, with carried identities stored directly as `ItemId` and Basic Torch fuel stored as bounded remaining seconds. The separate M7 sparse ledger uses schema 2. Normal writes validate complete candidates before replacing a slot. Player writes merge only server-revalidated current M9 claims and the owner's current carried-item state; a rejected candidate leaves the existing save and live gameplay unchanged. There are no user save files during development, so save formats may change directly; do not implement save compatibility migrations until the game is released.
 
@@ -1136,7 +1136,7 @@ fuel item, but the current world loot catalogue has no natural Coal source.
 
 ## Compatibility and authority
 
-The JSON source remains schema 4 and the storage SaveGame is schema 2. Current
+The JSON source remains schema 4 and the storage SaveGame is schema 3. Current
 chest records must already use active catalogue IDs and include a stable item
 GUID per unit. Incompatible schema versions, retired item IDs, or missing GUIDs
 fail validation and are left untouched; no saved chest data is converted or
@@ -1471,7 +1471,7 @@ duplicate IDs, catalogue IDs, transforms, condition/level ranges, and bounds,
 before replacing a slot or publishing the live transaction. Failed writes
 preserve previous bytes and reject or roll back associated gameplay changes.
 Current construction saves use schema 7; player-discovery saves use schema 3; chest storage
-saves use schema 2. Other save owners retain their current versions.
+saves use schema 3. Other save owners retain their current versions.
 
 ## Current save and catalogue versions
 
@@ -1485,7 +1485,7 @@ release.
 | Player discoveries, learned effects, M9 claims, and carried items (`UKalmalaPlayerDiscoverySaveGameV2`) | Save schema 3 | Authenticated player and exact world |
 | M7 sparse persistence ledger (`UKalmalaM7PersistenceSaveGame`) | Save schema 2 | Identity-scoped sparse world/player facts and pending Ocean rewards |
 | Generated population deltas (`UKalmalaWorldPopulationSaveGame`) | Save schema 2 | Server world |
-| Chest storage (`UKalmalaStorageSaveGame`) | Save schema 2 | Server world |
+| Chest storage (`UKalmalaStorageSaveGame`) | Save schema 3 | Server world |
 | Ocean vessel and seat records (`UKalmalaOceanTravelPersistenceSaveGame`) | Save schema 1 | Server world and authenticated player |
 | Local map exploration coverage (`UKalmalaWorldMapExplorationSaveGame`) | Save schema 1 | Local player |
 | Local map pins (`UKalmalaWorldMapPinsSaveGame`) | Save schema 1 | Local player |

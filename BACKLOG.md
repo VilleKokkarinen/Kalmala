@@ -2004,7 +2004,7 @@
     **Implementation:** Candidate coordinates now map 16-bit samples into a
     half-open cell interval by dividing by 65,536. Canonical descriptor checks
     also require the floor-mapped location to match the stored source key.
-  - [ ] **RF67 — Correct the current storage save schema in architecture references (P3; CR11-001).**
+  - [x] **RF67 — Correct the current storage save schema in architecture references (P3; CR11-001).**
     `docs/02-technical-architecture.md:664,1108,1401-1402,1416,1644` and
     `Source/KalmalaGameplay/Public/KalmalaStorageSaveGame.h:23`.
     **Affected path:** A developer reads the architecture save-version reference
@@ -2022,7 +2022,7 @@
     3. RF57 is the separate generated-population table mismatch.
     **Proposed repair:** Correct the stale storage references and table to schema
     3 while retaining the distinct construction schema 7, player-discovery
-    schema 3, and M7 sparse-ledger schema 1.
+    schema 3, and M7 sparse-ledger schema 2.
     **Dependencies:** After CR19 review acceptance; no documentation repair
     during the review-only phase.
     **Acceptance:** Current architecture references consistently identify
@@ -2031,6 +2031,10 @@
     **Focused validation:** Compare every current storage-version reference
     against the runtime constant and current-format acceptance text. No build
     is needed for a documentation-only repair.
+    **Implementation:** Updated the five stale current storage schema references,
+    including the version-table row, to schema 3. Retained the M7 sparse-ledger
+    schema 2 confirmed by its runtime constant; left historical schema references
+    unchanged.
   - [ ] **RF68 — Reject out-of-bounds construction records during restore (P3; CR11-001).**
     `Source/KalmalaGameplay/Private/KalmalaConstructionSaveGame.cpp:13-20,65-92`;
     `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:935-953`;

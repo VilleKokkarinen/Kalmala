@@ -33782,3 +33782,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** Candidate generation and canonical validation remain server-side. No RPC, save schema, actor grouping, reward, or claim identity changed.
 - **Known limitations / remaining scope:** The new endpoint/grid coverage has not been built or run. RF67 and later CR remediation tasks remain open.
 - **Next eligible task:** RF67 — Correct the current storage save schema in architecture references. The overall CR remediation goal remains active.
+
+## Run 2026-11-16 — RF67 current storage schema references
+
+- **Selected task:** RF67, correct the architecture's current chest storage save schema references to match the runtime owner.
+- **Work completed:** Updated the five stale current storage schema references, including the current save-version table, in `docs/02-technical-architecture.md` from schema 2 to schema 3. Corrected RF67's proposed repair to retain M7 sparse-ledger schema 2, matching its runtime constant. Checked RF67 in the backlog; historical schema references remain unchanged.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/02-technical-architecture.md`.
+- **Lightweight checks:** `git diff --check` passed. Searched the architecture for current storage schema references and compared them with `UKalmalaStorageSaveGame::CurrentSchemaVersion`, `InitializeForWorld`, and `MatchesWorld`. No build or runtime verification was needed for this documentation-only change.
+- **Full verification:** Deferred; RF67 is not the final implementation task in the CR remediation queue.
+- **Observable impact:** The architecture now consistently describes current chest storage saves as schema 3, avoiding incorrect development-save expectations.
+- **Networking/authority:** No runtime or networking behavior changed; storage remains server-owned.
+- **Known limitations / remaining scope:** This increment changes documentation only. RF68 and later CR remediation tasks remain open.
+- **Next eligible task:** RF68 — Reject out-of-bounds construction records during restore. The overall CR remediation goal remains active.
