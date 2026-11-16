@@ -1640,7 +1640,7 @@
     existing fixture, an over-cap record is rejected by `Matches`.
     **Focused validation:** Run `Kalmala.World.M7.PersistenceContract` after an
     editor build. No test was run during this review.
-  - [ ] **RF57 — Correct the generated population save version in the architecture table (P3; CR04-048).**
+  - [x] **RF57 — Correct the generated population save version in the architecture table (P3; CR04-048).**
     `docs/02-technical-architecture.md:1468`,
     `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:30-43`,
     and `docs/05-decision-log.md:209`.
