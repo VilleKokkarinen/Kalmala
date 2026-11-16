@@ -8,6 +8,10 @@
 #include "KalmalaItemCatalogue.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Stats/Stats.h"
+
+DECLARE_CYCLE_STAT(TEXT("Player Status Advance"), STAT_KalmalaPlayerStatusAdvance, STATGROUP_Game);
+DECLARE_CYCLE_STAT(TEXT("Player Status Snapshot Schedule"), STAT_KalmalaPlayerStatusSnapshotSchedule, STATGROUP_Game);
 
 const FName UKalmalaPlayerStatusComponent::WetStatusId(TEXT("State.Wet"));
 const FName UKalmalaPlayerStatusComponent::WeakPoisonStatusId(TEXT("State.Poison.Weak"));
@@ -99,7 +103,7 @@ UKalmalaPlayerStatusComponent::UKalmalaPlayerStatusComponent()
 void UKalmalaPlayerStatusComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    DOREPLIFETIME_CONDITION(UKalmalaPlayerStatusComponent, Statuses, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaPlayerStatusComponent, ReplicatedStatuses, COND_OwnerOnly);
 }
 
 bool UKalmalaPlayerStatusComponent::HasStatus(const FName StatusId) const
@@ -109,7 +113,7 @@ bool UKalmalaPlayerStatusComponent::HasStatus(const FName StatusId) const
 
 float UKalmalaPlayerStatusComponent::GetRemainingSeconds(const FName StatusId) const
 {
-    const FKalmalaPlayerStatusEntry* Entry = Statuses.FindByPredicate([StatusId](const FKalmalaPlayerStatusEntry& Candidate)
+    const FKalmalaPlayerStatusEntry* Entry = GetStatuses().FindByPredicate([StatusId](const FKalmalaPlayerStatusEntry& Candidate)
     {
         return Candidate.StatusId == StatusId && FMath::IsFinite(Candidate.RemainingSeconds) && Candidate.RemainingSeconds > 0.0f;
     });
@@ -156,7 +160,6 @@ bool UKalmalaPlayerStatusComponent::CanApplyFoodFromServer(const FName ItemId) c
 bool UKalmalaPlayerStatusComponent::ApplyFoodFromServer(const FName ItemId)
 {
     if (!CanApplyFoodFromServer(ItemId) || !ApplyFood(Statuses, ItemId)) return false;
-    GetOwner()->ForceNetUpdate();
     return true;
 }
 
@@ -253,7 +256,6 @@ bool UKalmalaPlayerStatusComponent::ApplyDraughtFromServer(const FName ItemId)
     {
         PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
     }
-    GetOwner()->ForceNetUpdate();
     return true;
 }
 
@@ -261,7 +263,6 @@ void UKalmalaPlayerStatusComponent::ApplyWetFromServer()
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
     ApplyWet(Statuses);
-    GetOwner()->ForceNetUpdate();
 }
 
 bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServer(const float DurationSeconds)
@@ -299,7 +300,6 @@ bool UKalmalaPlayerStatusComponent::ApplyWeakPoisonFromServerInternal(const floa
         Poison->RemainingSeconds = DurationSeconds;
         if (!bPoisonWasActive) PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
     }
-    GetOwner()->ForceNetUpdate();
     return true;
 }
 
@@ -336,13 +336,13 @@ bool UKalmalaPlayerStatusComponent::ApplyMajorPoisonFromServer(const float Durat
         Poison->RemainingSeconds = DurationSeconds;
         if (!bPoisonWasActive) PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
     }
-    GetOwner()->ForceNetUpdate();
     return true;
 }
 
 void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+    SCOPE_CYCLE_COUNTER(STAT_KalmalaPlayerStatusAdvance);
     const float SafeDelta = FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
     AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner());
     if (!Character || Character->GetHealth() <= 1.0f)
@@ -417,7 +417,7 @@ void UKalmalaPlayerStatusComponent::AdvanceFromServer(const float DeltaSeconds)
     Advance(Statuses, DeltaSeconds);
     if (!HasStatus(WeakPoisonStatusId) && !HasStatus(MajorPoisonStatusId))
         PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
-    GetOwner()->ForceNetUpdate();
+    UpdateReplicatedStatusesFromServer(SafeDelta);
 }
 
 bool UKalmalaPlayerStatusComponent::TryRemoveWetAtCampfireFromServer(const AKalmalaCampfire* Campfire)
@@ -429,8 +429,41 @@ bool UKalmalaPlayerStatusComponent::TryRemoveWetAtCampfireFromServer(const AKalm
     const float Heat = Campfire->GetWarmthContributionAt(Owner->GetActorLocation());
     if (!FMath::IsFinite(Heat) || Heat <= 0.0f) return false;
     const int32 Removed = Statuses.RemoveAll([](const FKalmalaPlayerStatusEntry& Entry) { return Entry.StatusId == WetStatusId; });
-    if (Removed > 0) GetOwner()->ForceNetUpdate();
     return Removed > 0;
+}
+
+void UKalmalaPlayerStatusComponent::UpdateReplicatedStatusesFromServer(const float DeltaSeconds)
+{
+    SCOPE_CYCLE_COUNTER(STAT_KalmalaPlayerStatusSnapshotSchedule);
+    AActor* Owner = GetOwner();
+    if (Owner == nullptr || !Owner->HasAuthority()) return;
+
+    StatusSnapshotElapsedSeconds += FMath::Max(0.0f, FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f);
+
+    bool bStatusSetChanged = ReplicatedStatuses.Num() != Statuses.Num();
+    bool bSnapshotChanged = bStatusSetChanged;
+    if (!bStatusSetChanged)
+    {
+        for (int32 Index = 0; Index < Statuses.Num(); ++Index)
+        {
+            if (ReplicatedStatuses[Index].StatusId != Statuses[Index].StatusId)
+            {
+                bStatusSetChanged = true;
+                bSnapshotChanged = true;
+                break;
+            }
+            if (ReplicatedStatuses[Index].RemainingSeconds != Statuses[Index].RemainingSeconds)
+            {
+                bSnapshotChanged = true;
+            }
+        }
+    }
+    if (!bStatusSetChanged && StatusSnapshotElapsedSeconds < OwnerStatusReplicationIntervalSeconds) return;
+    StatusSnapshotElapsedSeconds = 0.0f;
+    if (!bSnapshotChanged) return;
+
+    ReplicatedStatuses = Statuses;
+    Owner->ForceNetUpdate();
 }
 
 void UKalmalaPlayerStatusComponent::ApplyWet(TArray<FKalmalaPlayerStatusEntry>& Entries)

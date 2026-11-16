@@ -1910,7 +1910,7 @@
     cell, and verify repeated cached restores plus a replacement pawn do not
     duplicate the scroll. Authored but not built or run in this normal increment;
     execute during milestone-final verification.
-  - [ ] **RF65 — Bound owner-only status timer replication work (P3; CR08-001).**
+  - [x] **RF65 — Bound owner-only status timer replication work (P3; CR08-001).**
     Cross-reference: CR17 should reuse RF65 and must not create a duplicate.
     Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:432 and
     Source/KalmalaGameplay/Private/KalmalaPlayerStatusComponent.cpp:99-103,343-420,457-489.
@@ -1944,11 +1944,21 @@
     owner-only. A representative multiplayer profile records bounded per-owner
     update frequency, replication bytes, and server scheduling cost against a
     documented budget. No net-profile measurement was run during this review.
-    **Focused validation:** Extend the focused status automation for stacking,
-    poison ticks, recovery, expiry and death cleanup; verify owner/observer
-    privacy in a multiplayer scenario; and capture a net profile at the
-    supported representative player count to establish the cadence and
-    replication-work bounds. No test was run during this review.
+    **Focused validation:** `Kalmala.Gameplay.Status.ReplicationCadence` now
+    covers owner snapshot timing, stacking, poison ticks/expiry, recovery and
+    death. The existing Antidote host/owner/observer scenario covers privacy.
+    The four-player profile is required during CR milestone-final verification;
+    it has not been captured in this normal increment.
+    **Implementation:** The server retains its live status array and copies to
+    a separate owner-only replicated snapshot. Status-set changes publish on
+    the next status advance; timer-only changes publish at a 0.25-second
+    interval. Status mutation APIs no longer force actor updates. Added cycle
+    counters for status advancement and snapshot scheduling.
+    **Profile budget:** At four players, timer-only updates are capped at four
+    per second per owner; status-property replication targets at most 1 KiB per
+    second per owner; average aggregate snapshot scheduling targets at most
+    0.05 ms per server frame. Transition-driven snapshots must be reported
+    separately. These are targets; measurements remain pending.
   - [ ] **RF66 — Keep Ocean discovery candidates inside their source spatial key (P3; CR09-001c).**
     `Source/KalmalaGameplay/Private/KalmalaOceanDiscoveryCatalogue.cpp:130-138,159-176`,
     `Source/KalmalaWorld/Public/KalmalaWorldPopulationLayout.h:61-69`,

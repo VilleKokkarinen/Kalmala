@@ -6216,6 +6216,27 @@ ingredient quantities, Cooking award, and one-batch material exchange to one
 dose. These checks complement the status and UI regressions; live Cauldron peer
 acceptance remains part of combined I4 verification.
 
+## Owner-only status timer replication — 2026-11-16
+
+`Kalmala.Gameplay.Status.ReplicationCadence` checks immediate server activation,
+the owner-only snapshot, 0.25-second timer updates, meal stacking, poison ticks
+and expiry, recovery publication, and death cleanup. The multiplayer
+`ItemPeers.ps1 -Scenario Antidote` host/owner/observer run verifies that the
+owner receives poison status while the observer sees no private status entries.
+The new cadence automation is uncompiled and unrun; rerun the existing peer
+scenario for RF65 during CR milestone-final verification.
+
+For the four-player profile (listen host plus three clients), run the controlled
+status-active scenario with Unreal Network Profiler enabled on the server.
+Bracket the capture with `netprofile enable` and `netprofile disable`, then
+inspect the `.nprof` status-property bytes and per-owner update frequency.
+Record `Player Status Snapshot Schedule` from `stat game` as aggregate server
+scheduling cost. RF65's profile targets are at most four timer-only snapshots
+per second and 1 KiB/second of status-property replication per owner, with no
+more than 0.05 ms average aggregate scheduling time per server frame. Record
+transition-driven snapshots separately. The profile is still pending; these
+limits are targets, not measured results.
+
 ## A8b Peat Heart Stew item coverage — 2026-10-22
 
 Peat Heart Stew reuses the existing server-authoritative prepared-food

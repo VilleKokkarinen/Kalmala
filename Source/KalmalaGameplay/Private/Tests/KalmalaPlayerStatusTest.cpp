@@ -40,6 +40,104 @@ bool FKalmalaPlayerWetStatusTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaStatusReplicationCadenceTest,
+    "Kalmala.Gameplay.Status.ReplicationCadence",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaStatusReplicationCadenceTest::RunTest(const FString& Parameters)
+{
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false);
+    AKalmalaCharacter* Pawn = World ? World->SpawnActor<AKalmalaCharacter>() : nullptr;
+    if (!TestNotNull(TEXT("Status replication fixture spawned"), Pawn))
+    {
+        if (World) World->DestroyWorld(false);
+        return false;
+    }
+
+    UKalmalaPlayerStatusComponent* Status = Pawn->FindComponentByClass<UKalmalaPlayerStatusComponent>();
+    const FFloatProperty* HealthProperty = FindFProperty<FFloatProperty>(AKalmalaCharacter::StaticClass(), TEXT("Health"));
+    if (!TestNotNull(TEXT("Status replication component exists"), Status)
+        || !TestNotNull(TEXT("Health fixture property exists"), HealthProperty))
+    {
+        World->DestroyWorld(false);
+        return false;
+    }
+
+    TestTrue(TEXT("A server meal activates immediately"), Status->ApplyFoodFromServer(TEXT("CookedDeerMeat")));
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestTrue(TEXT("Owner snapshot waits for the next server status advance"), Status->GetStatuses().IsEmpty());
+    Pawn->SetRole(ROLE_Authority);
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestEqual(TEXT("The owner receives activation on the next status advance"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), 119.875f);
+    Pawn->SetRole(ROLE_Authority);
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestEqual(TEXT("The owner snapshot contains one meal entry"), Status->GetStatuses().Num(), 1);
+    Pawn->SetRole(ROLE_Authority);
+    TestFalse(TEXT("An active meal cannot be stacked"), Status->ApplyFoodFromServer(TEXT("HearthBroth")));
+
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestEqual(TEXT("The timer snapshot updates at its 0.25-second cadence"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), 119.625f);
+    Pawn->SetRole(ROLE_Authority);
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestEqual(TEXT("Timer floats do not publish on each server tick"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), 119.625f);
+    Pawn->SetRole(ROLE_Authority);
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestEqual(TEXT("The owner receives the next timer snapshot after another cadence interval"),
+        Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), 119.375f);
+
+    Pawn->SetRole(ROLE_Authority);
+    TestTrue(TEXT("Weak poison activates on the server"), Status->ApplyWeakPoisonFromServer(1.0f));
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestTrue(TEXT("The owner receives a newly active poison with the next snapshot"),
+        Status->GetStatuses().ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId; }));
+    Pawn->SetRole(ROLE_Authority);
+    Status->AdvanceFromServer(0.125f);
+    Status->AdvanceFromServer(0.75f);
+    TestEqual(TEXT("Weak poison keeps its one-damage server tick"), Pawn->GetHealth(), 99.0f);
+    TestFalse(TEXT("Poison expires from authoritative state"), Status->HasStatus(UKalmalaPlayerStatusComponent::WeakPoisonStatusId));
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("The owner receives poison expiry on the next server status advance"),
+        Status->GetStatuses().ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::WeakPoisonStatusId; }));
+
+    Pawn->SetRole(ROLE_Authority);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 80.0f);
+    TestTrue(TEXT("Recovery activates on the server"), Status->ApplyDraughtFromServer(TEXT("BerryRecoveryDraught")));
+    Status->AdvanceFromServer(0.125f);
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestTrue(TEXT("The owner receives recovery and cooldown together"),
+        Status->GetStatuses().ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::BerryRecoveryStatusId; })
+        && Status->GetStatuses().ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; }));
+
+    Pawn->SetRole(ROLE_Authority);
+    HealthProperty->SetPropertyValue_InContainer(Pawn, 1.0f);
+    Status->AdvanceFromServer(0.125f);
+    Status->AdvanceFromServer(0.125f);
+    Pawn->SetRole(ROLE_AutonomousProxy);
+    TestFalse(TEXT("Death removes recovery from the owner snapshot within one cadence"),
+        Status->GetStatuses().ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::BerryRecoveryStatusId; }));
+    TestTrue(TEXT("Death leaves the shared cooldown owner-visible"),
+        Status->GetStatuses().ContainsByPredicate([](const FKalmalaPlayerStatusEntry& Entry)
+            { return Entry.StatusId == UKalmalaPlayerStatusComponent::DraughtCooldownStatusId; }));
+
+    World->DestroyWorld(false);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlayerWetModifiersTest, "Kalmala.Gameplay.Status.WetModifiers",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -138,8 +236,8 @@ bool FKalmalaWetCampfireTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Fixture produces heat"), Fire->GetEffectiveWarmth() > 0);
     Pawn->SetRole(ROLE_AutonomousProxy);
     TestFalse(TEXT("Client cannot invoke removal"), Status->TryRemoveWetAtCampfireFromServer(Fire));
-    TestTrue(TEXT("Client attempt preserves Wet"), Status->HasStatus(Status->WetStatusId));
     Pawn->SetRole(ROLE_Authority);
+    TestTrue(TEXT("Client attempt preserves Wet"), Status->HasStatus(Status->WetStatusId));
     Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(600, 0, 0));
     TestFalse(TEXT("Heat radius edge cannot remove Wet"), Status->TryRemoveWetAtCampfireFromServer(Fire));
     Fire->SetActorLocation(Pawn->GetActorLocation() + FVector(120, 0, 0));
@@ -224,10 +322,10 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Server owner may apply Peat Heart Stew"), Status && Status->ApplyFoodFromServer(TEXT("PeatHeartStew")));
     Pawn->SetRole(ROLE_AutonomousProxy);
     TestFalse(TEXT("Owning client cannot author the Peat Heart Stew meal effect"), Status && Status->ApplyFoodFromServer(TEXT("PeatHeartStew")));
+    Pawn->SetRole(ROLE_Authority);
     TestEqual(TEXT("Rejected client application retains the server timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
-    Pawn->SetRole(ROLE_Authority);
     Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestTrue(TEXT("Food transaction fixture grants two Peat Heart Stew servings"), Inventory->TryGrantFromServer(TEXT("PeatHeartStew"), 2));
     FString Reason;
@@ -244,9 +342,9 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
     Pawn->SetRole(ROLE_AutonomousProxy);
     TestFalse(TEXT("Client cannot consume Peat Heart Stew through the server transaction"), Crafting->ConsumeFoodFromServer(TEXT("PeatHeartStew"), Reason));
     TestEqual(TEXT("Client request preserves the Peat Heart Stew serving"), Inventory->GetQuantity(TEXT("PeatHeartStew")), 1);
+    Pawn->SetRole(ROLE_Authority);
     TestEqual(TEXT("Client request preserves the active meal timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId), MealTimeBeforeDuplicate);
-    Pawn->SetRole(ROLE_Authority);
     Status->AdvanceFromServer(UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     TestTrue(TEXT("Food transaction fixture grants Wolf Stew"), Inventory->TryGrantFromServer(TEXT("WolfStew"), 1));
     TestTrue(TEXT("Server food transaction consumes and applies Wolf Stew"), Crafting->ConsumeFoodFromServer(TEXT("WolfStew"), Reason));
@@ -256,6 +354,7 @@ bool FKalmalaSteadyMealStatusTest::RunTest(const FString& Parameters)
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);
     Pawn->SetRole(ROLE_AutonomousProxy);
     TestFalse(TEXT("Client cannot consume Wolf Stew through the server transaction"), Crafting->ConsumeFoodFromServer(TEXT("WolfStew"), Reason));
+    Pawn->SetRole(ROLE_Authority);
     TestEqual(TEXT("Client Wolf Stew request preserves the meal timer"),
         Status->GetRemainingSeconds(UKalmalaPlayerStatusComponent::SteadyMealStatusId),
         UKalmalaPlayerStatusComponent::SteadyMealMaximumSeconds);

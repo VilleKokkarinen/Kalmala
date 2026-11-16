@@ -37,8 +37,8 @@ struct FKalmalaPlayerStatusEntry
 };
 
 /**
- * Replicated player-facing statuses. The server is the sole writer; entries
- * deliberately carry no client-selected source, multiplier, or expiry data.
+ * Server-owned player statuses with a bounded owner-only presentation snapshot;
+ * entries carry no client-selected source, multiplier, or expiry data.
  */
 UCLASS(ClassGroup=(Kalmala), meta=(BlueprintSpawnableComponent))
 class KALMALAGAMEPLAY_API UKalmalaPlayerStatusComponent : public UActorComponent
@@ -87,6 +87,7 @@ public:
     static constexpr float BerryRecoveryHealth = 20.0f;
     static constexpr float RatTailTonicHealth = 30.0f;
     static constexpr float RootStaminaDraughtStamina = 20.0f;
+    static constexpr float OwnerStatusReplicationIntervalSeconds = 0.25f;
     static constexpr float SteadyMealStaminaCostAddition = -0.10f;
     static constexpr float UnroofedRainTriggerSeconds = 10.0f;
     // Wet remains a meaningful exposure pressure, but its movement and sprint
@@ -94,7 +95,7 @@ public:
     static constexpr float WetMovementMultiplier = 0.92f;
     static constexpr float WetStaminaCostAddition = 0.15f;
 
-    FKalmalaStatusModifiers GetModifiers() const { return EvaluateModifiers(Statuses); }
+    FKalmalaStatusModifiers GetModifiers() const { return EvaluateModifiers(GetStatuses()); }
     static FKalmalaStatusModifiers EvaluateModifiers(const TArray<FKalmalaPlayerStatusEntry>& Entries);
     /** Base cost must come from an authoritative action definition, never an RPC payload. */
     float CalculateStaminaCost(float BaseCost, bool bSupportSpell = false) const;
@@ -104,7 +105,11 @@ public:
 
     bool HasStatus(FName StatusId) const;
     float GetRemainingSeconds(FName StatusId) const;
-    const TArray<FKalmalaPlayerStatusEntry>& GetStatuses() const { return Statuses; }
+    /** Authority reads live state; clients read the owner-only cadence snapshot. */
+    const TArray<FKalmalaPlayerStatusEntry>& GetStatuses() const
+    {
+        return GetOwner() != nullptr && !GetOwner()->HasAuthority() ? ReplicatedStatuses : Statuses;
+    }
 
     static bool IsKnownFoodItem(FName ItemId);
     static bool ApplyFood(TArray<FKalmalaPlayerStatusEntry>& Entries, FName ItemId);
@@ -131,9 +136,12 @@ public:
 
 private:
     bool ApplyWeakPoisonFromServerInternal(float DurationSeconds, bool bIgnoreResistance);
+    void UpdateReplicatedStatusesFromServer(float DeltaSeconds);
     UFUNCTION() void OnRep_Statuses();
 
     UPROPERTY(ReplicatedUsing=OnRep_Statuses, VisibleAnywhere, Category = "Status")
+    TArray<FKalmalaPlayerStatusEntry> ReplicatedStatuses;
     TArray<FKalmalaPlayerStatusEntry> Statuses;
+    float StatusSnapshotElapsedSeconds = 0.0f;
     float PoisonSecondsUntilTick = PoisonTickIntervalSeconds;
 };
