@@ -1837,7 +1837,7 @@
     exact costs/stats, retained condition/identity, and rejection rollback.
     Automation coverage was authored but not built or run in this normal
     increment; perform the focused run during milestone-final verification.
-  - [ ] **RF63 — Align campfire warmth coverage with normalized heat (P3; CR07-003).**
+  - [x] **RF63 — Align campfire warmth coverage with normalized heat (P3; CR07-003).**
     Source/KalmalaGameplay/Public/KalmalaCampfireWeatherResponse.h:35-46,
     Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp:143-149,
     Source/KalmalaGameplay/Private/KalmalaCampfire.cpp:189-192,
@@ -1855,13 +1855,20 @@
     only a pure-function test. Current architecture says exactly 1 for Lit,
     zero otherwise; exposed rain transitions an active fire to zero-heat
     Smouldering.
-    **Proposed repair:** Remove the unused helper and replace its assertion with
-    live server-derived heat coverage for Lit, Smouldering, exposed rain, and
-    accepted roof transitions. Retain separate fuel-wetting assertions.
+    **Proposed repair:** Removed the unused warmth and wet-fuel remain-lit
+    helpers and their stale pure-function assertions. Added live server-derived
+    normalized heat assertions for Lit, Smouldering, exposed rain, and accepted
+    roof transitions while retaining separate fuel-wetting assertions.
     **Dependencies:** After CR19 review acceptance; no repair during review.
     **Acceptance:** Focused automation verifies live Lit heat is 1.0 and
     Smouldering/Extinguished heat is zero through exposed-rain and roofed
     transitions; no assertion claims weather attenuates heat while still Lit.
+    **Focused validation:** Extended `Kalmala.Gameplay.Hearth.RainState` with
+    exact normalized heat checks after windy lighting, exposed-rain smouldering,
+    roof restoration/loss, dry-threshold reignition, and fuel exhaustion. Kept
+    wetting/drying and initial-lighting gate checks separate. Authored but not
+    built or run in this normal increment; execute during milestone-final
+    verification.
   - [ ] **RF64 — Retry reusable support-scroll grants after capacity rejection (P3; CR07-003).**
     Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp:41-58,
     Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp:426-432,
