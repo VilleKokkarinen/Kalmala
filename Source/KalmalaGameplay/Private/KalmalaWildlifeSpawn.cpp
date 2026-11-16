@@ -32,6 +32,8 @@
 
 namespace
 {
+    constexpr float WildlifeDefeatRetryIntervalSeconds = 0.5f;
+
     FLinearColor BlendEcologyAccent(const FLinearColor Base, const FLinearColor Accent)
     {
         constexpr float Weight = 0.24f;
@@ -223,6 +225,10 @@ void AKalmalaWildlifeSpawn::InitializeServer(const FKalmalaWorldPopulationSpawn&
     {
         FangArrowPoisonRemainingSeconds = 0.0f;
         FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
+        bPendingDefeat = false;
+        PendingDefeatRetrySecondsRemaining = 0.0f;
+        PendingDefeatRewardContext = FKalmalaWildlifeDefeatRewardContext();
+        LastValidatedAttacker.Reset();
         HomePopulationSpatialKey = Spawn.SpatialKey;
         SetActorLocation(Spawn.Location);
         SpawnOrigin = Spawn.Location;
@@ -486,14 +492,16 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
     {
         if (AKalmalaGameMode* Mode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr)
         {
-            if (!Mode->RecordRatDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+            if (!Mode->RecordRatDefeatReward(
+                    PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
         }
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Badger)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
-        if (Mode == nullptr || !Mode->RecordBadgerDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get()))
+        if (Mode == nullptr || !Mode->RecordBadgerDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext))
             return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::MoonBear)
@@ -501,70 +509,70 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordMoonBearDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Wolf)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordWolfDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Lynx)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordLynxDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PolarBear)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordPolarBearDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::HornedGoat)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordHornedGoatDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::ThunderSentinel)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordThunderSentinelDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::ReefMaw)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordReefMawDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::PeatHusk)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordPeatHuskDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::Viper)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordViperDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::GiantSnake)
     {
         AKalmalaGameMode* Mode = GetWorld() != nullptr
             ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
         if (Mode == nullptr || !Mode->RecordGiantSnakeDefeatReward(
-                PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
     else if (Archetype == EKalmalaWildlifeArchetype::DeathAdder)
     {
@@ -577,12 +585,15 @@ bool AKalmalaWildlifeSpawn::DefeatServer()
     if (Archetype == EKalmalaWildlifeArchetype::Mireling && FKalmalaGemstoneContract::DuskDiamondSourceAccepted)
     {
         auto* Mode = GetWorld() ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
-        if (!Mode || !Mode->RecordMirelingDefeatReward(PersistentSpawnId, LastValidatedAttacker.Get())) return false;
+        if (!Mode || !Mode->RecordMirelingDefeatReward(
+                PersistentSpawnId, LastValidatedAttacker.Get(), &PendingDefeatRewardContext)) return false;
     }
 
     FangArrowPoisonRemainingSeconds = 0.0f;
     FangArrowPoisonSecondsUntilTick = UKalmalaPlayerStatusComponent::PoisonTickIntervalSeconds;
     bDefeated = true;
+    bPendingDefeat = false;
+    PendingDefeatRetrySecondsRemaining = 0.0f;
     if (UWorld* World = GetWorld())
     {
         if (AKalmalaGameMode* Mode = World->GetAuthGameMode<AKalmalaGameMode>())
@@ -689,7 +700,7 @@ void AKalmalaWildlifeSpawn::AdvanceFangArrowWeakPoisonFromServer(const float Del
 bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageChannels& Damage,
     AKalmalaCharacter* Attacker, bool bMelee, const FGuid* StormcutSwordGuid)
 {
-    if (!HasAuthority() || bDefeated || !Damage.IsValid() || Damage.Total() <= 0.0f) return false;
+    if (!HasAuthority() || bDefeated || bPendingDefeat || !Damage.IsValid() || Damage.Total() <= 0.0f) return false;
     if (Attacker != nullptr && (!Attacker->HasAuthority() || Attacker->GetWorld() != GetWorld()
         || (bMelee && FVector::DistSquared(Attacker->GetActorLocation(), GetActorLocation()) > FMath::Square(220.0f)))) return false;
     const UKalmalaResistanceComponent* Defenses = FindComponentByClass<UKalmalaResistanceComponent>();
@@ -697,15 +708,23 @@ bool AKalmalaWildlifeSpawn::ApplyValidatedDamageFromServer(const FKalmalaDamageC
     if (!Defenses || !Defenses->ResolveFromServer(Damage, ResolvedDamage)) return false;
     if (StormcutSwordGuid != nullptr
         && (Attacker == nullptr || !Attacker->SpendStormcutConditionForAcceptedHitFromServer(*StormcutSwordGuid))) return false;
-    const TWeakObjectPtr<AKalmalaCharacter> PreviousAttacker = LastValidatedAttacker;
     if (Attacker != nullptr) LastValidatedAttacker = Attacker;
-    const float PreviousHealth = Health;
     Health = FMath::Clamp(Health - ResolvedDamage, 0.0f, GetMaximumHealthForArchetype(Archetype));
     if (Health <= 0.0f)
     {
+        bPendingDefeat = true;
+        PendingDefeatRetrySecondsRemaining = WildlifeDefeatRetryIntervalSeconds;
+        PendingDefeatRewardContext = FKalmalaWildlifeDefeatRewardContext();
+        if (AKalmalaGameMode* Mode = GetWorld() != nullptr
+            ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr)
+        {
+            Mode->CaptureWildlifeDefeatRewardContext(
+                LastValidatedAttacker.Get(), PendingDefeatRewardContext);
+        }
+        ApplyPendingDefeatState();
         if (DefeatServer()) return true;
-        Health = PreviousHealth;
-        LastValidatedAttacker = PreviousAttacker;
+        if (PendingDefeatRewardContext.bCreditedPlayerIdentityCaptured)
+            LastValidatedAttacker.Reset();
         ForceNetUpdate();
         return false;
     }
@@ -1093,6 +1112,18 @@ void AKalmalaWildlifeSpawn::Tick(const float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     UpdateMosquitoPresentation(DeltaSeconds);
+    if (HasAuthority() && bPendingDefeat && !bDefeated)
+    {
+        PendingDefeatRetrySecondsRemaining = FMath::Max(0.0f,
+            PendingDefeatRetrySecondsRemaining - FMath::Clamp(
+                FMath::IsFinite(DeltaSeconds) ? DeltaSeconds : 0.0f, 0.0f, 1.0f));
+        if (PendingDefeatRetrySecondsRemaining <= 0.0f)
+        {
+            PendingDefeatRetrySecondsRemaining = WildlifeDefeatRetryIntervalSeconds;
+            DefeatServer();
+        }
+        return;
+    }
     if (HasAuthority() && !bDefeated)
     {
         AdvanceFangArrowWeakPoisonFromServer(DeltaSeconds);
@@ -5132,6 +5163,7 @@ void AKalmalaWildlifeSpawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, bDefeated);
+    DOREPLIFETIME(AKalmalaWildlifeSpawn, bPendingDefeat);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, Health);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, PersistentSpawnId);
     DOREPLIFETIME(AKalmalaWildlifeSpawn, Archetype);
@@ -5362,10 +5394,15 @@ void AKalmalaWildlifeSpawn::OnRep_Defeated()
     }
 }
 
+void AKalmalaWildlifeSpawn::OnRep_PendingDefeat()
+{
+    if (bPendingDefeat) ApplyPendingDefeatState();
+}
+
 void AKalmalaWildlifeSpawn::ApplyDefeatedState()
 {
-    SetActorHiddenInGame(bDefeated);
-    if (bDefeated)
+    SetActorHiddenInGame(bDefeated || bPendingDefeat);
+    if (bDefeated || bPendingDefeat)
     {
         StopMosquitoBuzz();
         MosquitoTarget.Reset();
@@ -5400,8 +5437,13 @@ void AKalmalaWildlifeSpawn::ApplyDefeatedState()
         ReefMawAttackSecondsRemaining = 0.0f;
         bReefMawBiteHitApplied = false;
         SetReefMawAttackCue(EKalmalaWildlifeAttackCue::None);
-        GrantDefeatReward();
+        if (bDefeated) GrantDefeatReward();
     }
+}
+
+void AKalmalaWildlifeSpawn::ApplyPendingDefeatState()
+{
+    ApplyDefeatedState();
 }
 
 void AKalmalaWildlifeSpawn::GrantDefeatReward()

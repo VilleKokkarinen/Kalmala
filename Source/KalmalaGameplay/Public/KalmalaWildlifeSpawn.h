@@ -39,6 +39,24 @@ enum class EKalmalaWildlifeArchetype : uint8
     ReefMaw
 };
 
+/** Server-only context retained while a lethal wildlife reward waits for a durable save. */
+struct FKalmalaWildlifeDefeatRewardContext
+{
+    enum : uint8
+    {
+        PeatHeart = 1 << 0,
+        WolfFang = 1 << 1,
+        LynxPelt = 1 << 2,
+        ThunderCore = 1 << 3,
+        ReefTooth = 1 << 4
+    };
+
+    FString CreditedPlayerIdentity;
+    uint8 CapturedOutcomeMask = 0;
+    uint8 RewardOutcomeMask = 0;
+    bool bCreditedPlayerIdentityCaptured = false;
+};
+
 enum class EKalmalaWildlifeBodyShapeType : uint8
 {
     Sphere,
@@ -114,6 +132,7 @@ public:
     bool ApplyDeerCallFromServer(const FVector& SourceLocation);
     bool IsMirelingBossRewardCandidate() const;
     bool IsDefeated() const { return bDefeated; }
+    bool IsPendingDefeat() const { return bPendingDefeat; }
     float GetHealth() const { return Health; }
     EKalmalaWildlifeArchetype GetArchetype() const { return Archetype; }
     FIntPoint GetHomePopulationSpatialKey() const { return HomePopulationSpatialKey; }
@@ -316,6 +335,9 @@ private:
     void AdvanceFangArrowWeakPoisonFromServer(float DeltaSeconds);
 
     void ApplyDefeatedState();
+    void ApplyPendingDefeatState();
+    UFUNCTION()
+    void OnRep_PendingDefeat();
     void BeginServerBehaviour(EKalmalaWildlifeBehaviour NextBehaviour, float DurationSeconds, const FVector& Destination,
         bool bHoldDurationAtDestination = false);
     void AdvanceServerBehaviour(float DeltaSeconds);
@@ -415,6 +437,9 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_Defeated)
     bool bDefeated = false;
+
+    UPROPERTY(ReplicatedUsing = OnRep_PendingDefeat)
+    bool bPendingDefeat = false;
 
     UPROPERTY(Replicated)
     float Health = 75.0f;
@@ -519,8 +544,10 @@ private:
     float BehaviourSecondsRemaining = 0.0f;
     bool bHoldBehaviourDurationAtDestination = false;
     bool bDefeatRewardProcessed = false;
+    float PendingDefeatRetrySecondsRemaining = 0.0f;
     EKalmalaWildlifeBehaviour Behaviour = EKalmalaWildlifeBehaviour::Idle;
     TWeakObjectPtr<class AKalmalaCharacter> LastValidatedAttacker;
+    FKalmalaWildlifeDefeatRewardContext PendingDefeatRewardContext;
     TWeakObjectPtr<class AKalmalaCharacter> BoarChargeTarget;
     float MirelingMeleeCooldown = 0.0f;
     float BoarChargeSecondsRemaining = 0.0f;

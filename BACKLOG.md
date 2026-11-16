@@ -2073,7 +2073,7 @@
     a candidate is created, and restoration validates again before spawning.
     Added coverage for beyond-radius, within-margin, edge-valid, in-bounds
     restore, no-spawn rejection, and unchanged serialized bytes.
-  - [ ] **RF69 — Keep rejected lethal wildlife hits from leaving active zero-health actors (P2; CR09-001d-01).**
+  - [x] **RF69 — Keep rejected lethal wildlife hits from leaving active zero-health actors (P2; CR09-001d-01).**
     `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-599,689-702,1083-1097`,
     `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8677-8694`,
     `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:99-123`,
@@ -2122,6 +2122,15 @@
     Health/AI/defeat state, frees the queue for the valid case, and verifies
     owner identity and exact-once persistence. Run the focused automation after
     the required Editor build; no test was run during this review.
+    **Implementation:** Lethal hits that cannot commit their reward now leave
+    wildlife hidden in a replicated pending-defeat state at zero health. Server
+    AI and further damage stop, while a half-second retry retains the original
+    authenticated owner and any selected optional-drop outcome. Pending actors
+    stay reserved against duplicate spawn activation and cannot unload, but are
+    omitted from live population caps. Added isolated automation for conflicting
+    ownership, a full queue, failed slot writes, owner loss during retry, stable
+    optional outcome, and exact-once claim/defeat publication. Authored only;
+    not built or run.
   - [ ] **RF70 — Fail closed on invalid explicit world-launch identity (P3; CR10-005).**
     `Source/KalmalaWorld/Private/KalmalaWorldGenerationGameState.cpp:30-74`,
     `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:520-569`,

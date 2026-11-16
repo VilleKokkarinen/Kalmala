@@ -246,6 +246,31 @@ namespace KalmalaGameMode
         const FString Identity = AuthenticatedId->GetType().ToString() + TEXT(":") + AuthenticatedId->ToString();
         return Identity.Len() <= FKalmalaM7SaveIdentity::MaxOwnerIdentityLength ? Identity : FString();
     }
+
+    void CaptureWildlifeDefeatRewardContext(const AKalmalaGameMode* Mode,
+        AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext& DefeatContext)
+    {
+        if (DefeatContext.bCreditedPlayerIdentityCaptured) return;
+        DefeatContext.CreditedPlayerIdentity.Empty();
+        if (Mode != nullptr && Mode->HasAuthority() && IsValid(CreditedAttacker)
+            && CreditedAttacker->HasAuthority() && CreditedAttacker->GetWorld() == Mode->GetWorld()
+            && CreditedAttacker->GetPlayerState() != nullptr)
+        {
+            DefeatContext.CreditedPlayerIdentity = GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
+        }
+        DefeatContext.bCreditedPlayerIdentityCaptured = true;
+    }
+
+    FKalmalaWildlifeDefeatRewardContext& ResolveWildlifeDefeatRewardContext(
+        const AKalmalaGameMode* Mode, AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext,
+        FKalmalaWildlifeDefeatRewardContext& LocalDefeatContext)
+    {
+        FKalmalaWildlifeDefeatRewardContext& Context = DefeatContext != nullptr
+            ? *DefeatContext : LocalDefeatContext;
+        CaptureWildlifeDefeatRewardContext(Mode, CreditedAttacker, Context);
+        return Context;
+    }
 }
 
 namespace KalmalaOceanJourneyPeer
@@ -7263,8 +7288,13 @@ int32 AKalmalaGameMode::CountLivePopulationCreaturesWithinRadius(const FVector& 
     {
         AKalmalaWildlifeSpawn* Creature = Iterator->Get();
         if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
-            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
-            || Creature->GetHealth() <= 0.0f)
+            || Creature->IsDefeated())
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+        if (Creature->IsPendingDefeat()) continue;
+        if (!FMath::IsFinite(Creature->GetHealth()) || Creature->GetHealth() <= 0.0f)
         {
             Iterator.RemoveCurrent();
             continue;
@@ -7335,8 +7365,13 @@ void AKalmalaGameMode::GetPopulationCreatureCapCounts(const FVector& Center,
     {
         AKalmalaWildlifeSpawn* Creature = Iterator->Get();
         if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
-            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
-            || Creature->GetHealth() <= 0.0f)
+            || Creature->IsDefeated())
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+        if (Creature->IsPendingDefeat()) continue;
+        if (!FMath::IsFinite(Creature->GetHealth()) || Creature->GetHealth() <= 0.0f)
         {
             Iterator.RemoveCurrent();
             continue;
@@ -7670,8 +7705,13 @@ void AKalmalaGameMode::UpdatePopulationCreatureUnloads(const double NowSeconds,
     {
         AKalmalaWildlifeSpawn* Creature = Iterator->Get();
         if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
-            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
-            || Creature->GetHealth() <= 0.0f)
+            || Creature->IsDefeated())
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+        if (Creature->IsPendingDefeat()) continue;
+        if (!FMath::IsFinite(Creature->GetHealth()) || Creature->GetHealth() <= 0.0f)
         {
             Iterator.RemoveCurrent();
             continue;
@@ -7721,7 +7761,7 @@ void AKalmalaGameMode::UpdatePopulationCreatureUnloads(const double NowSeconds,
 
     for (AKalmalaWildlifeSpawn* Creature : CreaturesToUnload)
     {
-        if (!IsValid(Creature) || Creature->IsDefeated()
+        if (!IsValid(Creature) || Creature->IsDefeated() || Creature->IsPendingDefeat()
             || Creature->GetPersistentSpawnId().IsEmpty())
         {
             continue;
@@ -7745,8 +7785,17 @@ bool AKalmalaGameMode::HasLivePopulationCreatureWithSpawnId(const FString& Persi
     {
         AKalmalaWildlifeSpawn* Creature = Iterator->Get();
         if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
-            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
-            || Creature->GetHealth() <= 0.0f)
+            || Creature->IsDefeated())
+        {
+            Iterator.RemoveCurrent();
+            continue;
+        }
+        if (Creature->IsPendingDefeat())
+        {
+            if (Creature->GetPersistentSpawnId() == PersistentSpawnId) return true;
+            continue;
+        }
+        if (!FMath::IsFinite(Creature->GetHealth()) || Creature->GetHealth() <= 0.0f)
         {
             Iterator.RemoveCurrent();
             continue;
@@ -7780,7 +7829,7 @@ AKalmalaGameMode::GetEnvironmentalSpawnerLivingSamples(const FString& SourceId) 
     {
         AKalmalaWildlifeSpawn* Creature = WeakCreature.Get();
         if (!IsValid(Creature) || Creature->GetWorld() != World || !Creature->HasAuthority()
-            || Creature->IsDefeated() || !FMath::IsFinite(Creature->GetHealth())
+            || Creature->IsDefeated() || Creature->IsPendingDefeat() || !FMath::IsFinite(Creature->GetHealth())
             || Creature->GetHealth() <= 0.0f)
         {
             continue;
@@ -9374,58 +9423,75 @@ void AKalmalaGameMode::RetryPendingPopulationDepletionWrites(const double NowSec
         TEXT("Population save retry failed; %d depletion ID(s) remain queued."), PendingCount);
 }
 
+void AKalmalaGameMode::CaptureWildlifeDefeatRewardContext(AKalmalaCharacter* CreditedAttacker,
+    FKalmalaWildlifeDefeatRewardContext& DefeatContext) const
+{
+    KalmalaGameMode::CaptureWildlifeDefeatRewardContext(this, CreditedAttacker, DefeatContext);
+}
+
+float AKalmalaGameMode::RollWildlifeDefeatReward() const
+{
+#if WITH_DEV_AUTOMATION_TESTS
+    if (WildlifeRewardRollForTests) return WildlifeRewardRollForTests();
+#endif
+    return FMath::FRand();
+}
+
 bool AKalmalaGameMode::RecordRatDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
+
     UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
     if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
-    {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !Candidate->TryQueuePendingWildlifeReward(PersistentSpawnId, Identity))
-            return false;
-    }
+    if (!Identity.IsEmpty() && !Candidate->TryQueuePendingWildlifeReward(PersistentSpawnId, Identity))
+        return false;
 
     Candidate->MarkDefeated(PersistentSpawnId);
     return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordBadgerDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
-    {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingBadgerReward(PersistentSpawnId, Identity))
-            return false;
-    }
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
+
+    if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingBadgerReward(PersistentSpawnId, Identity))
+        return false;
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
     return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
+
+    if (!Identity.IsEmpty())
     {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingMoonBearReward(PersistentSpawnId, Identity))
+        if (!PopulationSaveGame->TryQueuePendingMoonBearReward(PersistentSpawnId, Identity))
             return false;
-        if (!Identity.IsEmpty() && FKalmalaGemstoneContract::MoonstoneSourceAccepted
+        if (FKalmalaGemstoneContract::MoonstoneSourceAccepted
             && !PopulationSaveGame->SetPendingGemReward(
                 UKalmalaWorldPopulationSaveGame::MakeMoonBearPendingRewardClaimId(PersistentSpawnId),
                 SelectEnemyGemForSpawn(PersistentSpawnId, true))) return false;
@@ -9436,104 +9502,109 @@ bool AKalmalaGameMode::RecordMoonBearDefeatReward(const FString& PersistentSpawn
 }
 
 bool AKalmalaGameMode::RecordViperDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
-    {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingViperReward(PersistentSpawnId, Identity))
-            return false;
-    }
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
+
+    if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingViperReward(PersistentSpawnId, Identity))
+        return false;
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
     return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordGiantSnakeDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
-    {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingGiantSnakeReward(PersistentSpawnId, Identity))
-            return false;
-    }
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
+
+    if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingGiantSnakeReward(PersistentSpawnId, Identity))
+        return false;
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
     return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordDeathAdderDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
-    {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingDeathAdderReward(PersistentSpawnId, Identity))
-            return false;
-    }
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
+
+    if (!Identity.IsEmpty() && !PopulationSaveGame->TryQueuePendingDeathAdderReward(PersistentSpawnId, Identity))
+        return false;
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
     return WritePopulationSaveObjectToSlot(PopulationSaveGame);
 }
 
 bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
         return WritePopulationSaveObjectToSlot(PopulationSaveGame);
     }
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    if (!Identity.IsEmpty())
     {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty())
+        bool bHasPeatHeart = false;
+        const uint8 OutcomeMask = FKalmalaWildlifeDefeatRewardContext::PeatHeart;
+        if ((RetryContext.CapturedOutcomeMask & OutcomeMask) != 0)
         {
-            bool bFoundExistingClaim = false;
-            bool bHasPeatHeart = false;
+            bHasPeatHeart = (RetryContext.RewardOutcomeMask & OutcomeMask) != 0;
+        }
+        else
+        {
+            bool bFoundExistingOwnedClaim = false;
             for (const FKalmalaPendingWildlifeReward& Existing : PopulationSaveGame->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasPeatHeart = false;
                 if (UKalmalaWorldPopulationSaveGame::TryGetPeatHuskSpawnIdFromPendingRewardClaimId(
                         Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasPeatHeart)
-                    && ExistingSpawnId == PersistentSpawnId)
+                    && ExistingSpawnId == PersistentSpawnId && Existing.PlayerIdentity == Identity)
                 {
-                    bFoundExistingClaim = true;
+                    bFoundExistingOwnedClaim = true;
                     bHasPeatHeart = bExistingHasPeatHeart;
                     break;
                 }
             }
-            if (!bFoundExistingClaim)
+            if (!bFoundExistingOwnedClaim)
             {
-                float RewardRoll = 0.0f;
-#if WITH_DEV_AUTOMATION_TESTS
-                if (WildlifeRewardRollForTests) RewardRoll = WildlifeRewardRollForTests();
-                else
-#endif
-                    RewardRoll = FMath::FRand();
-                bHasPeatHeart = RewardRoll < 0.25f;
+                bHasPeatHeart = RollWildlifeDefeatReward() < 0.25f;
             }
-            if (!PopulationSaveGame->TryQueuePendingPeatHuskReward(PersistentSpawnId, Identity, bHasPeatHeart))
-                return false;
+            RetryContext.CapturedOutcomeMask |= OutcomeMask;
+            if (bHasPeatHeart) RetryContext.RewardOutcomeMask |= OutcomeMask;
+            else RetryContext.RewardOutcomeMask &= ~OutcomeMask;
         }
+        if (!PopulationSaveGame->TryQueuePendingPeatHuskReward(PersistentSpawnId, Identity, bHasPeatHeart))
+            return false;
     }
 
     PopulationSaveGame->MarkDefeated(PersistentSpawnId);
@@ -9541,10 +9612,15 @@ bool AKalmalaGameMode::RecordPeatHuskDefeatReward(const FString& PersistentSpawn
 }
 
 bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
@@ -9554,31 +9630,37 @@ bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
     UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
     if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    if (!Identity.IsEmpty())
     {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty())
+        bool bHasWolfFang = false;
+        const uint8 OutcomeMask = FKalmalaWildlifeDefeatRewardContext::WolfFang;
+        if ((RetryContext.CapturedOutcomeMask & OutcomeMask) != 0)
         {
-            bool bFoundExistingClaim = false;
-            bool bHasWolfFang = false;
+            bHasWolfFang = (RetryContext.RewardOutcomeMask & OutcomeMask) != 0;
+        }
+        else
+        {
+            bool bFoundExistingOwnedClaim = false;
             for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasWolfFang = false;
                 if (UKalmalaWorldPopulationSaveGame::TryGetWolfSpawnIdFromPendingRewardClaimId(
                         Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasWolfFang)
-                    && ExistingSpawnId == PersistentSpawnId)
+                    && ExistingSpawnId == PersistentSpawnId && Existing.PlayerIdentity == Identity)
                 {
-                    bFoundExistingClaim = true;
+                    bFoundExistingOwnedClaim = true;
                     bHasWolfFang = bExistingHasWolfFang;
                     break;
                 }
             }
-            if (!bFoundExistingClaim) bHasWolfFang = FMath::FRand() < 0.25f;
-            if (!Candidate->TryQueuePendingWolfReward(PersistentSpawnId, Identity, bHasWolfFang))
-                return false;
+            if (!bFoundExistingOwnedClaim) bHasWolfFang = RollWildlifeDefeatReward() < 0.25f;
+            RetryContext.CapturedOutcomeMask |= OutcomeMask;
+            if (bHasWolfFang) RetryContext.RewardOutcomeMask |= OutcomeMask;
+            else RetryContext.RewardOutcomeMask &= ~OutcomeMask;
         }
+        if (!Candidate->TryQueuePendingWolfReward(PersistentSpawnId, Identity, bHasWolfFang))
+            return false;
     }
 
     Candidate->MarkDefeated(PersistentSpawnId);
@@ -9586,10 +9668,15 @@ bool AKalmalaGameMode::RecordWolfDefeatReward(const FString& PersistentSpawnId,
 }
 
 bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
@@ -9599,31 +9686,37 @@ bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
     UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
     if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    if (!Identity.IsEmpty())
     {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty())
+        bool bHasLynxPelt = false;
+        const uint8 OutcomeMask = FKalmalaWildlifeDefeatRewardContext::LynxPelt;
+        if ((RetryContext.CapturedOutcomeMask & OutcomeMask) != 0)
         {
-            bool bFoundExistingClaim = false;
-            bool bHasLynxPelt = false;
+            bHasLynxPelt = (RetryContext.RewardOutcomeMask & OutcomeMask) != 0;
+        }
+        else
+        {
+            bool bFoundExistingOwnedClaim = false;
             for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasLynxPelt = false;
                 if (UKalmalaWorldPopulationSaveGame::TryGetLynxSpawnIdFromPendingRewardClaimId(
                         Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasLynxPelt)
-                    && ExistingSpawnId == PersistentSpawnId)
+                    && ExistingSpawnId == PersistentSpawnId && Existing.PlayerIdentity == Identity)
                 {
-                    bFoundExistingClaim = true;
+                    bFoundExistingOwnedClaim = true;
                     bHasLynxPelt = bExistingHasLynxPelt;
                     break;
                 }
             }
-            if (!bFoundExistingClaim) bHasLynxPelt = FMath::FRand() < 0.5f;
-            if (!Candidate->TryQueuePendingLynxReward(PersistentSpawnId, Identity, bHasLynxPelt))
-                return false;
+            if (!bFoundExistingOwnedClaim) bHasLynxPelt = RollWildlifeDefeatReward() < 0.5f;
+            RetryContext.CapturedOutcomeMask |= OutcomeMask;
+            if (bHasLynxPelt) RetryContext.RewardOutcomeMask |= OutcomeMask;
+            else RetryContext.RewardOutcomeMask &= ~OutcomeMask;
         }
+        if (!Candidate->TryQueuePendingLynxReward(PersistentSpawnId, Identity, bHasLynxPelt))
+            return false;
     }
 
     Candidate->MarkDefeated(PersistentSpawnId);
@@ -9631,10 +9724,15 @@ bool AKalmalaGameMode::RecordLynxDefeatReward(const FString& PersistentSpawnId,
 }
 
 bool AKalmalaGameMode::RecordPolarBearDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
@@ -9644,23 +9742,23 @@ bool AKalmalaGameMode::RecordPolarBearDefeatReward(const FString& PersistentSpaw
     UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
     if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
-    {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !Candidate->TryQueuePendingPolarBearReward(PersistentSpawnId, Identity))
-            return false;
-    }
+    if (!Identity.IsEmpty() && !Candidate->TryQueuePendingPolarBearReward(PersistentSpawnId, Identity))
+        return false;
 
     Candidate->MarkDefeated(PersistentSpawnId);
     return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordHornedGoatDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
@@ -9670,23 +9768,23 @@ bool AKalmalaGameMode::RecordHornedGoatDefeatReward(const FString& PersistentSpa
     UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
     if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
-    {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty() && !Candidate->TryQueuePendingHornedGoatReward(PersistentSpawnId, Identity))
-            return false;
-    }
+    if (!Identity.IsEmpty() && !Candidate->TryQueuePendingHornedGoatReward(PersistentSpawnId, Identity))
+        return false;
 
     Candidate->MarkDefeated(PersistentSpawnId);
     return TryCommitPopulationSaveCandidate(Candidate);
 }
 
 bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
@@ -9696,31 +9794,37 @@ bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& Persiste
     UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
     if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    if (!Identity.IsEmpty())
     {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty())
+        bool bHasThunderCore = false;
+        const uint8 OutcomeMask = FKalmalaWildlifeDefeatRewardContext::ThunderCore;
+        if ((RetryContext.CapturedOutcomeMask & OutcomeMask) != 0)
         {
-            bool bFoundExistingClaim = false;
-            bool bHasThunderCore = false;
+            bHasThunderCore = (RetryContext.RewardOutcomeMask & OutcomeMask) != 0;
+        }
+        else
+        {
+            bool bFoundExistingOwnedClaim = false;
             for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasThunderCore = false;
                 if (UKalmalaWorldPopulationSaveGame::TryGetThunderSentinelSpawnIdFromPendingRewardClaimId(
                         Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasThunderCore)
-                    && ExistingSpawnId == PersistentSpawnId)
+                    && ExistingSpawnId == PersistentSpawnId && Existing.PlayerIdentity == Identity)
                 {
-                    bFoundExistingClaim = true;
+                    bFoundExistingOwnedClaim = true;
                     bHasThunderCore = bExistingHasThunderCore;
                     break;
                 }
             }
-            if (!bFoundExistingClaim) bHasThunderCore = FMath::FRand() < 0.25f;
-            if (!Candidate->TryQueuePendingThunderSentinelReward(
-                    PersistentSpawnId, Identity, bHasThunderCore)) return false;
+            if (!bFoundExistingOwnedClaim) bHasThunderCore = RollWildlifeDefeatReward() < 0.25f;
+            RetryContext.CapturedOutcomeMask |= OutcomeMask;
+            if (bHasThunderCore) RetryContext.RewardOutcomeMask |= OutcomeMask;
+            else RetryContext.RewardOutcomeMask &= ~OutcomeMask;
         }
+        if (!Candidate->TryQueuePendingThunderSentinelReward(
+                PersistentSpawnId, Identity, bHasThunderCore)) return false;
     }
 
     Candidate->MarkDefeated(PersistentSpawnId);
@@ -9728,10 +9832,15 @@ bool AKalmalaGameMode::RecordThunderSentinelDefeatReward(const FString& Persiste
 }
 
 bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnId,
-    AKalmalaCharacter* CreditedAttacker)
+    AKalmalaCharacter* CreditedAttacker, FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || PersistentSpawnId.IsEmpty() || PopulationSaveGame == nullptr
         || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
 
     if (PopulationSaveGame->IsDefeated(PersistentSpawnId))
     {
@@ -9741,31 +9850,37 @@ bool AKalmalaGameMode::RecordReefMawDefeatReward(const FString& PersistentSpawnI
     UKalmalaWorldPopulationSaveGame* Candidate = nullptr;
     if (!TryCreatePopulationSaveCandidate(Candidate)) return false;
 
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority()
-        && CreditedAttacker->GetWorld() == GetWorld() && CreditedAttacker->GetPlayerState() != nullptr)
+    if (!Identity.IsEmpty())
     {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
-        if (!Identity.IsEmpty())
+        bool bHasReefTooth = false;
+        const uint8 OutcomeMask = FKalmalaWildlifeDefeatRewardContext::ReefTooth;
+        if ((RetryContext.CapturedOutcomeMask & OutcomeMask) != 0)
         {
-            bool bFoundExistingClaim = false;
-            bool bHasReefTooth = false;
+            bHasReefTooth = (RetryContext.RewardOutcomeMask & OutcomeMask) != 0;
+        }
+        else
+        {
+            bool bFoundExistingOwnedClaim = false;
             for (const FKalmalaPendingWildlifeReward& Existing : Candidate->GetPendingWildlifeRewards())
             {
                 FString ExistingSpawnId;
                 bool bExistingHasReefTooth = false;
                 if (UKalmalaWorldPopulationSaveGame::TryGetReefMawSpawnIdFromPendingRewardClaimId(
                         Existing.PersistentSpawnId, ExistingSpawnId, bExistingHasReefTooth)
-                    && ExistingSpawnId == PersistentSpawnId)
+                    && ExistingSpawnId == PersistentSpawnId && Existing.PlayerIdentity == Identity)
                 {
-                    bFoundExistingClaim = true;
+                    bFoundExistingOwnedClaim = true;
                     bHasReefTooth = bExistingHasReefTooth;
                     break;
                 }
             }
-            if (!bFoundExistingClaim) bHasReefTooth = FMath::FRand() < 0.5f;
-            if (!Candidate->TryQueuePendingReefMawReward(
-                    PersistentSpawnId, Identity, bHasReefTooth)) return false;
+            if (!bFoundExistingOwnedClaim) bHasReefTooth = RollWildlifeDefeatReward() < 0.5f;
+            RetryContext.CapturedOutcomeMask |= OutcomeMask;
+            if (bHasReefTooth) RetryContext.RewardOutcomeMask |= OutcomeMask;
+            else RetryContext.RewardOutcomeMask &= ~OutcomeMask;
         }
+        if (!Candidate->TryQueuePendingReefMawReward(
+                PersistentSpawnId, Identity, bHasReefTooth)) return false;
     }
 
     Candidate->MarkDefeated(PersistentSpawnId);
@@ -13541,16 +13656,20 @@ bool AKalmalaGameMode::ClaimWorldTreasure(AKalmalaCharacter* Interactor, const F
     return true;
 }
 
-bool AKalmalaGameMode::RecordMirelingDefeatReward(const FString& PersistentSpawnId, AKalmalaCharacter* CreditedAttacker)
+bool AKalmalaGameMode::RecordMirelingDefeatReward(const FString& PersistentSpawnId, AKalmalaCharacter* CreditedAttacker,
+    FKalmalaWildlifeDefeatRewardContext* DefeatContext)
 {
     if (!HasAuthority() || !PopulationSaveGame || !PopulationSaveGame->MatchesWorld(WorldGenerationConfig)
         || PersistentSpawnId.IsEmpty() || !FKalmalaGemstoneContract::DuskDiamondSourceAccepted) return false;
+
+    FKalmalaWildlifeDefeatRewardContext LocalDefeatContext;
+    FKalmalaWildlifeDefeatRewardContext& RetryContext = KalmalaGameMode::ResolveWildlifeDefeatRewardContext(
+        this, CreditedAttacker, DefeatContext, LocalDefeatContext);
+    const FString& Identity = RetryContext.CreditedPlayerIdentity;
     auto* CandidateSave = DuplicateObject<UKalmalaWorldPopulationSaveGame>(PopulationSaveGame, this);
     if (!CandidateSave) return false;
-    if (IsValid(CreditedAttacker) && CreditedAttacker->HasAuthority() && CreditedAttacker->GetWorld() == GetWorld()
-        && CreditedAttacker->GetPlayerState())
+    if (!Identity.IsEmpty())
     {
-        const FString Identity = KalmalaGameMode::GetAuthenticatedPlayerIdentity(CreditedAttacker->GetPlayerState());
         const FString ClaimId = TEXT("mireling-gem|") + PersistentSpawnId;
         if (!Identity.IsEmpty() && (!CandidateSave->TryQueuePendingWildlifeReward(ClaimId, Identity)
             || !CandidateSave->SetPendingGemReward(ClaimId, SelectEnemyGemForSpawn(PersistentSpawnId, false))

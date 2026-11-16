@@ -2486,6 +2486,16 @@ species-specific outcome retention, retry idempotency, and world/identity
 rejection. This automation complements the shared live Rat scenario and does
 not add another per-species peer run.
 
+Run `Kalmala.Gameplay.Wildlife.DefeatCallbackAtomicity` for lethal-hit recovery.
+It injects an owner-conflicting Rat claim and a full pending reward queue,
+verifies each actor remains hidden and inactive with no accepted defeat, then
+clears the rejection and advances the actor tick to prove the original owner
+identity survives retry without a live PlayerState. A Wolf slot-write failure
+also proves its optional drop outcome is rolled only once. The automation checks
+exact-once defeated-ID persistence, live-registry removal and defeat broadcast.
+Build the Editor target before running it; RF69's automation has been authored
+but has not yet been built or executed.
+
 ## Elderwood Badger contract regression
 
 The editor automation `Kalmala.Gameplay.Wildlife.Badger.SpawnAndClawReach`

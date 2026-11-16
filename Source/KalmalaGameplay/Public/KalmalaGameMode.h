@@ -129,21 +129,35 @@ public:
     bool ClaimMirelingBossScroll(class AKalmalaCharacter* Attacker, const FString& PersistentSpawnId);
     const struct FKalmalaGemstoneState* ReadGemstoneState(const FString& SpawnId) const;
     bool PersistGemstoneState(const struct FKalmalaGemstoneState& State, uint8 ExpectedHits, uint8 ExpectedOutcome);
-    bool RecordRatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordBadgerDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
+    bool RecordRatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordBadgerDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
     FName SelectEnemyGemForSpawn(const FString& SpawnId, bool bMoonBear) const;
-    bool RecordMirelingDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordMoonBearDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordViperDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordGiantSnakeDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordDeathAdderDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordPeatHuskDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordWolfDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordLynxDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordPolarBearDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordHornedGoatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordThunderSentinelDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
-    bool RecordReefMawDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker);
+    bool RecordMirelingDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordMoonBearDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordViperDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordGiantSnakeDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordDeathAdderDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordPeatHuskDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordWolfDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordLynxDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordPolarBearDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordHornedGoatDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordThunderSentinelDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
+    bool RecordReefMawDefeatReward(const FString& PersistentSpawnId, class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext* DefeatContext = nullptr);
     bool PersistPlayerStateFromServer(class AKalmalaCharacter* Character,
         const FString& AdditionalDiscoveryId = FString(), const FString& AdditionalLearnedEffectId = FString(),
         const FString& AdditionalM9ClaimId = FString());
@@ -163,6 +177,9 @@ public:
 
 private:
     friend class AKalmalaCharacter;
+    void CaptureWildlifeDefeatRewardContext(class AKalmalaCharacter* CreditedAttacker,
+        FKalmalaWildlifeDefeatRewardContext& DefeatContext) const;
+    float RollWildlifeDefeatReward() const;
     friend class FKalmalaConstructionSaveGameV2Test;
     friend class FKalmalaUnroofedRainAccumulatorTest;
     friend class FKalmalaForestPatchLifecycleTest;
