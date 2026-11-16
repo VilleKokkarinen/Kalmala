@@ -1465,7 +1465,7 @@ release.
 | Construction records, station attachments, Kiln/Smelter processing, Garden Plot crops, Timber Door state, and Standing Light fuel (`UKalmalaConstructionSaveGameV2`) | Save schema 7 | Server world |
 | Player discoveries, learned effects, M9 claims, and carried items (`UKalmalaPlayerDiscoverySaveGameV2`) | Save schema 3 | Authenticated player and exact world |
 | M7 sparse persistence ledger (`UKalmalaM7PersistenceSaveGame`) | Save schema 2 | Identity-scoped sparse world/player facts and pending Ocean rewards |
-| Generated population deltas (`UKalmalaWorldPopulationSaveGame`) | Save schema 1 | Server world |
+| Generated population deltas (`UKalmalaWorldPopulationSaveGame`) | Save schema 2 | Server world |
 | Chest storage (`UKalmalaStorageSaveGame`) | Save schema 2 | Server world |
 | Ocean vessel and seat records (`UKalmalaOceanTravelPersistenceSaveGame`) | Save schema 1 | Server world and authenticated player |
 | Local map exploration coverage (`UKalmalaWorldMapExplorationSaveGame`) | Save schema 1 | Local player |

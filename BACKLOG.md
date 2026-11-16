@@ -1641,14 +1641,15 @@
     **Focused validation:** Run `Kalmala.World.M7.PersistenceContract` after an
     editor build. No test was run during this review.
   - [ ] **RF57 — Correct the generated population save version in the architecture table (P3; CR04-048).**
-    `docs/02-technical-architecture.md:1415`,
+    `docs/02-technical-architecture.md:1468`,
     `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:30-43`,
     and `docs/05-decision-log.md:209`.
     **Affected path:** A developer consults the current save-version table
     before inspecting, rejecting, or testing generated population saves.
     **Trigger:** The table says `UKalmalaWorldPopulationSaveGame` uses schema 1,
     but `InitializeForWorld` writes schema 2 and `MatchesWorld` accepts only
-    schema 2. The M7 sparse ledger is a separate save owner and remains schema 1.
+    schema 2. The M7 sparse ledger is a separate save owner; current runtime
+    code and its architecture/setup entries identify it as schema 2 as well.
     **Impact:** The authoritative save-version reference gives the wrong current
     format and can lead to incorrect development-save or test expectations.
     This is documentation drift; no runtime mismatch or remote exploit was found.
@@ -1656,16 +1657,18 @@
     deltas; the active code initializes and validates schema 2; the decision log
     records approval of population save schema 2.
     **Proposed repair:** Update the generated-population row to schema 2 and
-    keep it clearly separate from the M7 sparse ledger's schema 1. Retain the
-    unreleased no-migration policy and reject schema-1 population saves without
-    rewriting them.
+    keep it clearly separate from the M7 sparse ledger, which also uses schema
+    2 under its own save owner and contract. Retain the unreleased no-migration
+    policy and reject schema-1 population saves without rewriting them.
     **Dependencies:** After CR19 review acceptance; this handoff does not
     authorize implementation during CR04.
     **Acceptance:** The current-version table identifies generated population
-    saves as schema 2 and M7 sparse persistence as schema 1; it agrees with
-    runtime initialization/validation and the decision log without migration.
+    saves and the separately owned M7 sparse ledger as schema 2; it agrees with
+    both runtime contracts and the population decision-log entry without
+    migration.
     **Focused validation:** Compare both save owners' current-version constants
-    with the decision-log entry; no Unreal build is needed for a docs-only repair.
+    and the population decision-log entry with the table; no Unreal build is
+    needed for a docs-only repair.
   - [ ] **RF58 — Reconcile rejected Camp Bed interactions with the local rest pose (P3; CR05-001).**
     Affected: `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1576-1589,1687-1782,1969-1971`,
     `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp:197-200,255-284`,

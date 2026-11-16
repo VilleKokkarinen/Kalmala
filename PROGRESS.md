@@ -33662,3 +33662,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** This increment changes tests and setup guidance only. M7 deltas remain server-selected and identity-scoped; no network authority path changed.
 - **Known limitations / remaining scope:** The automation has not been compiled or run. RF57 and later remediation tasks remain open.
 - **Next eligible task:** RF57 — Correct the generated population save version in the architecture table.
+
+## Run 2026-11-16 — RF57 generated population save version
+
+- **Selected task:** RF57, reconcile the architecture save-version table with the current generated-population save contract.
+- **Work completed:** Corrected `UKalmalaWorldPopulationSaveGame` from schema 1 to schema 2 in the architecture table. The RF57 handoff incorrectly said the separate M7 sparse ledger remained schema 1; current runtime, setup guidance, and architecture history establish that it is also schema 2, so the RF57 acceptance text now reflects the actual distinct save owner and version. Confirmed generated-population schema 2 approval in the decision log and preserved the no-migration policy. Checked RF57 in the backlog.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, and `docs/02-technical-architecture.md`.
+- **Lightweight checks:** Compared the architecture table with `UKalmalaWorldPopulationSaveGame::InitializeForWorld` / `MatchesWorld`, `UKalmalaM7PersistenceSaveGame::CurrentSchemaVersion`, the existing M7 setup entry, and the population schema decision-log entry; `git diff --check` passed; all changed paths are below 260 characters. No Unreal build is needed or was run for this docs-only increment.
+- **Full verification:** Deferred; RF57 is not the final implementation task in the CR remediation queue.
+- **Observable impact:** The save-version table now reflects both current schema-2 save owners while keeping their scopes separate; developers will no longer expect generated-population slots to use schema 1.
+- **Networking/authority:** Documentation-only change. Save ownership, server authority, slot behavior, and schemas are unchanged.
+- **Known limitations / remaining scope:** The M7 ledger's schema-2 upgrade is a separate runtime history; this increment only reconciles the current version table and RF57 handoff. RF58 and later remediation tasks remain open.
+- **Next eligible task:** RF58 — Reconcile rejected Camp Bed interactions with the local rest pose.
