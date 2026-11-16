@@ -864,7 +864,7 @@ bool AKalmalaGameMode::CanPersistConstruction(const FName KitId, const FTransfor
     Candidate.ConstructionId = TEXT("pending");
     Candidate.KitId = KitId;
     Candidate.Transform = Transform;
-    if (!UKalmalaConstructionSaveGameV2::IsValidRecord(Candidate)
+    if (!UKalmalaConstructionSaveGameV2::IsValidRecord(Candidate, WorldGenerationConfig)
         || ConstructionSaveGame->GetRecords().Num() >= UKalmalaConstructionSaveGameV2::MaxRecords) return false;
     if (FKalmalaToolProgressionContract::IsStationAttachmentKit(KitId))
     {
@@ -1104,7 +1104,7 @@ void AKalmalaGameMode::RestorePersistedConstruction()
     if (!HasAuthority() || ConstructionSaveGame == nullptr || !ConstructionSaveGame->MatchesWorld(WorldGenerationConfig)) return;
     for (const FKalmalaConstructionSaveRecord& Record : ConstructionSaveGame->GetRecords())
     {
-        if (!UKalmalaConstructionSaveGameV2::IsValidRecord(Record))
+        if (!UKalmalaConstructionSaveGameV2::IsValidRecord(Record, WorldGenerationConfig))
         {
             UE_LOG(LogTemp, Warning, TEXT("Construction restore rejected malformed record."));
             continue;

@@ -55,16 +55,18 @@ bool FKalmalaStandingLightContractTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Non-finite active time cannot consume fuel"), Fuel.Advance(NAN));
 
     FKalmalaConstructionSaveRecord LightRecord;
+    FKalmalaWorldGenerationConfig World;
+    World.WorldSeed = 418;
     LightRecord.ConstructionId = TEXT("standing-light-contract");
     LightRecord.KitId = TEXT("StandingLightKit");
     LightRecord.Transform = FTransform(FVector(300.0f, 200.0f, 75.0f));
     LightRecord.StandingLight = Fuel;
     TestTrue(TEXT("Current construction save accepts bounded Standing Light fuel"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(LightRecord));
+        UKalmalaConstructionSaveGameV2::IsValidRecord(LightRecord, World));
     FKalmalaConstructionSaveRecord WrongKit = LightRecord;
     WrongKit.KitId = TEXT("CampBedKit");
     TestFalse(TEXT("Other construction records reject Standing Light fuel"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(WrongKit));
+        UKalmalaConstructionSaveGameV2::IsValidRecord(WrongKit, World));
     TestFalse(TEXT("Missing world data cannot make a Standing Light placement valid"),
         FKalmalaPlacementPreview::Evaluate(nullptr, nullptr, TEXT("StandingLightKit")).bIsValid);
     return true;

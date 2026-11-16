@@ -163,6 +163,7 @@ public:
 
 private:
     friend class AKalmalaCharacter;
+    friend class FKalmalaConstructionSaveGameV2Test;
     friend class FKalmalaUnroofedRainAccumulatorTest;
     friend class FKalmalaForestPatchLifecycleTest;
     friend class FKalmalaTundraForestPatchLifecycleTest;

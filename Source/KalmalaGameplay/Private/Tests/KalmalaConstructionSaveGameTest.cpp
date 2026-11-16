@@ -1,8 +1,13 @@
 #if WITH_DEV_AUTOMATION_TESTS
+#include "KalmalaConstructionActor.h"
 #include "KalmalaConstructionSaveGame.h"
+#include "KalmalaGameMode.h"
 #include "KalmalaPlacementPreview.h"
+#include "KalmalaWorldBounds.h"
+#include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaConstructionSaveGameTest, "Kalmala.Gameplay.Construction.SaveContract",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -71,6 +76,21 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
         OutBytes.Reset();
         return UGameplayStatics::SaveGameToMemory(Save, OutBytes);
     };
+
+    FKalmalaConstructionSaveRecord AtPlacementMargin = MakeRecord(TEXT("at-placement-margin"), TEXT("FloorKit"));
+    AtPlacementMargin.Transform.SetLocation(FVector(
+        FKalmalaWorldBounds::Radius - FKalmalaWorldBounds::ConstructionPlacementMargin, 0.0, 300.0));
+    TestTrue(TEXT("Construction records remain valid at the live placement margin"),
+        UKalmalaConstructionSaveGameV2::IsValidRecord(AtPlacementMargin, World));
+    FKalmalaConstructionSaveRecord InsidePlacementMargin = MakeRecord(TEXT("inside-placement-margin"), TEXT("FloorKit"));
+    InsidePlacementMargin.Transform.SetLocation(FVector(
+        FKalmalaWorldBounds::Radius - FKalmalaWorldBounds::ConstructionPlacementMargin + 1.0, 0.0, 300.0));
+    TestFalse(TEXT("Construction records reject the live placement exclusion margin"),
+        UKalmalaConstructionSaveGameV2::IsValidRecord(InsidePlacementMargin, World));
+    FKalmalaConstructionSaveRecord OutsideWorld = MakeRecord(TEXT("outside-playable-world"), TEXT("FloorKit"));
+    OutsideWorld.Transform.SetLocation(FVector(FKalmalaWorldBounds::Radius + 1.0, 0.0, 300.0));
+    TestFalse(TEXT("Construction records reject finite transforms outside the playable radius"),
+        UKalmalaConstructionSaveGameV2::IsValidRecord(OutsideWorld, World));
 
     UKalmalaConstructionSaveGameV2* Save = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
     Save->InitializeForWorld(World);
@@ -158,7 +178,7 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     FKalmalaConstructionSaveRecord InvalidFloor = Floor;
     InvalidFloor.GardenPlot.PlantCrop(EKalmalaGardenCropMode::CarrotFood);
     TestFalse(TEXT("Non-plot construction rejects crop state"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(InvalidFloor));
+        UKalmalaConstructionSaveGameV2::IsValidRecord(InvalidFloor, World));
     TestTrue(TEXT("Schema 7 accepts an established camp record"), Save->AddRecord(Floor));
     TestTrue(TEXT("Schema 7 accepts a bounded station attachment"), Save->AddStationAttachmentRecord(Rack));
     TestTrue(TEXT("Schema 7 retains the stable Campfire construction identity"), Save->AddRecord(Campfire));
@@ -189,10 +209,10 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     TestTrue(TEXT("Door state persists as open"),
         DoorSave->UpdateDoorOpenRecord(Wall.ConstructionId, Wall.Transform, true));
     TestTrue(TEXT("Open state is valid only on the Timber Door record"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(DoorSave->GetRecords()[0]));
+        UKalmalaConstructionSaveGameV2::IsValidRecord(DoorSave->GetRecords()[0], World));
     FKalmalaConstructionSaveRecord OpenWall = Wall;
     OpenWall.bDoorOpen = true;
-    TestFalse(TEXT("Non-door records reject door state"), UKalmalaConstructionSaveGameV2::IsValidRecord(OpenWall));
+    TestFalse(TEXT("Non-door records reject door state"), UKalmalaConstructionSaveGameV2::IsValidRecord(OpenWall, World));
     TArray<uint8> DoorBytes;
     TestTrue(TEXT("Open door state serializes"), UGameplayStatics::SaveGameToMemory(DoorSave, DoorBytes));
     auto* ReloadedDoorSave = Cast<UKalmalaConstructionSaveGameV2>(UGameplayStatics::LoadGameFromMemory(DoorBytes));
@@ -426,6 +446,54 @@ bool FKalmalaConstructionSaveGameV2Test::RunTest(const FString& Parameters)
     FullSmelterOutput.TryAddCoal();
     TestFalse(TEXT("A full Smelter output pauses its queued input"), FullSmelterOutput.Advance(5.0f));
     TestEqual(TEXT("Output-full pause retains queued ore"), FullSmelterOutput.GetInputOreCount(), 1);
+
+    UWorld* RestoreWorld = UWorld::CreateWorld(EWorldType::Game, false);
+    if (!TestNotNull(TEXT("Construction restore test world is available"), RestoreWorld)) return false;
+    ON_SCOPE_EXIT { RestoreWorld->DestroyWorld(false); };
+    AKalmalaGameMode* RestoreMode = RestoreWorld->SpawnActor<AKalmalaGameMode>();
+    if (!TestNotNull(TEXT("Construction restore test GameMode is available"), RestoreMode)) return false;
+    RestoreMode->WorldGenerationConfig = World;
+
+    UKalmalaConstructionSaveGameV2* InBoundsRestoreSave = NewObject<UKalmalaConstructionSaveGameV2>(RestoreMode);
+    InBoundsRestoreSave->InitializeForWorld(World);
+    TestTrue(TEXT("In-bounds restore control is accepted"), InBoundsRestoreSave->AddRecord(Floor));
+    RestoreMode->ConstructionSaveGame = InBoundsRestoreSave;
+    RestoreMode->RestorePersistedConstruction();
+    TArray<AActor*> RestoredConstructions;
+    UGameplayStatics::GetAllActorsOfClass(RestoreWorld, AKalmalaConstructionActor::StaticClass(), RestoredConstructions);
+    TestEqual(TEXT("An in-bounds current construction record restores"), RestoredConstructions.Num(), 1);
+
+    UKalmalaConstructionSaveGameV2* InvalidRestoreSave = NewObject<UKalmalaConstructionSaveGameV2>(RestoreMode);
+    InvalidRestoreSave->InitializeForWorld(World);
+    OutsideWorld.ConstructionId = TEXT("restore-outside-world");
+    InsidePlacementMargin.ConstructionId = TEXT("restore-inside-margin");
+    InvalidRestoreSave->Records.Add(OutsideWorld);
+    InvalidRestoreSave->Records.Add(InsidePlacementMargin);
+    TArray<uint8> InvalidSaveBytes;
+    TestTrue(TEXT("Malformed current construction save serializes before load validation"),
+        Serialize(InvalidRestoreSave, InvalidSaveBytes));
+    UKalmalaConstructionSaveGameV2* LoadedInvalidSave = Cast<UKalmalaConstructionSaveGameV2>(
+        UGameplayStatics::LoadGameFromMemory(InvalidSaveBytes));
+    if (!TestNotNull(TEXT("Malformed construction save reloads for rejection coverage"), LoadedInvalidSave)) return false;
+    TestFalse(TEXT("Load validation rejects records beyond the world margin"), LoadedInvalidSave->MatchesWorld(World));
+    TArray<uint8> RejectedSaveBytesBefore;
+    TestTrue(TEXT("Malformed loaded save serializes before candidate rejection"),
+        Serialize(LoadedInvalidSave, RejectedSaveBytesBefore));
+    UKalmalaConstructionSaveGameV2* RejectedCandidate = nullptr;
+    TestFalse(TEXT("Malformed current construction save cannot build a restore candidate"),
+        UKalmalaConstructionSaveGameV2::TryBuildWriteCandidate(
+            LoadedInvalidSave, World, RestoreMode, RejectedCandidate));
+    TestNull(TEXT("Rejected current construction save has no replacement candidate"), RejectedCandidate);
+    TArray<uint8> RejectedSaveBytesAfter;
+    TestTrue(TEXT("Malformed loaded save remains serializable after rejection"),
+        Serialize(LoadedInvalidSave, RejectedSaveBytesAfter));
+    TestTrue(TEXT("Rejected current construction save bytes remain unchanged"),
+        RejectedSaveBytesBefore == RejectedSaveBytesAfter);
+    RestoreMode->ConstructionSaveGame = LoadedInvalidSave;
+    RestoreMode->RestorePersistedConstruction();
+    RestoredConstructions.Reset();
+    UGameplayStatics::GetAllActorsOfClass(RestoreWorld, AKalmalaConstructionActor::StaticClass(), RestoredConstructions);
+    TestEqual(TEXT("Out-of-bounds current records do not spawn construction actors"), RestoredConstructions.Num(), 1);
     return true;
 }
 #endif

@@ -1470,6 +1470,9 @@ All current writes still validate the complete candidate, including identity,
 duplicate IDs, catalogue IDs, transforms, condition/level ranges, and bounds,
 before replacing a slot or publishing the live transaction. Failed writes
 preserve previous bytes and reject or roll back associated gameplay changes.
+Current schema-7 construction records also use the live placement margin of
+300 cm from the finite-world edge. A save with an out-of-bounds record fails
+closed on load and remains untouched.
 Current construction saves use schema 7; player-discovery saves use schema 3; chest storage
 saves use schema 3. Other save owners retain their current versions.
 

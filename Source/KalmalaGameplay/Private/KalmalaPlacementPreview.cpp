@@ -115,7 +115,7 @@ namespace
             return Result;
         }
         const auto& Config = State->GetWorldGenerationConfig();
-        if (!FKalmalaWorldBounds::Contains(Config, FVector2D(SupportPoint), 300))
+        if (!FKalmalaWorldBounds::Contains(Config, FVector2D(SupportPoint), FKalmalaWorldBounds::ConstructionPlacementMargin))
         {
             Result.Message = TEXT("Preview invalid: Standing Light is too close to the world edge");
             return Result;
@@ -242,7 +242,7 @@ namespace
         }
         const auto& Config = State->GetWorldGenerationConfig();
         const FVector2D GroundSurface(LowerEndpoint);
-        if (!FKalmalaWorldBounds::Contains(Config, GroundSurface, 300))
+        if (!FKalmalaWorldBounds::Contains(Config, GroundSurface, FKalmalaWorldBounds::ConstructionPlacementMargin))
         {
             Result.Message = TEXT("Preview invalid: stairs are too close to the world edge");
             return Result;
@@ -330,7 +330,7 @@ namespace
         }
         const auto& Config = State->GetWorldGenerationConfig();
         const FVector2D Surface(SupportPoint);
-        if (!FKalmalaWorldBounds::Contains(Config, Surface, 300))
+        if (!FKalmalaWorldBounds::Contains(Config, Surface, FKalmalaWorldBounds::ConstructionPlacementMargin))
         {
             Result.Message = TEXT("Preview invalid: the Camp Bed is too close to the world edge");
             return Result;
@@ -545,7 +545,7 @@ namespace
         if (!State || !State->GetWorldGenerationConfig().IsValid()) return Result;
         const auto& Config = State->GetWorldGenerationConfig();
         const FVector2D Surface(Result.Location);
-        if (!FKalmalaWorldBounds::Contains(Config, Surface, 300))
+        if (!FKalmalaWorldBounds::Contains(Config, Surface, FKalmalaWorldBounds::ConstructionPlacementMargin))
         {
             Result.Message = TEXT("Too close to the world edge");
             return Result;
@@ -619,7 +619,7 @@ namespace
             return Result;
         }
         const auto& Config = State->GetWorldGenerationConfig();
-        if (!FKalmalaWorldBounds::Contains(Config, FVector2D(SupportPoint), 300))
+        if (!FKalmalaWorldBounds::Contains(Config, FVector2D(SupportPoint), FKalmalaWorldBounds::ConstructionPlacementMargin))
         {
             Result.Message = TEXT("Preview invalid: the Reinforced Chest is too close to the world edge");
             return Result;
@@ -771,7 +771,7 @@ FKalmalaPlacementPreview FKalmalaPlacementPreview::Evaluate(const UWorld* World,
     if (!State || !State->GetWorldGenerationConfig().IsValid()) return Result;
     const auto& Config = State->GetWorldGenerationConfig();
     const FVector2D Surface(Ground.ImpactPoint);
-    if (!FKalmalaWorldBounds::Contains(Config, Surface, 300)) { Result.Message = TEXT("Too close to the world edge"); return Result; }
+    if (!FKalmalaWorldBounds::Contains(Config, Surface, FKalmalaWorldBounds::ConstructionPlacementMargin)) { Result.Message = TEXT("Too close to the world edge"); return Result; }
     if (FKalmalaOceanSampler::Sample(Config, Surface).IsWater() || FKalmalaShimmeringLakeSampler::IsWater(Config, Surface)
         || (FKalmalaRegionalGeneration::Sample(Config, Surface).bHasWater))
     {

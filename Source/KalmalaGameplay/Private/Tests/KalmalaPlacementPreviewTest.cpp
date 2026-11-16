@@ -13,6 +13,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKalmalaPlacementPreviewTest, "Kalmala.Gameplay
 
 bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
 {
+    FKalmalaWorldGenerationConfig World;
+    World.WorldSeed = 418;
     for (const FName Kit : {FName(TEXT("CampfireKit")), FName(TEXT("WorkbenchKit")), FName(TEXT("StorageKit")),
         FName(TEXT("ReinforcedChestKit")),
         FName(TEXT("CookingRackKit")), FName(TEXT("CauldronKit")), FName(TEXT("FryingPanKit")), FName(TEXT("CharcoalKilnKit")), FName(TEXT("SmelterKit")),
@@ -132,7 +134,7 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
     StairsRecord.KitId = TEXT("TimberStairsKit");
     StairsRecord.Transform = FTransform(FRotator::ZeroRotator, FVector(900.0f, 100.0f, 50.0f));
     TestTrue(TEXT("Timber Stairs use the current construction save format"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(StairsRecord));
+        UKalmalaConstructionSaveGameV2::IsValidRecord(StairsRecord, World));
     FKalmalaConstructionSaveRecord BeamRecord;
     BeamRecord.ConstructionId = TEXT("timber-beam-01");
     BeamRecord.KitId = TEXT("TimberBeamKit");
@@ -141,11 +143,9 @@ bool FKalmalaPlacementPreviewTest::RunTest(const FString& Parameters)
     HorizontalBeamRecord.ConstructionId = TEXT("timber-beam-horizontal-01");
     HorizontalBeamRecord.Transform = FTransform(FRotator(0.0f, 0.0f, 0.0f), FVector(600.0f, 700.0f, 800.0f));
     TestTrue(TEXT("Timber Beam uses the current persistent construction format"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(BeamRecord));
+        UKalmalaConstructionSaveGameV2::IsValidRecord(BeamRecord, World));
     TestTrue(TEXT("Horizontal Timber Beam uses the same persistent construction format"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(HorizontalBeamRecord));
-    FKalmalaWorldGenerationConfig World;
-    World.WorldSeed = 418;
+        UKalmalaConstructionSaveGameV2::IsValidRecord(HorizontalBeamRecord, World));
     UKalmalaConstructionSaveGameV2* CurrentSave = NewObject<UKalmalaConstructionSaveGameV2>(GetTransientPackage());
     CurrentSave->InitializeForWorld(World);
     TestTrue(TEXT("Schema 7 persists an empty Garden Plot construction"), CurrentSave->AddRecord(PlotRecord));

@@ -2,6 +2,7 @@
 #include "KalmalaPlacementPreview.h"
 #include "KalmalaToolProgressionContract.h"
 #include "KalmalaM7PersistenceContract.h"
+#include "KalmalaWorldBounds.h"
 
 namespace
 {
@@ -62,11 +63,14 @@ bool UKalmalaConstructionSaveGame::IsValidRecord(const FKalmalaConstructionSaveR
         && !Record.Transform.GetLocation().ContainsNaN() && !Record.Transform.GetRotation().ContainsNaN();
 }
 
-bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSaveRecord& Record)
+bool UKalmalaConstructionSaveGameV2::IsValidRecord(const FKalmalaConstructionSaveRecord& Record,
+    const FKalmalaWorldGenerationConfig& InWorld)
 {
     if (Record.ConstructionId.Len() <= 0 || Record.ConstructionId.Len() > 64
         || !FKalmalaPlacementPreview::IsSupportedKit(Record.KitId)
         || !IsValidConstructionTransform(Record.Transform)
+        || !FKalmalaWorldBounds::Contains(InWorld, FVector2D(Record.Transform.GetLocation()),
+            FKalmalaWorldBounds::ConstructionPlacementMargin)
         || !Record.CharcoalKiln.IsValid() || !Record.Smelter.IsValid() || !Record.GardenPlot.IsValid()
         || !Record.StandingLight.IsValid()) return false;
 
@@ -101,7 +105,7 @@ bool UKalmalaConstructionSaveGame::AddRecord(const FKalmalaConstructionSaveRecor
 
 bool UKalmalaConstructionSaveGameV2::AddStationAttachmentRecord(const FKalmalaConstructionSaveRecord& Record)
 {
-    if (!MatchesWorld(WorldConfig) || !IsValidRecord(Record)
+    if (!MatchesWorld(WorldConfig) || !IsValidRecord(Record, WorldConfig)
         || !FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId)
         || Records.Num() >= MaxRecords
         || CountStationAttachmentRecords(Records) >= MaxStationAttachments
@@ -166,7 +170,7 @@ bool UKalmalaConstructionSaveGameV2::MatchesWorld(const FKalmalaWorldGenerationC
     int32 AttachmentCount = 0;
     for (const FKalmalaConstructionSaveRecord& Record : Records)
     {
-        if (!IsValidRecord(Record)) return false;
+        if (!IsValidRecord(Record, InWorld)) return false;
         AttachmentCount += FKalmalaToolProgressionContract::IsStationAttachmentKit(Record.KitId) ? 1 : 0;
     }
     return AttachmentCount <= MaxStationAttachments;
@@ -174,7 +178,7 @@ bool UKalmalaConstructionSaveGameV2::MatchesWorld(const FKalmalaWorldGenerationC
 
 bool UKalmalaConstructionSaveGameV2::AddRecord(const FKalmalaConstructionSaveRecord& Record)
 {
-    if (!MatchesWorld(WorldConfig) || !IsValidRecord(Record) || FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)
+    if (!MatchesWorld(WorldConfig) || !IsValidRecord(Record, WorldConfig) || FKalmalaPlacementPreview::IsSessionOnlyKit(Record.KitId)
         || Records.Num() >= MaxRecords
         || Records.ContainsByPredicate([&Record](const FKalmalaConstructionSaveRecord& Existing)
         {

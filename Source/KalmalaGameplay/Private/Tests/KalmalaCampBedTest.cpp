@@ -43,11 +43,13 @@ bool FKalmalaCampBedContractTest::RunTest(const FString& Parameters)
     }
 
     FKalmalaConstructionSaveRecord Record;
+    FKalmalaWorldGenerationConfig World;
+    World.WorldSeed = 418;
     Record.ConstructionId = TEXT("camp-bed-contract");
     Record.KitId = TEXT("CampBedKit");
     Record.Transform = FTransform(FVector(300.0f, 200.0f, 22.0f));
     TestTrue(TEXT("Camp Bed uses the existing construction save record"),
-        UKalmalaConstructionSaveGameV2::IsValidRecord(Record));
+        UKalmalaConstructionSaveGameV2::IsValidRecord(Record, World));
     TestFalse(TEXT("Missing world data cannot make a bed placement valid"),
         FKalmalaPlacementPreview::Evaluate(nullptr, nullptr, TEXT("CampBedKit")).bIsValid);
 

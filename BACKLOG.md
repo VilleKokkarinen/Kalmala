@@ -2035,7 +2035,7 @@
     including the version-table row, to schema 3. Retained the M7 sparse-ledger
     schema 2 confirmed by its runtime constant; left historical schema references
     unchanged.
-  - [ ] **RF68 — Reject out-of-bounds construction records during restore (P3; CR11-001).**
+  - [x] **RF68 — Reject out-of-bounds construction records during restore (P3; CR11-001).**
     `Source/KalmalaGameplay/Private/KalmalaConstructionSaveGame.cpp:13-20,65-92`;
     `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:935-953`;
     `Source/KalmalaWorld/Public/KalmalaWorldBounds.h:8-16`; and
@@ -2068,6 +2068,11 @@
     coverage with finite transforms beyond the radius and within the excluded
     300 cm margin, plus a valid in-bounds control. Verify rejection leaves the
     serialized slot unchanged. No test was run during this review.
+    **Implementation:** Schema-7 record validation now checks the shared
+    construction-placement margin. Save matching rejects invalid records before
+    a candidate is created, and restoration validates again before spawning.
+    Added coverage for beyond-radius, within-margin, edge-valid, in-bounds
+    restore, no-spawn rejection, and unchanged serialized bytes.
   - [ ] **RF69 — Keep rejected lethal wildlife hits from leaving active zero-health actors (P2; CR09-001d-01).**
     `Source/KalmalaGameplay/Private/KalmalaWildlifeSpawn.cpp:478-599,689-702,1083-1097`,
     `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:8677-8694`,

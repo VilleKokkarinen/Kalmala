@@ -365,7 +365,8 @@ public:
     void InitializeForWorld(const FKalmalaWorldGenerationConfig& InWorld);
     int32 GetSchemaVersion() const { return SchemaVersion; }
     bool MatchesWorld(const FKalmalaWorldGenerationConfig& InWorld) const;
-    static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record);
+    static bool IsValidRecord(const FKalmalaConstructionSaveRecord& Record,
+        const FKalmalaWorldGenerationConfig& InWorld);
     bool AddRecord(const FKalmalaConstructionSaveRecord& Record);
     bool AddStationAttachmentRecord(const FKalmalaConstructionSaveRecord& Record);
     /** Rejects deletion of processing records with contents/jobs and Garden Plots with a crop. */

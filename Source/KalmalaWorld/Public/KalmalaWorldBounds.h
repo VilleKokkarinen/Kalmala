@@ -6,6 +6,7 @@
 struct FKalmalaWorldBounds
 {
     static constexpr double Radius = 1600000.0;
+    static constexpr double ConstructionPlacementMargin = 300.0;
     static bool IsBounded(const FKalmalaWorldGenerationConfig& C) { return true; }
     static bool Contains(const FKalmalaWorldGenerationConfig& C, FVector2D P, double Margin = 0)
     {
