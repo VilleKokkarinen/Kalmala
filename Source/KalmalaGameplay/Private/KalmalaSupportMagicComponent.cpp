@@ -1,6 +1,7 @@
 #include "KalmalaSupportMagicComponent.h"
 #include "KalmalaCharacter.h"
 #include "KalmalaCharacterMovementComponent.h"
+#include "KalmalaDiscoveryProgressComponent.h"
 #include "KalmalaInventoryComponent.h"
 #include "KalmalaPlayerStatusComponent.h"
 #include "KalmalaWildlifeSpawn.h"
@@ -42,20 +43,41 @@ bool UKalmalaSupportMagicComponent::LearnEffectFromServer(const EKalmalaSupportE
 {
     if (!GetOwner() || !GetOwner()->HasAuthority() || !IsKnownEffect(Effect)) return false;
     LearnedMask |= static_cast<uint8>(1u << static_cast<uint8>(Effect));
-    if (APawn* Pawn = Cast<APawn>(GetOwner()))
-    {
-        if (UKalmalaInventoryComponent* Inventory = Pawn->FindComponentByClass<UKalmalaInventoryComponent>())
-        {
-            const FName ScrollId = ScrollItemId(Effect);
-            if (!ScrollId.IsNone() && Inventory->GetQuantity(ScrollId) == 0)
-            {
-                // This ordinary runtime stack is rebuilt from the persisted entitlement, never saved.
-                Inventory->TryGrantFromServer(ScrollId, 1);
-            }
-        }
-    }
+    const uint8 GrantBit = static_cast<uint8>(1u << static_cast<uint8>(Effect));
+    if ((PendingScrollGrantMask & GrantBit) == 0) TryGrantLearnedScrollFromServer(Effect);
     GetOwner()->ForceNetUpdate();
     return true;
+}
+bool UKalmalaSupportMagicComponent::TryGrantLearnedScrollFromServer(const EKalmalaSupportEffect Effect)
+{
+    if (!GetOwner() || !GetOwner()->HasAuthority() || !IsKnownEffect(Effect)) return false;
+    const uint8 GrantBit = static_cast<uint8>(1u << static_cast<uint8>(Effect));
+    const FName ScrollId = ScrollItemId(Effect);
+    APawn* Pawn = Cast<APawn>(GetOwner());
+    UKalmalaInventoryComponent* Inventory = Pawn != nullptr
+        ? Pawn->FindComponentByClass<UKalmalaInventoryComponent>() : nullptr;
+    if (ScrollId.IsNone() || Inventory == nullptr)
+    {
+        PendingScrollGrantMask |= GrantBit;
+        NextScrollGrantRetryTime = GetWorld() != nullptr
+            ? GetWorld()->GetTimeSeconds() + ScrollGrantRetryIntervalSeconds : ScrollGrantRetryIntervalSeconds;
+        return false;
+    }
+    if (Inventory->GetQuantity(ScrollId) > 0)
+    {
+        PendingScrollGrantMask &= static_cast<uint8>(~GrantBit);
+        return false;
+    }
+    // The learned entitlement is persisted separately; this ordinary runtime stack is never saved.
+    if (Inventory->TryGrantFromServer(ScrollId, 1) && Inventory->GetQuantity(ScrollId) > 0)
+    {
+        PendingScrollGrantMask &= static_cast<uint8>(~GrantBit);
+        return true;
+    }
+    PendingScrollGrantMask |= GrantBit;
+    NextScrollGrantRetryTime = GetWorld() != nullptr
+        ? GetWorld()->GetTimeSeconds() + ScrollGrantRetryIntervalSeconds : ScrollGrantRetryIntervalSeconds;
+    return false;
 }
 bool UKalmalaSupportMagicComponent::HasLearnedEffect(const EKalmalaSupportEffect Effect) const
 { return !CanonicalId(Effect).IsEmpty() && (LearnedMask & static_cast<uint8>(1u << static_cast<uint8>(Effect))) != 0; }
@@ -246,6 +268,27 @@ void UKalmalaSupportMagicComponent::TickComponent(const float DeltaTime, const E
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
     if (!GetOwner() || !GetOwner()->HasAuthority() || !GetWorld()) return;
     const float Now = GetWorld()->GetTimeSeconds();
+    if (PendingScrollGrantMask != 0 && Now >= NextScrollGrantRetryTime)
+    {
+        NextScrollGrantRetryTime = Now + ScrollGrantRetryIntervalSeconds;
+        for (const EKalmalaSupportEffect Effect : { EKalmalaSupportEffect::Mending,
+            EKalmalaSupportEffect::HearthShield, EKalmalaSupportEffect::BearsVigor, EKalmalaSupportEffect::DeerCall })
+        {
+            const uint8 GrantBit = static_cast<uint8>(1u << static_cast<uint8>(Effect));
+            if ((PendingScrollGrantMask & GrantBit) == 0 || !HasLearnedEffect(Effect)) continue;
+            if (TryGrantLearnedScrollFromServer(Effect))
+            {
+                if (AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwner()))
+                {
+                    if (UKalmalaDiscoveryProgressComponent* Discovery = Character->GetDiscoveryProgressComponent())
+                    {
+                        Discovery->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::ScrollFound,
+                            TEXT("Support scroll added to your pack"));
+                    }
+                }
+            }
+        }
+    }
     if (HearthShieldExpiry > 0.0f && Now >= HearthShieldExpiry)
     {
         HearthShieldStrength = 0.0f;

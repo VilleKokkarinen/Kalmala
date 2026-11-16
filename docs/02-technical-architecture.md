@@ -1178,7 +1178,14 @@ in the standard carried inventory, can be assigned to one of numbered hotbar
 cells, and activates from that hotbar cell. Scroll use does not consume the item.
 The learned-effect entitlement remains the persisted progression gate; when a
 pawn's transient inventory is initialized, the server reconstructs the matching
-scroll items from that existing entitlement without adding save fields. This
+scroll items from that existing entitlement without adding save fields. If the
+pack has no capacity, the server keeps a runtime-only pawn-local pending grant
+and retries it while the pawn is active. Each retry checks the canonical scroll
+quantity before granting, so freeing one cell adds one item and repeated restores
+do not duplicate it. Reconnect reconstructs any still-missing scroll from the
+saved entitlement.
+Discovery feedback reports the scroll as found only after the owner inventory
+contains it; a later successful retry sends owner-only delivery feedback. This
 preserves discovery/learned-effect records and reconnect behavior while keeping
 scrolls in the ordinary inventory UI.
 

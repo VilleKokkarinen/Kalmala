@@ -1869,7 +1869,7 @@
     wetting/drying and initial-lighting gate checks separate. Authored but not
     built or run in this normal increment; execute during milestone-final
     verification.
-  - [ ] **RF64 — Retry reusable support-scroll grants after capacity rejection (P3; CR07-003).**
+  - [x] **RF64 — Retry reusable support-scroll grants after capacity rejection (P3; CR07-003).**
     Source/KalmalaGameplay/Private/KalmalaSupportMagicComponent.cpp:41-58,
     Source/KalmalaGameplay/Private/KalmalaInventoryComponent.cpp:426-432,
     Source/KalmalaGameplay/Private/KalmalaInventoryTransactions.cpp:278-289,
@@ -1904,6 +1904,12 @@
     hotbar scroll in the same session. Reconnect and repeat attempts do not
     duplicate it, and all entitlement, capacity, and reward decisions remain
     server-owned.
+    **Focused validation:** Extended `Kalmala.Gameplay.Persistence.PlayerDiscoveryFailClosedLoad`
+    to restore a saved entitlement while the pack is full, report the reward as
+    pending, deliver one scroll after a slot is freed, assign it to a hotbar
+    cell, and verify repeated cached restores plus a replacement pawn do not
+    duplicate the scroll. Authored but not built or run in this normal increment;
+    execute during milestone-final verification.
   - [ ] **RF65 — Bound owner-only status timer replication work (P3; CR08-001).**
     Cross-reference: CR17 should reuse RF65 and must not create a duplicate.
     Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:432 and

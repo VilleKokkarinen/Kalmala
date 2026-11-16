@@ -11006,9 +11006,29 @@ bool AKalmalaGameMode::ClaimDiscovery(AKalmalaCharacter* Interactor, const FKalm
         Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::Unavailable, TEXT("Discovery unavailable"));
         return false;
     }
-    if (Effect != EKalmalaSupportEffect::None) Interactor->GetSupportMagicComponent()->LearnEffectFromServer(Effect);
-    Feedback->PublishFeedbackFromServer(Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? EKalmalaDiscoveryFeedback::ScrollFound : EKalmalaDiscoveryFeedback::LandmarkFound,
-        Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll ? FString::Printf(TEXT("Scroll found: %s"), *Descriptor.DefinitionId) : TEXT("Landmark discovered"));
+    bool bLearnedScrollEffect = false;
+    if (Effect != EKalmalaSupportEffect::None)
+    {
+        if (UKalmalaSupportMagicComponent* Support = Interactor->GetSupportMagicComponent())
+        {
+            bLearnedScrollEffect = Support->LearnEffectFromServer(Effect);
+        }
+    }
+    const FName ScrollItemId = UKalmalaSupportMagicComponent::ScrollItemId(Effect);
+    const UKalmalaInventoryComponent* Inventory = Interactor->GetInventoryComponent();
+    const bool bScrollDelivered = bLearnedScrollEffect && !ScrollItemId.IsNone()
+        && Inventory != nullptr && Inventory->GetQuantity(ScrollItemId) > 0;
+    if (Descriptor.Kind == EKalmalaWorldDiscoveryKind::Scroll)
+    {
+        Feedback->PublishFeedbackFromServer(bScrollDelivered
+                ? EKalmalaDiscoveryFeedback::ScrollFound : EKalmalaDiscoveryFeedback::Unavailable,
+            bScrollDelivered ? FString::Printf(TEXT("Scroll found: %s"), *Descriptor.DefinitionId)
+                : TEXT("Learned; scroll waits for pack space"));
+    }
+    else
+    {
+        Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::LandmarkFound, TEXT("Landmark discovered"));
+    }
     return true;
 }
 
@@ -11423,10 +11443,16 @@ bool AKalmalaGameMode::EnsureMirelingBossScrollEntitlement(
         PublishUnavailableOnce();
         return false;
     }
-    Support->LearnEffectFromServer(Effect);
+    const bool bLearned = Support->LearnEffectFromServer(Effect);
     MirelingBossScrollUnavailableFeedbackKeys.Remove(FeedbackKey);
-    Feedback->PublishFeedbackFromServer(EKalmalaDiscoveryFeedback::ScrollFound,
-        FString::Printf(TEXT("Mireling boss scroll: %s"), *Definition));
+    const FName ScrollItemId = UKalmalaSupportMagicComponent::ScrollItemId(Effect);
+    const UKalmalaInventoryComponent* Inventory = Attacker->GetInventoryComponent();
+    const bool bScrollDelivered = bLearned && !ScrollItemId.IsNone()
+        && Inventory != nullptr && Inventory->GetQuantity(ScrollItemId) > 0;
+    Feedback->PublishFeedbackFromServer(bScrollDelivered
+            ? EKalmalaDiscoveryFeedback::ScrollFound : EKalmalaDiscoveryFeedback::Unavailable,
+        bScrollDelivered ? FString::Printf(TEXT("Mireling boss scroll: %s"), *Definition)
+            : TEXT("Learned; scroll waits for pack space"));
     return true;
 }
 

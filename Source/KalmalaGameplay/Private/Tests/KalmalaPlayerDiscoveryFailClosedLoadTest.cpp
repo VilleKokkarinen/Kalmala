@@ -387,6 +387,121 @@ bool FKalmalaPlayerDiscoveryFailClosedLoadTest::RunTest(const FString& Parameter
         Inventory->GetQuantity(TEXT("MendingScroll")), MendingScrollsBefore + 1);
     TestEqual(TEXT("Valid load does not invoke the slot writer"), WriteAttempts, WritesBeforeValidLoad);
     TestFalse(TEXT("Valid identity is not rejected"), Mode->RejectedPlayerDiscoverySaveIdentities.Contains(PlayerIdentity));
+
+    if (!TestTrue(TEXT("Remove the current Mending scroll before the capacity retry"),
+            Inventory->TryConsumeFromServer(TEXT("MendingScroll"), 1))) return false;
+    const int32 PackedToolCount = Inventory->CountPackedTools(Player->GetCarriedToolInventory());
+    TArray<FKalmalaInventoryStack> FullPack;
+    for (int32 Index = 0; Index < UKalmalaInventoryComponent::MaxSlots - PackedToolCount; ++Index)
+    {
+        FKalmalaInventoryStack Stack;
+        Stack.ItemId = TEXT("BoarHideBoots");
+        Stack.Quantity = 1;
+        Stack.InstanceGuid = FGuid::NewGuid();
+        Stack.ItemGuids.Add(FGuid::NewGuid());
+        FullPack.Add(MoveTemp(Stack));
+    }
+    if (!TestTrue(TEXT("Fill every available pack cell with nonstackable boots"),
+            Inventory->TryCommitStacksFromServer(Inventory->GetStacks(), FullPack))) return false;
+    TestEqual(TEXT("Fixture pack accounts for both items and carried tools"),
+        FullPack.Num() + PackedToolCount, UKalmalaInventoryComponent::MaxSlots);
+
+    FString CachedIdentity;
+    UKalmalaPlayerDiscoverySaveGameV2* CachedSave = Mode->GetPlayerDiscoverySave(Player, CachedIdentity);
+    if (!TestNotNull(TEXT("Cached save remains available for entitlement restoration"), CachedSave)) return false;
+    TestEqual(TEXT("Cached restore retains the authenticated owner"), CachedIdentity, PlayerIdentity);
+    TestTrue(TEXT("Full-pack restore keeps the learned Mending entitlement"),
+        Support->HasLearnedEffect(EKalmalaSupportEffect::Mending));
+    TestEqual(TEXT("Full-pack cached restore does not claim a Mending scroll is present"),
+        Inventory->GetQuantity(TEXT("MendingScroll")), 0);
+
+    Player->SetActorLocation(ScrollDescriptor.Location);
+    const FString ScrollClaimId = FKalmalaWorldPopulationLayout::GetPersistentDiscoveryId(ScrollDescriptor);
+    const uint32 SerialBeforeFullPackClaim = DiscoveryFeedback->GetFeedbackSerial();
+    if (!TestTrue(TEXT("Full-pack scroll claim persists its learned entitlement"),
+            Mode->ClaimDiscovery(Player, ScrollDescriptor))) return false;
+    TestEqual(TEXT("Full-pack scroll claim reports pending delivery without ScrollFound"),
+        DiscoveryFeedback->GetFeedback(), EKalmalaDiscoveryFeedback::Unavailable);
+    TestEqual(TEXT("Pending scroll feedback asks for pack space"), DiscoveryFeedback->GetFeedbackLabel(),
+        FString(TEXT("Learned; scroll waits for pack space")));
+    TestEqual(TEXT("Full-pack scroll claim publishes one pending result"),
+        DiscoveryFeedback->GetFeedbackSerial(), SerialBeforeFullPackClaim + 1);
+    TestEqual(TEXT("Full-pack scroll claim grants no scroll before space is freed"),
+        Inventory->GetQuantity(UKalmalaSupportMagicComponent::ScrollItemId(ScrollEffect)), 0);
+    UKalmalaPlayerDiscoverySaveGameV2* ClaimedSave = Mode->PlayerDiscoverySaves.FindChecked(PlayerIdentity);
+    TestTrue(TEXT("Full-pack claim persists both discovery and learned effect"),
+        ClaimedSave->HasDiscovery(ScrollClaimId)
+            && ClaimedSave->HasLearnedEffect(UKalmalaSupportMagicComponent::CanonicalId(ScrollEffect)));
+
+    TArray<int32> ScrollQuantitiesBeforeRetry;
+    for (const EKalmalaSupportEffect Effect : SupportEffects)
+    {
+        ScrollQuantitiesBeforeRetry.Add(
+            Inventory->GetQuantity(UKalmalaSupportMagicComponent::ScrollItemId(Effect)));
+    }
+    if (!TestTrue(TEXT("Free exactly one pack cell"), Inventory->TryConsumeFromServer(TEXT("BoarHideBoots"), 1)))
+        return false;
+    World->Tick(LEVELTICK_TimeOnly, 1.0f);
+    const uint32 SerialBeforeRetryDelivery = DiscoveryFeedback->GetFeedbackSerial();
+    Support->TickComponent(1.0f, LEVELTICK_TimeOnly, nullptr);
+    TestEqual(TEXT("Same-session retry grants the restored Mending scroll once"),
+        Inventory->GetQuantity(TEXT("MendingScroll")), 1);
+    TestEqual(TEXT("One freed slot accepts exactly one support scroll"),
+        Inventory->GetStacks().Num() + Inventory->CountPackedTools(Player->GetCarriedToolInventory()),
+        UKalmalaInventoryComponent::MaxSlots);
+    int32 ScrollQuantityDelta = 0;
+    for (int32 Index = 0; Index < SupportEffects.Num(); ++Index)
+    {
+        ScrollQuantityDelta += Inventory->GetQuantity(UKalmalaSupportMagicComponent::ScrollItemId(SupportEffects[Index]))
+            - ScrollQuantitiesBeforeRetry[Index];
+    }
+    TestEqual(TEXT("Exactly one retryable scroll was delivered into the freed cell"), ScrollQuantityDelta, 1);
+    TestEqual(TEXT("Retry reports ScrollFound only after delivery"),
+        DiscoveryFeedback->GetFeedback(), EKalmalaDiscoveryFeedback::ScrollFound);
+    TestEqual(TEXT("Retry feedback describes the delivered pack item"), DiscoveryFeedback->GetFeedbackLabel(),
+        FString(TEXT("Support scroll added to your pack")));
+    TestEqual(TEXT("Successful retry advances the feedback serial once"),
+        DiscoveryFeedback->GetFeedbackSerial(), SerialBeforeRetryDelivery + 1);
+    int32 MendingScrollSlot = Inventory->GetGridSlots().IndexOfByKey(TEXT("MendingScroll"));
+    if (MendingScrollSlot >= UKalmalaInventoryComponent::Columns)
+    {
+        const FName ExpectedHotbarItem = Inventory->GetSlotItem(0);
+        if (!TestTrue(TEXT("Assign the delivered scroll to the hotbar"), Inventory->MoveSlotFromServer(
+                MendingScrollSlot, 0, TEXT("MendingScroll"), ExpectedHotbarItem))) return false;
+        MendingScrollSlot = 0;
+    }
+    if (!TestTrue(TEXT("Delivered Mending scroll occupies a numbered hotbar cell"),
+            MendingScrollSlot >= 0 && MendingScrollSlot < UKalmalaInventoryComponent::Columns)) return false;
+    TestEqual(TEXT("Delivered hotbar item resolves to the learned effect"),
+        UKalmalaSupportMagicComponent::FromScrollItemId(Inventory->GetSlotItem(MendingScrollSlot)),
+        EKalmalaSupportEffect::Mending);
+
+    FString RepeatedIdentity;
+    TestNotNull(TEXT("Repeated cached restore still returns the valid player save"),
+        Mode->GetPlayerDiscoverySave(Player, RepeatedIdentity));
+    TestTrue(TEXT("Repeated cached restore retains the owner identity"), RepeatedIdentity == PlayerIdentity);
+    TestTrue(TEXT("Repeated direct learning remains idempotent"),
+        Support->LearnEffectFromServer(EKalmalaSupportEffect::Mending));
+    TestEqual(TEXT("Repeated restore and learning do not duplicate the scroll"),
+        Inventory->GetQuantity(TEXT("MendingScroll")), 1);
+
+    Player->Destroy();
+    AKalmalaCharacter* ReconnectedPlayer = World->SpawnActor<AKalmalaCharacter>();
+    if (!TestNotNull(TEXT("Replacement pawn created for entitlement restoration"), ReconnectedPlayer)) return false;
+    ReconnectedPlayer->DispatchBeginPlay();
+    ReconnectedPlayer->SetPlayerState(PlayerState);
+    UKalmalaInventoryComponent* ReconnectedInventory = ReconnectedPlayer->GetInventoryComponent();
+    if (!TestNotNull(TEXT("Replacement pawn has a server inventory"), ReconnectedInventory)) return false;
+    FString ReconnectedIdentity;
+    if (!TestNotNull(TEXT("Reconnect receives the cached player save"),
+            Mode->GetPlayerDiscoverySave(ReconnectedPlayer, ReconnectedIdentity))) return false;
+    TestEqual(TEXT("Reconnect retains the authenticated player identity"), ReconnectedIdentity, PlayerIdentity);
+    TestEqual(TEXT("Reconnect rebuilds exactly one learned Mending scroll"),
+        ReconnectedInventory->GetQuantity(TEXT("MendingScroll")), 1);
+    TestNotNull(TEXT("Repeated reconnect restoration still has a valid save"),
+        Mode->GetPlayerDiscoverySave(ReconnectedPlayer, ReconnectedIdentity));
+    TestEqual(TEXT("Repeated reconnect restore does not duplicate the scroll"),
+        ReconnectedInventory->GetQuantity(TEXT("MendingScroll")), 1);
     return true;
 }
 

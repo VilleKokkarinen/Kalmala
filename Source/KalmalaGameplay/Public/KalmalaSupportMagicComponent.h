@@ -59,8 +59,10 @@ private:
     static constexpr float HearthShieldAbsorption = 40.0f;
     static constexpr float BearsVigorDuration = BearsVigorDurationSeconds;
     static constexpr float BearsVigorStrength = 1.4f;
+    static constexpr float ScrollGrantRetryIntervalSeconds = 0.5f;
     class AKalmalaCharacter* ResolveMendingTargetFromServer(class APawn* Caster) const;
     bool InfluenceNearbyDeerFromServer(class APawn* Caster) const;
+    bool TryGrantLearnedScrollFromServer(EKalmalaSupportEffect Effect);
     void SetFeedbackFromServer(EKalmalaSupportFeedback NewFeedback, float ServerNow);
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") uint8 LearnedMask = 0;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") EKalmalaSupportEffect ActiveEffect = EKalmalaSupportEffect::None;
@@ -73,4 +75,6 @@ private:
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") EKalmalaSupportFeedback Feedback = EKalmalaSupportFeedback::None;
     UPROPERTY(Replicated, VisibleAnywhere, Category="Support") uint32 FeedbackSerial = 0;
     float NextUnavailableFeedbackTime = 0.0f;
+    uint8 PendingScrollGrantMask = 0;
+    float NextScrollGrantRetryTime = 0.0f;
 };
