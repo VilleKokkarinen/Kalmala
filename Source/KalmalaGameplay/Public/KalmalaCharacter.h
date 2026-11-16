@@ -20,6 +20,7 @@ class UKalmalaSupportMagicComponent;
 class UKalmalaSkillProgressionComponent;
 class UKalmalaOceanTravelFeedbackComponent;
 class AKalmalaHarvestNode;
+class AKalmalaConstructionActor;
 enum class EKalmalaSupportEffect : uint8;
 
 USTRUCT(BlueprintType)
@@ -153,6 +154,7 @@ private:
     bool CommitToolHarvestFromServer(AKalmalaHarvestNode* Node, float TraceDistance, float MaximumRange,
         FName ClientItemId, uint8 ClientAction);
     bool SpendStormcutConditionForAcceptedHitFromServer(const FGuid& ActiveSwordGuid);
+    void ApplyAcceptedCampBedRestPoseFromServerResult(const FTransform& BedTransform);
     int32* FindToolDurabilityFromServer(FName ItemId);
     int32* FindToolDurabilityFromServer(const FGuid& InstanceGuid);
 
@@ -185,6 +187,7 @@ private:
     void VerifyA9Peer();
 #if !UE_BUILD_SHIPPING
     void VerifyInteractionCadencePeer();
+    void VerifyCampBedRestPeer();
 #endif
     bool bA9StatsLogged = false;
     double A9NextActionTime = 0;
@@ -315,6 +318,10 @@ private:
     int32 InteractionCadencePeerTraceCount = 0;
     double InteractionCadencePeerFirstRequestTime = -1.0;
     double InteractionCadencePeerFirstTraceTime = -1.0;
+    int32 CampBedRestPeerStage = 0;
+    double CampBedRestPeerStageTime = 0.0;
+    uint32 CampBedRestPeerInitialReceiptSerial = 0;
+    FTransform CampBedRestPeerOriginalModelTransform = FTransform::Identity;
 #endif
     bool bDiscoveryPeerPrivacyLogged = false;
     float OwnerOnlyPrivacyProbeNextTime = 0.0f;

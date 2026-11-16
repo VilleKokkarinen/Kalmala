@@ -129,6 +129,7 @@ void UKalmalaCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, LastResult, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, ResultSerial, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bLastResultAccepted, COND_OwnerOnly);
+    DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, CampBedRestReceipt, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, AcceptedCraftingActionReceipts, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, StorageView, COND_OwnerOnly);
     DOREPLIFETIME_CONDITION(UKalmalaCraftingComponent, bStorageViewOpen, COND_OwnerOnly);
@@ -149,6 +150,72 @@ bool UKalmalaCraftingComponent::AcceptRequest()
     NextRequestTime = Now + .2;
     return true;
 }
+
+bool UKalmalaCraftingComponent::ResolveCampBedRestReceipt(const bool bLocallyControlled,
+    const FKalmalaCampBedRestReceipt& Receipt, const uint32 LastAppliedSerial, FTransform& OutBedTransform)
+{
+    if (!bLocallyControlled || Receipt.Serial == 0 || Receipt.Serial == LastAppliedSerial || !Receipt.bAccepted
+        || !Receipt.BedTransform.IsValid() || Receipt.BedTransform.GetLocation().ContainsNaN()
+        || Receipt.BedTransform.GetScale3D().ContainsNaN())
+    {
+        return false;
+    }
+
+    OutBedTransform = Receipt.BedTransform;
+    return true;
+}
+
+void UKalmalaCraftingComponent::OnRep_CampBedRestReceipt()
+{
+    AKalmalaCharacter* Character = GetCharacter();
+    FTransform BedTransform;
+    if (!Character || !ResolveCampBedRestReceipt(Character->IsLocallyControlled(), CampBedRestReceipt,
+            LastAppliedCampBedRestReceiptSerial, BedTransform))
+    {
+        return;
+    }
+
+    LastAppliedCampBedRestReceiptSerial = CampBedRestReceipt.Serial;
+    Character->ApplyAcceptedCampBedRestPoseFromServerResult(BedTransform);
+}
+
+void UKalmalaCraftingComponent::PublishCampBedRestInteractionResultFromServer(
+    const FTransform& BedTransform, const bool bAccepted)
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    if (!Character || !Character->HasAuthority() || !BedTransform.IsValid()
+        || BedTransform.GetLocation().ContainsNaN() || BedTransform.GetScale3D().ContainsNaN())
+    {
+        return;
+    }
+
+    CampBedRestReceipt.Serial = CampBedRestReceipt.Serial == TNumericLimits<uint32>::Max()
+        ? 1 : CampBedRestReceipt.Serial + 1;
+    CampBedRestReceipt.bAccepted = bAccepted;
+    CampBedRestReceipt.BedTransform = BedTransform;
+    if (bAccepted)
+    {
+        PublishResult(TEXT("Resting briefly; movement or damage will end the pose."), true);
+    }
+    Character->ForceNetUpdate();
+
+    if (Character->IsLocallyControlled())
+    {
+        OnRep_CampBedRestReceipt();
+    }
+}
+
+#if !UE_BUILD_SHIPPING
+void UKalmalaCraftingComponent::SetNextRequestTimeForVerification(const double TimeSeconds)
+{
+    const AKalmalaCharacter* Character = GetCharacter();
+    if (!Character || !Character->HasAuthority() || !FMath::IsFinite(TimeSeconds) || TimeSeconds < 0.0)
+    {
+        return;
+    }
+    NextRequestTime = TimeSeconds;
+}
+#endif
 
 void UKalmalaCraftingComponent::PublishInteractionResultFromServer(const FString& Result, const bool bAccepted)
 {

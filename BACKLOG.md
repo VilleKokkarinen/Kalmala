@@ -1669,7 +1669,7 @@
     **Focused validation:** Compare both save owners' current-version constants
     and the population decision-log entry with the table; no Unreal build is
     needed for a docs-only repair.
-  - [ ] **RF58 — Reconcile rejected Camp Bed interactions with the local rest pose (P3; CR05-001).**
+  - [x] **RF58 — Reconcile rejected Camp Bed interactions with the local rest pose (P3; CR05-001).**
     Affected: `Source/KalmalaGameplay/Private/KalmalaCharacter.cpp:1576-1589,1687-1782,1969-1971`,
     `Source/KalmalaGameplay/Private/KalmalaPlayerModelComponent.cpp:197-200,255-284`,
     `Source/KalmalaGameplay/Private/KalmalaStorageInteraction.cpp:118-132`,

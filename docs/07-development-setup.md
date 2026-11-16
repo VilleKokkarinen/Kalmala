@@ -202,15 +202,20 @@ A8 Camp Bed costs 4 Wood, 2 Boar Hide and 2 Deer Hide through the Building
 Hammer. Its 2 m × 1 m footprint must be supported across level, dry ground or
 an existing Timber Floor; placement reserves a clear 1 m approach at its short
 end. The server reevaluates support, water, bounds, overlap and approach before
-charging materials. Interaction within 2 m shows `Rest` and applies an owner-
-local lying pose to the procedural model; movement or health loss restores the
-standing pose. No stats, time skip, spawn update, replicated rest state or save
-field is added. `Kalmala.Gameplay.Construction.CampBedContract` covers the
-buildable identity, direct material costs, generic save record, and local pose
-stop conditions. The icon check is
+charging materials. Interaction within 2 m reports `Rest` through an owner-only
+result receipt; only acceptance applies the local lying pose to the procedural
+model. Rate rejection, a missed or invalid target, or a missing response leaves
+the original model transform unchanged; movement or health loss restores the
+standing pose. The pose itself is not replicated or saved. `Kalmala.Gameplay.Construction.CampBedContract`
+covers buildable identity, direct material costs, the generic save record,
+accepted/rejected/missing receipt handling, transform preservation, and local
+pose stop conditions. `Scripts/Tests/Construction/CampBedRestPeers.ps1` checks
+rate rejection and accepted pose delivery in a listen-host/remote-owner session.
+The icon check is
 `Scripts/Validate-UIIcons.ps1 -Category Catalogue -Id CampBedKit`; provenance
-is retained in `docs/icon-provenance.md#camp-bed-icon`. Unreal build and runtime placement,
-rendered interaction and peer acceptance remain deferred to I4 verification.
+is retained in `docs/icon-provenance.md#camp-bed-icon`. Unreal build, runtime
+placement and rendered placement remain deferred to I4 verification; the peer
+scenario remains for the CR milestone-final runtime gate.
 
 A8 Reinforced Chest costs 8 Wood + 2 Bronze and is placed directly with the
 Building Hammer. Its full 1.5 × 1 m footprint must fit on dry, level generated

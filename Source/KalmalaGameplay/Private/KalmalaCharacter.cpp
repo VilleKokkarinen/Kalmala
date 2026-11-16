@@ -496,6 +496,7 @@ void AKalmalaCharacter::Tick(const float DeltaSeconds)
     VerifyA9Peer();
 #if !UE_BUILD_SHIPPING
     VerifyInteractionCadencePeer();
+    VerifyCampBedRestPeer();
 #endif
     AdvanceWildlifeKnockbackFromServer(DeltaSeconds);
     AdvanceDodgeRollFromServer(DeltaSeconds);
@@ -1733,11 +1734,6 @@ void AKalmalaCharacter::RequestInteract()
         FHitResult Hit;
         if (GetLocalInteractionCandidate(Hit))
         {
-            if (const AKalmalaConstructionActor* Bed = Cast<AKalmalaConstructionActor>(Hit.GetActor());
-                Bed && Bed->GetConstructionKit() == TEXT("CampBedKit") && Bed->CanUse(this) && PlayerModel)
-            {
-                PlayerModel->StartCampBedRestPose(Bed->GetActorTransform());
-            }
             if (const AKalmalaHarvestNode* Node = Cast<AKalmalaHarvestNode>(Hit.GetActor()))
             {
                 bool bHasUsableTool = false;
@@ -1747,6 +1743,12 @@ void AKalmalaCharacter::RequestInteract()
         }
         ServerRequestInteract(ClientItemId, ClientAction);
     }
+}
+
+void AKalmalaCharacter::ApplyAcceptedCampBedRestPoseFromServerResult(const FTransform& BedTransform)
+{
+    if (!IsLocallyControlled() || !PlayerModel) return;
+    PlayerModel->StartCampBedRestPose(BedTransform);
 }
 
 void AKalmalaCharacter::SendOceanSkiffSteeringInput()

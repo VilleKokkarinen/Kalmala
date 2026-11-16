@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "KalmalaConstructionActor.h"
 #include "KalmalaConstructionSaveGame.h"
+#include "KalmalaCraftingComponent.h"
 #include "KalmalaItemCatalogue.h"
 #include "KalmalaPlayerModelComponent.h"
 #include "KalmalaPlacementPreview.h"
@@ -49,6 +50,38 @@ bool FKalmalaCampBedContractTest::RunTest(const FString& Parameters)
         UKalmalaConstructionSaveGameV2::IsValidRecord(Record));
     TestFalse(TEXT("Missing world data cannot make a bed placement valid"),
         FKalmalaPlacementPreview::Evaluate(nullptr, nullptr, TEXT("CampBedKit")).bIsValid);
+
+    const FTransform OriginalModelTransform(FRotator(4.0f, 12.0f, 0.0f), FVector(10.0f, 20.0f, -90.0f));
+    const FTransform AcceptedBedTransform(FRotator(0.0f, 45.0f, 0.0f), FVector(500.0f, 250.0f, 30.0f));
+    FKalmalaCampBedRestReceipt RestReceipt;
+    FTransform ResolvedBedTransform = OriginalModelTransform;
+    RestReceipt.Serial = 1;
+    RestReceipt.BedTransform = AcceptedBedTransform;
+    TestFalse(TEXT("A rejected interaction receipt cannot move the local model"),
+        UKalmalaCraftingComponent::ResolveCampBedRestReceipt(true, RestReceipt, 0, ResolvedBedTransform));
+    TestTrue(TEXT("A rejected interaction preserves the original model transform"),
+        ResolvedBedTransform.Equals(OriginalModelTransform));
+
+    RestReceipt = FKalmalaCampBedRestReceipt();
+    TestFalse(TEXT("A missing or timed-out response cannot move the local model"),
+        UKalmalaCraftingComponent::ResolveCampBedRestReceipt(true, RestReceipt, 0, ResolvedBedTransform));
+    TestTrue(TEXT("A missing response preserves the original model transform"),
+        ResolvedBedTransform.Equals(OriginalModelTransform));
+
+    RestReceipt.Serial = 2;
+    RestReceipt.bAccepted = true;
+    RestReceipt.BedTransform = AcceptedBedTransform;
+    TestTrue(TEXT("A new accepted server receipt resolves for its local owner"),
+        UKalmalaCraftingComponent::ResolveCampBedRestReceipt(true, RestReceipt, 0, ResolvedBedTransform));
+    TestTrue(TEXT("The accepted receipt supplies the authoritative bed transform"),
+        ResolvedBedTransform.Equals(AcceptedBedTransform));
+    TestFalse(TEXT("A duplicate accepted receipt is not applied twice"),
+        UKalmalaCraftingComponent::ResolveCampBedRestReceipt(true, RestReceipt, 2, ResolvedBedTransform));
+    TestTrue(TEXT("A duplicate receipt preserves the last applied transform"),
+        ResolvedBedTransform.Equals(AcceptedBedTransform));
+    TestFalse(TEXT("A remote presentation cannot apply the owner's rest receipt"),
+        UKalmalaCraftingComponent::ResolveCampBedRestReceipt(false, RestReceipt, 0, ResolvedBedTransform));
+
     TestTrue(TEXT("Stationary local pose continues while health is unchanged"),
         UKalmalaPlayerModelComponent::ShouldContinueCampBedRestPose(true, 0.0f, 100.0f, 100.0f));
     TestFalse(TEXT("Remote presentation does not start or keep a local pose"),

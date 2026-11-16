@@ -157,7 +157,15 @@ bool UKalmalaCraftingComponent::OpenStorageFromServer(AKalmalaConstructionActor*
 
 void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConstructionActor* Construction)
 {
-    if (!AcceptRequest() || !IsValid(Construction) || !Construction->CanInteract_Implementation(GetCharacter())) return;
+    if (!AcceptRequest())
+    {
+        if (IsValid(Construction) && Construction->GetConstructionKit() == TEXT("CampBedKit"))
+        {
+            PublishCampBedRestInteractionResultFromServer(Construction->GetActorTransform(), false);
+        }
+        return;
+    }
+    if (!IsValid(Construction) || !Construction->CanInteract_Implementation(GetCharacter())) return;
     const FName Kit = Construction->GetConstructionKit();
     if (Kit == TEXT("TimberDoorKit"))
     {
@@ -168,7 +176,7 @@ void UKalmalaCraftingComponent::InteractWithConstructionFromServer(AKalmalaConst
     }
     if (Kit == TEXT("CampBedKit"))
     {
-        PublishResult(TEXT("Resting briefly; movement or damage will end the pose."), true);
+        PublishCampBedRestInteractionResultFromServer(Construction->GetActorTransform(), true);
         return;
     }
     if (Kit == TEXT("StandingLightKit"))

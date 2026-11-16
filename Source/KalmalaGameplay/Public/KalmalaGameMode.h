@@ -13,6 +13,7 @@
 #include "KalmalaGameMode.generated.h"
 
 class UWorld;
+class AKalmalaConstructionActor;
 struct FKalmalaOceanDiscoveryDescriptor;
 struct FKalmalaM9ExplorationRewardDescriptor;
 struct FKalmalaCharcoalKilnState;
@@ -441,6 +442,7 @@ private:
     void DriveSupportMagicPeerTest();
 #if !UE_BUILD_SHIPPING
     void DriveInteractionCadencePeerTest();
+    void DriveCampBedRestPeerTest();
 #endif
     void DriveM9ExplorationRewardPeerTest();
     void RunM9Schema2CandidateWorldPeerTest();
@@ -621,6 +623,11 @@ private:
     double InteractionCadencePeerTestStageTime = 0.0;
     TWeakObjectPtr<class AKalmalaCharacter> InteractionCadencePeerTestOwner;
     TWeakObjectPtr<class AKalmalaInteractionTestActor> InteractionCadencePeerTestTarget;
+    int32 CampBedRestPeerTestStage = 0;
+    double CampBedRestPeerTestStageTime = 0.0;
+    uint32 CampBedRestPeerTestRejectedReceiptSerial = 0;
+    TWeakObjectPtr<class AKalmalaCharacter> CampBedRestPeerTestOwner;
+    TWeakObjectPtr<AKalmalaConstructionActor> CampBedRestPeerTestTarget;
 #endif
     int32 M9ExplorationRewardPeerTestStage = 0;
     float M9ExplorationRewardPeerTestStageTime = 0.0f;

@@ -23,6 +23,16 @@ struct KALMALAGAMEPLAY_API FKalmalaAcceptedCraftingActionReceipt
     UPROPERTY() EKalmalaCraftingActionKind Kind = EKalmalaCraftingActionKind::CraftedItem;
 };
 
+USTRUCT()
+struct KALMALAGAMEPLAY_API FKalmalaCampBedRestReceipt
+{
+    GENERATED_BODY()
+
+    UPROPERTY() uint32 Serial = 0;
+    UPROPERTY() bool bAccepted = false;
+    UPROPERTY() FTransform BedTransform;
+};
+
 class AKalmalaCampfire;
 class AKalmalaCharacter;
 class AKalmalaConstructionActor;
@@ -87,6 +97,12 @@ public:
     uint32 GetResultSerial() const { return ResultSerial; }
     bool WasLastResultAccepted() const { return bLastResultAccepted; }
     void PublishInteractionResultFromServer(const FString& Result, bool bAccepted);
+    const FKalmalaCampBedRestReceipt& GetCampBedRestReceipt() const { return CampBedRestReceipt; }
+    static bool ResolveCampBedRestReceipt(bool bLocallyControlled,
+        const FKalmalaCampBedRestReceipt& Receipt, uint32 LastAppliedSerial, FTransform& OutBedTransform);
+#if !UE_BUILD_SHIPPING
+    void SetNextRequestTimeForVerification(double TimeSeconds);
+#endif
     const TArray<FKalmalaAcceptedCraftingActionReceipt>& GetAcceptedCraftingActionReceipts() const
     {
         return AcceptedCraftingActionReceipts;
@@ -121,6 +137,8 @@ public:
     AKalmalaCampfire* FindNearbyFire(bool bRequireUsable) const;
 private:
     bool AcceptRequest();
+    void PublishCampBedRestInteractionResultFromServer(const FTransform& BedTransform, bool bAccepted);
+    UFUNCTION() void OnRep_CampBedRestReceipt();
     bool AcceptStorageCloseRequest();
     bool CommitRepairAllToolsFromServer(const TCHAR* StationName, FString& Reason);
     void PublishResult(const FString& Result, bool bAccepted, FName AcceptedRecipeId = NAME_None,
@@ -177,6 +195,8 @@ private:
     UPROPERTY(Replicated) FString LastResult;
     UPROPERTY(Replicated) uint32 ResultSerial = 0;
     UPROPERTY(Replicated) bool bLastResultAccepted = false;
+    UPROPERTY(ReplicatedUsing=OnRep_CampBedRestReceipt) FKalmalaCampBedRestReceipt CampBedRestReceipt;
+    uint32 LastAppliedCampBedRestReceiptSerial = 0;
     UPROPERTY(Replicated) TArray<FKalmalaAcceptedCraftingActionReceipt> AcceptedCraftingActionReceipts;
     uint64 NextAcceptedCraftingActionSequence = 0;
     int32 VerificationStage = 0;
