@@ -740,9 +740,11 @@ Construction save/load is authority-guarded in GameMode with world-identity and 
 
 Hearth.AuthorityContract guards the absence of server RPCs on state owners, actual lifetime replication of health/hearth/protection fields, and the unchanged construction record shape. Behavioral authority, roof collision and persistence checks remain in RainWear, RainState, Wet, Crafting.NetworkContract and Storage. The combined live M3 scenario remains a later acceptance gate.
 
-### Local Wet feedback
+### Historical local Wet feedback — superseded by the M13 HUD migration
 
-`UKalmalaSurvivalStatusWidget` reads only its owning pawn's replicated status component. While Wet is active, it shows the rounded-up remaining seconds, movement reduction and stamina-cost increase from the shared Wet definition, plus a lit-campfire recovery hint. Removal or expiry replaces this with explicit `Wet: inactive` text. The lower-left status strip retains its wrapping/scroll behavior. It never counts down locally, changes a status, reads legacy exposure wetness, or submits a network request. Construction/fire feedback and rendered layout verification remain queued.
+This earlier M3 presentation description is retained as history, not the current HUD contract. The lower-left widget now shows only Ocean travel feedback; active status and weather cues use the top-right status/weather hotbar.
+
+`UKalmalaSurvivalStatusWidget` previously read its owning pawn's replicated status component. While Wet was active, it showed the rounded-up remaining seconds, movement reduction and stamina-cost increase from the shared Wet definition, plus a lit-campfire recovery hint. Removal or expiry replaced this with explicit `Wet: inactive` text. The earlier lower-left status strip retained wrapping/scroll behavior and did not count down locally, change a status, read legacy exposure wetness, or submit a network request. Construction/fire feedback and rendered layout verification remained queued.
 
 ### Local hearth recovery feedback
 
@@ -760,7 +762,7 @@ SetWeatherStateFromServer now rejects non-authority and invalid input at runtime
 
 The first prepared food reuses the server-local item and recipe catalogues, UKalmalaInventoryComponent::BuildExchange, the existing hearth actor, and the replicated player-status component. Roasting requires a same-world fire that the server observes as usable, within 250 cm, Lit, and producing finite positive heat; a workbench, extinguished fire, or Smouldering fire cannot satisfy it. The server checks recipe identity, batch, inputs, and output capacity before changing the private pack. No additional fuel charge is applied beyond the hearth's normal fuel burn.
 
-Food use is an owning-client request containing only an item identity. The server allowlists the seven current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `HearthBroth`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`) plus foraged `Lingonberry` and `ForestChanterelle`, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry adds a -0.10 stamina-cost delta for 120 server seconds; it sums with Wet and accessory deltas in the shared cost calculation. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. Berry Recovery Draught uses the same identity-only request and atomic pack exchange, but checks for missing health and the shared draught cooldown before consuming. The server then publishes a ten-second Berry Recovery entry and a sixty-second shared draught cooldown; it restores two health per server second, clamps to 100, and removes the healing entry if the character is dead. The local status strip reads the replicated recovery and cooldown timers without advancing them. The existing status replication carries effect identity and remaining time, while the private inventory and crafting result remain owner-only. Food, cooking progress, meal effects, draught healing, and cooldowns are transient and add no save field or schema.
+Food use is an owning-client request containing only an item identity. The server allowlists the seven current cooking outputs (`CookedBoarMeat`, `CookedDeerMeat`, `HearthBroth`, `MeatStew`, `RootVegetableSoup`, `RoastedRootVegetables`, and `DeerRootRoast`) plus foraged `Lingonberry` and `ForestChanterelle`, checks the owner's pack and meal slot, commits one-item consumption through a candidate inventory exchange, then publishes a fixed-duration State.Food.SteadyMeal entry. The entry adds a -0.10 stamina-cost delta for 120 server seconds; it sums with Wet and accessory deltas in the shared cost calculation. Only one meal entry is permitted: an active effect neither stacks, refreshes, nor gets replaced; rejected consumption leaves pack and status unchanged. Berry Recovery Draught uses the same identity-only request and atomic pack exchange, but checks for missing health and the shared draught cooldown before consuming. The server then publishes a ten-second Berry Recovery entry and a sixty-second shared draught cooldown; it restores two health per server second, clamps to 100, and removes the healing entry if the character is dead. Existing status replication carries effect identity and remaining time; the current status/weather hotbar renders its supported entries without advancing them locally. The private inventory and crafting result remain owner-only. Food, cooking progress, meal effects, draught healing, and cooldowns are transient and add no save field or schema.
 
 Rat-tail Tonic uses the same identity-only request and atomic pack exchange. The server rejects use at full health, while Berry Recovery or Tonic healing is active, while dead, or during the shared draught cooldown; rejected use preserves the dose. On acceptance, it publishes a ten-second owner-only recovery entry and the same sixty-second cooldown, restoring three health per server second up to 30 total and clamping to 100. Healing ends early at full health or on death; neither case refunds the cooldown or dose. The recovery entry and cooldown are transient and add no save field or schema.
 
@@ -773,7 +775,9 @@ The active food recipes cook boar or deer meat on the Cooking Rack, prepare Hear
 The server recipe catalogue may assign an allowlisted skill and a bounded award of 1-25 experience to a recipe. The first food recipes award 10 transient Cooking experience once after a successful atomic inventory exchange, regardless of batch size. Missing stations or heat, invalid batches, insufficient inputs, output-capacity failures, and client-side calls award nothing. Recipe definitions cannot pair an unknown skill, an out-of-range award, or experience without a skill. The existing level and unlock contract derives progression on the server; no client-provided experience, new RPC, persistence field, or save schema is introduced.
 
 The current recipe schema has no skill-level requirement field. Recipe access is gated by material quantities and any required station, hearth state, and bounded batch. Accepted food preparation still grants its existing server-owned Cooking experience after the inventory exchange; it does not block a recipe behind a skill level. Rejection leaves the private pack, station state, and progression unchanged, with no learned-recipe save field or client-authored value.
-### M7 local survival status strip
+### Historical M7 local survival status strip — superseded by the M13 HUD migration
+
+This is the earlier M7 presentation and test contract, retained for history. It is not the active status layout; see the current UI ownership ledger and status-hotbar contract above.
 
 `UKalmalaSurvivalStatusSubsystem` belongs to each `ULocalPlayer` and builds the persistent lower-left strip from that player's existing replicated status entries, exposure summary, support-effect fields, and `AKalmalaWorldGenerationGameState` weather. The widget reports Wet's movement/stamina modifiers, the shared non-stacking prepared-meal effect, Berry Recovery or Rat-tail Tonic healing and the shared Berry/Root/Tonic/Antidote draught cooldown, active rain/fog/wind intensities and weather interval, low-warmth cold pressure and recovery rate, heat signals, and active support magnitude/expiry. Poison effects and the Antidote's timed resistance remain owner-visible through the status hotbar. Shape markers pair with explicit category and status names; text scale and high contrast follow local settings. The separate Calm/Active/Highly Active badge remains below the minimap.
 
@@ -1723,9 +1727,9 @@ Colours use `(R=...,G=...,B=...,A=...)` syntax. Missing, malformed,
 non-finite, and out-of-range values fall back independently to the established
 defaults. Text falls back to Unreal's existing default font. Local 100/125/150% text
 scale applies after theme sizes; local high contrast forces white text on a
-black panel. The weather badge now uses the same panel padding as survival
-status. No input, owner-state query, RPC, timer, authority, or gameplay/save
-contract changes.
+black panel. The retired weather badge's shared-panel-padding note is historical;
+the active status/weather hotbar is transparent and has no panel background. No
+input, owner-state query, RPC, timer, authority, or gameplay/save contract changes.
 
 `ItemIconTileSize`, `ItemIconTileMargin`, and `ItemIconTileFill` define the shared
 square used by item icons in Inventory, Build, and crafting views. The 4-unit
@@ -1735,12 +1739,14 @@ its text as a separate row beneath the same framed square; crafting material
 quantities use this layout, while Build material quantities remain in their
 tooltips.
 
-Verify the foundation with `Kalmala.UI.Theme.LocalPresentation`,
-`Kalmala.UI.SurvivalStatus.LocalPresentation`, and
-`Kalmala.UI.WeatherActivity.LocalPresentation` using the isolated headless
-pattern in `07-development-setup.md`. Theme automation checks shared widget
-application, accessibility precedence, malformed values, and missing config.
-It does not establish rendered layout or packaged config inclusion.
+Verify the foundation with `Kalmala.UI.Theme.LocalPresentation` using the
+isolated headless pattern in `07-development-setup.md`. Theme automation checks
+shared widget application, accessibility precedence, malformed values, and
+missing config. Older M7 SurvivalStatus and WeatherActivity presenter checks in
+the original M11 queue are historical and do not describe the current HUD.
+Current travel feedback uses the lower-left travel-only widget; current status
+and Storm cues use `Kalmala.UI.StatusHotbar.SnapshotAndLayout`. These checks do
+not establish rendered layout or packaged config inclusion.
 
 The second foundation child adds shared components with real consumers:
 settings buttons (including controls and tabs) use themed normal/hover/pressed/
@@ -1859,7 +1865,7 @@ Hover, keyboard/controller focus, selection, and disabled states share theme bru
 
 The active-only owner HUD is transparent, non-focusable, and hit-test-invisible, beside the minimap. Stable order is Wet, meal, Hot, Cold, current support, then Storm. Known active effects appear once; expired entries disappear immediately and empty groups collapse. Finite player/support timers use authoritative remaining time or synchronized server expiry. Hot/Cold/Storm have no countdown. Storm requires the existing 0.65 threshold and a current server weather interval. Start/refresh cues are local; obsolete M11 Ended rows must not survive M12's active-only contract.
 
-Each raster fills its scaled 64x64 box. Status layout wraps within a 384-unit row cap and preserves minimap/support separation. Visible names are omitted but hidden accessible labels remain. The Escape home menu contains Options and Quit; it does not open a separate status/weather detail page.
+Each raster fills its scaled 64x64 box. Status layout wraps within a 384-unit row cap, respects the minimap gap, and retains its left viewport safe inset. Visible names are omitted but hidden accessible labels remain. The Escape home menu contains Options and Quit; it does not open a separate status/weather detail page.
 
 The earlier accepted icon counts (48 baseline identities, then Stone Spear, six Bronze/Iron weapons, and three maces) are historical. The current catalogue ledger contains 72 imported item textures, including the six formerly unmapped Bronze/Copper/Tin bars and Copper/Tin/Iron ores. The global icon automation traverses every validated item, tool profile, and recipe output and checks its runtime mapping and imported texture. Views reuse canonical IDs and one image per identity; aliases and recipes do not get duplicate art. Unknown IDs retain a question-mark fallback; missing imported textures retain existing vector fallbacks. Current runtime/catalogue additions must receive explicit coverage rather than assuming historical counts include them.
 
@@ -2357,8 +2363,9 @@ render distance uses a 64–576 m local cull-distance cap in 32 m increments.
   changing what the server validates.
 - **Accessibility:** local text scale and contrast choices, together with the
   colour-independent feedback preference for the optional nearby hearth and
-  construction text overlay. Support outcomes, discovery notices, and
-  selected-support text remain explicit in their separate HUD surfaces.
+  construction text overlay. Support outcomes and discovery acknowledgements
+  use the owner notification queue; an accepted active support effect appears
+  in the status/weather hotbar with its accessible name.
 
 The Escape home menu remains transparent in standard contrast. All five visible
 Options groups use the original `InventoryPanelImage` shared with the Inventory
@@ -2848,7 +2855,7 @@ child. See `02-technical-architecture.md` for identities and verification bounda
 | Player | `UKalmalaPlayerModelComponent` procedural mesh and the generated bark/terrain/rock materials | Nine local, collision-free cosmetic parts; shape and pose never author gameplay | Faceted mantle/hood presentation verified in the rendered offscreen host/client controls fixture |
 | Wildlife | `AKalmalaWildlifeSpawn::BuildArchetypePresentation` procedural low-poly geometry and vertex colours | Server-owned replicated actor state; mesh is presentation only and has no collision | Mireling's low forward hunch, reaching arms, and split crown read as a distinct close-view silhouette in the rendered host fixture; dark body planes merge somewhat. Boar has a low wedge-backed profile, broken bristle ridge, tapered muzzle, and paired tusks; deer has a lighter, long-legged alert profile with paired forked antlers |
 | Environment | `AKalmalaGeneratedTerrainPatch`, campfire, and construction procedural meshes using generated materials | Terrain collision and shelter collision remain the gameplay authority; decorative meshes do not add routes or hidden content; generated Meadow rocks align to the final sampled terrain normal and remain collision-free | Existing generated terrain, water, rock, tree, hearth, and kit sources are audited here |
-| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival strip reads the owning pawn's replicated Wet/food entries, exposure, active support, and weather, with text-plus-shape categories, server-time/intensity context, source, and recovery guidance; the Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; a separate top-centre support strip reflects the local character's selected effect and the owner's learned set; minimap/map remain local; the separate weather badge reads the replicated server tier and pairs circle/diamond/triangle markers with explicit text; Settings' Controls (keyboard/mouse), Controller, Graphics, Audio, and Accessibility groups expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
+| UI | `KalmalaUI` C++ widgets, local Slate vector glyphs, and disposable local raster textures | Local presentation reads visible/replicated state and never creates a gameplay source | The near-crosshair prompt names only the actor hit by the owning pawn's current short view trace and shows its supported action plus any owner-visible unavailable reason; it clears for no target or modal input and contains no key/button legend. The lower-left survival widget shows only Ocean travel feedback and collapses when empty. One top-right status/weather hotbar reads supported owner status, exposure, active-support, and weather data, including active support and Storm entries. M13 support effects use reusable owner-inventory scroll items assigned to numbered hotbar cells; the server resolves the cell index and effect. No standalone selected-support strip or weather-tier badge is mounted. The Inventory menu reads only that owner's pack/tools and the crafting panel reads its owner-only skill ledger; minimap/map remain local; Settings' Controls (keyboard/mouse), Controller, Graphics, Audio, and Accessibility groups expose local options, including independent text/interface scales and reduced motion in the existing local settings config |
 | Feedback | Text and shape/icon treatments in the owner notification queue, crafting, discovery, and settings widgets | Readable without colour or audio; feedback reports accepted replicated results rather than client claims | Support glyphs reflect only the owner's learned/selected state and retain explicit text names/status; a bounded owner-only queue presents item, skill, support, and discovery notices; the optional Text + markers overlay remains for nearby hearth/construction context |
 
 The terrain mesh writes normalized grass, soil and rock weights into vertex
@@ -2916,13 +2923,13 @@ precipitation appearance and does not distinguish rain from snow.
 
 The ledger is an ownership and scope check, not a claim that the complete M5
 art or audio pass has shipped. The player presentation passed the rendered
-offscreen host/client controls fixture. The former panel glyphs have moved to a
-separate owner-local strip; its learned-state, selection, scaling and rendered
-host/client behavior remain for M12 final verification. The weather activity badge's tier
-mapping and viewport slot passed focused UI automation; rendered viewport
-readability remains unreviewed. The survival strip's data mapping and lower-left
-viewport slot pass focused UI automation, but rendered host/client layout,
-multi-row clipping, and scaled-font legibility remain unreviewed.
+offscreen host/client controls fixture. Older M7/M12 notes about the separate
+support-selection strip, weather-tier badge, and lower-left survival-status rows
+are historical and superseded by M13. Current ownership is summarized in the UI
+row above; current status/weather layout is covered by
+`Kalmala.UI.StatusHotbar.SnapshotAndLayout`. The local Mountain fog and shared
+precipitation material response remain active as described in the contracts
+below.
 
 ## Owner-local station context shell — 2026-10-08
 

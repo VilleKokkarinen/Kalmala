@@ -1544,7 +1544,7 @@
     **Focused validation:** Compare both contract sections with the source and
     run `Kalmala.UI.Settings.AutomaticPickup` and
     `Kalmala.Gameplay.Pickup.AutomaticRadius` if code or test expectations change.
-  - [ ] **RF54 — Reconcile the current HUD ownership contract (P3; CR04-043).**
+  - [x] **RF54 — Reconcile the current HUD ownership contract (P3; CR04-043).**
     `Source/KalmalaUI/Public/KalmalaSupportSelectionSubsystem.h:84-85`,
     `Source/KalmalaUI/Private/KalmalaWeatherActivitySubsystem.cpp:32-38,229-232`,
     `Source/KalmalaUI/Private/KalmalaSurvivalStatusWidget.cpp:263-268`,

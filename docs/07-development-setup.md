@@ -1832,6 +1832,10 @@ Require all five `Result={Success}` results. Run
 `Scripts/Tests/Acceptance/DocumentationContracts.ps1` and `git diff --check` as well.
 These are increment-level checks; they do not complete the theme parent or
 verify rendered menu propagation, viewport layout, or packaged theme loading.
+In this original M11 queue, the M7 SurvivalStatus full status-row checks and
+WeatherActivity badge-slot check are historical presenter coverage, not current
+HUD acceptance. The lower-left widget now shows Ocean travel feedback only;
+current status/weather layout is checked by `Kalmala.UI.StatusHotbar.SnapshotAndLayout`.
 
 For the final theme child / parent integration gate, build the isolated editor
 mirror with normal `%LOCALAPPDATA%/UnrealBuildTool` access and
@@ -2965,11 +2969,11 @@ Launch the game with `-KalmalaBiomeDebug` to replace the generated terrain's nor
 
 Movement-triggered raster generation is asynchronous. Run `Kalmala.UI.Minimap.AsyncRefresh` after rebuilding to check nonblocking refresh timing, full-resolution worker equivalence, stationary reuse, movement coalescing, obsolete zoom/identity rejection, and reinitialization. `Kalmala.UI.Minimap.GenerationPerformance` retains the exact revision-3/4 fingerprints and reports total raster time separately from the game-thread refresh cost. Use `Scripts/Tests/World/Minimap.ps1 -Rendered` for current-world HUD/identity checks and `Scripts/Tests/Presentation/PlayerControls.ps1 -Rendered` for host/client movement. Both scripts retain revision 1 as their default legacy fixture. Restart any existing editor after the native module build.
 
-The local `UKalmalaMinimapSubsystem` creates a 208-unit circular `UKalmalaMinimapWidget` for each local player once its controller is available. A 26-unit right-aligned biome-label row and 4-unit gap sit above the circle; the map itself starts 42 UI units below the top-right viewport edge and keeps a 12-unit right inset. The full widget and label scale proportionally with viewport DPI. The label uses the existing current-position biome classifier over the already-replicated world identity and owning pawn transform, and its theme font follows the local text-scale preference while shrinking only enough to fit the row. No biome map, replicated label, or save field is added. The active-status group aligns with the lowered map and remains 12 UI units left of its edge. The weather badge remains below the map with its 24-unit clear gap. The map refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
+The local `UKalmalaMinimapSubsystem` creates a 208-unit circular `UKalmalaMinimapWidget` for each local player once its controller is available. A 26-unit right-aligned biome-label row and 4-unit gap sit above the circle; the map itself starts 42 UI units below the top-right viewport edge and keeps a 12-unit right inset. The full widget and label scale proportionally with viewport DPI. The label uses the existing current-position biome classifier over the already-replicated world identity and owning pawn transform, and its theme font follows the local text-scale preference while shrinking only enough to fit the row. No biome map, replicated label, or save field is added. The single status/weather hotbar aligns with the lowered map and remains 12 UI units left of its edge; no separate weather-tier badge appears below the map. The map refreshes local seed-derived terrain/water samples around that player's pawn and draws only samples inside a circular radius, together with a centred marker rotated to the pawn's facing yaw. `MouseWheelAxis` changes only the local session's sampled radius, clamped from 2,500 to 10,000 cm in 750 cm steps; CommonUI's normal-game-input gate leaves wheel input to any modal UI. It reads no world actors, population, landmarks, or gameplay state beyond the already-replicated world identity and owning pawn transform.
 
-Run `Scripts/Tests/World/Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, the biome-label header plus right-aligned current-position name, the label-adjusted top inset and 12-unit right inset at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales, and separation from the weather badge. These checks are local presentation only and create no replicated, gameplay, or save mutation.
+Run `Scripts/Tests/World/Minimap.ps1` after an editor build for the two-peer identity check. It starts a memory-only hidden listen server with seed 418 and a conflicting-seed client with seed 999, then confirms that the client receives the server world identity. The focused `Kalmala.UI.Minimap.LocalPresentation` automation checks the two player-centred local views from that same identity, circular clipping, min/max zoom, modal input gating, the biome-label header plus right-aligned current-position name, and the label-adjusted top and right insets at 4:3/75%, 16:9/100%, and ultrawide/125% UI scales. Its weather-widget slot assertion is a historical check for a retired badge, not current HUD acceptance; current status/weather placement and Storm entries are checked by `Kalmala.UI.StatusHotbar.SnapshotAndLayout`. These checks are local presentation only and create no replicated, gameplay, or save mutation.
 
-The compact active-status group reads the minimap widget's configured viewport slot and aligns with the circular map below its header; its right edge sits 12 UI units left of the minimap's actual left edge. Both use the same top-right anchor, so Unreal applies the viewport DPI scale uniformly. `Kalmala.UI.StatusHotbar.SnapshotAndLayout` checks the actual slot relationship and wrapping fit across 4:3, 16:9, and ultrawide viewports at 75%, 100%, and 125% DPI scales. It also checks known live owner statuses, the existing Hot/Cold exposure qualifiers, Storm-only weather at the shared 0.65 storm threshold, interval expiry, and a fully empty result when all active conditions clear. Normal/active weather and fog-only highly active weather do not create an entry. If the minimap has not been created yet, the status group temporarily uses the documented default 208-unit map footprint and corrects itself on the next local refresh.
+The single active status/weather hotbar reads the minimap widget's configured viewport slot and aligns with the circular map below its header; its right edge sits 12 UI units left of the minimap's actual left edge. Both use the same top-right anchor, so Unreal applies the viewport DPI scale uniformly. `Kalmala.UI.StatusHotbar.SnapshotAndLayout` checks the actual slot relationship and wrapping fit across 4:3, 16:9, and ultrawide viewports at 75%, 100%, and 125% DPI scales. It also checks known live owner statuses, the existing Hot/Cold exposure qualifiers, Storm-only weather at the shared 0.65 storm threshold, interval expiry, and a fully empty result when all active conditions clear. Normal/active weather and fog-only highly active weather do not create an entry. If the minimap has not been created yet, the status group temporarily uses the documented default 208-unit map footprint and corrects itself on the next local refresh.
 
 The M12 status-image follow-on pins the nine supported entry/icon identities in `Scripts/Data/status-icon-manifest.csv` with fixed 4/4/1 generation batches. All three batches have retained originals and prepared transparent 64x64 RGBA PNGs under `Content/Kalmala/UI/Source/IconOriginals/Status` and `Content/Kalmala/UI/Source/Icons/Status`. Prepare a batch with `python Scripts/Prepare-StatusIconBatch.py --batch <Batch>` and validate its IDs with `Scripts/Validate-UIIcons.ps1 -Category Status -Id <IconId>`; omit `-Id` to validate the full set. `Scripts/Import-StatusIconAssets.ps1` imports the nine prepared PNGs in an isolated UE 5.8 content-only project, verifies 64x64 Texture2D assets with source alpha, sRGB, UI texture group, no mipmaps, and non-streaming settings, then copies only those packages to `Content/Kalmala/UI/Icons/Status`. `Scripts/Validate-UIIcons.ps1 -Category Status` checks manifest, PNG, entry-map and package coverage; `Kalmala.UI.StatusHotbar.StatusIconCoverage` checks runtime texture paths and loads after an affected editor build. The local `FKalmalaStatusIconLibrary` keeps these IDs separate from catalogue icons. The hotbar now renders each raster image at 64x64 without visible names, retaining accessible names in a visually hidden text label; a centred m:ss appears only beneath finite Wet/meal/support entries. Hot, Cold, Storm, and weather detail have no countdown. Timing remains based on the existing owner snapshot and synchronized server time, without local countdown mutation. See `02-technical-architecture.md` for the full identity and image review contract. These image assets do not change status ownership or gameplay. The imported `.uasset` packages are runtime game content; the PNG sources and authoring/import scripts are maintenance inputs used when icons change, not part of normal game execution or builds.
 
@@ -2981,10 +2985,12 @@ matrix in `02-technical-architecture.md`. The helper checks the read-only host/c
 snapshot, empty/populated/expired states, active six-icon fixture, icon-only
 visual contract, finite versus untimed timer assertions, and the group's actual
 12-unit top/minimap separation, left safe inset, and lower viewport bound. The
-populated phase also measures each scaled 64x64 raster image and requires a
-12-unit gap beyond the top-centre support selector. The fixture applies the
-same global text scale and contrast to both cues, so combined-layout review
-catches support/status overlap rather than scaling only the hotbar. It
+populated phase also measures each scaled 64x64 raster image. Its 12-unit gap
+beyond the top-centre support selector records the older M12 layout; M13 retired
+that passive selector in favor of reusable support scrolls assigned to numbered
+hotbar cells. Active support effects now appear in the status/weather hotbar, so
+the legacy selector-gap result is not a current layout requirement. The current
+capture review checks the hotbar's wrapping, icon geometry, and timers. It
 also checks that the widget source still creates raster images, visually hidden
 accessible names and centred timers, and that the automation source retains the
 finite/untimed assertions; the final automation queue executes those tests.
@@ -3041,7 +3047,7 @@ well as the fourteen original Build/requirements views.
 
 The Phase 5 visibility repair replaces the sparse terrain dots with a filled, circular 129x129 texture containing original patterns for Meadows, Shimmering Lakes, Elderwood, Mossy Mire, Freezing Tundra, Thunder Mountains, and Ocean. Each pattern stays anchored in world space. The minimap now belongs to each local player rather than only the first game-instance controller. Its 208-unit circle has a 26-unit biome-label row plus a 4-unit gap above it; the map itself begins at 42 UI units below the top-right edge and retains a 12-unit right inset. All dimensions scale with Unreal's UI DPI curve. Size/position must be set before the top-right anchor: `SetPositionInViewport` resets it to top-left in UE 5.8 and previously put the map off-screen.
 
-After building, run `Scripts/Tests/World/Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for 16:9, 4:3 and ultrawide aspect ratios and automatic DPI scales. Inspect captures at 75%, 100%, 125%, and 150% text scale to confirm the current-biome name remains right-aligned and unclipped. The runner checks actual circle paint geometry, the 42-unit label-adjusted top inset, 12-unit right inset, current-biome log value, and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. The focused automation checks that the weather badge remains below the lowered minimap with the 24-unit gap. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
+After building, run `Scripts/Tests/World/Minimap.ps1 -Rendered -Width 1920 -Height 1080`. Repeat with `-Width 1024 -Height 768` and `-Width 3440 -Height 1440` for 16:9, 4:3 and ultrawide aspect ratios and automatic DPI scales. Inspect captures at 75%, 100%, 125%, and 150% text scale to confirm the current-biome name remains right-aligned and unclipped. The runner checks actual circle paint geometry, the 42-unit label-adjusted top inset, 12-unit right inset, current-biome log value, and full texture sample count on both peers, server identity replication, and the bound input delegate with minimum/maximum zoom, CommonUI Menu ownership, and zoom resumption. The old weather-widget slot assertion is historical, not current HUD acceptance; current status/weather placement is checked by `Kalmala.UI.StatusHotbar.SnapshotAndLayout`. It captures `host.png` and `client.png` in the printed temporary log directory for visual inspection. Hidden offscreen captures verify the Slate HUD; the world background may be black and these images do not validate terrain rendering. The configured `CommonGameViewportClient` is required for CommonUI routing. Without `-Rendered`, this script remains an identity-only smoke test.
 
 `Kalmala.UI.Minimap.LocalPresentation` now also exercises the production viewport setters, checks filled/transparent raster coverage, distinct deterministic texture patterns for all seven biomes, and sea-level ocean treatment. These checks replace the previous assumption that mathematical placement assertions alone proved on-screen visibility. The launch-gated input scenario temporarily changes local input configuration and restores it and zoom; it sends no RPC or gameplay request. A normal launch requires no minimap flag. Restart the editor/game to load rebuilt C++ modules and viewport configuration; an older packaged executable needs a separate rebuild/package.
 
@@ -3139,8 +3145,9 @@ shared-theme dropdown between
 `Text only` and `Text + markers`. Marker mode adds bracketed text markers for
 nearby hearth and construction context in an owner-only overlay that follows
 the scaled viewport in a center-right safe area. Support action results and
-discovery acknowledgements use the separate bounded notification queue;
-the support selection strip has explicit text in either feedback mode. These
+discovery acknowledgements use the separate bounded notification queue; active
+support effects appear in the top-right status/weather hotbar with an accessible
+name. These
 surfaces read only the existing local pawn and accepted replicated results,
 follow the local contrast palette, and send no request.
 `Kalmala.UI.Settings.LocalPresentation` checks its bounded mode and config
@@ -3475,27 +3482,26 @@ request disable or reject use without consumption or effect refresh. Verify that
 other peer cannot see the owner's pack or action result. Rendered scale/contrast
 and broad regressions remain in the milestone-final matrix.
 
-## M12 HUD feedback decoupling increment
+## Historical M12 HUD feedback decoupling — superseded by M13
 
-The selected support effect appears in a separate passive owner-local strip,
-using the character's local selection and the owner's learned-effect state.
-Input still uses the existing 1–4/D-pad selection actions and Q/controller
-activation action. The transient notification queue observes the owner-only
-support result serial and concise discovery found/already-found/unavailable
-acknowledgements from the existing owner source. Combat outcomes stay outside
-the notification queue. The Inventory menu must not supply support or
-discovery results or own the support glyph selection. No new gameplay request
-or authority path is introduced.
+This M12 snapshot is retained for history only. Its passive selected-support
+strip and direct 1–4/D-pad plus Q activation description were superseded by M13:
+learned effects are reusable owner-inventory scrolls assigned to numbered
+hotbar cells, and the server resolves the cell index and effect. The active
+effect appears in the single top-right status/weather hotbar; no separate
+selected-support strip is mounted. The owner notification queue still reports
+support outcomes and discovery acknowledgements, and combat outcomes remain
+outside that queue.
 
-Run `Scripts/Tests/Presentation/LocalInputContract.ps1`,
-`Scripts/Tests/Presentation/PresentationOwnership.ps1`,
-`Scripts/Tests/Acceptance/DocumentationContracts.ps1`, and `git diff --check` after an
-affected editor compile. `Kalmala.UI.SupportSelection.LocalHudCue` checks the
-selection label for learned, unavailable, and no-selection cases.
-`Kalmala.UI.Notifications.CombinedPresentation` checks silent support baselines,
-new serial feedback, deduplication, and bounded expiry. Rendered strip
-positioning, support notices, modal behavior, and host/client privacy remain in
-M12 milestone-final review.
+The selection-strip and direct-support-input assertions in the old M12 checks
+are historical, not current HUD acceptance. This includes relevant portions of
+`Scripts/Tests/Presentation/LocalInputContract.ps1` and
+`Scripts/Tests/Presentation/PresentationOwnership.ps1`, plus
+`Kalmala.UI.SupportSelection.LocalHudCue`'s old selection label.
+`Kalmala.UI.Notifications.CombinedPresentation` remains current for
+silent support baselines, new serial feedback, deduplication, and bounded
+expiry. Use the current status-hotbar layout and rendered checks for active
+support/status presentation.
 
 ## M12 persistent left-panel removal increment
 
@@ -3504,8 +3510,11 @@ panel is retired. Its pack/tool rows, duplicate support glyphs, build/craft
 shortcut, prepared-food banner, HUD-suppression hook and screenshot fixture no
 longer exist. Inventory remains available through its owner-local modal; it is
 collapsed until opened and continues to read only that owner's pack/tools.
-Support selection remains on its separate top-centre strip and support/discovery
-results remain in transient owner notifications.
+The earlier M12 note that support selection remained on a separate top-centre
+strip was superseded by M13. Learned support scrolls are reusable inventory
+items assigned to numbered hotbar cells; accepted active effects appear in the
+top-right status/weather hotbar, and support/discovery results remain in
+transient owner notifications.
 
 The focused `Kalmala.UI.InventoryMenu.Selection` automation covers normal
 collapsed startup, owner-specific rows, selection fallback, no-results recovery,
@@ -4085,19 +4094,30 @@ simulated client copy. After the forced editor build, run these tests with an
 isolated temporary user directory. Then run `Scripts/Tests/Survival/ExposureRecoveryPeers.ps1`
 to compare replicated weather tier/fog and both players' heat/cold exposure
 snapshots against server logs. `Kalmala.UI.WeatherActivity.LocalPresentation`
-verifies that each replicated tier maps to distinct shape-plus-text feedback
-and that its owner-local badge remains anchored below the minimap; it does not
-replace rendered viewport inspection.
+verifies the retired weather-tier badge's label and viewport slot; treat that
+presenter check as historical. Current Storm-only weather feedback and
+status-hotbar placement are covered by
+`Kalmala.UI.StatusHotbar.SnapshotAndLayout`. Local Thunder Mountains fog and
+the shared precipitation material response remain active contracts, separate
+from the retired badge.
 
-The focused command is:
+The following focused command is a historical M7 verification invocation. Its
+weather-tier presenter test checks the retired badge and is not current HUD
+acceptance; use the status-hotbar check above for current Storm feedback.
 
     & 'C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe' 'E:\dev\Kalmala\Kalmala.uproject' -unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache -UserDir='C:\temp\KalmalaM7WeatherUser' -abslog='C:\temp\KalmalaM7Weather.log' -ExecCmds="Automation RunTests Kalmala.World.WeatherCycle.Determinism+Kalmala.Gameplay.Exposure.RecoverableTravelPenalty+Kalmala.Gameplay.Exposure.WeatherHazardResponse+Kalmala.Gameplay.Exposure.ColdStaminaRecoveryAuthority+Kalmala.Gameplay.Hearth.WeatherMutation+Kalmala.Gameplay.Hearth.RainState+Kalmala.UI.WeatherActivity.LocalPresentation; Quit" -TestExit="Automation Test Queue Empty"
     Scripts\Tests\Survival\ExposureRecoveryPeers.ps1 -Port 17842
     Scripts\Tests\Acceptance\RainVerticalSlice.ps1 -Port 18119
 
-### M7 local survival status presentation
+### Historical M7 local survival status presentation — superseded by M13
 
-After the editor build, run `Kalmala.UI.SurvivalStatus.LocalPresentation` with
+This test documents the retired multi-row lower-left survival-status layout;
+do not use its lower-left viewport-slot assertion as current HUD acceptance.
+The lower-left widget now shows Ocean travel feedback only, while the active
+status/weather hotbar is covered by `Kalmala.UI.StatusHotbar.SnapshotAndLayout`
+and `Scripts/Tests/Presentation/StatusHotbar.ps1`.
+
+Historical M7 test invocation: run `Kalmala.UI.SurvivalStatus.LocalPresentation` with
 the standard `-unattended -nop4 -nosplash -nullrhi -DDC-ForceMemoryCache`,
 isolated `-UserDir`, unique `-abslog`, and
 `-TestExit="Automation Test Queue Empty"` flags. The test covers shape-plus-

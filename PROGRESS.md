@@ -33626,3 +33626,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The client sends only the boolean preference. The server chooses drops and quantities, validates eligible pickup state and capacity, and performs grants. The preference remains transient, non-replicated, and absent from save data.
 - **Known limitations / remaining scope:** Runtime settings and pickup behavior were not retested in this documentation-only increment. The remaining CR remediation work is still open.
 - **Next eligible task:** RF54 — Reconcile the current HUD ownership contract.
+
+## Run 2026-11-16 — RF54 current HUD ownership contract
+
+- **Selected task:** RF54, reconcile architecture ownership and HUD verification guidance with the active UI.
+- **Work completed:** Updated the architecture ledger and setup guide to describe the lower-left widget as Ocean travel feedback only and the single top-right status/weather hotbar as the current status, active-support, and Storm surface. Documented M13 reusable support scrolls in numbered hotbar cells and removed current-layout claims for the passive support strip and separate weather-tier badge. Marked older M7/M12 presenter and viewport checks as historical. Retained the current local Mountain fog and precipitation material-response contracts. Checked RF54 in the backlog.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** Compared the revised descriptions with `UKalmalaSurvivalStatusWidget`, `UKalmalaSupportSelectionSubsystem`, `UKalmalaWeatherActivitySubsystem`, `UKalmalaStatusHotbarWidget`, and support-scroll activation sources; `git diff --check` passed; all changed paths are below 260 characters. The documentation-contract script has no assertions for the revised HUD ownership wording, so it was not run. No Unreal build or runtime automation was run.
+- **Full verification:** Deferred; RF54 is not the final implementation task in the CR remediation milestone. Rendered layout and milestone-wide automation remain for milestone-final verification.
+- **Observable impact:** Architecture and setup guidance now match the current lower-left travel panel and top-right status/weather hotbar, and identify retired presenter checks as historical.
+- **Networking/authority:** No runtime code changed. The status/weather hotbar presents accepted owner state; support scroll activation continues through the existing server-side numbered-cell resolution. Local fog and material response remain presentation-only weather effects.
+- **Known limitations / remaining scope:** No editor or rendered HUD verification was run. Legacy presenter test classes and slot assertions remain in the repository as historical component coverage. The CR remediation goal remains open.
+- **Next eligible task:** RF55 — Reject oversized pending population rewards on load.
