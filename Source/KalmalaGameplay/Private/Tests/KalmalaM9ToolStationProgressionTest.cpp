@@ -24,6 +24,18 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
         TestNotNull(TEXT("Tool progression cannot provide a station, level, costs, or result"),
             ProgressIntent->FindPropertyByName(TEXT("ItemId")));
     }
+    const UFunction* StoneUpgradeIntent =
+        UKalmalaCraftingComponent::StaticClass()->FindFunctionByName(TEXT("ServerUpgradeStoneStarterTool"));
+    if (TestNotNull(TEXT("Stone starter upgrade intent exists"), StoneUpgradeIntent))
+    {
+        TestTrue(TEXT("Stone starter upgrade is an owning-client server RPC"),
+            StoneUpgradeIntent->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer | FUNC_NetReliable));
+        TestEqual(TEXT("Stone starter upgrade accepts only one tool identity"), int32(StoneUpgradeIntent->NumParms), 1);
+        TestNotNull(TEXT("Stone starter upgrade cannot provide costs, station, or target level"),
+            StoneUpgradeIntent->FindPropertyByName(TEXT("ItemId")));
+        TestNull(TEXT("Stone starter upgrade cannot submit a client-selected target level"),
+            StoneUpgradeIntent->FindPropertyByName(TEXT("TargetToolLevel")));
+    }
 
     UKalmalaConstructionSaveGame* ConstructionSave = NewObject<UKalmalaConstructionSaveGame>();
     FKalmalaConstructionSaveRecord ForgeRecord;
@@ -73,6 +85,191 @@ bool FKalmalaM9ToolStationProgressionTest::RunTest(const FString& Parameters)
             [ItemId](const FKalmalaInventoryStack& Candidate) { return Candidate.ItemId == ItemId; });
         return Stack ? Stack->Quantity : 0;
     };
+    struct FStoneUpgradeCase
+    {
+        FName ItemId;
+        int32 WoodCost;
+        int32 StoneCost;
+        float SlashGain;
+        float CrushGain;
+        float PierceGain;
+        float StabGain;
+    };
+    const TArray<FStoneUpgradeCase> StoneUpgradeCases = {
+        {FName(TEXT("StoneAxe")), 3, 2, 5.0f, 0.0f, 0.0f, 0.0f},
+        {FName(TEXT("StoneKnife")), 1, 1, 5.0f, 0.0f, 0.0f, 5.0f},
+        {FName(TEXT("StoneMace")), 2, 2, 0.0f, 5.0f, 5.0f, 0.0f},
+        {FName(TEXT("StonePick")), 3, 3, 0.0f, 5.0f, 5.0f, 0.0f},
+        {FName(TEXT("StoneSpear")), 3, 2, 0.0f, 0.0f, 0.0f, 5.0f}
+    };
+    const auto CostQuantity = [](const TArray<FKalmalaToolMaterialCost>& Costs, const FName ItemId)
+    {
+        const FKalmalaToolMaterialCost* Cost = Costs.FindByPredicate(
+            [ItemId](const FKalmalaToolMaterialCost& Candidate) { return Candidate.ItemId == ItemId; });
+        return Cost ? Cost->Quantity : 0;
+    };
+    for (int32 CaseIndex = 0; CaseIndex < StoneUpgradeCases.Num(); ++CaseIndex)
+    {
+        const FStoneUpgradeCase& Case = StoneUpgradeCases[CaseIndex];
+        const FString Label = Case.ItemId.ToString();
+        TestTrue(*FString::Printf(TEXT("%s is an explicitly supported Stone starter upgrade"), *Label),
+            FKalmalaToolProgressionContract::IsStoneStarterUpgradeItem(Case.ItemId));
+
+        const FKalmalaToolProgressionEntry* AcquisitionEntry =
+            FKalmalaToolProgressionContract::FindEntry(Case.ItemId, 1);
+        TestNotNull(*FString::Printf(TEXT("%s level-one acquisition remains authored"), *Label), AcquisitionEntry);
+        TArray<FKalmalaToolState> UncarriedTools;
+        for (const FKalmalaToolState& Existing : StartingTools)
+            if (Existing.ItemId != Case.ItemId) UncarriedTools.Add(Existing);
+        TestFalse(*FString::Printf(TEXT("%s cannot request its upgrade without a carried predecessor"), *Label),
+            FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(Case.ItemId, 1, UncarriedTools));
+        if (AcquisitionEntry)
+        {
+            TArray<FKalmalaInventoryStack> AcquisitionMaterials;
+            for (const FKalmalaToolMaterialCost& Cost : AcquisitionEntry->MaterialCosts)
+            {
+                FKalmalaInventoryStack Stack;
+                Stack.ItemId = Cost.ItemId;
+                Stack.Quantity = Cost.Quantity;
+                AcquisitionMaterials.Add(Stack);
+            }
+            TArray<FKalmalaToolState> AcquiredTools;
+            TArray<FKalmalaInventoryStack> AcquiredInventory;
+            TestTrue(*FString::Printf(TEXT("%s remains craftable at its matching Workbench when uncarried"), *Label),
+                FKalmalaToolProgressionContract::BuildServerUpgrade(true, nullptr, TEXT("WorkbenchKit"),
+                    AcquisitionEntry->RequiredStationLevel, Case.ItemId, UncarriedTools, AcquisitionMaterials,
+                    AcquiredTools, AcquiredInventory, Reason));
+            const FKalmalaToolState* Acquired = AcquiredTools.FindByPredicate(
+                [&Case](const FKalmalaToolState& State) { return State.ItemId == Case.ItemId; });
+            TestNotNull(*FString::Printf(TEXT("%s acquisition adds the level-one tool"), *Label), Acquired);
+            if (Acquired)
+            {
+                TestEqual(*FString::Printf(TEXT("%s acquisition remains level one"), *Label), Acquired->ToolLevel, 1);
+                TestTrue(*FString::Printf(TEXT("%s acquisition creates a valid tool identity"), *Label),
+                    Acquired->InstanceGuid.IsValid());
+                TestEqual(*FString::Printf(TEXT("%s acquisition starts at full condition"), *Label),
+                    Acquired->Durability, FKalmalaToolLifecycleContract::GetMaxDurability(Case.ItemId, 1));
+            }
+        }
+
+        const FKalmalaToolProgressionEntry* UpgradeEntry =
+            FKalmalaToolProgressionContract::FindEntry(Case.ItemId, 2);
+        TestNotNull(*FString::Printf(TEXT("%s level-two upgrade entry exists"), *Label), UpgradeEntry);
+        if (UpgradeEntry)
+        {
+            TestEqual(*FString::Printf(TEXT("%s upgrade uses Workbench"), *Label),
+                UpgradeEntry->RequiredStation, EKalmalaToolStationKind::Workbench);
+            TestEqual(*FString::Printf(TEXT("%s upgrade requires a level-two Workbench"), *Label),
+                UpgradeEntry->RequiredStationLevel, 2);
+            TestEqual(*FString::Printf(TEXT("%s upgrade uses the exact authored Wood cost"), *Label),
+                CostQuantity(UpgradeEntry->MaterialCosts, TEXT("Wood")), Case.WoodCost);
+            TestEqual(*FString::Printf(TEXT("%s upgrade uses the exact authored Stone cost"), *Label),
+                CostQuantity(UpgradeEntry->MaterialCosts, TEXT("Stone")), Case.StoneCost);
+            TestEqual(*FString::Printf(TEXT("%s upgrade has only its authored material costs"), *Label),
+                UpgradeEntry->MaterialCosts.Num(), 2);
+        }
+
+        FKalmalaToolState CarriedTool;
+        CarriedTool.ItemId = Case.ItemId;
+        CarriedTool.ToolLevel = 1;
+        CarriedTool.InstanceGuid = FGuid(100, CaseIndex + 1, 300, 400);
+        const int32 WornCondition = FKalmalaToolLifecycleContract::GetMaxDurability(Case.ItemId, 1) - 7;
+        CarriedTool.Durability = WornCondition;
+        const TArray<FKalmalaToolState> CarriedTools = {CarriedTool};
+        TestTrue(*FString::Printf(TEXT("%s has exactly one carried level-one upgrade predecessor"), *Label),
+            FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(Case.ItemId, 1, CarriedTools));
+        TArray<FKalmalaToolState> WrongLevelTools = {CarriedTool};
+        WrongLevelTools[0].ToolLevel = 2;
+        TestFalse(*FString::Printf(TEXT("%s rejects a wrong-level upgrade predecessor"), *Label),
+            FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(Case.ItemId, 1, WrongLevelTools));
+        TArray<FKalmalaToolState> DuplicateTools = {CarriedTool, CarriedTool};
+        TestFalse(*FString::Printf(TEXT("%s rejects an ambiguous duplicate predecessor"), *Label),
+            FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(Case.ItemId, 1, DuplicateTools));
+
+        const TArray<FKalmalaInventoryStack> UpgradeMaterials = {
+            {TEXT("Wood"), Case.WoodCost}, {TEXT("Stone"), Case.StoneCost}
+        };
+        TArray<FKalmalaToolState> UpgradedTools;
+        TArray<FKalmalaInventoryStack> UpgradedInventory;
+        TestTrue(*FString::Printf(TEXT("%s upgrades at the matching level-two Workbench"), *Label),
+            FKalmalaToolProgressionContract::BuildServerUpgrade(true, nullptr, TEXT("WorkbenchKit"), 2,
+                Case.ItemId, CarriedTools, UpgradeMaterials, UpgradedTools, UpgradedInventory, Reason));
+        TestEqual(*FString::Printf(TEXT("%s upgrade retains the carried tool count"), *Label),
+            UpgradedTools.Num(), 1);
+        const FKalmalaToolState* Upgraded = UpgradedTools.FindByPredicate(
+            [&Case](const FKalmalaToolState& State) { return State.ItemId == Case.ItemId; });
+        TestNotNull(*FString::Printf(TEXT("%s upgrade retains the tool identity"), *Label), Upgraded);
+        if (Upgraded)
+        {
+            TestEqual(*FString::Printf(TEXT("%s reaches level two"), *Label), Upgraded->ToolLevel, 2);
+            TestTrue(*FString::Printf(TEXT("%s upgrade retains the exact instance GUID"), *Label),
+                Upgraded->InstanceGuid == CarriedTool.InstanceGuid);
+            TestEqual(*FString::Printf(TEXT("%s upgrade preserves current condition"), *Label),
+                Upgraded->Durability, WornCondition);
+        }
+        TestEqual(*FString::Printf(TEXT("%s level two adds its catalogued condition"), *Label),
+            FKalmalaToolLifecycleContract::GetMaxDurability(Case.ItemId, 2),
+            FKalmalaToolLifecycleContract::GetMaxDurability(Case.ItemId, 1) + 50);
+        const FKalmalaDamageChannels LevelOneDamage =
+            FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Case.ItemId, 1);
+        const FKalmalaDamageChannels LevelTwoDamage =
+            FKalmalaToolLifecycleContract::GetWeaponDamageBonuses(Case.ItemId, 2);
+        TestTrue(*FString::Printf(TEXT("%s level-two Slash gain matches its catalogue"), *Label),
+            FMath::IsNearlyEqual(LevelTwoDamage.Slash - LevelOneDamage.Slash, Case.SlashGain));
+        TestTrue(*FString::Printf(TEXT("%s level-two Crush gain matches its catalogue"), *Label),
+            FMath::IsNearlyEqual(LevelTwoDamage.Crush - LevelOneDamage.Crush, Case.CrushGain));
+        TestTrue(*FString::Printf(TEXT("%s level-two Pierce gain matches its catalogue"), *Label),
+            FMath::IsNearlyEqual(LevelTwoDamage.Pierce - LevelOneDamage.Pierce, Case.PierceGain));
+        TestTrue(*FString::Printf(TEXT("%s level-two Stab gain matches its catalogue"), *Label),
+            FMath::IsNearlyEqual(LevelTwoDamage.Stab - LevelOneDamage.Stab, Case.StabGain));
+        TestEqual(*FString::Printf(TEXT("%s upgrade consumes its exact Wood cost"), *Label),
+            Quantity(UpgradedInventory, TEXT("Wood")), 0);
+        TestEqual(*FString::Printf(TEXT("%s upgrade consumes its exact Stone cost"), *Label),
+            Quantity(UpgradedInventory, TEXT("Stone")), 0);
+
+        const auto ExpectStoneUpgradeRejectedWithoutMutation = [&](const TArray<FKalmalaToolState>& InputTools,
+            const TArray<FKalmalaInventoryStack>& InputInventory, const FName StationKit,
+            const int32 StationLevel, const TCHAR* RejectionCase)
+        {
+            TArray<FKalmalaToolState> CandidateTools = InputTools;
+            TArray<FKalmalaInventoryStack> CandidateInventory = InputInventory;
+            TestFalse(*FString::Printf(TEXT("%s rejects %s"), *Label, RejectionCase),
+                FKalmalaToolProgressionContract::BuildServerUpgrade(true, nullptr, StationKit, StationLevel,
+                    Case.ItemId, InputTools, InputInventory, CandidateTools, CandidateInventory, Reason));
+            TestEqual(*FString::Printf(TEXT("%s rejection leaves tool count unchanged"), *Label),
+                CandidateTools.Num(), InputTools.Num());
+            TestEqual(*FString::Printf(TEXT("%s rejection leaves inventory count unchanged"), *Label),
+                CandidateInventory.Num(), InputInventory.Num());
+            for (int32 ToolIndex = 0; ToolIndex < InputTools.Num() && CandidateTools.IsValidIndex(ToolIndex); ++ToolIndex)
+            {
+                TestTrue(*FString::Printf(TEXT("%s rejection leaves carried tool %d unchanged"), *Label, ToolIndex),
+                    CandidateTools[ToolIndex].ItemId == InputTools[ToolIndex].ItemId
+                    && CandidateTools[ToolIndex].ToolLevel == InputTools[ToolIndex].ToolLevel
+                    && CandidateTools[ToolIndex].InstanceGuid == InputTools[ToolIndex].InstanceGuid
+                    && CandidateTools[ToolIndex].Durability == InputTools[ToolIndex].Durability);
+            }
+            for (int32 StackIndex = 0; StackIndex < InputInventory.Num()
+                && CandidateInventory.IsValidIndex(StackIndex); ++StackIndex)
+            {
+                TestTrue(*FString::Printf(TEXT("%s rejection leaves material stack %d unchanged"), *Label, StackIndex),
+                    CandidateInventory[StackIndex].ItemId == InputInventory[StackIndex].ItemId
+                    && CandidateInventory[StackIndex].Quantity == InputInventory[StackIndex].Quantity);
+            }
+        };
+        TArray<FKalmalaInventoryStack> MissingUpgradeMaterials = UpgradeMaterials;
+        MissingUpgradeMaterials[1].Quantity = Case.StoneCost - 1;
+        ExpectStoneUpgradeRejectedWithoutMutation(CarriedTools, MissingUpgradeMaterials,
+            TEXT("WorkbenchKit"), 2, TEXT("missing materials"));
+        ExpectStoneUpgradeRejectedWithoutMutation(CarriedTools, UpgradeMaterials,
+            TEXT("ForgeKit"), 2, TEXT("wrong station"));
+        ExpectStoneUpgradeRejectedWithoutMutation(CarriedTools, UpgradeMaterials,
+            TEXT("WorkbenchKit"), 1, TEXT("wrong Workbench level"));
+        ExpectStoneUpgradeRejectedWithoutMutation(UncarriedTools, UpgradeMaterials,
+            TEXT("WorkbenchKit"), 2, TEXT("missing carried predecessor"));
+        ExpectStoneUpgradeRejectedWithoutMutation(WrongLevelTools, UpgradeMaterials,
+            TEXT("WorkbenchKit"), 2, TEXT("wrong-level carried predecessor"));
+    }
+
     TestTrue(TEXT("Bronze Axe is crafted at the matching level-one Forge"),
         FKalmalaToolProgressionContract::BuildServerUpgrade(
             true, nullptr, TEXT("ForgeKit"), 1, TEXT("BronzeAxe"), StartingTools, BronzeMaterials,

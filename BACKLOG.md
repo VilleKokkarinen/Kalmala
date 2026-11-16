@@ -1792,7 +1792,7 @@
     server draw/release/projectile code. Verify the 2026-10-15 entry explicitly
     labels its obsolete claims as superseded. No runtime checks are needed for
     this docs-only repair.
-  - [ ] **RF62 — Enable authored Workbench upgrades for Stone starter tools (P2; CR06-002).**
+  - [x] **RF62 — Enable authored Workbench upgrades for Stone starter tools (P2; CR06-002).**
     `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp:2210-2283`,
     `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h:50`,
     `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp:376-386`,
@@ -1819,11 +1819,11 @@
     `ProgressToolFromServer` and `BuildServerUpgrade` select the Starter
     level-one entry regardless of carried level. The focused station transaction
     test exercises Bronze Axe progression, not a Stone upgrade.
-    **Proposed repair:** Separate level-one acquisition intent from same-item
-    upgrade intent in the Workbench UI/request path. Offer each Stone level-two
-    upgrade when its level-one tool is carried, then let the server resolve and
-    validate the exact predecessor/target step while retaining station, range,
-    materials, capacity, persistence, and authority checks.
+    **Proposed repair:** Keep uncarried level-one acquisition separate from the
+    Stone upgrade action in the Workbench UI/request path. Show Upgrade only for
+    one carried level-one copy; the client sends its item ID and the server
+    derives the authored level-two step. Preserve station, range, materials,
+    capacity, persistence, and authority checks.
     **Dependencies:** After CR19 review acceptance; no repair during the
     review-only phase.
     **Acceptance:** Each of the five carried level-one Stone tools can be
@@ -1832,11 +1832,11 @@
     wrong-level predecessor, and failed persistence leave tool and inventory
     unchanged. Level-one acquisition remains available for an uncarried item;
     clients cannot choose costs or target levels.
-    **Focused validation:** Extend `Kalmala.Gameplay.M9.ToolStationProgression`
-    to cover all five Stone level-one-to-two transactions, exact costs, retained
-    condition/identity, and rejection rollback, while preserving the acquisition
-    case. Run the focused automation after the required Editor build. No test was
-    run during this review.
+    **Focused validation:** Extended `Kalmala.Gameplay.M9.ToolStationProgression`
+    to cover all five Stone level-one acquisitions and level-one-to-two upgrades,
+    exact costs/stats, retained condition/identity, and rejection rollback.
+    Automation coverage was authored but not built or run in this normal
+    increment; perform the focused run during milestone-final verification.
   - [ ] **RF63 — Align campfire warmth coverage with normalized heat (P3; CR07-003).**
     Source/KalmalaGameplay/Public/KalmalaCampfireWeatherResponse.h:35-46,
     Source/KalmalaGameplay/Private/Tests/KalmalaInteractionAuthorityTest.cpp:143-149,

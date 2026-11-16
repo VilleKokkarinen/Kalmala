@@ -173,6 +173,27 @@ const FKalmalaToolProgressionEntry* FKalmalaToolProgressionContract::FindNextEnt
     });
 }
 
+bool FKalmalaToolProgressionContract::IsStoneStarterUpgradeItem(const FName ItemId)
+{
+    return ItemId == TEXT("StoneAxe") || ItemId == TEXT("StoneKnife")
+        || ItemId == TEXT("StoneMace") || ItemId == TEXT("StonePick")
+        || ItemId == TEXT("StoneSpear");
+}
+
+bool FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(
+    const FName ItemId, const int32 RequiredToolLevel, const TArray<FKalmalaToolState>& ExistingTools)
+{
+    if (ItemId.IsNone() || RequiredToolLevel < 1) return false;
+    int32 MatchingCopies = 0;
+    for (const FKalmalaToolState& Tool : ExistingTools)
+    {
+        if (Tool.ItemId != ItemId) continue;
+        if (Tool.ToolLevel != RequiredToolLevel) return false;
+        ++MatchingCopies;
+    }
+    return MatchingCopies == 1;
+}
+
 int32 FKalmalaToolProgressionContract::GetMaximumToolLevel(const FName ItemId)
 {
     const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(ItemId);
@@ -411,10 +432,7 @@ bool FKalmalaToolProgressionContract::BuildServerUpgrade(
         return State.ItemId == ItemId;
     });
     const int32 CurrentToolLevel = ExistingTarget ? ExistingTarget->ToolLevel : 0;
-    const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ItemId);
-    const bool bRepeatableStarterAcquisition = Profile && Profile->ToolSet == TEXT("Starter");
-    const FKalmalaToolProgressionEntry* Entry = bRepeatableStarterAcquisition
-        ? FindEntry(ItemId, 1) : FindNextEntry(ItemId, CurrentToolLevel);
+    const FKalmalaToolProgressionEntry* Entry = FindNextEntry(ItemId, CurrentToolLevel);
     Reason = TEXT("No same-item upgrade is available for that tool level");
     if (!Entry) return false;
 

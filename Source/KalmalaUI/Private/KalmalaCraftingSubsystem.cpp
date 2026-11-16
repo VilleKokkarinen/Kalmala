@@ -2240,13 +2240,38 @@ void UKalmalaCraftingWidget::RefreshStoneCraftState()
     {
         UButton* Button = StoneCraftButtons[Index];
         const FName ItemId = StoneCraftItemIds[Index];
-        const FKalmalaToolProgressionEntry* Entry = FKalmalaToolProgressionContract::FindEntry(ItemId, 1);
-        bool bReady = bVisible && Entry && Entry->PreviousItemId.IsNone() && PC && PC->IsLocalController()
+        const FString ToolName = GetCraftableToolDisplayName(ItemId);
+        const int32 CurrentToolLevel = Owner ? Owner->GetCarriedToolLevel(ItemId) : 0;
+        const bool bStoneStarterItem = FKalmalaToolProgressionContract::IsStoneStarterUpgradeItem(ItemId);
+        const bool bUpgradeAction = bStoneStarterItem && CurrentToolLevel > 0;
+        const FKalmalaToolProgressionEntry* Entry = bUpgradeAction
+            ? (CurrentToolLevel == 1 ? FKalmalaToolProgressionContract::FindEntry(ItemId, 2) : nullptr)
+            : (CurrentToolLevel == 0 ? FKalmalaToolProgressionContract::FindEntry(ItemId, 1) : nullptr);
+        const bool bHasUpgradePredecessor = bUpgradeAction && Entry && Owner
+            && FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(
+                ItemId, 1, Owner->GetCarriedToolInventory());
+        bool bReady = bVisible && Entry && PC && PC->IsLocalController()
             && Owner && Inventory && IsStationContextValid() && IsValid(Station)
             && Station->GetConstructionKit() == TEXT("WorkbenchKit")
             && Entry->RequiredStation == EKalmalaToolStationKind::Workbench
             && FKalmalaToolProgressionContract::GetEffectiveStationLevel(Station) == Entry->RequiredStationLevel;
-        FString Requirements = TEXT("Requires a visible level-one Workbench and enough room in your pack.");
+        if (bUpgradeAction)
+        {
+            bReady &= bHasUpgradePredecessor && Entry->PreviousItemId == ItemId
+                && Entry->PreviousToolLevel == 1 && Entry->TargetToolLevel == 2;
+        }
+        else
+        {
+            bReady &= CurrentToolLevel == 0 && Entry->PreviousItemId.IsNone()
+                && Entry->TargetToolLevel == 1;
+        }
+        FString Requirements = bUpgradeAction
+            ? FString::Printf(TEXT("Upgrade the carried level-one %s at a matching level-two Workbench."), *ToolName)
+            : FString::Printf(TEXT("Craft %s only when it is not already carried at a matching level-one Workbench."), *ToolName);
+        if (bUpgradeAction && !bHasUpgradePredecessor)
+            Requirements += TEXT("\nRequires exactly one carried level-one copy.");
+        if (!Entry)
+            Requirements += TEXT("\nNo authored Workbench step is available for this tool level.");
         if (Entry)
         {
             for (const FKalmalaToolMaterialCost& Cost : Entry->MaterialCosts)
@@ -2258,6 +2283,9 @@ void UKalmalaCraftingWidget::RefreshStoneCraftState()
         }
         if (Button)
         {
+            if (UTextBlock* Label = Cast<UTextBlock>(Button->GetContent()))
+                Label->SetText(FText::FromString(FString::Printf(TEXT("%s %s"),
+                    bUpgradeAction ? TEXT("Upgrade") : TEXT("Craft"), *ToolName)));
             Button->SetVisibility(bVisible ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
             Button->SetIsEnabled(bReady);
             Button->SetToolTipText(FText::FromString(Requirements));
@@ -2268,7 +2296,23 @@ void UKalmalaCraftingWidget::RefreshStoneCraftState()
 void UKalmalaCraftingWidget::CraftStoneTool(const FName ItemId)
 {
     if (!bWorkbenchCraftContext || StationFilterKit != TEXT("WorkbenchKit") || !IsStationContextValid()) return;
-    if (auto* Crafting = Model()) Crafting->ServerProgressTool(ItemId);
+    const APlayerController* PC = GetOwningPlayer();
+    const AKalmalaCharacter* Owner = PC ? Cast<AKalmalaCharacter>(PC->GetPawn()) : nullptr;
+    auto* Crafting = Model();
+    if (!Crafting) return;
+    if (FKalmalaToolProgressionContract::IsStoneStarterUpgradeItem(ItemId))
+    {
+        if (!Owner) return;
+        const int32 CurrentToolLevel = Owner->GetCarriedToolLevel(ItemId);
+        if (CurrentToolLevel == 0)
+            Crafting->ServerProgressTool(ItemId);
+        else if (CurrentToolLevel == 1
+            && FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(
+                ItemId, 1, Owner->GetCarriedToolInventory()))
+            Crafting->ServerUpgradeStoneStarterTool(ItemId);
+        return;
+    }
+    Crafting->ServerProgressTool(ItemId);
 }
 
 void UKalmalaCraftingWidget::CraftStoneAxe() { CraftStoneTool(TEXT("StoneAxe")); }

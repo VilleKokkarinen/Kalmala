@@ -4779,7 +4779,12 @@ requirements, all catalogue costs, unavailable-state presentation, section
 routing and scope, plus no request from stale context. The existing
 `Kalmala.Gameplay.M9.ToolStationProgression` covers server acceptance/rejection,
 the Bronze Axe level increase without an item exchange, item-bound tier retention, costs,
-and unchanged candidates after rejection.
+and unchanged candidates after rejection. Its RF62 extension covers acquisition
+plus level-one-to-two Workbench upgrades for all five Stone starter tools, exact
+Wood/Stone costs, level-two stats, retained identity and condition, and rejection
+for missing or wrong-level predecessors, station, or materials. The new coverage
+is authored but has not been built or run in this normal increment; run it during
+milestone-final verification.
 Run the full host/client and rendered checks only in M12 milestone-final
 verification.
 

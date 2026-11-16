@@ -58,6 +58,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerRefuelTorch(FGuid ToolInstanceGuid);
     UFUNCTION(Server, Reliable) void ServerRepairAllTools();
     UFUNCTION(Server, Reliable) void ServerProgressTool(FName ItemId);
+    UFUNCTION(Server, Reliable) void ServerUpgradeStoneStarterTool(FName ItemId);
     UFUNCTION(Server, Reliable) void ServerUpgradeOpalHelm(FGuid ItemGuid);
     UFUNCTION(Server, Reliable) void ServerRepairOpalHelm(FGuid ItemGuid);
     bool MaintainOpalHelmFromServer(FGuid ItemGuid, bool bUpgrade, FString& Reason);
@@ -124,7 +125,7 @@ public:
     bool RefuelTorchFromServer(FGuid ToolInstanceGuid, FString& Reason);
     bool RepairAllToolsAtStationFromServer(FString& Reason);
     bool RepairAllToolsFromServer(AKalmalaConstructionActor* GrindingStone, FString& Reason);
-    bool ProgressToolFromServer(FName ItemId, FString& Reason);
+    bool ProgressToolFromServer(FName ItemId, FString& Reason, bool bStoneStarterUpgradeIntent = false);
     bool ConsumeFoodFromServer(FName FoodItemId, FString& Reason);
     bool PlaceFromServer(FString& Reason);
     bool PlaceConstructionFromServer(FName BuildableId, FString& Reason);

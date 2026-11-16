@@ -68,6 +68,9 @@ public:
     static const FKalmalaToolProgressionEntry* FindEntry(FName ItemId);
     static const FKalmalaToolProgressionEntry* FindEntry(FName ItemId, int32 TargetToolLevel);
     static const FKalmalaToolProgressionEntry* FindNextEntry(FName ItemId, int32 CurrentToolLevel);
+    static bool IsStoneStarterUpgradeItem(FName ItemId);
+    static bool HasExactlyOneCarriedToolAtLevel(
+        FName ItemId, int32 RequiredToolLevel, const TArray<FKalmalaToolState>& ExistingTools);
     static int32 GetMaximumToolLevel(FName ItemId);
     static bool IsValidToolLevel(FName ItemId, int32 ToolLevel);
     static const FKalmalaStationAttachmentDefinition* FindAttachment(FName KitId);

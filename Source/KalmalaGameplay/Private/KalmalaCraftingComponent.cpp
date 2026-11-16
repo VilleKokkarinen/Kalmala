@@ -440,17 +440,42 @@ AKalmalaConstructionActor* UKalmalaCraftingComponent::FindNearbyToolProgressionS
     return Closest;
 }
 
-bool UKalmalaCraftingComponent::ProgressToolFromServer(const FName ItemId, FString& Reason)
+bool UKalmalaCraftingComponent::ProgressToolFromServer(
+    const FName ItemId, FString& Reason, const bool bStoneStarterUpgradeIntent)
 {
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
 
     const FKalmalaToolProfileData* Profile = UKalmalaToolCatalogue::Get()->FindProfile(ItemId);
-    const bool bRepeatableStarterAcquisition = Profile && Profile->ToolSet == TEXT("Starter");
-    const FKalmalaToolProgressionEntry* Entry = bRepeatableStarterAcquisition
-        ? FKalmalaToolProgressionContract::FindEntry(ItemId, 1)
-        : FKalmalaToolProgressionContract::FindNextEntry(ItemId, Character->GetCarriedToolLevel(ItemId));
+    const int32 CurrentToolLevel = Character->GetCarriedToolLevel(ItemId);
+    const bool bIsStarterTool = Profile && Profile->ToolSet == TEXT("Starter");
+    const FKalmalaToolProgressionEntry* Entry = nullptr;
+    if (bStoneStarterUpgradeIntent)
+    {
+        Reason = TEXT("A unique carried level-one Stone starter tool is required");
+        if (!FKalmalaToolProgressionContract::IsStoneStarterUpgradeItem(ItemId)
+            || !FKalmalaToolProgressionContract::HasExactlyOneCarriedToolAtLevel(
+                ItemId, 1, Character->GetCarriedToolInventory()))
+        {
+            return false;
+        }
+        Entry = FKalmalaToolProgressionContract::FindNextEntry(ItemId, 1);
+    }
+    else if (bIsStarterTool || FKalmalaToolProgressionContract::IsStoneStarterUpgradeItem(ItemId))
+    {
+        Reason = TEXT("This starter tool is already carried; use its upgrade action");
+        if (Character->GetCarriedToolInventory().ContainsByPredicate([ItemId](const FKalmalaToolState& Tool)
+            { return Tool.ItemId == ItemId; }))
+        {
+            return false;
+        }
+        Entry = FKalmalaToolProgressionContract::FindEntry(ItemId, 1);
+    }
+    else
+    {
+        Entry = FKalmalaToolProgressionContract::FindNextEntry(ItemId, CurrentToolLevel);
+    }
     Reason = TEXT("No same-item upgrade is available for that tool level");
     if (!Entry || !FKalmalaToolProgressionContract::IsCatalogueValid()) return false;
     Reason = TEXT("Tool upgrades must keep the same item identity");
@@ -520,6 +545,14 @@ void UKalmalaCraftingComponent::ServerProgressTool_Implementation(const FName It
     if (!AcceptRequest()) return;
     FString Reason;
     const bool bAccepted = ProgressToolFromServer(ItemId, Reason);
+    PublishResult(Reason, bAccepted);
+}
+
+void UKalmalaCraftingComponent::ServerUpgradeStoneStarterTool_Implementation(const FName ItemId)
+{
+    if (!AcceptRequest()) return;
+    FString Reason;
+    const bool bAccepted = ProgressToolFromServer(ItemId, Reason, true);
     PublishResult(Reason, bAccepted);
 }
 
