@@ -173,6 +173,74 @@ bool FKalmalaToolLifecycleContractTest::RunTest(const FString& Parameters)
     RepairState.Durability = StoneKnifeMaximum + 1;
     ExpectRepairRejected(TEXT("Over-maximum repair condition rejects"), true, true, RepairState);
 
+    const FGuid ActiveKnifeGuid(1, 2, 3, 4);
+    const FGuid SpareKnifeGuid(5, 6, 7, 8);
+    FKalmalaToolState ActiveKnife;
+    ActiveKnife.ItemId = TEXT("StoneKnife");
+    ActiveKnife.ToolLevel = 1;
+    ActiveKnife.Durability = StoneKnifeMaximum;
+    ActiveKnife.InstanceGuid = ActiveKnifeGuid;
+    FKalmalaToolState SpareKnife = ActiveKnife;
+    SpareKnife.InstanceGuid = SpareKnifeGuid;
+    SpareKnife.Durability = StoneKnifeMaximum - 7;
+    const TArray<FKalmalaToolState> FullActiveAndWornSpare = { ActiveKnife, SpareKnife };
+    TArray<FKalmalaToolState> SelectedRepair;
+    TestTrue(TEXT("Individual repair accepts the selected worn spare beside a full active duplicate"),
+        FKalmalaToolLifecycleContract::BuildServerFreeRepairForInstance(
+            true, true, FullActiveAndWornSpare, SpareKnifeGuid, SelectedRepair));
+    TestTrue(TEXT("Repair leaves the active full duplicate unchanged and repairs only the selected spare"),
+        SelectedRepair.Num() == 2 && SelectedRepair[0].InstanceGuid == ActiveKnifeGuid
+        && SelectedRepair[0].Durability == ActiveKnife.Durability
+        && SelectedRepair[1].InstanceGuid == SpareKnifeGuid
+        && SelectedRepair[1].Durability == StoneKnifeMaximum);
+
+    ActiveKnife.Durability = StoneKnifeMaximum - 9;
+    SpareKnife.Durability = StoneKnifeMaximum;
+    const TArray<FKalmalaToolState> WornActiveAndFullSpare = { ActiveKnife, SpareKnife };
+    TestTrue(TEXT("Individual repair accepts the selected active copy beside a full spare"),
+        FKalmalaToolLifecycleContract::BuildServerFreeRepairForInstance(
+            true, true, WornActiveAndFullSpare, ActiveKnifeGuid, SelectedRepair));
+    TestTrue(TEXT("Repair changes the selected active copy and leaves the full spare unchanged"),
+        SelectedRepair.Num() == 2 && SelectedRepair[0].InstanceGuid == ActiveKnifeGuid
+        && SelectedRepair[0].Durability == StoneKnifeMaximum
+        && SelectedRepair[1].InstanceGuid == SpareKnifeGuid
+        && SelectedRepair[1].Durability == SpareKnife.Durability);
+
+    const auto ExpectSelectedRepairRejected = [this](const TCHAR* Label, const bool bServer,
+        const bool bAtStation, const TArray<FKalmalaToolState>& Input, const FGuid& Guid)
+    {
+        TArray<FKalmalaToolState> Candidate;
+        FKalmalaToolState Sentinel;
+        Sentinel.ItemId = TEXT("Stale");
+        Sentinel.InstanceGuid = FGuid(9, 9, 9, 9);
+        Sentinel.Durability = 99;
+        Candidate.Add(Sentinel);
+        TestFalse(Label, FKalmalaToolLifecycleContract::BuildServerFreeRepairForInstance(
+            bServer, bAtStation, Input, Guid, Candidate));
+        TestTrue(*FString::Printf(TEXT("%s preserves every carried instance"), Label),
+            Candidate.Num() == Input.Num());
+        for (int32 Index = 0; Index < Input.Num() && Index < Candidate.Num(); ++Index)
+        {
+            TestTrue(*FString::Printf(TEXT("%s leaves copy %d unchanged"), Label, Index),
+                Candidate[Index].InstanceGuid == Input[Index].InstanceGuid
+                && Candidate[Index].ItemId == Input[Index].ItemId
+                && Candidate[Index].ToolLevel == Input[Index].ToolLevel
+                && Candidate[Index].Durability == Input[Index].Durability);
+        }
+    };
+    ExpectSelectedRepairRejected(TEXT("Invalid selected GUID rejects"), true, true,
+        FullActiveAndWornSpare, FGuid());
+    ExpectSelectedRepairRejected(TEXT("Unowned selected GUID rejects"), true, true,
+        FullActiveAndWornSpare, FGuid(8, 8, 8, 8));
+    ExpectSelectedRepairRejected(TEXT("Unavailable repair station rejects"), true, false,
+        FullActiveAndWornSpare, SpareKnifeGuid);
+    ExpectSelectedRepairRejected(TEXT("Full selected copy rejects without repairing the worn duplicate"), true, true,
+        WornActiveAndFullSpare, SpareKnifeGuid);
+    TArray<FKalmalaToolState> DuplicateGuidTools = FullActiveAndWornSpare;
+    DuplicateGuidTools[0].InstanceGuid = SpareKnifeGuid;
+    ExpectSelectedRepairRejected(TEXT("Duplicate carried GUID rejects"), true, true,
+        DuplicateGuidTools, SpareKnifeGuid);
+
     FKalmalaSkillProgressionLedger Ledger;
     Ledger.Initialize();
     const FKalmalaSkillState* Skill = Ledger.Find(EKalmalaSkill::Woodcutting);

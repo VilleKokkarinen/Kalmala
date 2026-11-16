@@ -555,6 +555,31 @@ bool FKalmalaToolLifecycleContract::BuildServerFreeRepair(
     return true;
 }
 
+bool FKalmalaToolLifecycleContract::BuildServerFreeRepairForInstance(
+    const bool bServerAuthority,
+    const bool bAtValidatedRepairStation,
+    const TArray<FKalmalaToolState>& ToolStates,
+    const FGuid& ToolInstanceGuid,
+    TArray<FKalmalaToolState>& OutRepairedStates)
+{
+    OutRepairedStates = ToolStates;
+    if (!bServerAuthority || !bAtValidatedRepairStation || !ToolInstanceGuid.IsValid()) return false;
+
+    int32 SelectedIndex = INDEX_NONE;
+    for (int32 Index = 0; Index < ToolStates.Num(); ++Index)
+    {
+        if (ToolStates[Index].InstanceGuid != ToolInstanceGuid) continue;
+        if (SelectedIndex != INDEX_NONE) return false;
+        SelectedIndex = Index;
+    }
+    if (SelectedIndex == INDEX_NONE) return false;
+
+    FKalmalaToolState RepairedState;
+    if (!BuildServerFreeRepair(true, true, ToolStates[SelectedIndex], RepairedState)) return false;
+    OutRepairedStates[SelectedIndex] = RepairedState;
+    return true;
+}
+
 bool FKalmalaToolLifecycleContract::BuildServerRepairAll(
     const bool bServerAuthority,
     const bool bAtValidatedRepairStation,

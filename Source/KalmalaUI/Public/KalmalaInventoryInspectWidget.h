@@ -21,7 +21,8 @@ public:
     void SetSearch(const FString& Query);
     void SetCategory(int32 Category);
     void SetSort(int32 Sort);
-    void RestoreBrowseState(const FString& Query, int32 InCategory, int32 InSort, FName SelectedItemId);
+    void RestoreBrowseState(const FString& Query, int32 InCategory, int32 InSort, FName SelectedItemId,
+        FGuid SelectedItemGuid = FGuid());
     int32 GetVisibleCount() const { return Rows.Num(); }
     int32 GetCategory() const { return Category; }
     int32 GetSort() const { return Sort; }

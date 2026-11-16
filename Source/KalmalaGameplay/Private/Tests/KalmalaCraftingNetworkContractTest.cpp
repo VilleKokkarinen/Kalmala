@@ -56,8 +56,17 @@ bool FKalmalaCraftingNetworkContractTest::RunTest(const FString& Parameters)
     if (TestNotNull(TEXT("Repair intent exists"), Repair))
     {
         TestTrue(TEXT("Repair is an owning-client server RPC"), Repair->HasAllFunctionFlags(FUNC_Net | FUNC_NetServer));
-        TestEqual(TEXT("Repair intent accepts only the allowlisted tool identity"), int32(Repair->NumParms), 1);
-        TestNotNull(TEXT("Repair intent cannot provide condition, materials, or result"), Repair->FindPropertyByName(TEXT("ItemId")));
+        TestEqual(TEXT("Repair intent accepts only one selected instance identity"), int32(Repair->NumParms), 1);
+        const FProperty* ToolInstanceGuid = Repair->FindPropertyByName(TEXT("ToolInstanceGuid"));
+        TestNotNull(TEXT("Repair intent identifies the selected carried instance"), ToolInstanceGuid);
+        TestNull(TEXT("Repair intent does not ambiguously identify a tool type"), Repair->FindPropertyByName(TEXT("ItemId")));
+        if (ToolInstanceGuid != nullptr)
+        {
+            const FStructProperty* GuidProperty = CastField<FStructProperty>(ToolInstanceGuid);
+            TestNotNull(TEXT("Repair identity is a GUID struct"), GuidProperty);
+            if (GuidProperty != nullptr)
+                TestEqual(TEXT("Repair identity uses FGuid"), GuidProperty->GetCPPType(), FString(TEXT("FGuid")));
+        }
     }
 
     const UFunction* Construction = CraftingClass->FindFunctionByName(TEXT("ServerPlaceConstruction"));

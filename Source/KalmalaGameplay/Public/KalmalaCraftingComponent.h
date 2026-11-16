@@ -54,7 +54,7 @@ public:
     UFUNCTION(Server, Reliable) void ServerPlaceConstruction(FName BuildableId);
     UFUNCTION(Server, Reliable) void ServerRefuel();
     UFUNCTION(Server, Reliable) void ServerLight();
-    UFUNCTION(Server, Reliable) void ServerRepairTool(FName ItemId);
+    UFUNCTION(Server, Reliable) void ServerRepairTool(FGuid ToolInstanceGuid);
     UFUNCTION(Server, Reliable) void ServerRefuelTorch(FGuid ToolInstanceGuid);
     UFUNCTION(Server, Reliable) void ServerRepairAllTools();
     UFUNCTION(Server, Reliable) void ServerProgressTool(FName ItemId);
@@ -120,7 +120,7 @@ public:
     FString GetNearbyWorkbenchText() const;
     FString GetNearbyConstructionText() const;
     bool CraftFromServer(FName RecipeId, int32 Batch, FString& Reason);
-    bool RepairToolFromServer(FName ItemId, FString& Reason);
+    bool RepairToolFromServer(FGuid ToolInstanceGuid, FString& Reason);
     bool RefuelTorchFromServer(FGuid ToolInstanceGuid, FString& Reason);
     bool RepairAllToolsAtStationFromServer(FString& Reason);
     bool RepairAllToolsFromServer(AKalmalaConstructionActor* GrindingStone, FString& Reason);

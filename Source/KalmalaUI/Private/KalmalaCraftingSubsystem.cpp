@@ -749,19 +749,8 @@ void UKalmalaCraftingWidget::NativeOnInitialized()
     StationCraftExcludedWidgets.Add(EatSmokedMeatButton);
     BuildExcludedWidgets.Add(EatSmokedMeatButton);
     RepairText = AddText(TEXT("\nInventory repairs a selected tool for free at a visible Workbench or Forge within 2.5 m.\nWorkbench and Forge Repair All actions restore all damaged carried tools; Grinding Stone Interact does the same.\n"), 16);
-    auto* RepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(RepairActions);
     StationCraftExcludedWidgets.Add(RepairText);
-    StationCraftExcludedWidgets.Add(RepairActions);
     BuildExcludedWidgets.Add(RepairText);
-    BuildExcludedWidgets.Add(RepairActions);
-    AddButton(TEXT("Repair Stone Knife"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStoneKnife);
-    AddButton(TEXT("Repair Stone Axe"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStoneAxe);
-    AddButton(TEXT("Repair Stone Pick"), RepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairStonePick);
-    auto* AxeRepairActions = WidgetTree->ConstructWidget<UHorizontalBox>(); Column->AddChild(AxeRepairActions);
-    StationCraftExcludedWidgets.Add(AxeRepairActions);
-    BuildExcludedWidgets.Add(AxeRepairActions);
-    AddButton(TEXT("Repair Bronze Axe"), AxeRepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairBronzeAxe);
-    AddButton(TEXT("Repair Iron Axe"), AxeRepairActions)->OnClicked.AddDynamic(this, &ThisClass::RepairIronAxe);
     WorkbenchRepairContextText = AddText(
         TEXT("Choose one of your carried tools. Repair is free; the server checks a visible same-world Workbench or Forge within 2.5 m."), 16);
     StationCraftExcludedWidgets.Add(WorkbenchRepairContextText);
@@ -1400,6 +1389,7 @@ void UKalmalaCraftingWidget::RememberInventoryInspectionState()
     Memory.Category = WorkbenchRepairInspector->GetCategory();
     Memory.Sort = WorkbenchRepairInspector->GetSort();
     Memory.SelectedItemId = WorkbenchRepairInspector->GetSelectedItem();
+    Memory.SelectedItemGuid = WorkbenchRepairInspector->GetSelectedItemGuid();
     Memory.bWasLastActive = IsInventoryInspectionFocused();
     if (Memory.bWasLastActive && CraftingScrollBox)
     {
@@ -1414,7 +1404,8 @@ void UKalmalaCraftingWidget::RestoreInventoryInspectionState()
     const FKalmalaInventoryInspectionMemory& Memory = InventoryInspectionMemory;
     if (!WorkbenchRepairInspector || !Memory.bHasState) return;
 
-    WorkbenchRepairInspector->RestoreBrowseState(Memory.Query, Memory.Category, Memory.Sort, Memory.SelectedItemId);
+    WorkbenchRepairInspector->RestoreBrowseState(Memory.Query, Memory.Category, Memory.Sort,
+        Memory.SelectedItemId, Memory.SelectedItemGuid);
     if (Memory.bWasLastActive)
     {
         WorkbenchRepairInspector->SetKeyboardFocus();
@@ -2466,8 +2457,8 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
     if (bWorkbenchRepairPending && Crafting->GetResultSerial() != WorkbenchRepairResultSerial)
     {
         bWorkbenchRepairPending = false;
-        WorkbenchRepairResultItemId = WorkbenchRepairPendingItemId;
-        WorkbenchRepairPendingItemId = NAME_None;
+        WorkbenchRepairResultToolGuid = WorkbenchRepairPendingToolGuid;
+        WorkbenchRepairPendingToolGuid = FGuid();
         WorkbenchRepairResultText = Crafting->GetLastResult();
     }
 
@@ -2475,9 +2466,11 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
     const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(GetOwningPlayerPawn());
     const FName SelectedItemId = WorkbenchRepairInspector
         ? WorkbenchRepairInspector->GetSelectedItem() : NAME_None;
+    const FGuid SelectedToolGuid = WorkbenchRepairInspector
+        ? WorkbenchRepairInspector->GetSelectedItemGuid() : FGuid();
     const FKalmalaToolState* Tool = Character
-        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedItemId](const FKalmalaToolState& Candidate)
-            { return Candidate.ItemId == SelectedItemId; })
+        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedItemId, &SelectedToolGuid](const FKalmalaToolState& Candidate)
+            { return Candidate.InstanceGuid == SelectedToolGuid && Candidate.ItemId == SelectedItemId; })
         : nullptr;
     const FKalmalaToolDefinition* Definition = SelectedItemId == TEXT("ConstructionHammer")
         ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedItemId);
@@ -2505,7 +2498,7 @@ void UKalmalaCraftingWidget::RefreshWorkbenchRepairState(UKalmalaCraftingCompone
             : TEXT("Workbench context unavailable. Reopen a nearby Workbench.");
     else if (SelectedItemId.IsNone())
         Status = TEXT("No repairable carried tools are available.");
-    else if (WorkbenchRepairResultItemId == SelectedItemId && !WorkbenchRepairResultText.IsEmpty())
+    else if (WorkbenchRepairResultToolGuid == SelectedToolGuid && !WorkbenchRepairResultText.IsEmpty())
         Status = WorkbenchRepairResultText;
     else if (!bToolStateValid)
         Status = TEXT("Selected tool condition is unavailable.");
@@ -2556,8 +2549,8 @@ void UKalmalaCraftingWidget::Close()
     bWorkbenchRepairContext = false;
     bStorageContext = false;
     bWorkbenchRepairPending = false;
-    WorkbenchRepairPendingItemId = NAME_None;
-    WorkbenchRepairResultItemId = NAME_None;
+    WorkbenchRepairPendingToolGuid = FGuid();
+    WorkbenchRepairResultToolGuid = FGuid();
     WorkbenchRepairResultText.Reset();
     StationContextSection.Reset();
     ApplyStationCraftLayout();
@@ -4540,7 +4533,8 @@ void UKalmalaCraftingWidget::Refresh()
                 ? FString::Printf(TEXT("Level %d\nCondition %d/%d — %s"), Tool.ToolLevel,
                     Tool.Durability, MaxDurability, Tool.Durability == 0 ? TEXT("Broken") : TEXT("Usable"))
                 : TEXT("Condition unavailable");
-            const FKalmalaCatalogueRow ToolRow{Tool.ItemId, GetReadableToolName(Tool.ItemId), VisibleState, true};
+            const FKalmalaCatalogueRow ToolRow{Tool.ItemId, GetReadableToolName(Tool.ItemId),
+                VisibleState, true, Tool.InstanceGuid};
             if (Tool.ItemId != TEXT("ConstructionHammer") && Definition)
                 WorkbenchRepairRows.Add(ToolRow);
         }
@@ -5213,11 +5207,6 @@ void UKalmalaCraftingWidget::Light() { if(auto* M=Model()) M->ServerLight(); }
 void UKalmalaCraftingWidget::EatFood() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("RoastedFieldMeat")); }
 void UKalmalaCraftingWidget::EatBroth() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("HearthBroth")); }
 void UKalmalaCraftingWidget::EatSmokedMeat() { if(auto* M=Model()) M->ServerConsumeFood(TEXT("SmokedFieldMeat")); }
-void UKalmalaCraftingWidget::RepairStoneKnife() { if(auto* M=Model()) M->ServerRepairTool(TEXT("StoneKnife")); }
-void UKalmalaCraftingWidget::RepairStoneAxe() { if(auto* M=Model()) M->ServerRepairTool(TEXT("StoneAxe")); }
-void UKalmalaCraftingWidget::RepairStonePick() { if(auto* M=Model()) M->ServerRepairTool(TEXT("StonePick")); }
-void UKalmalaCraftingWidget::RepairBronzeAxe() { if(auto* M=Model()) M->ServerRepairTool(TEXT("BronzeAxe")); }
-void UKalmalaCraftingWidget::RepairIronAxe() { if(auto* M=Model()) M->ServerRepairTool(TEXT("IronAxe")); }
 void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
 {
     APlayerController* PC = GetOwningPlayer();
@@ -5225,9 +5214,11 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
     UKalmalaCraftingComponent* Crafting = Model();
     const FName SelectedItemId = WorkbenchRepairInspector
         ? WorkbenchRepairInspector->GetSelectedItem() : NAME_None;
+    const FGuid SelectedToolGuid = WorkbenchRepairInspector
+        ? WorkbenchRepairInspector->GetSelectedItemGuid() : FGuid();
     const FKalmalaToolState* Tool = Character
-        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedItemId](const FKalmalaToolState& Candidate)
-            { return Candidate.ItemId == SelectedItemId; })
+        ? Character->GetCarriedToolInventory().FindByPredicate([SelectedItemId, &SelectedToolGuid](const FKalmalaToolState& Candidate)
+            { return Candidate.InstanceGuid == SelectedToolGuid && Candidate.ItemId == SelectedItemId; })
         : nullptr;
     const FKalmalaToolDefinition* Definition = SelectedItemId == TEXT("ConstructionHammer")
         ? nullptr : FKalmalaToolLifecycleContract::FindDefinition(SelectedItemId);
@@ -5237,19 +5228,19 @@ void UKalmalaCraftingWidget::RepairWorkbenchSelectedTool()
     const bool bContextKitMatches = (bWorkbenchRepairContext && StationFilterKit == TEXT("WorkbenchKit"))
         || (bForgeRepairContext && StationFilterKit == TEXT("ForgeKit"));
     if (!PC || !PC->IsLocalController() || !Character || !Crafting || !bRepairContext
-        || !bContextKitMatches || !IsStationContextValid() || !Tool || !Definition
+        || !bContextKitMatches || !IsStationContextValid() || !SelectedToolGuid.IsValid() || !Tool || !Definition
         || Tool->ToolLevel < 1 || MaxDurability <= 0 || Tool->Durability < 0 || Tool->Durability >= MaxDurability
         || bWorkbenchRepairPending) return;
 
     WorkbenchRepairResultSerial = Crafting->GetResultSerial();
-    WorkbenchRepairPendingItemId = SelectedItemId;
+    WorkbenchRepairPendingToolGuid = SelectedToolGuid;
     bWorkbenchRepairPending = true;
-    WorkbenchRepairResultItemId = NAME_None;
+    WorkbenchRepairResultToolGuid = FGuid();
     WorkbenchRepairResultText.Reset();
 #if !UE_BUILD_SHIPPING
     ++WorkbenchRepairRequestCountForTest;
 #endif
-    Crafting->ServerRepairTool(SelectedItemId);
+    Crafting->ServerRepairTool(SelectedToolGuid);
     RefreshWorkbenchRepairState(Crafting);
 }
 void UKalmalaCraftingWidget::CraftBronzeMace()

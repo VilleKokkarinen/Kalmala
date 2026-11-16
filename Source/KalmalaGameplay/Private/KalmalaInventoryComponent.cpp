@@ -175,13 +175,17 @@ bool UKalmalaInventoryComponent::VerifyHarvestGrants(AKalmalaCharacter* Characte
     // Verify selected-tool free repair against a real accepted workbench actor.
     auto* Crafting = Character->FindComponentByClass<UKalmalaCraftingComponent>();
     if (!Crafting) return false;
-    const int32 ConditionAfterGather = Character->GetToolDurability(TEXT("StoneAxe"));
+    const FKalmalaToolState* RepairToolState = Character->GetCarriedToolInventory().FindByPredicate(
+        [](const FKalmalaToolState& Candidate) { return Candidate.ItemId == TEXT("StoneAxe"); });
+    if (!RepairToolState || !RepairToolState->InstanceGuid.IsValid()) return false;
+    const FGuid RepairToolGuid = RepairToolState->InstanceGuid;
+    const int32 ConditionAfterGather = Character->GetToolDurability(RepairToolGuid);
     const int32 RepairBaselineWood = Inventory->GetQuantity(TEXT("Wood"));
     const TArray<FKalmalaInventoryStack> RepairBaselineStacks = Inventory->GetStacks();
     FString RepairReason;
     const bool bNoStationRejected = Crafting != nullptr
-        && !Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason)
-        && Character->GetToolDurability(TEXT("StoneAxe")) == ConditionAfterGather
+        && !Crafting->RepairToolFromServer(RepairToolGuid, RepairReason)
+        && Character->GetToolDurability(RepairToolGuid) == ConditionAfterGather
         && Inventory->GetStacks().Num() == RepairBaselineStacks.Num();
 
     const FVector Forward = Character->GetActorForwardVector().GetSafeNormal2D();
@@ -193,8 +197,8 @@ bool UKalmalaInventoryComponent::VerifyHarvestGrants(AKalmalaCharacter* Characte
     Bench->InitializeFromServer(TEXT("WorkbenchKit"), FGuid::NewGuid().ToString(EGuidFormats::DigitsWithHyphensLower));
     Bench->FinishSpawning(FarTransform);
     RepairReason.Reset();
-    const bool bFarStationRejected = !Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason)
-        && Character->GetToolDurability(TEXT("StoneAxe")) == ConditionAfterGather
+    const bool bFarStationRejected = !Crafting->RepairToolFromServer(RepairToolGuid, RepairReason)
+        && Character->GetToolDurability(RepairToolGuid) == ConditionAfterGather
         && Inventory->GetStacks().Num() == RepairBaselineStacks.Num();
 
     const FTransform NearTransform(FRotator::ZeroRotator, Character->GetActorLocation() + Forward * 150.0f);
@@ -208,15 +212,15 @@ bool UKalmalaInventoryComponent::VerifyHarvestGrants(AKalmalaCharacter* Characte
     const int32 CraftingExperienceBefore = CraftingBefore ? CraftingBefore->Experience : -1;
     const auto* HatchetDefinition = FKalmalaToolLifecycleContract::FindDefinition(TEXT("StoneAxe"));
     RepairReason.Reset();
-    const bool bRepairRequestAccepted = Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason);
+    const bool bRepairRequestAccepted = Crafting->RepairToolFromServer(RepairToolGuid, RepairReason);
     const bool bRepairAccepted = bPackCleared && HatchetDefinition && Inventory->GetStacks().IsEmpty()
         && bRepairRequestAccepted
-        && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetDefinition->MaxDurability
+        && Character->GetToolDurability(RepairToolGuid) == HatchetDefinition->MaxDurability
         && Inventory->GetStacks().IsEmpty() && RepairReason.Contains(TEXT("at no cost"));
     const FString AcceptedRepairReason = RepairReason;
     RepairReason.Reset();
-    const bool bFullConditionRejected = !Crafting->RepairToolFromServer(TEXT("StoneAxe"), RepairReason)
-        && HatchetDefinition && Character->GetToolDurability(TEXT("StoneAxe")) == HatchetDefinition->MaxDurability
+    const bool bFullConditionRejected = !Crafting->RepairToolFromServer(RepairToolGuid, RepairReason)
+        && HatchetDefinition && Character->GetToolDurability(RepairToolGuid) == HatchetDefinition->MaxDurability
         && Inventory->GetStacks().IsEmpty();
     const bool bInventoryRestored = Inventory->TryCommitStacksFromServer(EmptyPack, RepairBaselineStacks);
     const FKalmalaSkillState* CraftingAfter = Progression

@@ -168,7 +168,7 @@ void UKalmalaInventoryInspectWidget::SearchChanged(const FText& Text) { SetSearc
 void UKalmalaInventoryInspectWidget::SetCategory(int32 Value) { Category = FMath::Clamp(Value, 0, 3); Build(); Refilter(); }
 void UKalmalaInventoryInspectWidget::SetSort(int32 Value) { Sort = FMath::Clamp(Value, 0, 2); Build(); Refilter(); }
 void UKalmalaInventoryInspectWidget::RestoreBrowseState(const FString& Query, const int32 InCategory,
-    const int32 InSort, const FName SelectedItemId)
+    const int32 InSort, const FName SelectedItemId, const FGuid SelectedItemGuid)
 {
     Search = Query.Left(64).TrimStartAndEnd();
     Category = FMath::Clamp(InCategory, 0, 3);
@@ -178,7 +178,11 @@ void UKalmalaInventoryInspectWidget::RestoreBrowseState(const FString& Query, co
     else
         Refilter();
 
-    const int32 Found = Rows.IndexOfByPredicate([SelectedItemId](const auto& Row)
+    int32 Found = Rows.IndexOfByPredicate([SelectedItemGuid](const auto& Row)
+    {
+        return SelectedItemGuid.IsValid() && Row.ItemGuid == SelectedItemGuid;
+    });
+    if (Found == INDEX_NONE) Found = Rows.IndexOfByPredicate([SelectedItemId](const auto& Row)
     {
         return !SelectedItemId.IsNone() && Row.Id == SelectedItemId;
     });
@@ -200,7 +204,8 @@ namespace
 
 void UKalmalaInventoryInspectWidget::Refilter()
 {
-    const FName Old = GetSelectedItem();
+    const FName OldItemId = GetSelectedItem();
+    const FGuid OldItemGuid = GetSelectedItemGuid();
     Rows.Reset();
     for (const auto& Row : OwnerRows)
     {
@@ -220,7 +225,11 @@ void UKalmalaInventoryInspectWidget::Refilter()
             const int32 Compare = A.Name.Compare(B.Name, ESearchCase::IgnoreCase);
             return Compare == 0 ? A.Id.LexicalLess(B.Id) : Compare < 0;
         });
-    const int32 Found = Rows.IndexOfByPredicate([Old](const auto& Row) { return Row.Id == Old; });
+    int32 Found = Rows.IndexOfByPredicate([OldItemGuid](const auto& Row)
+    {
+        return OldItemGuid.IsValid() && Row.ItemGuid == OldItemGuid;
+    });
+    if (Found == INDEX_NONE) Found = Rows.IndexOfByPredicate([OldItemId](const auto& Row) { return Row.Id == OldItemId; });
     Selected = Found == INDEX_NONE ? 0 : Found;
     Refresh();
 }

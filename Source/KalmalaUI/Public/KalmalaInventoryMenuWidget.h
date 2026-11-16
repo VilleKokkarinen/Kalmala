@@ -35,6 +35,7 @@ public:
     void SetInventoryRowsForVerification(const TArray<FKalmalaCatalogueRow>& Rows, int32 TextScale, int32 Contrast);
     void PrepareMenuRender(FVector2D ViewportSize);
     FName GetSelectedItemForVerification() const;
+    FGuid GetSelectedItemGuidForVerification() const;
     void StepSelectionForVerification(int32 Direction);
     void SelectItemForVerification(FName ItemId) { SelectGridItem(ItemId); }
     void SetViewportSizeForVerification(FVector2D ViewportSize);
@@ -108,6 +109,7 @@ private:
     TArray<FKalmalaCatalogueRow> OwnerInventoryRows;
     int32 SelectedInventoryIndex = INDEX_NONE;
     FName RememberedSelectedItemId = NAME_None;
+    FGuid RememberedSelectedItemGuid;
     FGuid SelectedGridInstanceGuid;
     FName HoveredItemId = NAME_None;
     bool bEmptyCellSelected = false;
@@ -118,9 +120,10 @@ private:
     bool bOpeningAnimationActive = false;
     FString LastSelectedDetailKey;
     FString LastRepairResultText;
-    FName LastRepairResultItemId = NAME_None;
-    FName AwaitingRepairItemId = NAME_None;
+    FGuid LastRepairResultToolGuid;
+    FGuid AwaitingRepairToolGuid;
     FName LastPresentedSelectionId = NAME_None;
+    FGuid LastPresentedSelectionGuid;
     uint32 RepairRequestResultSerial = 0;
     uint32 FoodRequestResultSerial = 0;
     uint32 LastSeenGearRequestResultSerial = 0;

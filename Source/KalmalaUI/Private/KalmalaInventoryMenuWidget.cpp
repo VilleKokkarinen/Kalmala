@@ -441,25 +441,16 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
     if (const AKalmalaCharacter* Character = Cast<AKalmalaCharacter>(OwnerPawn))
     {
         const TArray<FKalmalaToolState>& CarriedTools = Character->GetCarriedToolInventory();
-        TSet<FName> SeenItemIds;
         const int32 BoundedToolCount = CarriedTools.Num();
         for (int32 Index = 0; Index < BoundedToolCount; ++Index)
         {
             const FKalmalaToolState& Tool = CarriedTools[Index];
             if (Inventory && Tool.InstanceGuid == Inventory->GetMainHandGuid()) continue;
             const FName CanonicalItemId = FKalmalaToolLifecycleContract::CanonicalizeItemId(Tool.ItemId);
-            if (CanonicalItemId.IsNone() || SeenItemIds.Contains(CanonicalItemId)) continue;
+            if (CanonicalItemId.IsNone()) continue;
             const FKalmalaToolDefinition* Definition = FKalmalaToolLifecycleContract::FindDefinition(CanonicalItemId);
             if (Definition == nullptr) continue;
-            SeenItemIds.Add(CanonicalItemId);
-            int32 Copies = 0;
-            for (int32 CopyIndex = 0; CopyIndex < BoundedToolCount; ++CopyIndex)
-                if ((!Inventory || CarriedTools[CopyIndex].InstanceGuid != Inventory->GetMainHandGuid())
-                    && FKalmalaToolLifecycleContract::CanonicalizeItemId(CarriedTools[CopyIndex].ItemId) == CanonicalItemId)
-                    ++Copies;
-            FString DisplayName = GetCarriedToolDisplayName(CanonicalItemId);
-            if (Copies > 1) DisplayName += FString::Printf(TEXT(" × %d"), Copies);
-            InventoryRows.Add({ CanonicalItemId, DisplayName,
+            InventoryRows.Add({ CanonicalItemId, GetCarriedToolDisplayName(CanonicalItemId),
                 BuildToolInspectionText(Tool), true, Tool.InstanceGuid });
         }
     }
@@ -485,9 +476,9 @@ void UKalmalaInventoryMenuWidget::RefreshOwnerInventory()
                 Crafting && Crafting->GetResultSerial() != RepairRequestResultSerial)
             {
                 LastRepairResultText = Crafting->GetLastResult();
-                LastRepairResultItemId = AwaitingRepairItemId;
+                LastRepairResultToolGuid = AwaitingRepairToolGuid;
                 bAwaitingRepairResult = false;
-                AwaitingRepairItemId = NAME_None;
+                AwaitingRepairToolGuid = FGuid();
             }
         }
     }
@@ -561,10 +552,20 @@ void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow
 {
     (void)bInventoryAvailable;
     SourceInventoryRows = MoveTemp(Rows);
-    if (!RememberedSelectedItemId.IsNone() && !SourceInventoryRows.ContainsByPredicate([this](const FKalmalaCatalogueRow& Row)
-        { return Row.Id == RememberedSelectedItemId; }))
+    const bool bSelectedGuidStillOwned = RememberedSelectedItemGuid.IsValid()
+        && SourceInventoryRows.ContainsByPredicate([this](const FKalmalaCatalogueRow& Row)
+            { return Row.ItemGuid == RememberedSelectedItemGuid; });
+    const bool bSelectedItemStillOwned = !RememberedSelectedItemId.IsNone()
+        && SourceInventoryRows.ContainsByPredicate([this](const FKalmalaCatalogueRow& Row)
+            { return Row.Id == RememberedSelectedItemId; });
+    if (!bSelectedGuidStillOwned && bSelectedItemStillOwned)
+    {
+        RememberedSelectedItemGuid.Invalidate();
+    }
+    else if (!bSelectedGuidStillOwned)
     {
         RememberedSelectedItemId = NAME_None;
+        RememberedSelectedItemGuid.Invalidate();
         SelectedGridInstanceGuid.Invalidate();
     }
 
@@ -576,11 +577,18 @@ void UKalmalaInventoryMenuWidget::ApplyInventoryRows(TArray<FKalmalaCatalogueRow
 void UKalmalaInventoryMenuWidget::RebuildVisibleInventoryRows(const int32 TextScale, const int32 Contrast)
 {
     OwnerInventoryRows = SourceInventoryRows;
-    SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate([this](const FKalmalaCatalogueRow& Row)
-    { return Row.Id == RememberedSelectedItemId; });
+    SelectedInventoryIndex = RememberedSelectedItemGuid.IsValid()
+        ? OwnerInventoryRows.IndexOfByPredicate([this](const FKalmalaCatalogueRow& Row)
+            { return Row.ItemGuid == RememberedSelectedItemGuid; })
+        : INDEX_NONE;
+    if (SelectedInventoryIndex == INDEX_NONE)
+        SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate([this](const FKalmalaCatalogueRow& Row)
+            { return Row.Id == RememberedSelectedItemId; });
     if (SelectedInventoryIndex == INDEX_NONE && !OwnerInventoryRows.IsEmpty() && !bEmptyCellSelected) SelectedInventoryIndex = 0;
     RememberedSelectedItemId = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
         ? OwnerInventoryRows[SelectedInventoryIndex].Id : NAME_None;
+    RememberedSelectedItemGuid = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? OwnerInventoryRows[SelectedInventoryIndex].ItemGuid : FGuid();
     RefreshSelectionPresentation(TextScale, Contrast);
 }
 void UKalmalaInventoryMenuWidget::SelectGridItem(const FName ItemId)
@@ -591,6 +599,8 @@ void UKalmalaInventoryMenuWidget::SelectGridItem(const FName ItemId)
     RememberedSelectedItemId = ItemId;
     SelectedInventoryIndex = OwnerInventoryRows.IndexOfByPredicate(
         [ItemId](const FKalmalaCatalogueRow& Row) { return Row.Id == ItemId; });
+    RememberedSelectedItemGuid = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? OwnerInventoryRows[SelectedInventoryIndex].ItemGuid : FGuid();
     RefreshSelectionPresentation(UKalmalaSettingsWidget::GetTextScalePercent(), UKalmalaSettingsWidget::GetContrastMode());
 }
 
@@ -660,15 +670,17 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
     const bool bHasSelection = OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex);
     const FKalmalaCatalogueRow* SelectedRow = bHasSelection ? &OwnerInventoryRows[SelectedInventoryIndex] : nullptr;
     const FName SelectedItem = SelectedRow ? SelectedRow->Id : NAME_None;
+    const FGuid SelectedItemGuid = SelectedRow ? SelectedRow->ItemGuid : FGuid();
     if (!HoveredItemId.IsNone() && !OwnerInventoryRows.ContainsByPredicate([this](const FKalmalaCatalogueRow& Row)
         { return Row.Id == HoveredItemId; })) HoveredItemId = NAME_None;
-    if (SelectedItem != LastPresentedSelectionId)
+    if (SelectedItem != LastPresentedSelectionId || SelectedItemGuid != LastPresentedSelectionGuid)
     {
         LastPresentedSelectionId = SelectedItem;
+        LastPresentedSelectionGuid = SelectedItemGuid;
         if (!bAwaitingRepairResult)
         {
             LastRepairResultText.Reset();
-            LastRepairResultItemId = NAME_None;
+            LastRepairResultToolGuid = FGuid();
         }
     }
 
@@ -781,10 +793,10 @@ void UKalmalaInventoryMenuWidget::RefreshSelectionPresentation(const int32 TextS
         RepairToolButton->SetIsEnabled((bNeedsRepair || bNeedsRefuel) && bHasRepairAction);
         FString StatusText;
         if (!bToolStateValid) StatusText = TEXT("Tool state unavailable.");
-        else if (bAwaitingRepairResult && AwaitingRepairItemId == SelectedRow->Id)
+        else if (bAwaitingRepairResult && AwaitingRepairToolGuid == SelectedRow->ItemGuid)
             StatusText = bTorch ? TEXT("Refuel requested. Waiting for the server result.")
                 : TEXT("Repair requested. Waiting for the server result.");
-        else if (LastRepairResultItemId == SelectedRow->Id && !LastRepairResultText.IsEmpty())
+        else if (LastRepairResultToolGuid == SelectedRow->ItemGuid && !LastRepairResultText.IsEmpty())
             StatusText = LastRepairResultText;
         else if (bTorch && Tool->RemainingBurnSeconds >= FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds)
             StatusText = TEXT("This torch is fully fuelled.");
@@ -1279,6 +1291,7 @@ void UKalmalaInventoryMenuWidget::StepSelection(const int32 Direction)
     const int32 Current = SelectedInventoryIndex == INDEX_NONE ? 0 : SelectedInventoryIndex;
     SelectedInventoryIndex = (Current + NumRows + (Direction < 0 ? -1 : 1)) % NumRows;
     RememberedSelectedItemId = OwnerInventoryRows[SelectedInventoryIndex].Id;
+    RememberedSelectedItemGuid = OwnerInventoryRows[SelectedInventoryIndex].ItemGuid;
     HoveredItemId = NAME_None;
     bSelectionDetailsRequested = true;
     const int32 TextScale = UKalmalaSettingsWidget::ClampTextScale(UKalmalaSettingsWidget::GetTextScalePercent());
@@ -1307,7 +1320,8 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
     const bool bTorchCanRefuel = bTorch && FMath::IsFinite(Tool->RemainingBurnSeconds)
         && Tool->RemainingBurnSeconds >= 0.0f
         && Tool->RemainingBurnSeconds < FKalmalaToolLifecycleContract::BasicTorchBurnDurationSeconds;
-    if (Controller == nullptr || !Controller->IsLocalController() || Tool == nullptr || Definition == nullptr
+    if (Controller == nullptr || !Controller->IsLocalController() || !Row.ItemGuid.IsValid()
+        || Tool == nullptr || Definition == nullptr
         || Tool->ToolLevel < 1 || MaxDurability <= 0 || Crafting == nullptr
         || (bTorch ? !bTorchCanRefuel : Tool->Durability < 0 || Tool->Durability >= MaxDurability))
     {
@@ -1317,15 +1331,15 @@ void UKalmalaInventoryMenuWidget::RepairSelectedTool()
     }
 
     RepairRequestResultSerial = Crafting->GetResultSerial();
-    AwaitingRepairItemId = Row.Id;
+    AwaitingRepairToolGuid = Row.ItemGuid;
     bAwaitingRepairResult = true;
     LastRepairResultText.Reset();
-    LastRepairResultItemId = NAME_None;
+    LastRepairResultToolGuid = FGuid();
     ToolActionStatusText->SetText(FText::FromString(bTorch
         ? TEXT("Refuel requested. Waiting for the server result.")
         : TEXT("Repair requested. Waiting for the server result.")));
     if (bTorch) Crafting->ServerRefuelTorch(Row.ItemGuid);
-    else Crafting->ServerRepairTool(Row.Id);
+    else Crafting->ServerRepairTool(Row.ItemGuid);
     RefreshOwnerInventory();
 }
 
@@ -1348,6 +1362,12 @@ void UKalmalaInventoryMenuWidget::SetInventoryRowsForVerification(const TArray<F
 FName UKalmalaInventoryMenuWidget::GetSelectedItemForVerification() const
 {
     return OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex) ? OwnerInventoryRows[SelectedInventoryIndex].Id : NAME_None;
+}
+
+FGuid UKalmalaInventoryMenuWidget::GetSelectedItemGuidForVerification() const
+{
+    return OwnerInventoryRows.IsValidIndex(SelectedInventoryIndex)
+        ? OwnerInventoryRows[SelectedInventoryIndex].ItemGuid : FGuid();
 }
 
 void UKalmalaInventoryMenuWidget::StepSelectionForVerification(const int32 Direction)

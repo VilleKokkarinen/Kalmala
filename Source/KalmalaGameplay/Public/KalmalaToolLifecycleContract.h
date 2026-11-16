@@ -196,6 +196,13 @@ public:
         bool bAtValidatedRepairStation,
         const FKalmalaToolState& ToolState,
         FKalmalaToolState& OutRepairedState);
+    /** Build a no-cost repair candidate for one exact carried-tool instance. */
+    static bool BuildServerFreeRepairForInstance(
+        bool bServerAuthority,
+        bool bAtValidatedRepairStation,
+        const TArray<FKalmalaToolState>& ToolStates,
+        const FGuid& ToolInstanceGuid,
+        TArray<FKalmalaToolState>& OutRepairedStates);
     /** Build one atomic no-cost repair candidate from the server-owned carried-tool list at a validated repair station. */
     static bool BuildServerRepairAll(
         bool bServerAuthority,

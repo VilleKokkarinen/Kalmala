@@ -42,6 +42,22 @@ bool FKalmalaInventoryMenuSelectionTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Tool cell selects existing condition and repair detail"), DetailText(OwnerA).Contains(TEXT("Condition 17/40")));
     OwnerA->SetInventoryRowsForVerification(Rows, 150, 1);
     TestEqual(TEXT("Owner refresh preserves selected identity"), OwnerA->GetSelectedItemForVerification(), FName(TEXT("StoneKnife")));
+
+    auto* DuplicateOwner = NewObject<UKalmalaInventoryMenuWidget>(); DuplicateOwner->Initialize();
+    const FGuid FirstAxeGuid(31, 32, 33, 34);
+    const FGuid SecondAxeGuid(41, 42, 43, 44);
+    const TArray<FKalmalaCatalogueRow> DuplicateAxes = {
+        {TEXT("StoneAxe"), TEXT("Stone Axe"), TEXT("Level 1\nCondition 40/40"), true, FirstAxeGuid},
+        {TEXT("StoneAxe"), TEXT("Stone Axe"), TEXT("Level 1\nCondition 9/40"), true, SecondAxeGuid}
+    };
+    DuplicateOwner->SetInventoryRowsForVerification(DuplicateAxes, 100, 0);
+    DuplicateOwner->StepSelectionForVerification(1);
+    TestTrue(TEXT("Inventory selection can target the second duplicate tool"),
+        DuplicateOwner->GetSelectedItemGuidForVerification() == SecondAxeGuid);
+    DuplicateOwner->SetInventoryRowsForVerification(DuplicateAxes, 100, 0);
+    TestTrue(TEXT("Inventory refresh preserves the selected duplicate GUID"),
+        DuplicateOwner->GetSelectedItemGuidForVerification() == SecondAxeGuid);
+
     int32 Grids = 0, Searches = 0;
     bool bArmor = false, bWeight = false;
     bool bWornGearHeading = false;

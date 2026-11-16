@@ -729,9 +729,8 @@ void UKalmalaCraftingComponent::ServerLight_Implementation()
     PublishResult(bAccepted ? TEXT("Hearth lit") : TEXT("Need a usable nearby unlit hearth with dry fuel"), bAccepted);
 }
 
-bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ItemId, FString& Reason)
+bool UKalmalaCraftingComponent::RepairToolFromServer(const FGuid ToolInstanceGuid, FString& Reason)
 {
-    const FName CanonicalId = FKalmalaToolLifecycleContract::CanonicalizeItemId(ItemId);
     auto* Character = GetCharacter();
     Reason = TEXT("Server authority required");
     if (!Character || !Character->HasAuthority() || !Character->GetController()) return false;
@@ -743,25 +742,32 @@ bool UKalmalaCraftingComponent::RepairToolFromServer(const FName ItemId, FString
         return false;
     }
 
-    int32* CurrentDurability = Character->FindToolDurabilityFromServer(CanonicalId);
-    if (CurrentDurability == nullptr) { Reason = TEXT("Unknown tool"); return false; }
-    FKalmalaToolState CurrentState;
-    CurrentState.ItemId = CanonicalId;
-    CurrentState.Durability = *CurrentDurability;
-    CurrentState.ToolLevel = Character->GetCarriedToolLevel(CanonicalId);
-    FKalmalaToolState RepairedState;
-    if (!FKalmalaToolLifecycleContract::BuildServerFreeRepair(true, true, CurrentState, RepairedState))
+    if (!ToolInstanceGuid.IsValid()) { Reason = TEXT("Unknown selected tool"); return false; }
+    const FKalmalaToolState* SelectedTool = Character->CarriedTools.FindByPredicate(
+        [&ToolInstanceGuid](const FKalmalaToolState& Candidate)
+        {
+            return Candidate.InstanceGuid == ToolInstanceGuid;
+        });
+    if (SelectedTool == nullptr) { Reason = TEXT("Unknown selected tool"); return false; }
+
+    TArray<FKalmalaToolState> CandidateTools;
+    if (!FKalmalaToolLifecycleContract::BuildServerFreeRepairForInstance(
+        true, true, Character->CarriedTools, ToolInstanceGuid, CandidateTools))
     {
-        Reason = TEXT("Tool is already at full condition or has invalid condition");
+        const int32 MaximumDurability = FKalmalaToolLifecycleContract::GetMaxDurability(
+            SelectedTool->ItemId, SelectedTool->ToolLevel);
+        Reason = MaximumDurability > 0 && SelectedTool->Durability == MaximumDurability
+            ? TEXT("Selected tool is already at full condition")
+            : TEXT("Selected tool has invalid condition or identity");
         return false;
     }
 
-    const int32 PreviousDurability = *CurrentDurability;
-    *CurrentDurability = RepairedState.Durability;
+    const TArray<FKalmalaToolState> PreviousTools = Character->CarriedTools;
+    Character->CarriedTools = MoveTemp(CandidateTools);
     AKalmalaGameMode* GameMode = GetWorld() != nullptr ? GetWorld()->GetAuthGameMode<AKalmalaGameMode>() : nullptr;
     if (GameMode == nullptr || !GameMode->PersistPlayerStateFromServer(Character))
     {
-        if (int32* CurrentCondition = Character->FindToolDurabilityFromServer(CanonicalId)) *CurrentCondition = PreviousDurability;
+        Character->CarriedTools = PreviousTools;
         Character->ForceNetUpdate();
         Reason = TEXT("Player tool repair could not be saved");
         return false;
@@ -842,11 +848,11 @@ bool UKalmalaCraftingComponent::CommitRepairAllToolsFromServer(const TCHAR* Stat
     return true;
 }
 
-void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FName ItemId)
+void UKalmalaCraftingComponent::ServerRepairTool_Implementation(const FGuid ToolInstanceGuid)
 {
     if (!AcceptRequest()) return;
     FString Reason;
-    const bool bAccepted = RepairToolFromServer(ItemId, Reason);
+    const bool bAccepted = RepairToolFromServer(ToolInstanceGuid, Reason);
     PublishResult(Reason, bAccepted);
 }
 

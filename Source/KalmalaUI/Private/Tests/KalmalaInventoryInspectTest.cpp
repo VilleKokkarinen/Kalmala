@@ -29,6 +29,29 @@ bool FKalmalaInventoryInspectTest::RunTest(const FString& Parameters)
     TestFalse(TEXT("Inspection does not dispatch a use action"), Panel->Navigate(EKeys::Gamepad_FaceButton_Bottom));
     Swap(Rows[0], Rows[1]); Panel->SetRows(Rows, 150, 1);
     TestEqual(TEXT("Refresh preserves canonical selection"), Panel->GetSelectedItem(), FName(TEXT("StoneAxe")));
+
+    auto* DuplicateToolPanel = NewObject<UKalmalaInventoryInspectWidget>();
+    DuplicateToolPanel->Initialize();
+    DuplicateToolPanel->TakeWidget();
+    const FGuid FirstAxeGuid(11, 12, 13, 14);
+    const FGuid SecondAxeGuid(21, 22, 23, 24);
+    TArray<FKalmalaCatalogueRow> DuplicateTools = {
+        {TEXT("StoneAxe"), TEXT("Stone Axe"), TEXT("Condition 17/40"), true, FirstAxeGuid},
+        {TEXT("StoneAxe"), TEXT("Stone Axe"), TEXT("Condition 9/40"), true, SecondAxeGuid}
+    };
+    DuplicateToolPanel->SetRows(DuplicateTools, 100, 0, TEXT("Carried tools"), TEXT("No tools"), true, 1, true);
+    TestTrue(TEXT("Duplicate tool selection advances to the second physical copy"),
+        DuplicateToolPanel->Navigate(EKeys::Right));
+    TestTrue(TEXT("Duplicate tool rows retain the selected physical GUID"),
+        DuplicateToolPanel->GetSelectedItemGuid() == SecondAxeGuid);
+    DuplicateTools[1].Detail = TEXT("Condition 40/40");
+    DuplicateToolPanel->SetRows(DuplicateTools, 100, 0, TEXT("Carried tools"), TEXT("No tools"), true, 1, true);
+    TestTrue(TEXT("Owner refresh preserves the selected duplicate GUID"),
+        DuplicateToolPanel->GetSelectedItemGuid() == SecondAxeGuid);
+    DuplicateToolPanel->RestoreBrowseState(TEXT(""), 0, 0, TEXT("StoneAxe"), FirstAxeGuid);
+    TestTrue(TEXT("Browse-state restore selects the requested duplicate GUID"),
+        DuplicateToolPanel->GetSelectedItemGuid() == FirstAxeGuid);
+
     TArray<UWidget*> Widgets; Panel->WidgetTree->GetAllWidgets(Widgets);
     bool bToolPanel = false;
     int32 InitialImageCount = 0;

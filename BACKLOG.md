@@ -1733,7 +1733,7 @@
     passenger, and observer in a listen-server session. Confirm the detailed
     result reaches only the helmsman while public mode and movement still
     replicate. No runtime check was run during this review.
-  - [ ] **RF60 — Repair the selected carried-tool instance (P3; CR06-001).**
+  - [x] **RF60 — Repair the selected carried-tool instance (P3; CR06-001).**
     `Source/KalmalaUI/Private/KalmalaInventoryMenuWidget.cpp:443-463,1288-1328`,
     `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h:47`,
     `Source/KalmalaGameplay/Private/KalmalaCraftingComponent.cpp:657-693`,
@@ -1751,16 +1751,18 @@
     GUID; `RepairSelectedTool` validates that GUID then sends `Row.Id`. The RPC
     accepts only an item ID, and `FindToolDurabilityFromServer(FName)` prefers
     the active same-type GUID. Duplicate GUID-addressed tool copies are allowed.
-    **Proposed repair:** Send the selected GUID and validate that exact carried
-    tool on the server, or make the UI explicitly present and repair the chosen
-    server-resolved copy.
+    **Proposed repair:** Display each carried copy separately, preserve its
+    selected GUID through refresh, send that GUID, validate one exact carried
+    record on the server, and restore the previous list if saving fails.
     **Dependencies:** After CR19 review acceptance; no repair during review.
     **Acceptance:** With duplicates at different condition, individual repair
     changes only the selected GUID. An invalid/unowned GUID, unavailable
     station, failed persistence, or full selected copy changes no condition.
-    **Focused validation:** Add a regression with an active full copy and a worn
-    selected spare, then reverse conditions; verify selected-only repair and
-    unchanged state on rejection. No test was run during this review.
+    **Focused validation:** Added duplicate-copy contract cases in both
+    condition orders, rejection cases for invalid/unowned/duplicate GUIDs,
+    missing station, and full selected copy; added Inventory and station
+    inspector GUID-retention plus RPC reflection coverage. Unreal automations
+    were not run in this increment.
   - [ ] **RF61 — Reconcile the current Bow feature summary (P3; CR06-001).**
     `docs/game-features.md:9-25,102-112`,
     `docs/01-game-design.md:3-25,60-81`,

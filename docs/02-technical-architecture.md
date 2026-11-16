@@ -2661,11 +2661,16 @@ stacks and bounded carried-tool records. Previous/next controls and arrow/D-pad
 input select a pack or equipment row, whose icon, description or level/condition
 appears in the shared detail panel. If a selected record disappears, selection
 falls back to the first remaining row; an empty owner view clears selection and
-hides the detail panel. A damaged selected tool exposes the existing repair
-action. It sends only the tool ID, and the server validates the carried record
-and nearby visible Workbench or Forge before changing condition. A selected
-supported food item shows its existing Steady Meal benefit, owner-visible
-quantity and active timer, and an Eat one serving action. That action sends only
+hides the detail panel. Each unequipped carried tool copy has a separate row;
+the equipped Main Hand remains in its equipment slot. Selection stays on the
+same GUID across owner refresh. A damaged selected tool exposes
+the existing repair action. It sends only the selected carried instance GUID,
+and the server validates that exact GUID in the owner's carried records and a
+nearby visible Workbench or Forge before changing condition. Duplicate tools remain
+individually repairable, and persistence failure restores the previous carried
+records. A selected supported food item shows its existing Steady Meal benefit
+and owner-visible quantity and active timer, plus an Eat one serving action.
+That action sends only
 the selected food ID through the existing station-free server transaction;
 rejected or replayed requests consume nothing and cannot refresh or replace an
 active meal. The owner sees the server result. The previous HUD pack view

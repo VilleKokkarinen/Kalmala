@@ -37,6 +37,7 @@ struct FKalmalaInventoryInspectionMemory
     int32 Category = 0;
     int32 Sort = 0;
     FName SelectedItemId;
+    FGuid SelectedItemGuid;
     float ScrollOffset = 0.0f;
 };
 
@@ -212,11 +213,6 @@ private:
     UFUNCTION() void EatFood();
     UFUNCTION() void EatBroth();
     UFUNCTION() void EatSmokedMeat();
-    UFUNCTION() void RepairStoneKnife();
-    UFUNCTION() void RepairStoneAxe();
-    UFUNCTION() void RepairStonePick();
-    UFUNCTION() void RepairBronzeAxe();
-    UFUNCTION() void RepairIronAxe();
     UFUNCTION() void RepairWorkbenchSelectedTool();
     UFUNCTION() void CraftBronzeAxe();
     UFUNCTION() void CraftBronzeMace();
@@ -438,8 +434,8 @@ private:
     FString ContextConstructionId;
     FString StationContextSection;
     FString WorkbenchRepairResultText;
-    FName WorkbenchRepairPendingItemId = NAME_None;
-    FName WorkbenchRepairResultItemId = NAME_None;
+    FGuid WorkbenchRepairPendingToolGuid;
+    FGuid WorkbenchRepairResultToolGuid;
     uint32 WorkbenchRepairResultSerial = 0;
     uint32 StationRepairResultSerial = 0;
     FString StationRepairFeedback;

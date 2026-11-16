@@ -4380,16 +4380,27 @@ placement range; duplicate rejection; and the kit-only placement RPC payload.
 
 ### M9 free selected-tool repair
 
-The owner-only Inventory panel offers one selected-tool action for each of the
-three starting tools and both axe tiers. The owning client sends only the tool
-ID. The server reads the carried record and requires a visible same-world
-Workbench or Forge within 250 cm; damaged and zero-condition tools restore to
-their authored maximum without inventory changes or Crafting experience.
+The owner-only Inventory panel displays each unequipped carried tool copy in
+its own row; the equipped Main Hand remains in its equipment slot. Selection
+stays on the same GUID across owner refresh. The owning client sends only the
+selected carried instance GUID. The server verifies that exact GUID remains in
+the carried records and requires a visible same-world Workbench or Forge within
+250 cm; damaged and zero-condition tools restore to their authored maximum
+without inventory changes or Crafting experience. Duplicate copies of the
+same tool ID remain independently repairable. A failed save restores the
+entire previous carried-tool list.
 Material-paid repair and broken-tool replacement recipes are retired.
 
 `Kalmala.Gameplay.Tools.LifecycleContract` checks free repair for all five
 tool definitions, including zero condition and tool-level preservation, plus
-authority, station, unknown-tool, full, and invalid-condition rejection.
+GUID-addressed duplicate-copy selection in both orders, invalid or unowned
+GUIDs, duplicate GUIDs, missing stations, full selected copies, and invalid
+condition rejection. `Kalmala.UI.Inventory.InspectionNavigation` checks that
+the inspector keeps a selected duplicate GUID across owner refresh and browse
+restore. `Kalmala.UI.InventoryMenu.Selection` checks that Inventory can select
+the second duplicate and retain its GUID across owner refresh. The server
+transaction saves the GUID-selected candidate and restores the prior carried
+list on persistence failure.
 `Kalmala.Gameplay.Crafting.Transactions` confirms the old replacement recipes
 are absent. `Scripts/Tests/Inventory/InventoryReconnect.ps1` checks live Workbench
 range/rejection, repair with an empty pack, unchanged Crafting experience,
