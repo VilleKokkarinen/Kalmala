@@ -17,6 +17,31 @@
 #include "KalmalaWeatherCycle.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/AutomationTest.h"
+#include "UObject/UnrealType.h"
+
+namespace
+{
+    bool SetPendingRewardRowsForContractTest(UKalmalaWorldPopulationSaveGame* SaveGame, const int32 RowCount)
+    {
+        if (SaveGame == nullptr || RowCount < 0) return false;
+        FArrayProperty* PendingRewardsProperty = FindFProperty<FArrayProperty>(
+            UKalmalaWorldPopulationSaveGame::StaticClass(), TEXT("PendingWildlifeRewards"));
+        if (PendingRewardsProperty == nullptr) return false;
+        TArray<FKalmalaPendingWildlifeReward>* PendingRewards =
+            PendingRewardsProperty->ContainerPtrToValuePtr<TArray<FKalmalaPendingWildlifeReward>>(SaveGame);
+        if (PendingRewards == nullptr) return false;
+
+        PendingRewards->SetNum(RowCount);
+        for (int32 Index = 0; Index < RowCount; ++Index)
+        {
+            FKalmalaPendingWildlifeReward& Reward = (*PendingRewards)[Index];
+            Reward.PersistentSpawnId = FString::Printf(TEXT("rf55-claim-%d"), Index);
+            Reward.PlayerIdentity = TEXT("player:rf55");
+            Reward.GemItemId = NAME_None;
+        }
+        return true;
+    }
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FKalmalaWorldPlayerStartResolverTest,
@@ -277,6 +302,60 @@ bool FKalmalaWorldPopulationSaveGameTest::RunTest(const FString& Parameters)
 
     Config.WorldSeed = 419;
     TestFalse(TEXT("A different seed cannot reuse this population delta save"), SaveGame->MatchesWorld(Config));
+    return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FKalmalaWorldPopulationPendingRewardBoundsTest,
+    "Kalmala.World.PopulationSaveGame.PendingRewardBounds",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FKalmalaWorldPopulationPendingRewardBoundsTest::RunTest(const FString& Parameters)
+{
+    FKalmalaWorldGenerationConfig Config;
+    Config.WorldSeed = 418;
+    UKalmalaWorldPopulationSaveGame* SaveGame = NewObject<UKalmalaWorldPopulationSaveGame>();
+    SaveGame->InitializeForWorld(Config);
+
+    bool bQueuedAllLimitRows = true;
+    for (int32 Index = 0; Index < UKalmalaWorldPopulationSaveGame::MaxPendingWildlifeRewards; ++Index)
+    {
+        const FString ClaimId = FString::Printf(TEXT("rf55-claim-%d"), Index);
+        if (!SaveGame->TryQueuePendingWildlifeReward(ClaimId, TEXT("player:rf55")))
+        {
+            bQueuedAllLimitRows = false;
+            break;
+        }
+    }
+    if (!TestTrue(TEXT("The normal queue accepts exactly 4,096 pending rows"), bQueuedAllLimitRows)) return false;
+    TestEqual(TEXT("The valid boundary record contains 4,096 rows"),
+        SaveGame->GetPendingWildlifeRewards().Num(), UKalmalaWorldPopulationSaveGame::MaxPendingWildlifeRewards);
+    const int32 CountBeforeOverflowRequest = SaveGame->GetPendingWildlifeRewards().Num();
+    TestFalse(TEXT("Normal queue mutation rejects row 4,097"),
+        SaveGame->TryQueuePendingWildlifeReward(TEXT("rf55-queue-overflow"), TEXT("player:rf55")));
+    TestEqual(TEXT("Rejected queue mutation leaves the in-bound row count unchanged"),
+        SaveGame->GetPendingWildlifeRewards().Num(), CountBeforeOverflowRequest);
+
+    TArray<uint8> AtLimitBytes;
+    if (!TestTrue(TEXT("The 4,096-row boundary record serializes"),
+            UGameplayStatics::SaveGameToMemory(SaveGame, AtLimitBytes))) return false;
+    auto* AtLimitReloaded = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(AtLimitBytes));
+    if (!TestNotNull(TEXT("The serialized 4,096-row record reloads"), AtLimitReloaded)) return false;
+    TestEqual(TEXT("The reloaded boundary retains all pending rows"),
+        AtLimitReloaded->GetPendingWildlifeRewards().Num(), UKalmalaWorldPopulationSaveGame::MaxPendingWildlifeRewards);
+    TestTrue(TEXT("A same-world 4,096-row record remains valid"), AtLimitReloaded->MatchesWorld(Config));
+
+    if (!TestTrue(TEXT("The contract fixture creates a structurally valid 4,097-row record"),
+            SetPendingRewardRowsForContractTest(SaveGame,
+                UKalmalaWorldPopulationSaveGame::MaxPendingWildlifeRewards + 1))) return false;
+    TArray<uint8> OverLimitBytes;
+    if (!TestTrue(TEXT("The 4,097-row record serializes before load validation"),
+            UGameplayStatics::SaveGameToMemory(SaveGame, OverLimitBytes))) return false;
+    auto* OverLimitReloaded = Cast<UKalmalaWorldPopulationSaveGame>(UGameplayStatics::LoadGameFromMemory(OverLimitBytes));
+    if (!TestNotNull(TEXT("The serialized 4,097-row record reloads for validation"), OverLimitReloaded)) return false;
+    TestEqual(TEXT("The over-limit record retains 4,097 rows before validation"),
+        OverLimitReloaded->GetPendingWildlifeRewards().Num(), UKalmalaWorldPopulationSaveGame::MaxPendingWildlifeRewards + 1);
+    TestFalse(TEXT("A same-world 4,097-row record is rejected"), OverLimitReloaded->MatchesWorld(Config));
     return true;
 }
 

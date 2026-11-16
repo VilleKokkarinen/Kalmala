@@ -34,13 +34,19 @@ if ($ForestRestartOnly) {
     $output = Join-Path $env:TEMP ('kfr-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
     $userRoot = Join-Path $output 'user'
     $slot = Join-Path $userRoot 'Saved/SaveGames/KalmalaPopulationDeltas_418.sav'
-    if ($slot.Length -ge 260) { throw 'Forest restart output exceeds MAX_PATH.' }
+    $rejectSlot = Join-Path $userRoot 'Saved/SaveGames/KalmalaPopulationDeltas_419.sav'
+    if ($slot.Length -ge 260 -or $rejectSlot.Length -ge 260) { throw 'Forest restart output exceeds MAX_PATH.' }
     if (Test-Path -LiteralPath $output) { throw 'Forest restart requires a fresh output root.' }
     New-Item -ItemType Directory -Path $output | Out-Null
     $slotHash = $null
-    foreach ($phase in @('Write', 'Read')) {
+    foreach ($phase in @('Write', 'Read', 'Reject')) {
         $log = Join-Path $output ($phase.ToLowerInvariant() + '.log')
-        $arguments = "`"$project`" -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput -UserDir=`"$userRoot`" -abslog=`"$log`" -KalmalaForestRestart=$phase -KalmalaForestRestartRoot=`"$userRoot`" -ExecCmds=`"Automation RunTests Kalmala.Gameplay.Harvest.ForestProcessRestart`" -TestExit=`"Automation Test Queue Empty`""
+        $automationTests = if ($phase -eq 'Reject') {
+            'Kalmala.World.PopulationSaveGame.PendingRewardBounds+Kalmala.Gameplay.Harvest.ForestProcessRestart'
+        } else {
+            'Kalmala.Gameplay.Harvest.ForestProcessRestart'
+        }
+        $arguments = "`"$project`" -unattended -nop4 -nosplash -nullrhi -NoZenAutoLaunch -DDC=NoZenLocalFallback -stdout -FullStdOutLogOutput -UserDir=`"$userRoot`" -abslog=`"$log`" -KalmalaForestRestart=$phase -KalmalaForestRestartRoot=`"$userRoot`" -ExecCmds=`"Automation RunTests $automationTests`" -TestExit=`"Automation Test Queue Empty`""
         $process = Start-Process $Editor -WindowStyle Hidden -PassThru -ArgumentList $arguments
         try {
             if (!$process.WaitForExit(180000)) { throw "Forest restart $phase timed out: $log" }
@@ -50,12 +56,17 @@ if ($ForestRestartOnly) {
         }
         $text = Get-Content -LiteralPath $log -Raw
         if ($text -notmatch 'Result=\{Success\}.*Name=\{ForestProcessRestart\}' -or
-            $text -notmatch ('Forest restart phase: Phase=' + $phase + ' Slot=KalmalaPopulationDeltas_418 Collected=2 Uncollected=[1-9][0-9]*') -or
+            ($phase -eq 'Reject' -and $text -notmatch 'Result=\{Success\}.*Name=\{[^}]*PendingRewardBounds\}') -or
+            ($phase -eq 'Reject' -and $text -notmatch 'Forest restart oversized rejection: Phase=Reject Slot=KalmalaPopulationDeltas_419 Rows=4097 SlotUnchanged=1') -or
+            ($phase -ne 'Reject' -and $text -notmatch ('Forest restart phase: Phase=' + $phase + ' Slot=KalmalaPopulationDeltas_418 Collected=2 Uncollected=[1-9][0-9]*')) -or
             $text -match 'Result=\{Fail|Fatal error:|Assertion failed:') { throw "Forest restart $phase proof missing or failed: $log" }
-        if (!(Test-Path -LiteralPath $slot)) { throw "Forest restart $phase did not retain the real slot." }
-        $currentHash = (Get-FileHash -LiteralPath $slot -Algorithm SHA256).Hash
-        if ($phase -eq 'Write') { $slotHash = $currentHash }
-        elseif ($currentHash -ne $slotHash) { throw 'Restart load/activation/eviction rewrote the population slot.' }
+        $currentSlot = if ($phase -eq 'Reject') { $rejectSlot } else { $slot }
+        if (!(Test-Path -LiteralPath $currentSlot)) { throw "Forest restart $phase did not retain the expected real slot." }
+        if ($phase -ne 'Reject') {
+            $currentHash = (Get-FileHash -LiteralPath $currentSlot -Algorithm SHA256).Hash
+            if ($phase -eq 'Write') { $slotHash = $currentHash }
+            elseif ($currentHash -ne $slotHash) { throw 'Restart load/activation/eviction rewrote the population slot.' }
+        }
     }
     $writeIds = [regex]::Matches((Get-Content (Join-Path $output 'write.log') -Raw), 'Forest restart candidate: Phase=Write Id=(\S+) Collected=([01]) Live=1') | ForEach-Object { $_.Groups[1].Value + ':' + $_.Groups[2].Value }
     $readIds = [regex]::Matches((Get-Content (Join-Path $output 'read.log') -Raw), 'Forest restart candidate: Phase=Read Id=(\S+) Collected=([01]) Live=([01])') | ForEach-Object {
@@ -63,7 +74,7 @@ if ($ForestRestartOnly) {
         $_.Groups[1].Value + ':' + $_.Groups[2].Value
     }
     if ($writeIds.Count -lt 3 -or ($writeIds -join '|') -cne ($readIds -join '|')) { throw 'Restart candidate identities differ across processes.' }
-    Write-Host "PASS: real forest population slot survives process restart; exact collected IDs absent, uncollected trees restored, slot unchanged. Logs: $output"
+    Write-Host "PASS: real population slot survives restart, and the over-limit reward slot is rejected without rewriting its bytes. Logs: $output"
     return
 }
 if ($ForestDeliveryOnly) {

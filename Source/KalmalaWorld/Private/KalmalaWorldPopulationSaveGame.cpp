@@ -41,7 +41,8 @@ void UKalmalaWorldPopulationSaveGame::InitializeForWorld(const FKalmalaWorldGene
 
 bool UKalmalaWorldPopulationSaveGame::MatchesWorld(const FKalmalaWorldGenerationConfig& InWorldConfig) const
 {
-    if (SchemaVersion != 2 || WorldConfig != InWorldConfig || Gemstones.Num() > 65536) return false;
+    if (SchemaVersion != 2 || WorldConfig != InWorldConfig || Gemstones.Num() > 65536
+        || PendingWildlifeRewards.Num() > MaxPendingWildlifeRewards) return false;
     for (const auto& Reward : PendingWildlifeRewards)
     {
         FString MirelingBossSpawnId;

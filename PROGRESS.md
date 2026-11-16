@@ -33638,3 +33638,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** No runtime code changed. The status/weather hotbar presents accepted owner state; support scroll activation continues through the existing server-side numbered-cell resolution. Local fog and material response remain presentation-only weather effects.
 - **Known limitations / remaining scope:** No editor or rendered HUD verification was run. Legacy presenter test classes and slot assertions remain in the repository as historical component coverage. The CR remediation goal remains open.
 - **Next eligible task:** RF55 — Reject oversized pending population rewards on load.
+
+## Run 2026-11-16 — RF55 reject oversized pending population rewards
+
+- **Selected task:** RF55, bound pending wildlife reward records during population-save loading.
+- **Work completed:** Added the 4,096-row cap to `UKalmalaWorldPopulationSaveGame::MatchesWorld` before reward-row validation, so an oversized same-world save is rejected before GameMode retains or scans it. Added serialized 4,096/4,097 boundary automation, including the existing queue's 4,097th-row rejection. Extended the isolated production-loader restart harness with a 4,097-row slot and byte-for-byte preservation assertion. Updated the architecture and setup guides, then checked RF55 in the backlog.
+- **Files changed:** `BACKLOG.md`, `PROGRESS.md`, `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp`, `Source/KalmalaWorld/Private/Tests/KalmalaWorldPlayerStartResolverTest.cpp`, `Source/KalmalaGameplay/Private/Tests/KalmalaForestRestartTest.cpp`, `Scripts/Tests/World/BiomeExpansion.ps1`, `docs/02-technical-architecture.md`, and `docs/07-development-setup.md`.
+- **Lightweight checks:** `git diff --check` passed; PowerShell parser check passed for `BiomeExpansion.ps1`; inspected the loader, queue cap, saved-reward retry path, and existing owner-bound retry regression. All changed paths are below 260 characters. No Unreal build or automation test was run.
+- **Full verification:** Deferred; RF55 is not the final implementation task in the CR remediation queue. The new boundary automation and three-phase isolated restart gate remain to be executed at milestone-final verification.
+- **Observable impact:** A same-world schema-2 population slot with 4,097 pending rewards no longer reaches GameMode's periodic copy/retry scan. The loader rejects it without rewriting its source slot; a 4,096-row record remains valid.
+- **Networking/authority:** The change applies to server-side local world-save validation. No client request or network authority path changed. Existing owner-bound retry behavior and reward schema remain unchanged.
+- **Known limitations / remaining scope:** The new C++ automation and production slot-preservation phase were not compiled or run in this increment. The existing Mireling owner-recovery regression remains source-level coverage for retry behavior. CR remediation remains open.
+- **Next eligible task:** RF56 — Cover the M7 sparse-delta count bound.

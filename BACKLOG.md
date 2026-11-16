@@ -1583,7 +1583,7 @@
     the widget lifecycle and hotbar sources. Run
     `Scripts/Tests/Acceptance/DocumentationContracts.ps1` if its assertions
     cover the revised wording; no Unreal build is needed for a docs-only repair.
-  - [ ] **RF55 — Reject oversized pending population rewards on load (P3; CR04-047).**
+  - [x] **RF55 — Reject oversized pending population rewards on load (P3; CR04-047).**
     `Source/KalmalaWorld/Private/KalmalaWorldPopulationSaveGame.cpp:41-48,99-116`,
     `Source/KalmalaWorld/Public/KalmalaWorldPopulationSaveGame.h:48`, and
     `Source/KalmalaGameplay/Private/KalmalaGameMode.cpp:647-658,7829-7833,9046-9053`.
