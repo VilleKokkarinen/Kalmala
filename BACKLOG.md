@@ -1763,7 +1763,7 @@
     missing station, and full selected copy; added Inventory and station
     inspector GUID-retention plus RPC reflection coverage. Unreal automations
     were not run in this increment.
-  - [ ] **RF61 — Reconcile the current Bow feature summary (P3; CR06-001).**
+  - [x] **RF61 — Reconcile the current Bow feature summary (P3; CR06-001).**
     `docs/game-features.md:9-25,102-112`,
     `docs/01-game-design.md:3-25,60-81`,
     `Content/Data/GameCatalogues/recipes/stations/workbench.json:18-68,293-355`,
@@ -1780,16 +1780,18 @@
     **Evidence:** Current design and recipe data define 4 Sinew to 1 Bow String,
     Bow for 5 Wood plus 1 Bow String, and Wooden/Stone/Bronze Arrow recipes.
     BowCombat and ArrowProjectile implement server draw/release shots.
-    **Proposed repair:** Reconcile or consolidate the summary with current design
-    and catalogue contracts; label retained historical text as superseded.
+    **Proposed repair:** Reconcile the current feature summary with design,
+    catalogue, and server runtime contracts. Retain the first-stage equipment
+    entry only as an explicitly superseded historical note.
     **Dependencies:** After CR19 review acceptance; no repair during review.
     **Acceptance:** Current text matches Bow String sourcing/costs, available
     arrow types, and server draw/release shooting; historical details are
     clearly marked so they cannot be mistaken for current behavior.
-    **Focused validation:** Compare the summary with current design, registered
-    Workbench recipes, and shot/projectile paths. Run the documentation
-    contract checker if it covers the Bow section; no Unreal build is needed.
-    No test was run during this review.
+    **Focused validation:** Cross-check current text against the Bow shot design
+    contract, Workbench acquisition recipes, Sinew source, arrow catalogue, and
+    server draw/release/projectile code. Verify the 2026-10-15 entry explicitly
+    labels its obsolete claims as superseded. No runtime checks are needed for
+    this docs-only repair.
   - [ ] **RF62 — Enable authored Workbench upgrades for Stone starter tools (P2; CR06-002).**
     `Source/KalmalaUI/Private/KalmalaCraftingSubsystem.cpp:2210-2283`,
     `Source/KalmalaGameplay/Public/KalmalaCraftingComponent.h:50`,

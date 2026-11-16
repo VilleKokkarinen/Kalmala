@@ -1,29 +1,37 @@
 # Game features
 
-## Hammer building and bow drawing — 2026-10-18
+## Hammer building and current bow family — updated 2026-11-16
 
 Building Hammer is build-only: left-click places the selected piece and right-click
 opens the build menu to choose a piece, including when a placement is pending.
-It never starts a melee attack. Bow also uses its own controls instead of melee.
+It never starts a melee attack. All three bow profiles are two-handed and use a
+separate server-authoritative draw and release shot path. Hold left-click with a
+usable bow and supported arrows to draw;
+release at any charge to fire. Full draw takes 1.5 seconds for Bow, 2.0 for Light
+Bow, and 3.0 for Horn Bow. The crosshair circle shrinks through the draw. Early
+release reduces arrow speed and accuracy; full draw clamps. Opening a modal menu
+or swapping bows cancels without spending ammunition. Each successfully persisted
+shot consumes one arrow and one condition from the equipped bow.
 
-Hold left-click with a usable Bow and arrows to draw. The central crosshair expands
-to a circle and shrinks continuously as the bow reaches full draw. Its authored
-`DrawDuration` is currently 1.5 seconds and appears in item inspection. Release at
-any point to shoot; a quick release is weaker, slower and less accurate. Holding
-past full draw clamps at full power. Opening a modal menu or swapping bows cancels
-without spending ammunition. A committed shot spends one arrow and one condition.
+Wooden, Stone, and Bronze Arrows are supported. Select an inventory stack and
+click **Prioritize this arrow stack** to prefer it; clicking again restores
+automatic selection. If the preference is missing or exhausted, the server uses
+the first supported arrow in top-row-first inventory order. The crosshair shows
+the selected arrow and its current Pierce damage. Wooden Arrow damage scales from
+10 to 40 Pierce with draw, while Stone and Bronze Arrows deal fixed 25 and 50
+Pierce. Draw also changes projectile speed from 1000 to 4500 cm/s and spread from
+8 to 0.25 degrees. Horn Bow adds its 100 Pierce weapon bonus once; Light Bow adds
+no bow damage bonus. Gravity-driven server projectiles stop at visibility blockers
+and can damage wildlife. Arrows are not recovered; PvP and Archery progression are
+not implemented. A future server skill multiplier can shorten effective draw time
+through the existing calculation hook.
 
-Select an arrow stack in the inventory grid and click **Prioritize this arrow
-stack**. Click the preferred stack's action again to restore automatic selection.
-If the preferred stack is missing or exhausted, selection falls back to an
-available arrow stack. Currently Wooden Arrow is the available ammunition type.
-Projectiles have gravity and server collision; walls stop them and wildlife takes
-Pierce damage. Arrows expire after five seconds or on impact and are not recovered.
-
-Lower `DrawDuration` supports faster authored bows. A bounded server draw-speed
-calculation supports a future Archery multiplier; no Archery skill/progression or
-additional bow tiers are added yet. The current wooden-arrow tuning spans 10–40
-Pierce damage, 1000–4500 cm/s and 8–0.25 degrees of spread from release to full draw.
+At a level-one Workbench, craft 1 Bow String from 4 Sinew; a credited deer defeat
+has a server-owned 50% roll to grant 1 Sinew. Bow costs 5 Wood + 1 Bow String;
+Light Bow costs 25 Lightwood + 5 Deer Hide + 1 Bow String; Horn Bow costs 10
+Densewood + 2 Goat Horns + 1 Bow String. The Workbench also crafts 20 Wooden
+Arrows from 5 Wood, 20 Stone Arrows from 20 Wood + 5 Stone, or 20 Bronze Arrows
+from 20 Wood + 1 Bronze bar.
 
 ## Nearby item pickup — 2026-10-17
 
@@ -99,17 +107,15 @@ record the accepted boundaries. Rendered manual usability, Falling-phase late jo
 adverse networking, live peer process restart and full-project/package verification
 remain outside this acceptance.
 
-## Bow and two-handed items — 2026-10-15
+## First bow equipment summary — historical (2026-10-15)
 
-String stacks to 20; Wooden Arrows stack to 100. A level-one Workbench crafts
-Bow for 5 Wood and 2 String, and 20 Wooden Arrows for 5 Wood. All three have
-original imported inventory artwork. String has no acquisition source yet.
-Bow occupies both hands; validated atomic swaps return the previous tool and
-shield, requiring one free cell if both were held. Shield equip returns Bow;
-unwielding requires pack capacity. Wielding state remains owner-private and
-session-only. Bow level-ups reuse its 5 Wood/2 String Workbench acquisition cost
-and grant +50 maximum durability per level. Damage rewards remain zero while
-shooting is unimplemented.
+**Superseded historical note:** This first-stage entry described Bow as costing
+5 Wood + 2 generic String, stated that String had no source, listed only Wooden
+Arrows, and said shooting was unimplemented. Those material, ammunition, and
+behavior claims are obsolete; use the [current bow family summary](#hammer-building-and-current-bow-family-updated-2026-11-16)
+and the [Bow shot contract](01-game-design.md#bow-shot-contract-updated-2026-10-22).
+The initial two-handed equipment and shield-swap behavior remains current; see
+the [two-handed equipment contract](01-game-design.md#bow-crafting-and-two-handed-equipment-2026-10-15).
 
 Added gameplay and UI, in brief. [BACKLOG.md](../BACKLOG.md) tracks unfinished integration and verification.
 

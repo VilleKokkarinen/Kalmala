@@ -33710,3 +33710,15 @@ collision samples, slope p50/p90/p95/max was 2.31/4.55/28.07/36.20 degrees
 - **Networking/authority:** The owning client sends a GUID only. The server requires authority, a valid nearby Workbench or Forge, and one unique GUID match in its carried list. It persists the repaired candidate before accepting and restores the old list on save failure; result replication remains owner-only.
 - **Known limitations / remaining scope:** The new lifecycle and inspector automations were authored but not compiled or run. Persistence-failure rollback was source-inspected but not exercised through an injected live save failure. RF61 and later CR remediation tasks remain open.
 - **Next eligible task:** RF61 — Reconcile the current Bow feature summary. The overall CR remediation goal remains active.
+
+## Run 2026-11-16 — RF61 current Bow feature summary
+
+- **Selected task:** RF61, reconcile the Bow feature summary with current design, catalogue, and runtime behavior.
+- **Work completed:** Updated the current feature summary with Bow String sourcing and Workbench costs for Bow, Light Bow, Horn Bow, and all three arrow types. Documented server draw/release behavior, per-bow draw times, stack preference and fallback, charge-dependent performance, arrow and Horn Bow damage, shot payment, and current exclusions. Replaced the obsolete 2026-10-15 text with an explicit superseded historical note and links to the current summary and design contract. Checked RF61 in the backlog.
+- **Files changed:** `docs/game-features.md`, `BACKLOG.md`, and `PROGRESS.md`.
+- **Lightweight checks:** Manually compared the summary with `docs/01-game-design.md`, the Workbench recipes, the Bow String/Sinew decision entry, and `KalmalaBowCombat.cpp` / `KalmalaArrowProjectile.cpp`. Parsed the Workbench recipe JSON and confirmed the old claims occur only in the superseded historical note. `git diff --check` passed. No Unreal build or automation was run.
+- **Full verification:** Deferred; RF61 is a documentation-only increment and is not the final implementation task in the CR remediation queue.
+- **Observable impact:** Readers now get current Bow/String recipes, arrow choices, and shooting behavior from the feature summary; the retained first-stage entry cannot be mistaken for current behavior.
+- **Networking/authority:** No runtime or networking changes. The summary states that draw/release, arrow selection fallback, projectile collision, and persisted shot payment are server-authoritative, consistent with the referenced design and source.
+- **Known limitations / remaining scope:** This documentation update does not execute gameplay automation or verify rendered UI. Later CR remediation tasks and the CR milestone-final verification remain open.
+- **Next eligible task:** RF62 — Enable authored Workbench upgrades for Stone starter tools. The overall CR remediation goal remains active.
